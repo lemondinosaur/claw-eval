@@ -1169,8 +1169,8 @@ def cmd_batch(args: argparse.Namespace) -> None:
         if d.is_dir() and (d / "task.yaml").exists()
     )
     if args.filter:
-        filt = args.filter.lower()
-        task_dirs = [d for d in task_dirs if filt in d.lower()]
+        filt = args.filter
+        task_dirs = [d for d in task_dirs if os.path.basename(d).startswith(filt)]
 
     if args.tag:
         from .models.task import TaskDefinition as _TD

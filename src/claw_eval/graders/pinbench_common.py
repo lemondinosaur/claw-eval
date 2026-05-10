@@ -65,7 +65,7 @@ class PinbenchAdaptedGrader(AbstractGrader):
             components.append(matched / len(self.REQUIRED_KEYWORDS))
 
         if self.REQUIRED_PATTERNS:
-            matched = sum(1 for pattern in self.REQUIRED_PATTERNS if re.search(pattern, final_text, re.IGNORECASE))
+            matched = sum(1 for pattern in self.REQUIRED_PATTERNS if re.search(pattern, final_text, re.IGNORECASE | re.MULTILINE))
             components.append(matched / len(self.REQUIRED_PATTERNS))
 
         if self.MIN_FINAL_LENGTH:

@@ -12,11 +12,30 @@ Container lifecycle:
 
 from __future__ import annotations
 
+import threading
 import time
 from dataclasses import dataclass
 from typing import Any
 
 from ..config import SandboxConfig
+
+_port_lock = threading.Lock()
+
+
+def _allocate_port() -> int:
+    """Allocate a free TCP port by asking the kernel.
+
+    Multi-process safe: in batch mode each worker is a separate Python process,
+    so an in-process counter (e.g. ``_next_port = 18100``) would collide because
+    every worker would start from the same base. Binding to port 0 lets the
+    kernel pick an unused port that is unique system-wide.
+    """
+    import socket
+
+    with _port_lock:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("", 0))
+            return s.getsockname()[1]
 
 
 @dataclass
@@ -76,21 +95,22 @@ class SandboxRunner:
     def start_container(self, *, run_id: str) -> ContainerHandle:
         """Launch an agent container and wait for the sandbox service.
 
-        Returns a *ContainerHandle* with the sandbox HTTP URL that the
-        host-side dispatcher should send ``sandbox_*`` tool calls to.
+        Uses host network mode to avoid iptables/DNAT issues.
+        Each container gets a unique port via _allocate_port().
         """
+        host_port = _allocate_port()
         container = self._docker.containers.run(
             image=self._image,
             detach=True,
             name=f"claw-agent-{run_id}",
             mem_limit=self._config.memory_limit,
             nano_cpus=int(self._config.cpu_limit * 1e9),
-            ports={f"{self._config.sandbox_port}/tcp": None},  # random host port
+            network_mode="host",
+            entrypoint=["python", "/opt/sandbox/server.py", "--port", str(host_port)],
             labels={"app": "claw-eval", "role": "agent", "run_id": run_id},
             environment=self._proxy_env(),
         )
 
-        host_port = self._get_mapped_port(container)
         sandbox_url = f"http://localhost:{host_port}"
         self._wait_healthy(f"{sandbox_url}/health")
 

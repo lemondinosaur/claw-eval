@@ -1,17 +1,12 @@
 """
-Search SERP — raw web skill
+Search SERP — raw web skill (Serper.dev backend)
 
-GET https://scraperapi.novada.com/search
-Query params:
-    engine:     "google"
-    api_key:    <SERP_DEV_KEY>
-    q:          <query>
-    num:        <str int, 1-10>
-    hl:         "zh" | "en"  (auto-detected from query)
-    gl:         "cn" | "us"  (auto-detected from query)
-    start:      <int, 0-based offset>
-    fetch_mode: "static"
-    no_cache:   "true"
+POST https://google.serper.dev/search
+Headers:
+    X-API-KEY: <SERP_DEV_KEY>
+    Content-Type: application/json
+Body:
+    q, num, hl, gl
 
 Input:  query (str), timeout (int), num (int), start (int)
 Output: {"status": <int>, "output": <list[dict]>}
@@ -21,12 +16,12 @@ import os
 import re
 import requests
 
-SERP_API_URL = os.getenv("SERP_API_URL", "https://scraperapi.novada.com/search")
+SERP_API_URL = os.getenv("SERP_API_URL", "https://google.serper.dev/search")
 SERP_DEV_KEY = os.getenv("SERP_DEV_KEY", "YOUR_API_KEY")
 
 
 def _detect_language(query: str) -> tuple[str, str]:
-    if re.search(r"[\u4e00-\u9fff]", query):
+    if re.search(r"[一-鿿]", query):
         return "zh", "cn"
     return "en", "us"
 
@@ -38,53 +33,49 @@ def search_serp(
     start: int = 1,
     raw_save_path: str | None = None,
 ) -> dict:
-    """Search Google via SERP API and return extracted results.
-
-    Args:
-        query: Search query string.
-        timeout: Request timeout in seconds.
-        num: Number of results (1-10).
-        start: 1-based result offset.
-
-    Returns:
-        dict with keys:
-            status (int): HTTP status code, or -1 on error.
-            output (list[dict]): List of result dicts with keys:
-                title, link, snippet, date, query.
-    """
+    """Search Google via Serper.dev API and return extracted results."""
     hl, gl = _detect_language(query)
-    params = {
-        "engine": "google",
-        "api_key": SERP_DEV_KEY,
+    headers = {
+        "X-API-KEY": SERP_DEV_KEY,
+        "Content-Type": "application/json",
+    }
+    payload = {
         "q": query,
-        "num": str(min(max(num, 1), 10)),
+        "num": min(max(num, 1), 10),
         "hl": hl,
         "gl": gl,
-        "start": str(max(start, 1)),
-        "fetch_mode": "static",
-        "no_cache": "true",
     }
+    if start > 1:
+        payload["page"] = start
     try:
-        resp = requests.get(SERP_API_URL, params=params, timeout=timeout)
+        proxies = {}
+        proxy_url = os.environ.get("https_proxy") or os.environ.get("http_proxy")
+        if proxy_url:
+            proxies = {"http": proxy_url, "https": proxy_url}
+        resp = requests.post(SERP_API_URL, json=payload, headers=headers, timeout=timeout, proxies=proxies)
         if raw_save_path and resp.status_code == 200:
             os.makedirs(os.path.dirname(raw_save_path) or ".", exist_ok=True)
             with open(raw_save_path, "w", encoding="utf-8") as f:
                 f.write(resp.text)
         if resp.status_code != 200:
+            print(f"[search_serp] non-200: status={resp.status_code} body={resp.text[:300]}", flush=True)
             return {"status": resp.status_code, "output": []}
-        data = resp.json().get("data", {})
+        data = resp.json()
+        if not data.get("organic"):
+            print(f"[search_serp] empty organic for q={query!r}: keys={list(data.keys())} body={resp.text[:300]}", flush=True)
         results = [
             {
                 "title": item.get("title", ""),
-                "link": item.get("url", ""),
-                "snippet": item.get("description", ""),
+                "link": item.get("link", ""),
+                "snippet": item.get("snippet", ""),
                 "date": item.get("date", ""),
                 "query": query,
             }
-            for item in data.get("organic_results", [])
+            for item in data.get("organic", [])
         ]
         return {"status": resp.status_code, "output": results}
     except Exception as e:
+        print(f"[search_serp] exception for q={query!r}: {e}", flush=True)
         return {"status": -1, "output": []}
 
 

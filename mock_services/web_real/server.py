@@ -278,10 +278,12 @@ def web_fetch(req: FetchRequest) -> dict[str, Any]:
         return resp
 
     try:
+        proxy_url = os.environ.get("https_proxy") or os.environ.get("http_proxy")
         with httpx.Client(
             timeout=min(req.timeout_seconds, 30),
             follow_redirects=True,
             headers={"User-Agent": "Mozilla/5.0 (compatible; AgentEval/1.0)"},
+            proxy=proxy_url,
         ) as client:
             http_resp = client.get(req.url)
 

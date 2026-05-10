@@ -201,24 +201,27 @@ def _message_to_openai(msg: Message) -> dict[str, Any] | list[dict[str, Any]]:
     # Assistant messages with tool_use blocks
     tool_uses = [b for b in msg.content if b.type == "tool_use"]
     if tool_uses:
-        d = {
+        content = _blocks_to_openai_content(msg)
+        tc_list = []
+        for tu in tool_uses:
+            tc_entry: dict[str, Any] = {
+                "id": tu.id,
+                "type": "function",
+                "function": {
+                    "name": tu.name,
+                    "arguments": json.dumps(tu.input),
+                },
+            }
+            if getattr(tu, "extra_content", None):
+                tc_entry["extra_content"] = tu.extra_content
+            tc_list.append(tc_entry)
+        d: dict[str, Any] = {
             "role": "assistant",
-            "content": _blocks_to_openai_content(msg) or None,
-            "tool_calls": [
-                {
-                    "id": tu.id,
-                    "type": "function",
-                    "function": {
-                        "name": tu.name,
-                        "arguments": json.dumps(tu.input),
-                    },
-                }
-                for tu in tool_uses
-            ],
+            "tool_calls": tc_list,
         }
+        if content:
+            d["content"] = content
         if msg.reasoning_content:
-            # Use "reasoning" for OpenRouter compatibility (also accepted as
-            # "reasoning_content" by native DeepSeek/QwQ endpoints).
             d["reasoning"] = msg.reasoning_content
         return d
 
@@ -401,7 +404,7 @@ class OpenAICompatProvider:
                 for tc_delta in delta.tool_calls:
                     idx = tc_delta.index
                     if idx not in tool_calls_by_index:
-                        tool_calls_by_index[idx] = {"id": "", "name": "", "arguments": ""}
+                        tool_calls_by_index[idx] = {"id": "", "name": "", "arguments": "", "extra_content": None}
                     if tc_delta.id:
                         tool_calls_by_index[idx]["id"] = tc_delta.id
                     if tc_delta.function:
@@ -409,6 +412,9 @@ class OpenAICompatProvider:
                             tool_calls_by_index[idx]["name"] = tc_delta.function.name
                         if tc_delta.function.arguments:
                             tool_calls_by_index[idx]["arguments"] += tc_delta.function.arguments
+                    ec = getattr(tc_delta, "extra_content", None)
+                    if ec:
+                        tool_calls_by_index[idx]["extra_content"] = ec
 
         if not has_any_choice:
             raise RuntimeError("Model returned empty choices (choices=None or [])")
@@ -440,6 +446,7 @@ class OpenAICompatProvider:
                 t = _TC()
                 t.id = tc["id"]
                 t.function = fn
+                t.extra_content = tc.get("extra_content")
                 assembled.append(t)
             msg.tool_calls = assembled
         else:
@@ -500,10 +507,12 @@ class OpenAICompatProvider:
                     args = json.loads(tc.function.arguments)
                 except json.JSONDecodeError:
                     args = {}
+                extra = getattr(tc, "extra_content", None)
                 parsed_tool_uses.append(ToolUseBlock(
                     id=tc.id,
                     name=tc.function.name,
                     input=args,
+                    extra_content=extra,
                 ))
             content_blocks.extend(parsed_tool_uses)
         else:

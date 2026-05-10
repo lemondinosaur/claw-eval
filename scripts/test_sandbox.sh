@@ -11,6 +11,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+if [ -f .venv/bin/activate ]; then
+    set +u
+    source .venv/bin/activate
+    set -u
+fi
+
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
@@ -23,10 +29,11 @@ info() { echo -e "${YELLOW}[INFO]${NC} $1"; }
 # ====================================================================
 # Phase 0: 安装依赖
 # ====================================================================
-info "Phase 0: 安装依赖"
-pip install -r requirements-sandbox-server.txt -q 2>&1 | tail -1
-pip install -r requirements.txt -q 2>&1 | tail -1
-pip install -e . -q 2>&1 | tail -1
+info "Phase 0: 检查依赖"
+python -c "import fastapi, uvicorn, pydantic; print('依赖已就绪')" \
+    || { python -m pip install -r requirements-sandbox-server.txt -q 2>&1 | tail -1; }
+python -c "import claw_eval" \
+    || { python -m pip install -r requirements.txt -q 2>&1 | tail -1; python -m pip install -e . -q 2>&1 | tail -1; }
 pass "依赖安装完成"
 
 echo ""
@@ -36,6 +43,12 @@ echo ""
 info "Phase 1: 本地启动 sandbox server 冒烟测试"
 
 # 启动 sandbox server 在后台
+EXISTING_PID=$(lsof -ti :18080 2>/dev/null || true)
+if [ -n "$EXISTING_PID" ]; then
+    info "清理 18080 端口残留进程 (PID $EXISTING_PID)"
+    kill -9 $EXISTING_PID 2>/dev/null || true
+    sleep 1
+fi
 python src/claw_eval/sandbox/server.py --port 18080 &
 SERVER_PID=$!
 sleep 2
@@ -139,6 +152,10 @@ info "Phase 2: Docker 镜像构建 + 容器冒烟测试"
 # 2.1 构建镜像
 info "构建 claw-eval-agent:latest ..."
 docker build -f Dockerfile.agent -t claw-eval-agent:latest . -q \
+    --build-arg http_proxy="${http_proxy:-}" \
+    --build-arg https_proxy="${https_proxy:-}" \
+    --build-arg HTTP_PROXY="${HTTP_PROXY:-${http_proxy:-}}" \
+    --build-arg HTTPS_PROXY="${HTTPS_PROXY:-${https_proxy:-}}" \
     && pass "Docker 镜像构建成功" \
     || fail "Docker 镜像构建失败"
 

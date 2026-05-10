@@ -103,13 +103,16 @@ class ServiceManager:
         # so that forked workers (ProcessPoolExecutor) use the same venv.
         if cmd and cmd[0] in ("python", "python3"):
             cmd[0] = sys.executable
-        # Build env: strip proxy vars to avoid routing mock traffic through proxies.
+        # Build env: strip proxy vars to avoid routing mock traffic through proxies,
+        # but keep them for services that need real internet access (web_real).
         base_env = dict(os.environ)
-        for proxy_key in (
-            "http_proxy", "https_proxy", "all_proxy",
-            "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
-        ):
-            base_env.pop(proxy_key, None)
+        needs_internet = "web_real" in svc.name
+        if not needs_internet:
+            for proxy_key in (
+                "http_proxy", "https_proxy", "all_proxy",
+                "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
+            ):
+                base_env.pop(proxy_key, None)
         env = {**base_env, **(svc.env or {})}
         # Inject MOCK_TODAY if the task defines it
         if self._mock_today:

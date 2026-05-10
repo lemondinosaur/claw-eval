@@ -80,7 +80,7 @@ def list_integrations(req: ListIntegrationsRequest | None = None) -> dict[str, A
         req = ListIntegrationsRequest()
     results = []
     for intg in _integrations:
-        if req.status and intg["status"] != req.status:
+        if req.status and req.status != "all" and intg["status"] != req.status:
             continue
         # Return summary (without secrets) in list view
         results.append({

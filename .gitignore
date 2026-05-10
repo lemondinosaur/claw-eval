@@ -14,7 +14,6 @@ traces/
 traces_*/
 .vscode/
 CLAUDE.md
-*.sh
 
 tasks/*/fixtures/*.mp4
 tasks/*/fixtures/*.webm
@@ -31,8 +30,8 @@ configs/
 configs_paper/
 results/
 *.png
-scripts/
 
 regrade/
 yqb_temp/
 others/
+models.json

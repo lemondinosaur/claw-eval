@@ -84,7 +84,9 @@ def _log_call(endpoint: str, request_body: dict[str, Any], response_body: Any) -
 
 
 class ListEventsRequest(BaseModel):
-    date: str
+    date: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
     days: int = 1
 
 
@@ -112,15 +114,25 @@ class DeleteEventRequest(BaseModel):
 @app.post("/calendar/events")
 def list_events(req: ListEventsRequest | None = None) -> dict[str, Any]:
     if req is None:
-        req = ListEventsRequest(date="2026-03-02")
+        req = ListEventsRequest()
+    raw_date = req.date or req.start_date
+    if not raw_date:
+        mock_today = os.environ.get("MOCK_TODAY", "2026-03-02")
+        raw_date = mock_today
     try:
-        query_date = datetime.strptime(req.date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        query_date = datetime.strptime(raw_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     except ValueError:
-        resp = {"error": f"Invalid date format: {req.date}"}
+        resp = {"error": f"Invalid date format: {raw_date}"}
         _log_call("/calendar/events", req.model_dump(), resp)
         return resp
 
-    end_date = query_date + timedelta(days=req.days)
+    if req.end_date:
+        try:
+            end_date = datetime.strptime(req.end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc) + timedelta(days=1)
+        except ValueError:
+            end_date = query_date + timedelta(days=req.days)
+    else:
+        end_date = query_date + timedelta(days=req.days)
     results = []
     for evt in _events:
         evt_start = datetime.fromisoformat(evt["start_time"].replace("Z", "+00:00"))

@@ -139,7 +139,7 @@ class MediaConfig(BaseModel):
     video_frame_budget: int = 8
     tool_image_quality: int = 60
     tool_image_max_dimension: int = 1280
-    max_conversation_images: int = 256
+    max_conversation_images: int = 100
     image_keep_recent_turns: int = 3
 
 
