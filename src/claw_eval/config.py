@@ -68,8 +68,8 @@ class SandboxConfig(BaseModel):
     enabled: bool = False
     image: str = "claw-eval-agent:latest"
     docker_host: str | None = None
-    memory_limit: str = "4g"
-    cpu_limit: float = 2.0
+    memory_limit: str = "16g"
+    cpu_limit: float = 8.0
     sandbox_port: int = 8080
     container_timeout: int = 900
     max_concurrent: int = 10

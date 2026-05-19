@@ -56,9 +56,16 @@ source .venv/bin/activate
 echo "=== Claw-Eval: ${MODEL_NAME} ==="
 echo "Project dir: ${PROJECT_DIR}"
 
+# Setup logging
+LOG_DIR="${PROJECT_DIR}/logs"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+LOG_FILE="${LOG_DIR}/eval_${MODEL_NAME}_${TIMESTAMP}.log"
+mkdir -p "${LOG_DIR}"
+echo "Log file:  ${LOG_FILE}"
+
 START_MARKER=$(mktemp)
 
-# --- Step 1: Generate 3 yaml configs from models.json ---
+# --- Step 1: Generate 3 yaml configs from models.json (skip if exists) ---
 echo ""
 echo "--- Generating configs for ${MODEL_NAME} ---"
 
@@ -97,6 +104,9 @@ input_modalities = model_info.get("input_modalities", ["text", "image"])
 extra_body = model_info.get("extra_body")
 
 def write_yaml(path, content):
+    if Path(path).exists():
+        print(f"  Skipped (exists): {path}")
+        return
     Path(path).write_text(content)
     print(f"  Generated: {path}")
 
@@ -185,6 +195,8 @@ if [ "$DRY_RUN" = true ]; then
     exit 0
 fi
 
+# --- Steps 2-5 piped to log file ---
+{
 # --- Step 2: Clean up residual containers ---
 echo ""
 echo "--- Cleaning residual containers ---"
@@ -222,7 +234,16 @@ fi
 
 echo "=== All evaluations complete for ${MODEL_NAME} ==="
 
-# --- Step 4: Score summary for every trace dir created in this run ---
+# --- Step 4: Clean abnormal + sandbox-failed traces ---
+echo ""
+echo "=== Cleaning abnormal + sandbox-failed traces ==="
+while IFS= read -r d; do
+    echo "--- ${d} ---"
+    python "${PROJECT_DIR}/cleanup_traces.py" "${d}" --drop-sandbox-failed
+done < <(find traces -mindepth 1 -maxdepth 1 -type d -newer "$START_MARKER" | sort)
+echo ""
+
+# --- Step 5: Score summary for every trace dir created in this run ---
 echo ""
 echo "=== Score summaries ==="
 while IFS= read -r d; do
@@ -231,3 +252,5 @@ while IFS= read -r d; do
     python "${PROJECT_DIR}/score_summary.py" "${d}" --fix
 done < <(find traces -mindepth 1 -maxdepth 1 -type d -newer "$START_MARKER" | sort)
 rm -f "$START_MARKER"
+
+} 2>&1 | tee -a "${LOG_FILE}"

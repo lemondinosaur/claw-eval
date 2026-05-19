@@ -1,4 +1,4 @@
-ARG REGISTRY=docker.io
+ARG REGISTRY=swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io
 FROM ${REGISTRY}/python:3.11-slim
 
 ARG http_proxy
