@@ -20,10 +20,12 @@ from ..models.trace import (
     CompactEvent,
     DimensionScores,
     MediaLoad,
+    SystemPromptSnapshot,
     TokenUsage,
     TraceEnd,
     TraceMessage,
     TraceStart,
+    ToolsSnapshot,
 )
 from ..trace.writer import TraceWriter
 from .agent_tools import build_agent_tools
@@ -314,6 +316,10 @@ def run_task(
             task_id=task.task_id,
             model=provider.model_id,
         ))
+        writer.write_event(ToolsSnapshot(
+            trace_id=trace_id,
+            tools=task_tools,
+        ))
 
         # Build initial messages
         system_prompt = build_system_prompt(task, prompt_cfg, extra_tools=sandbox_tool_list)
@@ -332,6 +338,13 @@ def run_task(
             Message(role="system", content=[TextBlock(text=system_prompt)]),
             Message(role="user", content=user_content),
         ]
+
+        # Persist the exact rendered system prompt without injecting it into
+        # the conversational trace consumed by graders.
+        writer.write_event(SystemPromptSnapshot(
+            trace_id=trace_id,
+            prompt_text=system_prompt,
+        ))
 
         # Log user message
         writer.write_event(TraceMessage(

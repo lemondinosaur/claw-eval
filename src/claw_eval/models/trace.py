@@ -8,6 +8,7 @@ from typing import Annotated, Any, Literal, Union
 from pydantic import BaseModel, Field
 
 from .message import Message
+from .tool import ToolSpec
 
 
 def _now() -> str:
@@ -38,6 +39,20 @@ class TraceStart(BaseModel):
     task_id: str
     model: str
     persona: str = "default"
+    timestamp: str = Field(default_factory=_now)
+
+
+class SystemPromptSnapshot(BaseModel):
+    type: Literal["system_prompt"] = "system_prompt"
+    trace_id: str
+    prompt_text: str
+    timestamp: str = Field(default_factory=_now)
+
+
+class ToolsSnapshot(BaseModel):
+    type: Literal["tools_snapshot"] = "tools_snapshot"
+    trace_id: str
+    tools: list[ToolSpec] = Field(default_factory=list)
     timestamp: str = Field(default_factory=_now)
 
 
@@ -132,6 +147,17 @@ class GradingResult(BaseModel):
 
 
 TraceEvent = Annotated[
-    Union[TraceStart, TraceMessage, ToolDispatch, AuditSnapshot, MediaLoad, CompactEvent, TraceEnd, GradingResult],
+    Union[
+        TraceStart,
+        SystemPromptSnapshot,
+        ToolsSnapshot,
+        TraceMessage,
+        ToolDispatch,
+        AuditSnapshot,
+        MediaLoad,
+        CompactEvent,
+        TraceEnd,
+        GradingResult,
+    ],
     Field(discriminator="type"),
 ]

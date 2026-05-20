@@ -5,15 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import IO
 
-from ..models.trace import (
-    AuditSnapshot,
-    MediaLoad,
-    TraceEnd,
-    TraceEvent,
-    TraceMessage,
-    TraceStart,
-    ToolDispatch,
-)
+from ..models.trace import TraceEvent
 
 
 class TraceWriter:
@@ -26,10 +18,10 @@ class TraceWriter:
 
     def _ensure_open(self) -> IO[str]:
         if self._fh is None or self._fh.closed:
-            self._fh = open(self.path, "a")
+            self._fh = open(self.path, "a", encoding="utf-8")
         return self._fh
 
-    def write_event(self, event: TraceStart | TraceMessage | ToolDispatch | AuditSnapshot | MediaLoad | TraceEnd) -> None:
+    def write_event(self, event: TraceEvent) -> None:
         fh = self._ensure_open()
         fh.write(event.model_dump_json() + "\n")
         fh.flush()
