@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Convert a directory of Claw trace JSONL files into ms-swift JSONL data.
+"""Convert Claw traces or exported JSONL files into ms-swift JSONL data.
 
 The output format is the canonical ms-swift dataset schema:
     {"messages": [...], "tools": [...]}
 
 Notes:
-- Only files ending in ``.jsonl`` are processed.
+- Trace conversion only processes files ending in ``.jsonl``.
 - ``tools_snapshot`` is used when present. Older traces fall back to
   recovering tools from ``tasks/<task_id>/task.yaml`` plus used agent/sandbox
   tools when possible.
-- The converter preserves trace-level canonical structure instead of rendering
-  model-specific tool-call templates.
+- Tool call / tool response payloads are serialized to JSON strings to match
+  ms-swift's agent dataset expectations.
 """
 
 from __future__ import annotations
@@ -58,12 +58,16 @@ class TraceConversionError(RuntimeError):
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Convert a directory of trace JSONL files into ms-swift JSONL data.",
+        description="Convert trace JSONL files or sanitize exported JSONL into ms-swift JSONL data.",
     )
-    parser.add_argument(
+    source_group = parser.add_mutually_exclusive_group(required=True)
+    source_group.add_argument(
         "--trace-dir",
-        required=True,
         help="Directory containing completed trace files. Only *.jsonl files are processed.",
+    )
+    source_group.add_argument(
+        "--input-jsonl",
+        help="Existing exported JSONL to sanitize into ms-swift-compatible agent rows.",
     )
     parser.add_argument(
         "--output-jsonl",
@@ -99,6 +103,19 @@ def _try_parse_json(text: str) -> Any:
         return json.loads(text)
     except Exception:
         return text
+
+
+def _to_serialized_content(value: Any) -> str:
+    if isinstance(value, str):
+        return value
+    return json.dumps(value, ensure_ascii=False)
+
+
+def _sanitize_row_for_msswift(row: dict[str, Any]) -> dict[str, Any]:
+    for message in row.get("messages", []):
+        if message.get("role") in {"tool_call", "tool", "tool_response"}:
+            message["content"] = _to_serialized_content(message.get("content"))
+    return row
 
 
 def _tool_spec_to_msswift(tool: Any) -> dict[str, Any]:
@@ -156,7 +173,7 @@ def _convert_assistant_message(msg: TraceMessage) -> list[dict[str, Any]]:
             }
             if block.extra_content is not None:
                 tool_content["extra_content"] = block.extra_content
-            converted.append({"role": "tool_call", "content": tool_content})
+            converted.append({"role": "tool_call", "content": _to_serialized_content(tool_content)})
             continue
 
         if isinstance(block, (TextBlock, ImageBlock, AudioBlock, VideoBlock)):
@@ -175,7 +192,7 @@ def _convert_user_message(msg: TraceMessage) -> list[dict[str, Any]]:
             _flush_regular_message(converted, "user", pending)
             pending = []
             text = "\n".join(text_block.text for text_block in block.content)
-            converted.append({"role": "tool", "content": _try_parse_json(text)})
+            converted.append({"role": "tool", "content": _to_serialized_content(_try_parse_json(text))})
             continue
 
         if isinstance(block, (TextBlock, ImageBlock, AudioBlock, VideoBlock)):
@@ -294,7 +311,7 @@ def _load_trace_row(trace_path: Path, tasks_dir: Path) -> dict[str, Any]:
             _tool_spec_to_msswift(tool)
             for tool in _dedupe_tools(tools_snapshot)
         ]
-    return row
+    return _sanitize_row_for_msswift(row)
 
 
 def _find_trace_files(trace_dir: Path, output_path: Path) -> list[Path]:
@@ -306,6 +323,48 @@ def _find_trace_files(trace_dir: Path, output_path: Path) -> list[Path]:
             continue
         files.append(path)
     return files
+
+
+def sanitize_exported_jsonl(
+    input_path: Path,
+    output_path: Path,
+    *,
+    strict: bool,
+) -> None:
+    if not input_path.exists() or not input_path.is_file():
+        raise TraceConversionError(f"input jsonl does not exist or is not a file: {input_path}")
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = output_path.with_suffix(f"{output_path.suffix}.tmp") if input_path.resolve() == output_path.resolve() else output_path
+
+    written = 0
+    skipped = 0
+    with input_path.open("r", encoding="utf-8") as src, temp_path.open("w", encoding="utf-8") as dst:
+        for line_no, line in enumerate(src, 1):
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+                row = _sanitize_row_for_msswift(row)
+            except Exception as exc:
+                skipped += 1
+                LOG.error("Failed to sanitize line %d in %s: %s", line_no, input_path.name, exc)
+                if strict:
+                    raise
+                continue
+            dst.write(json.dumps(row, ensure_ascii=False) + "\n")
+            written += 1
+
+    if temp_path != output_path:
+        temp_path.replace(output_path)
+
+    LOG.info(
+        "Finished sanitization: input=%s written_rows=%d skipped=%d output=%s",
+        input_path,
+        written,
+        skipped,
+        output_path,
+    )
 
 
 def convert_trace_directory(
@@ -350,17 +409,24 @@ def main() -> int:
     args = _parse_args()
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
-    trace_dir = Path(args.trace_dir).expanduser().resolve()
     output_path = Path(args.output_jsonl).expanduser().resolve()
+    trace_dir = Path(args.trace_dir).expanduser().resolve() if args.trace_dir else None
+    input_jsonl = Path(args.input_jsonl).expanduser().resolve() if args.input_jsonl else None
     tasks_dir = Path(args.tasks_dir).expanduser().resolve()
 
-    if not trace_dir.exists() or not trace_dir.is_dir():
-        raise SystemExit(f"trace directory does not exist or is not a directory: {trace_dir}")
-    if not tasks_dir.exists() or not tasks_dir.is_dir():
-        raise SystemExit(f"tasks directory does not exist or is not a directory: {tasks_dir}")
+    if trace_dir is not None:
+        if not trace_dir.exists() or not trace_dir.is_dir():
+            raise SystemExit(f"trace directory does not exist or is not a directory: {trace_dir}")
+        if not tasks_dir.exists() or not tasks_dir.is_dir():
+            raise SystemExit(f"tasks directory does not exist or is not a directory: {tasks_dir}")
+    elif input_jsonl is None:
+        raise SystemExit("either --trace-dir or --input-jsonl is required")
 
     try:
-        convert_trace_directory(trace_dir, output_path, tasks_dir, strict=args.strict)
+        if trace_dir is not None:
+            convert_trace_directory(trace_dir, output_path, tasks_dir, strict=args.strict)
+        else:
+            sanitize_exported_jsonl(input_jsonl, output_path, strict=args.strict)
     except Exception as exc:
         LOG.error("%s", exc)
         return 1

@@ -27,14 +27,19 @@ def _resolve_task_yaml(task_arg: str) -> Path:
         yaml_path = p / "task.yaml"
         if not yaml_path.exists():
             raise FileNotFoundError(f"No task.yaml found in {p}")
-        return yaml_path
-    return p
+        return yaml_path.resolve()
+    return p.resolve()
 
 
 def _resolve_tasks_dir(task_yaml: Path) -> Path:
     """Given a task YAML path like tasks/T01zh_email_triage/task.yaml, return the tasks/ root dir."""
     # task.yaml is at tasks/<ID>/task.yaml — parent.parent is tasks/
     return task_yaml.parent.parent
+
+
+def _repo_root() -> Path:
+    """Return the repository root that contains src/ and mock_services/."""
+    return Path(__file__).resolve().parents[2]
 
 
 def _make_trace_dir(base_dir: str | Path, model_id: str) -> Path:
@@ -336,6 +341,7 @@ def cmd_run(args: argparse.Namespace) -> None:
     port_offset = getattr(args, "port_offset", 0) or 0
     if port_offset:
         task.apply_port_offset(port_offset)
+    do_grade = not getattr(args, "no_grade", False)
 
     # Resolve model_id early (used for trace dir naming)
     model_id = args.model or cfg.model.model_id
@@ -359,12 +365,12 @@ def cmd_run(args: argparse.Namespace) -> None:
             temperature=cfg.model.temperature,
             reasoning_effort=cfg.model.reasoning_effort,
         )
-        judge = _make_judge(cfg, args)
+        judge = _make_judge(cfg, args) if do_grade else None
         trials = args.trials or 1
         trial_scores: list[float] = []
         trace_paths: list[Path] = []
 
-        with ServiceManager(task.services, mock_today=task.environment.mock_today) as svc:
+        with ServiceManager(task.services, cwd=_repo_root(), mock_today=task.environment.mock_today) as svc:
             for i in range(trials):
                 if trials > 1:
                     print(f"\n--- Trial {i + 1}/{trials} ---")
@@ -388,16 +394,22 @@ def cmd_run(args: argparse.Namespace) -> None:
                         media_cfg=cfg.media,
                         user_agent=_make_user_agent(cfg, task),
                     )
-                    # Inject grader-only files (e.g. verify scripts with answers)
-                    # AFTER the agent loop so the agent cannot read them.
-                    n_grader = runner.inject_grader_files(handle, task, task_dir=str(task_yaml.parent))
-                    if task.sandbox_grader_files and n_grader < len(task.sandbox_grader_files):
-                        print(f"[WARNING] inject_grader_files: only {n_grader}/{len(task.sandbox_grader_files)} files injected")
-                    # Collect env snapshot before destroying container
-                    env_snapshot = _collect_env_snapshot(handle.sandbox_url, task)
-                    _save_env_snapshot(env_snapshot, trace_path, task.task_id)
+                    if do_grade:
+                        # Inject grader-only files (e.g. verify scripts with answers)
+                        # AFTER the agent loop so the agent cannot read them.
+                        n_grader = runner.inject_grader_files(handle, task, task_dir=str(task_yaml.parent))
+                        if task.sandbox_grader_files and n_grader < len(task.sandbox_grader_files):
+                            print(f"[WARNING] inject_grader_files: only {n_grader}/{len(task.sandbox_grader_files)} files injected")
+                        # Collect env snapshot before destroying container
+                        env_snapshot = _collect_env_snapshot(handle.sandbox_url, task)
+                        _save_env_snapshot(env_snapshot, trace_path, task.task_id)
                 finally:
                     runner.stop_container(handle)
+
+                trace_paths.append(trace_path)
+                print(f"Trace: {trace_path}")
+                if not do_grade:
+                    continue
 
                 # Read local grader files from host (GT files, never touched by agent)
                 if task.local_grader_files:
@@ -415,9 +427,6 @@ def cmd_run(args: argparse.Namespace) -> None:
                             env_snapshot[f"local_file:{rel_path}"] = {
                                 "error": f"not found: {local_path}",
                             }
-
-                trace_paths.append(trace_path)
-                print(f"Trace: {trace_path}")
 
                 # Grade locally
                 start, messages, dispatches, media_events, end, audit_data = load_trace(trace_path)
@@ -465,6 +474,13 @@ def cmd_run(args: argparse.Namespace) -> None:
                     f"other={totals['other_time_s']:.2f}"
                 )
 
+        if not do_grade:
+            if trials > 1:
+                print(f"\n--- Trace-only summary ({trials} trials) ---")
+                for i, path in enumerate(trace_paths):
+                    print(f"  Trial {i+1}: trace={path}")
+            return
+
         if trials > 1:
             print(f"\n--- Multi-trial summary ({trials} trials) ---")
             for i, (score, path) in enumerate(zip(trial_scores, trace_paths)):
@@ -485,7 +501,7 @@ def cmd_run(args: argparse.Namespace) -> None:
         reasoning_effort=cfg.model.reasoning_effort,
     )
 
-    judge = _make_judge(cfg, args)
+    judge = _make_judge(cfg, args) if do_grade else None
     sandbox_tools = getattr(args, "sandbox_tools", False)
 
     from .runner.services import ServiceManager
@@ -494,7 +510,7 @@ def cmd_run(args: argparse.Namespace) -> None:
     trial_scores_local: list[float] = []
     trace_paths_local: list[Path] = []
 
-    with ServiceManager(task.services, mock_today=task.environment.mock_today) as svc:
+    with ServiceManager(task.services, cwd=_repo_root(), mock_today=task.environment.mock_today) as svc:
         for i in range(trials):
             if trials > 1:
                 print(f"\n--- Trial {i + 1}/{trials} ---")
@@ -514,6 +530,8 @@ def cmd_run(args: argparse.Namespace) -> None:
             )
             trace_paths_local.append(trace_path)
             print(f"Trace: {trace_path}")
+            if not do_grade:
+                continue
 
             # Read local grader files from host (GT files, never touched by agent)
             env_snapshot: dict | None = None
@@ -563,6 +581,13 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f"other={totals['other_time_s']:.2f}"
             )
 
+    if not do_grade:
+        if trials > 1:
+            print(f"\n--- Trace-only summary ({trials} trials) ---")
+            for i, path in enumerate(trace_paths_local):
+                print(f"  Trial {i+1}: trace={path}")
+        return
+
     if trials > 1:
         print(f"\n--- Multi-trial summary ({trials} trials) ---")
         for i, (score, path) in enumerate(zip(trial_scores_local, trace_paths_local)):
@@ -587,6 +612,7 @@ def cmd_run_inner(args: argparse.Namespace) -> None:
     from .trace.reader import load_trace
 
     cfg = load_config(args.config)
+    do_grade = not getattr(args, "no_grade", False)
 
     task_yaml = _resolve_task_yaml(args.task)
     task = TaskDefinition.from_yaml(task_yaml)
@@ -611,7 +637,7 @@ def cmd_run_inner(args: argparse.Namespace) -> None:
     else:
         trace_dir = _make_trace_dir(cfg.defaults.trace_dir, model_id)
 
-    with ServiceManager(task.services, mock_today=task.environment.mock_today):
+    with ServiceManager(task.services, cwd=_repo_root(), mock_today=task.environment.mock_today):
         trace_path = run_task(
             task, provider,
             trace_dir=trace_dir,
@@ -623,6 +649,9 @@ def cmd_run_inner(args: argparse.Namespace) -> None:
         )
 
     print(f"Trace: {trace_path}")
+
+    if not do_grade:
+        return
 
     # --- Inline grading ---
     judge = _make_judge(cfg, args)
@@ -777,6 +806,7 @@ def _run_single_task(
     no_judge: bool,
     judge_model: str | None,
     trials: int,
+    no_grade: bool = False,
     proxy: str | None = None,
     sandbox: bool = False,
     sandbox_image: str | None = None,
@@ -818,7 +848,7 @@ def _run_single_task(
 
     # Build judge if needed
     judge = None
-    if not no_judge and cfg.judge.enabled and cfg.judge.api_key:
+    if not no_grade and not no_judge and cfg.judge.enabled and cfg.judge.api_key:
         from .graders.llm_judge import LLMJudge
         judge = LLMJudge(
             model_id=judge_model or cfg.judge.model_id,
@@ -839,6 +869,7 @@ def _run_single_task(
         "difficulty": task.difficulty,
         "trials": [],
         "error": None,
+        "graded": not no_grade,
     }
 
     import time
@@ -849,7 +880,7 @@ def _run_single_task(
         result["trials"] = []
         result["error"] = None
         try:
-            with ServiceManager(task.services, cwd=tasks_dir.parent, mock_today=task.environment.mock_today) as svc:
+            with ServiceManager(task.services, cwd=_repo_root(), mock_today=task.environment.mock_today) as svc:
                 for i in range(trials):
                     if i > 0:
                         svc.reset_all()
@@ -874,11 +905,12 @@ def _run_single_task(
                                     media_cfg=cfg.media,
                                     user_agent=_make_user_agent(cfg, task),
                                 )
-                                n_grader = sandbox_runner.inject_grader_files(handle, task, task_dir=task_dir)
-                                if task.sandbox_grader_files and n_grader < len(task.sandbox_grader_files):
-                                    print(f"[WARNING] inject_grader_files: only {n_grader}/{len(task.sandbox_grader_files)} files injected")
-                                env_snapshot = _collect_env_snapshot(handle.sandbox_url, task)
-                                _save_env_snapshot(env_snapshot, trace_path, task.task_id)
+                                if not no_grade:
+                                    n_grader = sandbox_runner.inject_grader_files(handle, task, task_dir=task_dir)
+                                    if task.sandbox_grader_files and n_grader < len(task.sandbox_grader_files):
+                                        print(f"[WARNING] inject_grader_files: only {n_grader}/{len(task.sandbox_grader_files)} files injected")
+                                    env_snapshot = _collect_env_snapshot(handle.sandbox_url, task)
+                                    _save_env_snapshot(env_snapshot, trace_path, task.task_id)
                             finally:
                                 sandbox_runner.stop_container(handle)
                         else:
@@ -892,8 +924,8 @@ def _run_single_task(
                                 user_agent=_make_user_agent(cfg, task),
                             )
 
-                        # Read local grader files from host (GT files, never touched by agent)
-                        if task.local_grader_files:
+                        if not no_grade and task.local_grader_files:
+                            # Read local grader files from host (GT files, never touched by agent)
                             if env_snapshot is None:
                                 env_snapshot = {}
                             import base64 as _b64
@@ -912,6 +944,24 @@ def _run_single_task(
                                     }
 
                         start, messages, dispatches, media_events, end, audit_data = load_trace(trace_path)
+                        totals = _trace_totals(end)
+                        if no_grade:
+                            result["trials"].append({
+                                "trace": str(trace_path),
+                                "graded": False,
+                                "turns": end.total_turns if end else 0,
+                                "model_input_tokens": totals["model_input_tokens"],
+                                "model_output_tokens": totals["model_output_tokens"],
+                                "input_tokens": totals["model_input_tokens"],
+                                "output_tokens": totals["model_output_tokens"],
+                                "tokens": totals["total_tokens"],
+                                "model_time_s": totals["model_time_s"],
+                                "tool_time_s": totals["tool_time_s"],
+                                "other_time_s": totals["other_time_s"],
+                                "wall_time_s": totals["wall_time_s"],
+                            })
+                            continue
+
                         grader = get_grader(task.task_id, tasks_dir=tasks_dir, task_dir=task_dir)
                         scores, judge_calls = _grade_with_optional_params(
                             grader, messages, dispatches, task,
@@ -936,9 +986,9 @@ def _run_single_task(
                             judge_calls=judge_calls,
                             user_agent_meta=user_agent_meta,
                         )
-                        totals = _trace_totals(end)
                         result["trials"].append({
                             "trace": str(trace_path),
+                            "graded": True,
                             "model_input_tokens": totals["model_input_tokens"],
                             "model_output_tokens": totals["model_output_tokens"],
                             "input_tokens": totals["model_input_tokens"],
@@ -958,6 +1008,7 @@ def _run_single_task(
                     except Exception as trial_exc:
                         result["trials"].append({
                             "trial": i,
+                            "graded": not no_grade,
                             "error": str(trial_exc),
                             "task_score": 0.0,
                             "passed": False,
@@ -979,6 +1030,10 @@ def _run_single_task(
     if not valid_trials and result["trials"]:
         # All trials errored — propagate as task-level error for summary stats
         result["error"] = result["trials"][0].get("error", "all trials errored")
+    if no_grade:
+        result["completed_trials"] = len(valid_trials)
+        return result
+
     trial_scores = [t["task_score"] for t in valid_trials]
     n_trials = len(trial_scores)
     if n_trials > 0:
@@ -995,15 +1050,20 @@ def _run_single_task(
     return result
 
 
-def _scan_completed_trials(trace_dir: Path) -> dict[str, int]:
+def _scan_completed_trials(trace_dir: Path, *, include_trace_end_only: bool = False) -> dict[str, int]:
     """Scan a trace directory and return {task_id: completed_trial_count}.
 
-    A trial is considered complete if its JSONL file contains a grading_result event.
+    By default a trial is considered complete if its JSONL file contains a
+    grading_result event. When ``include_trace_end_only`` is True, files that
+    have a ``trace_end`` but no ``grading_result`` also count as completed.
     """
     from collections import defaultdict
 
     completed: dict[str, int] = defaultdict(int)
     for f in trace_dir.glob("*.jsonl"):
+        trace_task_id = ""
+        saw_trace_end = False
+        counted = False
         with open(f) as fh:
             for line in fh:
                 line = line.strip()
@@ -1013,20 +1073,28 @@ def _scan_completed_trials(trace_dir: Path) -> dict[str, int]:
                     ev = json.loads(line)
                 except json.JSONDecodeError:
                     continue
+                if ev.get("type") == "trace_start":
+                    trace_task_id = ev.get("task_id", "")
+                elif ev.get("type") == "trace_end":
+                    saw_trace_end = True
                 if ev.get("type") == "grading_result":
                     task_id = ev.get("task_id", "")
                     if task_id:
                         completed[task_id] += 1
+                        counted = True
                     break  # one grading_result per file is enough
+        if include_trace_end_only and saw_trace_end and not counted and trace_task_id:
+            completed[trace_task_id] += 1
     return dict(completed)
 
 
-def _load_completed_results(trace_dir: Path) -> list[dict]:
+def _load_completed_results(trace_dir: Path, *, include_trace_end_only: bool = False) -> list[dict]:
     """Load per-trial results from grading_result events in a trace directory.
 
     Returns a list of result dicts (one per task_id) with trials populated from
-    the grading_result events found in JSONL files. This allows merging with
-    new results when using --continue.
+    the grading_result events found in JSONL files. When
+    ``include_trace_end_only`` is True, trace-only files (with ``trace_end``
+    but no ``grading_result``) are also loaded with token/time metadata.
     """
     from collections import defaultdict
 
@@ -1036,6 +1104,7 @@ def _load_completed_results(trace_dir: Path) -> list[dict]:
     for f in sorted(trace_dir.glob("*.jsonl")):
         grading = None
         trace_end = None
+        trace_task_id = ""
         for line_str in open(f):
             line_str = line_str.strip()
             if not line_str:
@@ -1048,16 +1117,19 @@ def _load_completed_results(trace_dir: Path) -> list[dict]:
                 grading = ev
             elif ev.get("type") == "trace_end":
                 trace_end = ev
+            elif ev.get("type") == "trace_start":
+                trace_task_id = ev.get("task_id", "")
 
-        if grading is None:
+        if grading is None and not include_trace_end_only:
+            continue
+        if grading is None and include_trace_end_only and trace_end is None:
             continue
 
-        task_id = grading.get("task_id", "")
+        task_id = grading.get("task_id", "") if grading is not None else trace_task_id
         if not task_id:
             continue
 
-        scores = grading.get("scores", {})
-        trial_info = {
+        base_info = {
             "trace": str(f),
             "model_input_tokens": trace_end.get("model_input_tokens", 0) if trace_end else 0,
             "model_output_tokens": trace_end.get("model_output_tokens", 0) if trace_end else 0,
@@ -1068,13 +1140,25 @@ def _load_completed_results(trace_dir: Path) -> list[dict]:
             "tool_time_s": trace_end.get("tool_time_s", 0.0) if trace_end else 0.0,
             "other_time_s": trace_end.get("other_time_s", 0.0) if trace_end else 0.0,
             "wall_time_s": trace_end.get("wall_time_s", 0.0) if trace_end else 0.0,
-            "completion": scores.get("completion", 0.0),
-            "robustness": scores.get("robustness", 0.0),
-            "communication": scores.get("communication", 0.0),
-            "safety": scores.get("safety", 1.0),
-            "task_score": grading.get("task_score", 0.0),
-            "passed": grading.get("passed", False),
+            "turns": trace_end.get("total_turns", 0) if trace_end else 0,
         }
+        if grading is None:
+            trial_info = {
+                **base_info,
+                "graded": False,
+            }
+        else:
+            scores = grading.get("scores", {})
+            trial_info = {
+                **base_info,
+                "graded": True,
+                "completion": scores.get("completion", 0.0),
+                "robustness": scores.get("robustness", 0.0),
+                "communication": scores.get("communication", 0.0),
+                "safety": scores.get("safety", 1.0),
+                "task_score": grading.get("task_score", 0.0),
+                "passed": grading.get("passed", False),
+            }
         task_trials[task_id].append(trial_info)
 
     # Build result dicts per task
@@ -1082,20 +1166,22 @@ def _load_completed_results(trace_dir: Path) -> list[dict]:
 
     results = []
     for task_id, trials in task_trials.items():
-        trial_scores = [t["task_score"] for t in trials]
-        n = len(trial_scores)
         result = {
             "task_id": task_id,
             "task_name": "",
             "difficulty": "",
             "trials": trials,
             "error": None,
+            "graded": all(t.get("graded", True) for t in trials),
         }
-        if n > 0:
-            result["avg_score"] = sum(trial_scores) / n
-            result["pass_at_1"] = compute_pass_at_k(trial_scores, k=1)
-            result["pass_hat_k"] = compute_pass_hat_k(trial_scores, k=n)
-            result["avg_passed"] = is_pass(result["avg_score"])
+        if result["graded"]:
+            trial_scores = [t["task_score"] for t in trials]
+            n = len(trial_scores)
+            if n > 0:
+                result["avg_score"] = sum(trial_scores) / n
+                result["pass_at_1"] = compute_pass_at_k(trial_scores, k=1)
+                result["pass_hat_k"] = compute_pass_hat_k(trial_scores, k=n)
+                result["avg_passed"] = is_pass(result["avg_score"])
         results.append(result)
 
     return results
@@ -1116,6 +1202,7 @@ def _fmt_duration(seconds: float) -> str:
 def cmd_batch(args: argparse.Namespace) -> None:
     """Run all (or filtered) tasks in parallel."""
     _apply_proxy(getattr(args, "proxy", None))
+    do_grade = not getattr(args, "no_grade", False)
 
     tasks_dir = Path(args.tasks_dir)
     if not tasks_dir.exists():
@@ -1153,8 +1240,8 @@ def cmd_batch(args: argparse.Namespace) -> None:
         if not continue_path.exists():
             print(f"Continue directory not found: {continue_path}")
             sys.exit(1)
-        completed_trials = _scan_completed_trials(continue_path)
-        continue_prev_results = _load_completed_results(continue_path)
+        completed_trials = _scan_completed_trials(continue_path, include_trace_end_only=not do_grade)
+        continue_prev_results = _load_completed_results(continue_path, include_trace_end_only=not do_grade)
         total_completed = sum(completed_trials.values())
         print(f"[continue] Scanning {continue_path} — found {total_completed} completed trial(s) "
               f"across {len(completed_trials)} task(s)")
@@ -1247,7 +1334,8 @@ def cmd_batch(args: argparse.Namespace) -> None:
     else:
         batch_trace_dir = str(_make_trace_dir(_base_trace_dir, _model_id))
 
-    print(f"Running {total} tasks with {workers} parallel workers, {trials} trial(s) each")
+    mode_label = " (trace-only)" if not do_grade else ""
+    print(f"Running {total} tasks with {workers} parallel workers, {trials} trial(s) each{mode_label}")
     print(f"Traces → {batch_trace_dir}\n")
 
     results: list[dict] = []
@@ -1300,6 +1388,7 @@ def cmd_batch(args: argparse.Namespace) -> None:
                 no_judge=args.no_judge,
                 judge_model=getattr(args, "judge_model", None),
                 trials=task_trials,
+                no_grade=getattr(args, "no_grade", False),
                 proxy=getattr(args, "proxy", None),
                 sandbox=getattr(args, "sandbox", False),
                 sandbox_image=getattr(args, "sandbox_image", None),
@@ -1339,7 +1428,7 @@ def cmd_batch(args: argparse.Namespace) -> None:
                 finished_tasks += 1
                 if res.get("error"):
                     score_sum += 0.0
-                else:
+                elif do_grade:
                     trials_list = res["trials"]
                     score_sum += sum(tr["task_score"] for tr in trials_list) / len(trials_list)
                     if all(tr["passed"] for tr in trials_list):
@@ -1351,7 +1440,7 @@ def cmd_batch(args: argparse.Namespace) -> None:
                 tid = res.get("task_id", Path(td).name)
                 if res.get("error"):
                     print(f"  [{finished}/{total}] {tid}: ERROR — {res['error'][:80]}")
-                else:
+                elif do_grade:
                     for i, tr in enumerate(res["trials"]):
                         label = f" trial {i+1}" if trials > 1 else ""
                         status = "PASS" if tr["passed"] else "FAIL"
@@ -1372,6 +1461,18 @@ def cmd_batch(args: argparse.Namespace) -> None:
                             f"| pass@1={res.get('pass_at_1', 0.0):.2f} "
                             f"pass^{trials}={res.get('pass_hat_k', 0.0):.2f}"
                         )
+                else:
+                    for i, tr in enumerate(res["trials"]):
+                        label = f" trial {i+1}" if trials > 1 else ""
+                        print(
+                            f"  [{finished}/{total}] {tid}{label}: TRACE "
+                            f"| tok={tr.get('tokens', 0)} "
+                            f"({tr.get('model_input_tokens', tr.get('input_tokens', 0))} in/"
+                            f"{tr.get('model_output_tokens', tr.get('output_tokens', 0))} out) "
+                            f"| time=wall {tr.get('wall_time_s', 0.0):.2f}s "
+                            f"model {tr.get('model_time_s', 0.0):.2f}s "
+                            f"tool {tr.get('tool_time_s', 0.0):.2f}s"
+                        )
 
                 # Print progress bar
                 elapsed = time.monotonic() - start_time
@@ -1381,14 +1482,21 @@ def cmd_batch(args: argparse.Namespace) -> None:
                     eta_str = f" | ETA ~{_fmt_duration(eta)}"
                 else:
                     eta_str = ""
-                avg_score = score_sum / finished_tasks if finished_tasks else 0.0
-                print(
-                    f"  [Progress] {finished}/{total} done ({pct}%) "
-                    f"| avg {avg_score:.2f} "
-                    f"pass^{trials} {n_pass_hat}/{finished_tasks} "
-                    f"pass@{trials} {n_pass_at}/{finished_tasks} "
-                    f"| elapsed {_fmt_duration(elapsed)}{eta_str}"
-                )
+                if do_grade:
+                    avg_score = score_sum / finished_tasks if finished_tasks else 0.0
+                    print(
+                        f"  [Progress] {finished}/{total} done ({pct}%) "
+                        f"| avg {avg_score:.2f} "
+                        f"pass^{trials} {n_pass_hat}/{finished_tasks} "
+                        f"pass@{trials} {n_pass_at}/{finished_tasks} "
+                        f"| elapsed {_fmt_duration(elapsed)}{eta_str}"
+                    )
+                else:
+                    print(
+                        f"  [Progress] {finished}/{total} done ({pct}%) "
+                        f"| trace-only "
+                        f"| elapsed {_fmt_duration(elapsed)}{eta_str}"
+                    )
 
                 # Submit next task if any
                 if task_queue and available_slots:
@@ -1419,7 +1527,7 @@ def cmd_batch(args: argparse.Namespace) -> None:
     # stale / partial data from the in-memory `results` list, which only
     # contains tasks that were re-run in *this* invocation).
     if continue_dir:
-        all_from_traces = _load_completed_results(Path(continue_dir))
+        all_from_traces = _load_completed_results(Path(continue_dir), include_trace_end_only=not do_grade)
         if all_from_traces:
             results = all_from_traces
             total = len(results)
@@ -1436,7 +1544,7 @@ def cmd_batch(args: argparse.Namespace) -> None:
     print(f"{'='*60}\n")
 
     errored = sum(1 for r in results if r.get("error"))
-    avg_score_final = score_sum / finished_tasks if finished_tasks else 0.0
+    avg_score_final = score_sum / finished_tasks if finished_tasks and do_grade else 0.0
     total_model_input_tokens = sum(
         tr.get("model_input_tokens", tr.get("input_tokens", 0))
         for r in results for tr in r.get("trials", [])
@@ -1451,10 +1559,18 @@ def cmd_batch(args: argparse.Namespace) -> None:
     total_other_time_s = sum(tr.get("other_time_s", 0.0) for r in results for tr in r.get("trials", []))
     total_wall_time_s = sum(tr.get("wall_time_s", 0.0) for r in results for tr in r.get("trials", []))
 
-    print(f"  Avg score: {avg_score_final:.3f}")
-    print(f"  pass^{trials}: {n_pass_hat}/{finished_tasks}")
-    print(f"  pass@{trials}: {n_pass_at}/{finished_tasks}")
-    print(f"  Errored: {errored}/{finished_tasks}")
+    if do_grade:
+        print(f"  Avg score: {avg_score_final:.3f}")
+        print(f"  pass^{trials}: {n_pass_hat}/{finished_tasks}")
+        print(f"  pass@{trials}: {n_pass_at}/{finished_tasks}")
+        error_denominator = finished_tasks
+    else:
+        trace_task_count = len(results)
+        completed_trials = sum(len(r.get("trials", [])) for r in results)
+        print(f"  Trace-only tasks: {trace_task_count}")
+        print(f"  Completed trials: {completed_trials}")
+        error_denominator = trace_task_count
+    print(f"  Errored: {errored}/{error_denominator}")
     print(
         f"  Total model tokens: {total_tokens} "
         f"({total_model_input_tokens} in / {total_model_output_tokens} out)"
@@ -1471,7 +1587,7 @@ def cmd_batch(args: argparse.Namespace) -> None:
         tid = r.get("task_id", "?")
         if r.get("error"):
             print(f"  {tid:40s}  ERROR: {r['error'][:50]}")
-        elif r["trials"]:
+        elif do_grade and r["trials"]:
             valid_trials = [t for t in r["trials"] if not t.get("error")]
             if not valid_trials:
                 tr = r["trials"][0]
@@ -1509,6 +1625,19 @@ def cmd_batch(args: argparse.Namespace) -> None:
                       f"TIME=wall {total_wall:.2f}s "
                       f"model {total_model:.2f}s "
                       f"tool {total_tool:.2f}s")
+        elif r["trials"]:
+            tl = [t for t in r["trials"] if not t.get("error")]
+            total_tok = sum(t.get("tokens", 0) for t in tl)
+            total_in = sum(t.get("model_input_tokens", t.get("input_tokens", 0)) for t in tl)
+            total_out = sum(t.get("model_output_tokens", t.get("output_tokens", 0)) for t in tl)
+            total_wall = sum(t.get("wall_time_s", 0.0) for t in tl)
+            total_model = sum(t.get("model_time_s", 0.0) for t in tl)
+            total_tool = sum(t.get("tool_time_s", 0.0) for t in tl)
+            print(f"  {tid:40s}  TRACE_ONLY  trials={len(tl)}  "
+                  f"TOK={total_tok} ({total_in}in/{total_out}out) "
+                  f"TIME=wall {total_wall:.2f}s "
+                  f"model {total_model:.2f}s "
+                  f"tool {total_tool:.2f}s")
 
     # Write JSON results into the same trace subdir
     out_dir = Path(batch_trace_dir)
@@ -1520,10 +1649,8 @@ def cmd_batch(args: argparse.Namespace) -> None:
     summary_data = {
         "tasks": total,
         "trials_per_task": trials,
-        f"pass_hat_{trials}": n_pass_hat,
-        f"pass_at_{trials}": n_pass_at,
+        "grading_enabled": do_grade,
         "errored": errored,
-        "avg_score": avg_score_final,
         "total_model_input_tokens": total_model_input_tokens,
         "total_model_output_tokens": total_model_output_tokens,
         "total_input_tokens": total_model_input_tokens,
@@ -1534,6 +1661,12 @@ def cmd_batch(args: argparse.Namespace) -> None:
         "total_other_time_s": total_other_time_s,
         "total_wall_time_s": total_wall_time_s,
     }
+    if do_grade:
+        summary_data[f"pass_hat_{trials}"] = n_pass_hat
+        summary_data[f"pass_at_{trials}"] = n_pass_at
+        summary_data["avg_score"] = avg_score_final
+    else:
+        summary_data["completed_trials"] = sum(len(r.get("trials", [])) for r in results)
     with open(summary_file, "w") as f:
         json.dump(summary_data, f, indent=2, ensure_ascii=False)
     print(f"\n  Results saved to {results_file}")
@@ -1588,6 +1721,7 @@ def main(argv: list[str] | None = None) -> None:
     p_run.add_argument("--trace-dir", default=None, help="Output directory for traces")
     p_run.add_argument("--judge-model", default=None, help="Override judge model ID")
     p_run.add_argument("--no-judge", action="store_true", help="Disable LLM judge for communication scoring")
+    p_run.add_argument("--no-grade", "--trace-only", dest="no_grade", action="store_true", help="Skip post-hoc grading and only generate traces")
     p_run.add_argument("--port-offset", type=int, default=0, help="Offset for all service ports (enables parallel runs)")
     p_run.add_argument("--sandbox", action="store_true", help="Run inside a Docker sandbox container")
     p_run.add_argument("--sandbox-image", default=None, help="Override sandbox Docker image name")
@@ -1605,6 +1739,7 @@ def main(argv: list[str] | None = None) -> None:
     p_inner.add_argument("--sandbox-tools", action="store_true")
     p_inner.add_argument("--judge-model", default=None)
     p_inner.add_argument("--no-judge", action="store_true")
+    p_inner.add_argument("--no-grade", "--trace-only", dest="no_grade", action="store_true", help=argparse.SUPPRESS)
     p_inner.add_argument("--proxy", default=None)
 
     # build-image
@@ -1638,6 +1773,7 @@ def main(argv: list[str] | None = None) -> None:
     p_batch.add_argument("--trace-dir", default=None, help="Output directory for traces")
     p_batch.add_argument("--judge-model", default=None)
     p_batch.add_argument("--no-judge", action="store_true")
+    p_batch.add_argument("--no-grade", "--trace-only", dest="no_grade", action="store_true", help="Skip post-hoc grading and only generate traces")
     p_batch.add_argument("--proxy", default=None, help="HTTP proxy URL for model/judge API traffic")
     p_batch.add_argument("--port-base-offset", type=int, default=0, help="Base port offset to avoid conflicts when running multiple batch jobs (e.g. 400)")
     p_batch.add_argument("--sandbox", action="store_true", help="Run sandbox tools inside Docker containers")
@@ -1649,7 +1785,7 @@ def main(argv: list[str] | None = None) -> None:
                               "and merges results back into the same directory.")
     p_batch.add_argument("--continue", dest="continue_dir", default=None, metavar="TRACE_DIR",
                          help="Continue a previous batch run from TRACE_DIR. "
-                              "Scans existing trace files for grading_result events, "
+                              "Scans existing trace files for completion markers, "
                               "skips tasks with enough completed trials, and only runs the rest. "
                               "Results are merged into the same directory.")
 
