@@ -1,0 +1,203 @@
+[
+  {
+    "article_id": "RSS-701",
+    "title": "竞品A 宣布“Connect 5-Minute”开发加速计划：沙箱与模板一起发布",
+    "category": "竞品动态",
+    "content": "竞品A推出开发者加速计划：提供一套“连接模板”与可复用的沙箱环境。文章明确写到开发者可在沙箱中完成鉴权、创建连接并触发样例事件，模板包含默认的幂等键与重试策略，并附带端到端样例工程下载链接。\n文中也强调：模板会随SDK小版本更新而进行向后兼容，并在变更日志标注影响范围。",
+    "url": "https://devnews.example.com/comp-a-connect-5min-sandbox",
+    "tags": [
+      "竞品A",
+      "SDK",
+      "沙箱",
+      "连接模板",
+      "开发者体验"
+    ],
+    "source": "开发者新闻",
+    "published_at": "2026-04-10T03:00:00Z",
+    "summary": "竞品A发布连接模板与沙箱环境，提供端到端样例工程与幂等/重试默认策略，强调向后兼容与变更日志。",
+    "word_count": 120
+  },
+  {
+    "article_id": "RSS-702",
+    "title": "竞品A SDK语言覆盖扩展：新增TypeScript与Go示例，附错误码语义规范",
+    "category": "竞品动态",
+    "content": "竞品A更新SDK文档，新增TypeScript与Go语言示例工程。文档章节包含错误码语义表（如AUTH_EXPIRED、RATE_LIMITED等）以及推荐的客户端重试与降级策略。\n文章同时展示可观测性能力：SDK会在本地生成trace_id并通过请求头传递；失败回调中包含可用于定位的上下文字段。\n需要注意：文章同时标注“部分能力仍处于灰度”，但在沙箱环境已可验证。",
+    "url": "https://sdk.example.com/comp-a-sdk-ts-go-error-codes",
+    "tags": [
+      "竞品A",
+      "SDK",
+      "TypeScript",
+      "Go",
+      "文档"
+    ],
+    "source": "技术博客",
+    "published_at": "2026-04-12T06:30:00Z",
+    "summary": "竞品A扩展SDK语言覆盖并新增错误码语义与重试降级指南，同时强调沙箱可验证与部分灰度范围。",
+    "word_count": 136
+  },
+  {
+    "article_id": "RSS-703",
+    "title": "竞品A API扩展：双向同步与Webhook事件流的兼容期说明",
+    "category": "竞品动态",
+    "content": "竞品A发布API扩展，明确支持双向同步流程：配置端点可接收事件回执，并提供一次性订阅令牌用于Webhook事件流。\n文章中给出了兼容期政策：当API字段发生breaking change时，会提供迁移指南并至少维持兼容期90天；对新字段则默认开放向后兼容。\n文中还列出稳定性条款：失败重试采用幂等键，SDK示例展示如何避免重复写入。",
+    "url": "https://api.example.com/comp-a-bidirectional-webhook-compat-90d",
+    "tags": [
+      "竞品A",
+      "API",
+      "Webhook",
+      "双向同步",
+      "稳定性"
+    ],
+    "source": "产品更新",
+    "published_at": "2026-04-13T09:10:00Z",
+    "summary": "竞品A明确双向同步与Webhook事件流，并给出至少90天兼容期与幂等重试策略。",
+    "word_count": 148
+  },
+  {
+    "article_id": "RSS-704",
+    "title": "竞品A 开发者社区评测：上手流程从“字段表”转为“场景路由”",
+    "category": "竞品动态",
+    "content": "第三方评测指出，竞品A的开发者文档从过去的字段表组织方式，转为“场景路由”。文章展示了从鉴权到创建连接、订阅事件、调用数据端点的步骤化导航，并附带每步的失败案例说明。\n评测同时引用文档中存在的“宣称 vs 可验证”标注：例如某些性能承诺仅在特定沙箱条件下成立，文档会提示如何验证。\n评测给出结论：如果严格按样例工程操作，端到端连通可在单日内完成。",
+    "url": "https://reviews.example.com/comp-a-doc-scenario-routing",
+    "tags": [
+      "竞品A",
+      "开发者体验",
+      "文档",
+      "可验证"
+    ],
+    "source": "独立评测",
+    "published_at": "2026-04-14T12:00:00Z",
+    "summary": "评测称竞品A文档改为场景路由并包含失败案例与宣称可验证标注，端到端连通可单日完成。",
+    "word_count": 124
+  },
+  {
+    "article_id": "RSS-705",
+    "title": "竞品B 推出连接器认证通道：提交清单、测试用例与通过标准",
+    "category": "竞品动态",
+    "content": "竞品B公布第三方连接器认证通道。文章明确列出认证流程：1）提交材料（连接器能力声明、数据模型映射、权限范围）；2）在其测试环境完成预设测试用例（鉴权成功/过期、事件重放、幂等写入、字段兼容）；3）由审核团队在5个工作日内给出结果。\n同时给出通过标准：需要覆盖关键能力的自动化测试覆盖率与失败回滚说明。\n文章中强调“评分只基于可度量项”，并提供公开的评分维度。",
+    "url": "https://partner.example.com/comp-b-connector-certification",
+    "tags": [
+      "竞品B",
+      "连接器认证",
+      "第三方插件",
+      "评分规则"
+    ],
+    "source": "合作伙伴公告",
+    "published_at": "2026-04-08T02:40:00Z",
+    "summary": "竞品B建立连接器认证通道：材料清单、测试用例、5个工作日审核与可度量评分维度。",
+    "word_count": 162
+  },
+  {
+    "article_id": "RSS-706",
+    "title": "竞品B 生态扩张：引入“认证星级”评分并公开失败分类",
+    "category": "竞品动态",
+    "content": "竞品B宣布对第三方插件引入“认证星级”。评分维度包含：稳定性（失败率与恢复时长）、兼容性（字段变更处理）、安全（权限最小化与审计日志完整性）、以及事件一致性。\n文章还公开了失败分类：如AUTH、RATE、EVENT_DUPLICATE、MAPPING_INCOMPLETE等，并给出对应的修复建议文档链接。\n需要注意：文章写明“星级仅对已完成认证的版本生效”，并提示版本更新需重新提交变更摘要。",
+    "url": "https://ecosystem.example.com/comp-b-star-rating-fail-categories",
+    "tags": [
+      "竞品B",
+      "星级评分",
+      "失败分类",
+      "兼容性"
+    ],
+    "source": "生态更新",
+    "published_at": "2026-04-11T08:00:00Z",
+    "summary": "竞品B推出认证星级并公开失败分类与修复建议；星级仅对认证版本生效且更新需重新提交。",
+    "word_count": 170
+  },
+  {
+    "article_id": "RSS-707",
+    "title": "竞品B 连接器市场：认证后可进入“兼容期列表”，提供90天迁移窗口",
+    "category": "竞品动态",
+    "content": "竞品B在连接器市场新增“兼容期列表”。文章说明：通过认证的连接器会被标注兼容期与迁移窗口；当平台接口升级发生变更时，市场页面将显示从发布时间起至少90天的迁移窗口。\n同时提供对外接口稳定性策略：认证连接器在兼容期内可使用旧字段映射策略，直至迁移完成。\n文章还提到：市场将优先展示通过认证且在过去30天内通过自动回归测试的连接器。",
+    "url": "https://market.example.com/comp-b-compat-window-90d-certified",
+    "tags": [
+      "竞品B",
+      "兼容期列表",
+      "回归测试",
+      "生态扩张"
+    ],
+    "source": "市场公告",
+    "published_at": "2026-04-12T19:20:00Z",
+    "summary": "竞品B连接器市场提供兼容期列表与90天迁移窗口，并通过回归测试优先展示认证连接器。",
+    "word_count": 154
+  },
+  {
+    "article_id": "RSS-708",
+    "title": "竞品B 第三方生态扩张路径：从“提交上线”到“发布前认证门槛”",
+    "category": "竞品动态",
+    "content": "竞品B合作负责人在文章中回顾生态策略变化：过去偏向“提交后上线”；现在转向“发布前必须完成认证与最低星级门槛”。\n文章给出门槛的执行方式：未达标的连接器只能以预览标签出现在市场，且仅允许特定开发者账号访问。\n同时，文章指出开发者工具链：提供连接器骨架、测试驱动脚本与本地模拟事件生成器。\n文章强调这一策略提升了客户对生态稳定性的信任度，但也要求第三方投入测试与认证。",
+    "url": "https://partner.example.com/comp-b-prelaunch-certification-gate",
+    "tags": [
+      "竞品B",
+      "生态策略",
+      "认证门槛",
+      "工具链"
+    ],
+    "source": "合作伙伴访谈",
+    "published_at": "2026-04-13T15:40:00Z",
+    "summary": "竞品B从提交上线转为发布前认证门槛：未达标预览标签、开发者工具链与本地模拟器。",
+    "word_count": 165
+  },
+  {
+    "article_id": "RSS-709",
+    "title": "Gartner：API管理与集成可观测性成为企业必选能力",
+    "category": "行业趋势",
+    "content": "行业报告指出，企业在API管理与系统集成中越来越重视可观测性（trace_id、错误码语义、失败恢复路径）与变更治理（兼容期、迁移窗口）。\n该趋势与各平台将开发者体验前移到“端到端可验证”一致。",
+    "url": "https://industry.example.com/api-observability-trend",
+    "tags": [
+      "行业趋势",
+      "可观测性",
+      "变更治理"
+    ],
+    "source": "行业报告摘要",
+    "published_at": "2026-04-09T07:00:00Z",
+    "summary": "行业趋势强调可观测性与变更治理，呼应端到端可验证的开发者体验路径。",
+    "word_count": 82
+  },
+  {
+    "article_id": "RSS-710",
+    "title": "云计算：新一轮合规要求推动审计日志与权限最小化",
+    "category": "合规与安全",
+    "content": "一份合规通告显示，未来审计要求将更加关注权限最小化与审计日志完整性。对第三方集成生态而言，平台端需要提供审计上下文与权限映射可验证材料。\n文章对开发者提出建议：在连接器认证中明确审计字段与权限边界。",
+    "url": "https://security.example.com/compliance-audit-logs-min-privilege",
+    "tags": [
+      "合规",
+      "安全",
+      "审计日志"
+    ],
+    "source": "安全快讯",
+    "published_at": "2026-04-10T11:45:00Z",
+    "summary": "合规强调权限最小化与审计日志完整性，推动平台在生态认证中提供可验证材料。",
+    "word_count": 92
+  },
+  {
+    "article_id": "RSS-711",
+    "title": "供应链：芯片交期波动缓解，硬件侧成本下行",
+    "category": "供应链",
+    "content": "供应链快讯显示芯片交期波动有所缓解，硬件侧成本略有回落。对企业IT预算节奏可能带来短期影响。",
+    "url": "https://ops.example.com/chip-leadtime-stable",
+    "tags": [
+      "供应链",
+      "芯片",
+      "运维"
+    ],
+    "source": "行业快讯",
+    "published_at": "2026-04-11T05:10:00Z",
+    "summary": "芯片交期波动缓解，硬件成本略有回落。",
+    "word_count": 34
+  },
+  {
+    "article_id": "RSS-712",
+    "title": "体育：城市马拉松报名启动（信息更新）",
+    "category": "体育",
+    "content": "城市马拉松报名启动的公告及注意事项更新。",
+    "url": "https://sports.example.com/city-marathon-registration",
+    "tags": [
+      "体育"
+    ],
+    "source": "综合新闻",
+    "published_at": "2026-04-12T20:30:00Z",
+    "summary": "城市马拉松报名启动公告。",
+    "word_count": 21
+  }
+]

@@ -1,0 +1,186 @@
+task_id: T133zh_competitive_intelligence_plus_3
+task_name: Geo Expansion Threat Map
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/articles
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T133zh_competitive_intelligence_plus_3/fixtures/rss/feeds.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T133zh_competitive_intelligence_plus_3/fixtures/kb/articles.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T133zh_competitive_intelligence_plus_3/fixtures/gmail/inbox.json
+prompt:
+  text: "需要为“区域拓展”团队整理竞品情报并输出“区域威胁地图”式报告，用于三个月内启动东亚两国与中亚一个国家试点。\n\n请按以下步骤完成：\n1）从收件箱邮件中读取本次覆盖的地区列表、目标客户类型与风险偏好（用于筛选与解读情报）。\n\
+    2）从RSS收集竞品A与竞品B在上述地区的最新扩张动作（例如设立办事处、语言/合规本地化、与渠道合作方协同、雇佣本地团队、推动系统集成等）。只选择与竞品A/B相关且在目标地区出现过的文章；对筛出的文章继续读取详情作为证据。\n\
+    3）在知识库检索我们此前对竞品A与竞品B在这些地区的进入策略与失败原因分析；对其中过时内容进行更新（说明哪些点在新证据下需要修正/补充）。\n4）整合输出“区域威胁地图”：\n\
+    \   - 对每个地区单独分段，分别列出：竞品A区域动作（含证据）→ 可能的客户切入点 → 对我司的落地建议；\n   - 再列出：竞品B区域动作（含证据）→\
+    \ 可能的客户切入点 → 对我司的落地建议；\n   - 最后给出对我司的总体影响与地区试点优先级建议。\n5）保存邮件草稿（不要发送）：收件人写“geo_owner@ourcompany.com”，主题包含“区域威胁地图”，正文为上述最终报告。\n\
+    \n注意：不得调用发送邮件接口；报告必须按地区拆分且覆盖竞品A与竞品B在目标地区的关键RSS证据，并对KB中历史分析做更新说明。"
+  language: zh
+tools:
+- name: rss_list_articles
+  description: 获取RSS文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_name:
+        type: string
+        description: 按RSS源筛选
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

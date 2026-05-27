@@ -1,0 +1,180 @@
+task_id: T145zh_task_backtracking_plus_3
+task_name: 合规审查催办与缺口补齐
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T145zh_task_backtracking_plus_3/fixtures/gmail/inbox.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T145zh_task_backtracking_plus_3/fixtures/todo/tasks.json
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T145zh_task_backtracking_plus_3/fixtures/notes/meetings.json
+prompt:
+  text: '收件箱中有3封带“合规/催办/材料”标签的邮件（其余为干扰邮件）。请：
+
+    1）逐封阅读催办邮件，理解要求补交/确认/说明的合规材料与对方关切；
+
+    2）在待办事项中回溯对应的任务，获取当前状态（pending / in_progress / completed）、进展与截止/节点时间、以及notes或blocked_by；
+
+    3）在会议纪要中找到对应的纪要，提取合规缺口清单、负责人动作（上传/补写/审批签字等）与预计补齐/提交/审批排期日期；
+
+    4）对每封催办邮件，输出：合规状态（通过/待补充/已提交但待审核）、当前缺口内容（至少1-2项对齐纪要缺口清单）、预计补齐或更新的具体时间；
+
+    5）为每封催办邮件起草回复草稿并保存（只保存不发送），语气专业，向法务/合规对口部门确认下一步动作与时间承诺，并说明“已提交但待审核/仍待补交”的情况。'
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+      reply_to_message_id:
+        type: string
+        description: 回复的原邮件ID
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: todo_list_tasks
+  description: 列出待办事项
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(all/pending/in_progress/completed)
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 最近几天
+        default: 30
+    required: []
+- name: notes_get
+  description: 获取会议纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

@@ -1,0 +1,50 @@
+[
+  {
+    "transaction_id": "TXN-401",
+    "type": "预算拨付",
+    "description": "压缩后Q1服务器与网络设备预算拨付（含冻结条款）",
+    "amount": 780000,
+    "currency": "CNY",
+    "date": "2026-02-01",
+    "category": "预算",
+    "department": "IT部",
+    "approved_by": "总监",
+    "notes": "因预算压缩，拨付金额较上周期下降约60%；其中30%需在完成试点采购后解冻。"
+  },
+  {
+    "transaction_id": "TXN-402",
+    "type": "预算冻结",
+    "description": "预算冻结：供应商集中度上限触发前不得超额承诺",
+    "amount": 160000,
+    "currency": "CNY",
+    "date": "2026-02-06",
+    "category": "预算",
+    "department": "IT部",
+    "approved_by": "财务负责人",
+    "notes": "集中度上限以采购订单签署口径计算；如单一供应商超出上限需追加审批说明。"
+  },
+  {
+    "transaction_id": "TXN-403",
+    "type": "采购支出",
+    "description": "上周期部分服务器采购与交付调整相关费用",
+    "amount": 210000,
+    "currency": "CNY",
+    "date": "2026-01-12",
+    "category": "设备采购",
+    "department": "IT部",
+    "supplier": "启航云科供应链",
+    "notes": "含加急物流与现场部署支持，部分交付延后产生延期服务费用。"
+  },
+  {
+    "transaction_id": "TXN-404",
+    "type": "退货退款",
+    "description": "服务器部件不良导致退款与重购抵扣（含质保材料补交）",
+    "amount": 28000,
+    "currency": "CNY",
+    "date": "2025-12-20",
+    "category": "退款",
+    "department": "IT部",
+    "supplier": "星河数通分销",
+    "notes": "支持能力不足导致的项目取消部分设备退货；本次退款用于抵扣重购成本。"
+  }
+]

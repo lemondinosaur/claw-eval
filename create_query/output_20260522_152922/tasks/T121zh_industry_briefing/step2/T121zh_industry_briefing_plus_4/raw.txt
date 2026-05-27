@@ -1,0 +1,248 @@
+{
+  "task_id": "T121zh_industry_briefing_plus_4",
+  "task_name": "金融风控AI监测简报",
+  "prompt_text": "风控负责人要求你生成“金融风控AI监测简报”（不发送邮件），用于周会材料。\n\n请完成：\n1）从RSS筛选涉及“金融风控/反欺诈/合规审计/模型治理/数据漂移监测/监管科技RegTech”的文章，剔除与风控无关的金融内容（如投顾营销、宏观预测、投研大模型聊天/投顾助手上线等）。\n2）将筛选后的文章按以下4类分类整理：\n- 反欺诈算法/策略\n- 模型治理与审计\n- 数据与漂移监测\n- 监管与合规（RegTech）\n3）每类输出：\n- 一段简段总结（说明要点与可能影响）\n- 3条可执行监测动作（每条必须包含：要监控的指标/数据、触发告警/阈值口径（可用定性阈值描述，如“显著高于基线”“连续N次超阈”）、以及需要留存的证据或日志）\n4）把以上内容整理成结构化邮件草稿（收件人从收件箱邮件读取），并使用gmail_save_draft保存，不要调用gmail_send_message发送。\n\n注意：存在一些“模型解释性/可解释AI”相关文章但未明确连接到审计/监测流程；若要纳入，仅作为背景补充，不得用其替代需要给出的“监控指标/告警/证据”动作要素。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_980",
+        "from": "risk_lead@bank.example.com",
+        "to": "ai_risk_team@bank.example.com",
+        "subject": "周会材料：金融风控AI监测简报（不发送）",
+        "date": "2026-04-02T09:15:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important",
+          "risk"
+        ],
+        "body": "团队您好，\n\n请基于RSS生成“金融风控AI监测简报”，用于我们下周一周会。\n\n要求：\n- 监测动作必须具体到：需要监控的指标/数据、告警触发/阈值口径（可用定性阈值描述，但要可执行）、以及需要留存的证据/日志。\n- 四类分类必须齐全（反欺诈/模型治理与审计/数据与漂移/监管与合规）。\n- 只保存邮件草稿，不要发送。\n\n请在邮件中使用结构化小标题，便于逐条讨论。谢谢！\n\n收件人：ai_risk_team@bank.example.com\n联系人抄送：compliance_ops@bank.example.com\n"
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "FRD-501",
+        "title": "反欺诈图谱引擎：从账号关系到交易链路的实时告警",
+        "category": "金融风控",
+        "content": "文章介绍基于实体图谱的反欺诈检测，重点在实时交易链路评分、可解释规则回溯与告警分级。并提到需要对“关系突变”和“新实体占比”做监测以避免误伤上升。",
+        "url": "https://fraud-tech.example.com/graph-alerting",
+        "tags": [
+          "反欺诈",
+          "图谱",
+          "实时告警",
+          "交易链路"
+        ],
+        "source": "RegTech Bulletin",
+        "published_at": "2026-04-01T01:30:00Z",
+        "summary": "以实体图谱驱动的反欺诈告警体系：对关系突变与新实体占比做监测，提升告警分级与回溯能力。",
+        "word_count": 168
+      },
+      {
+        "article_id": "FRD-502",
+        "title": "银行卡多维风险特征漂移：特征分桶漂移与校准回退实践",
+        "category": "风控数据与漂移",
+        "content": "讨论银行卡风控模型在节假日与渠道变更后的特征漂移问题。给出做法：用分桶分布距离（PSI思路）、校准曲线偏移与阈值回退开关，强调要保留校准前后的样本与日志。",
+        "url": "https://risk-data.example.com/card-feature-drift",
+        "tags": [
+          "数据漂移",
+          "PSI",
+          "校准回退",
+          "分桶分布"
+        ],
+        "source": "RiskOps Weekly",
+        "published_at": "2026-04-01T06:10:00Z",
+        "summary": "提出银行卡多维特征分桶漂移监测与校准回退：保留样本与校准日志，必要时回退阈值。",
+        "word_count": 154
+      },
+      {
+        "article_id": "FRD-503",
+        "title": "模型治理：风控评分模型的版本审计与变更影响评估清单",
+        "category": "模型治理与审计",
+        "content": "文章聚焦模型治理流程：要求记录训练数据范围、特征字典版本、验证集统计、模型阈值策略变更，并对上线前后做影响评估（如误杀率、漏检率代理指标）。强调审计证据链（数据血缘+审批记录+评测报告）。",
+        "url":://model-gov.example.com/version-audit-checklist",
+        "tags": [
+          "模型治理",
+          "审计",
+          "版本记录",
+          "变更评估"
+        ],
+        "source": "Model Governance Desk",
+        "published_at": "2026-04-01T10:20:00Z",
+        "summary": "给出风控模型版本审计与变更影响评估清单：要点包括数据范围、特征字典、阈值策略与审计证据链。",
+        "word_count": 196
+      },
+      {
+        "article_id": "FRD-504",
+        "title": "监管科技RegTech：面向可疑交易的合规证据自动汇总与留痕",
+        "category": "监管与合规",
+        "content": "介绍RegTech平台如何把可疑交易的多源证据（规则命中、模型分、人工复核意见）自动汇总成留痕包，并生成可供监管问询的审计材料。强调对证据完整性、时间戳一致性与版本标识做校验。",
+        "url": "https://regtech.example.com/suspicious-proof-pack",
+        "tags": [
+          "监管科技",
+          "证据留痕",
+          "审计材料",
+          "可疑交易"
+        ],
+        "source": "Compliance Automation",
+        "published_at": "2026-04-01T14:45:00Z",
+        "summary": "RegTech证据留痕：将规则命中/模型分/人工复核意见打包并校验时间戳与版本标识，便于监管问询。",
+        "word_count": 182
+      },
+      {
+        "article_id": "FRD-505",
+        "title": "反欺诈算法：动态阈值+代价敏感学习降低高价值客户误伤",
+        "category": "金融风控",
+        "content": "文章讲述在不同客户分层与渠道组合下使用代价敏感学习，同时用动态阈值策略降低误伤。强调需要监控分层后的告警占比、命中后人工复核通过率、以及代价函数相关指标。",
+        "url": "https://fraud-algo.example.com/cost-sensitive-dynamic-thresholds",
+        "tags": [
+          "反欺诈",
+          "动态阈值",
+          "代价敏感",
+          "误伤控制"
+        ],
+        "source": "Fraud Engineering",
+        "published_at": "2026-03-31T20:10:00Z",
+        "summary": "动态阈值与代价敏感学习：需监控分层告警占比、复核通过率等以约束误伤。",
+        "word_count": 171
+      },
+      {
+        "article_id": "FRD-506",
+        "title": "数据与漂移监测：交易序列异常的时间窗对齐与告警抑制",
+        "category": "风控数据与漂移",
+        "content": "讨论时间序列分布变化的检测：如何做时间窗对齐、处理延迟数据、并用告警抑制策略避免“延迟造成的假漂移”。强调需留存时间窗参数、延迟率统计与抑制触发日志。",
+        "url": "https://risk-data.example.com/time-window-drift-alignment",
+        "tags": [
+          "漂移监测",
+          "时间窗对齐",
+          "告警抑制",
+          "延迟数据"
+        ],
+        "source": "RiskOps Weekly",
+        "published_at": "2026-03-31T05:55:00Z",
+        "summary": "时间窗对齐+延迟处理的漂移监测：保留时间窗参数、延迟率与抑制日志用于追查。",
+        "word_count": 146
+      },
+      {
+        "article_id": "FRD-507",
+        "title": "模型治理：可解释性并入审计——特征归因报告的证据链要求",
+        "category": "模型治理与审计",
+        "content": "文章强调可解释性（特征归因/SHAP类思想）在审计中的用途：必须把归因报告与版本、特征字典、输入样本id关联，并明确归因的一致性校验与抽样复核机制。指出可解释不是完整治理，仍需审计流程与监控动作。",
+        "url": "https://model-gov.example.com/explainability-audit-evidence",
+        "tags": [
+          "模型解释性",
+          "审计证据链",
+          "归因一致性"
+        ],
+        "source": "Governance & Trust",
+        "published_at": "2026-03-31T12:30:00Z",
+        "summary": "将解释性归因报告纳入审计：需与版本/特征字典/输入样本id绑定，并做一致性校验与抽样复核。",
+        "word_count": 162
+      },
+      {
+        "article_id": "FRD-508",
+        "title": "监管与合规：反洗钱规则变更的审批流、灰度与审计对账",
+        "category": "监管与合规",
+        "content": "讲述AML/风控规则变更的合规落地：审批流、灰度发布、变更前后命中率对账与审计留存。强调要对“规则版本、审批时间、灰度范围、对账结果”做统一口径记录。",
+        "url": "https://regtech.example.com/aml-rule-change-audit-reconciliation",
+        "tags": [
+          "监管合规",
+          "AML",
+          "规则版本",
+          "审批与对账"
+        ],
+        "source": "Compliance Automation",
+        "published_at": "2026-03-30T09:05:00Z",
+        "summary": "AML规则变更合规落地：审批流+灰度+对账留存，统一记录规则版本与审批时间。",
+        "word_count": 189
+      },
+      {
+        "article_id": "NOISE-601",
+        "title": "投顾大模型上线：为用户提供“风险偏好画像”与营销话术",
+        "category": "金融大模型营销",
+        "content": "文章主要讲投顾助手如何生成营销话术与风险偏好展示，提到个性化推荐与转化率提升，未涉及交易/账户反欺诈或治理监控流程。",
+        "url": "https://wealth-ai.example.com/advisor-bot-launch",
+        "tags": [
+          "投顾",
+          "营销",
+          "大模型聊天"
+        ],
+        "source": "FinTech Media",
+        "published_at": "2026-03-31T02:20:00Z",
+        "summary": "投顾助手上线营销与画像展示，缺少反欺诈/合规审计/漂移监控的可执行监测要素。",
+        "word_count": 110
+      },
+      {
+        "article_id": "NOISE-602",
+        "title": "宏观经济预测模型迭代：GDP与利率情景推演",
+        "category": "宏观预测",
+        "content": "介绍宏观经济预测模型的改进与情景推演应用，讨论对投资决策的影响。该内容不涉及风控模型监控、审计证据链或反欺诈告警指标。",
+        "url": "https://macro-forecast.example.com/gdp-scenario-model",
+        "tags": [
+          "宏观",
+          "预测",
+          "投资"
+        ],
+        "source": "Market Insights",
+        "published_at": "2026-03-30T16:10:00Z",
+        "summary": "宏观经济预测模型迭代，偏投资分析，未连接风控监测流程。",
+        "word_count": 125
+      },
+      {
+        "article_id": "NOISE-603",
+        "title": "金融大模型聊天机器人发布：支持客服与合规问答",
+        "category": "客服与问答",
+        "content": "文章聚焦金融客服聊天机器人上线，强调自然语言能力与客服效率，并提到“合规问答”但未给出可落地的监控指标/告警/证据留存方式。",
+        "url": "https://ai-support.example.com/compliance-chatbot-release",
+        "tags": [
+          "聊天机器人",
+          "客服",
+          "合规问答"
+        ],
+        "source": "Product Update",
+        "published_at": "2026-03-29T11:40:00Z",
+        "summary": "聊天机器人产品发布与客服效率提升，合规仅为问答用途，缺少风控监测动作要素。",
+        "word_count": 118
+      },
+      {
+        "article_id": "NOISE-604",
+        "title": "市场回顾：银行间流动性与信用利差变动",
+        "category": "纯新闻",
+        "content": "提供金融市场行情回顾与信用利差数据解读，不包含风控模型治理、漂移监测或监管科技的具体工程要点。",
+        "url": "https://markets.example.com/liquidity-spread-recap",
+        "tags": [
+          "市场",
+          "利差",
+          "新闻"
+        ],
+        "source": "Daily Markets",
+        "published_at": "2026-04-01T03:05:00Z",
+        "summary": "市场行情与利差变动解读，非风控工程与监管科技监测内容。",
+        "word_count": 96
+      },
+      {
+        "article_id": "NOISE-605",
+        "title": "投顾数据看板：展示用户活跃度与交易热度",
+        "category": "数据看板（非风控）",
+        "content": "展示用户活跃、交易热度的可视化看板与增长指标，主要面向运营与营销，未提供反欺诈/合规审计的监测指标口径。",
+        "url": "https://ops-dashboard.example.com/user-activity-heat",
+        "tags": [
+          "运营",
+          "可视化",
+          "活跃度"
+        ],
+        "source": "Ops Analytics",
+        "published_at": "2026-03-28T08:30:00Z",
+        "summary": "运营看板内容，缺少风控监测指标/告警/证据留存的可执行设计。",
+        "word_count": 102
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原“AI/大模型行业简报”改为金融风控AI监测简报：按反欺诈算法/模型治理与审计/数据与漂移/监管与合规分组，并要求每类给出可执行的指标-告警-证据监测动作。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 提供风控负责人要求的收件人与格式约束（监测动作必须具体到指标/阈值/证据），确保生成邮件草稿但不发送。",
+      "rss/feeds.json 构造4类强相关文章（FRD-501~508）覆盖反欺诈、治理审计、漂移监测、RegTech合规，并加入至少5条明显干扰项（NOISE-601~605）以测试筛选能力。",
+      "包含1条“模型解释性与审计证据链”的边界文章（FRD-507），用于验证代理能在不替代监测动作的前提下进行合理纳入/补充。"
+    ]
+  }
+}

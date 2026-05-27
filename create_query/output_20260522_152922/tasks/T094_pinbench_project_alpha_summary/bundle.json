@@ -1,0 +1,178 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:36:14",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T094_pinbench_project_alpha_summary",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:34:30",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:34:30",
+      "source_task_id": "T094_pinbench_project_alpha_summary",
+      "source_summary": {
+        "task_id": "T094_pinbench_project_alpha_summary",
+        "task_name": "Pinbench Project Alpha Summary",
+        "task_type": "基于Gmail收件箱邮件内容进行跨邮件综合提炼与结构化总结（过滤噪声）",
+        "category": "synthesis",
+        "difficulty": "easy",
+        "tags": [
+          "general"
+        ],
+        "language": "en",
+        "services": [
+          "gmail"
+        ],
+        "tools": [
+          "gmail_list_messages",
+          "gmail_get_message"
+        ],
+        "fixture_paths": [
+          "fixtures/gmail/inbox.json"
+        ],
+        "sandbox_files": [
+          "fixtures/gmail/inbox.json"
+        ],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "synthesis"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T094_pinbench_project_alpha_summary_plus_1",
+          "new_task_name": "Alpha Data Migration & Security Brief",
+          "task_goal": "从与“Project Alpha”相关的多封邮件中提取数据迁移计划、切换窗口、回滚策略以及关键安全/合规发现，并输出包含时间线与当前状态的结构化简报。",
+          "user_request": "在Gmail收件箱中检索所有与 Project Alpha 相关的邮件，忽略无关内容，生成结构化简报，包含：1) 项目概览 2) 迁移与切换时间线 3) 安全/合规风险与发现 4) 业务影响（对客户交付与运营） 5) 当前状态（含阻塞项）。语言使用英文。",
+          "scenario": "邮件显示Alpha正从旧报表平台迁移到新分析仪表盘：需要进行周末切换窗口；安全组发现传输加密与审计链路存在缺口；同时运营团队要求明确回滚与对外沟通模板。近期出现一次失败的压测导致延后，并且有关于“最小权限”的补丁实施进度邮件。",
+          "difference_from_source": "不再强调预算与前期技术选型为主，而是围绕“数据迁移/切换窗口/回滚策略/审计链路合规”进行综合；风险侧重点从架构选择转为迁移过程与安全审计落地，且加入对外沟通与运营影响。",
+          "service_and_tool_plan": "继续使用 gmail_list_messages 先拉取最近一段时间内可能相关的邮件（根据subject/labels线索），再使用 gmail_get_message 获取关键邮件正文以提取迁移与安全细节；为何：需要跨邮件汇总时间线与风险证据。",
+          "fixture_generation_plan": "生成一个新的 fixtures 文件夹中的 inbox.json（同schema风格）共 10 条消息：其中 7 条为 Project Alpha 相关（不同labels如project-alpha、migration、security、ops），2 条为噪声（promo/meeting），1 条为“相似但不相关”（例如 Project Alphascope 或仅提Alpha培训）。相关邮件日期覆盖 2026-03-01 到 2026-03-20；状态分布包含：1条迁移计划发布（draft/approved），1条切换窗口调整（delayed），1条回滚演练结果（pass但发现缺陷），2条安全/合规发现与整改跟踪（open->mitigating），1条对外沟通模板草案（pending），最后1条当前状态更新（blocked/unblocked）。字段避免与原fixture相同的message_id/邮箱/主题/数值。",
+          "expected_behavior": "agent 应筛选与“Project Alpha”明确相关的邮件，忽略会议/促销/不相关主题；对相关邮件进行归纳：输出5个固定章节（Project Overview/Timeline/Migration & Security/Business Impact/Current Status）。时间线需至少包含：迁移阶段（prep、dry-run、cutover、post-cutover）、切换窗口日期范围、回滚策略要点、安全审计链路缺口与拟补救措施、以及阻塞项。使用英文撰写并体现“当前状态”基于最新邮件的更新。",
+          "grading_plan": "grader应检查：1) 是否过滤了所有无关邮件与相似但不相关主题；2) 章节结构是否完整且与迁移/切换/回滚/合规安全对应；3) 时间线是否从多封邮件提炼出明确顺序与最新进展；4) 安全/合规风险表述是否与邮件内容一致（含至少两项风险与各自处置方向）；5) Current Status是否引用最新一两封邮件的状态（如blocked/mitigating/delayed）并给出阻塞项。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T094_pinbench_project_alpha_summary_plus_2",
+          "new_task_name": "Alpha Incident Postmortem Summary",
+          "task_goal": "汇总一次针对Project Alpha的生产事故复盘：提取根因分析、影响范围、缓解与永久修复措施、以及面向客户的沟通要点，形成结构化总结与当前状态。",
+          "user_request": "请在Gmail收件箱中搜索所有与 Project Alpha 相关的邮件，忽略无关噪声，生成事故复盘总结，包含：1) 项目概览 2) 事件时间线（检测到恢复） 3) 根因与关键教训 4) 客户/业务影响（哪些功能受影响、影响时长） 5) 当前状态（修复进度与后续行动）。输出英文。",
+          "scenario": "近期Alpha发生生产异常：指标服务间歇性延迟导致仪表盘“实时”数据卡顿。邮件链包括：值班告警记录、回滚尝试、根因假设（网络抖动/缓存击穿/线程池耗尽），以及事后实施的限流、熔断与监控增强。随后有合规与安全人员提醒：事故日志中不应包含敏感标识，需清理与脱敏。",
+          "difference_from_source": "从“项目进度总结”切换为“事故复盘与行动项汇总”；需要强调事件检测/恢复时间线、影响范围与教训、以及面向客户的沟通与日志脱敏要求。",
+          "service_and_tool_plan": "使用 gmail_list_messages 拉取包含incident/postmortem/outage关键字的候选邮件，再用 gmail_get_message 针对事故相关message_id抽取正文证据以确保时间线与根因描述准确。",
+          "fixture_generation_plan": "生成新的 fixtures/gmail/inbox.json 共 12 条消息：其中 8 条为Project Alpha相关（labels包含incident、ops、security或project-alpha），2条为与“Alpha”相似但不相关的邮件（例如company-wide incident模板）、2条为噪声（promo/newsletter）。相关邮件日期范围 2026-04-03 到 2026-04-18；状态分布：1条检测与告警（detected），1条初步缓解（mitigation），1条回滚尝试结果（rollback_failed或rollback_partial），1条根因假设与验证（hypothesis->confirmed），2条永久修复方案评审（approved/at_review），1条客户沟通草稿（customer_comm_pending），最后1条当前状态（monitoring_continuing或metrics_stable）。替换所有message_id、发件人与收件人邮箱、主题文本、数值，避免与原fixture一致。",
+          "expected_behavior": "agent 应输出结构化事故复盘摘要：在“事件时间线”章节必须至少包含检测、初步缓解、根因确认、恢复完成、以及后续修复部署的顺序；“根因与关键教训”需覆盖至少两条教训（如监控不足/限流策略缺失/日志脱敏缺口）；“客户/业务影响”需基于邮件提到的受影响功能与持续时长（用文本总结，不要求精确到分钟但要与邮件一致）。最后“当前状态”要反映修复是否完全部署与是否仍在监控。",
+          "grading_plan": "grader检查：1) 只用与Project Alpha相关的邮件构建复盘，排除不相干incident模板或公司公告；2) 时间线顺序与覆盖点是否完整；3) 根因/教训是否与邮件措辞相符且至少两项；4) 客户/业务影响是否给出具体受影响面（如实时仪表盘、API查询、WebSocket等）与影响时长描述；5) 当前状态与后续行动项是否与最新邮件一致。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T094_pinbench_project_alpha_summary_plus_3",
+          "new_task_name": "Alpha Vendor Contract & Delivery Outlook",
+          "task_goal": "从与Project Alpha有关的供应商与采购沟通邮件中提取：交付里程碑、合同/采购条款变化、付款或SLA相关风险、以及对项目进度的影响，给出当前状态与下一步。",
+          "user_request": "请在Gmail收件箱中查找所有与 Project Alpha 相关的邮件，忽略无关内容，生成结构化交付与合同前景总结，包含：1) 项目概览 2) 供应商交付时间线（里程碑与延期） 3) 合同/采购条款与风险（SLA、付款节点、索赔/违约） 4) 对内部团队与客户交付的影响 5) 当前状态与下一步行动。英文输出。",
+          "scenario": "Project Alpha依赖第三方组件（例如日志聚合与告警平台）。供应商在一次安全评估后提出条款调整：要求更严格的访问控制、并将SLA从响应时间改为“分级处理”。同时采购团队发现付款节点与里程碑对不上，导致需要重新对齐。近期邮件提到一个关键交付推迟到下一个迭代周期，并附带备选方案（替换方案或临时补丁）。",
+          "difference_from_source": "引入“供应商合同/采购条款与SLA/付款节点”的综合总结，重点不在技术栈或安全漏洞本身，而在合同条款变化如何驱动交付计划与风险管理。",
+          "service_and_tool_plan": "使用 gmail_list_messages 搜索包含vendor/vendor-sla/procurement/contract/milestone等线索的相关邮件；再用 gmail_get_message 获取关键邮件正文以提炼里程碑变更与条款风险，最后汇总为结构化报告。",
+          "fixture_generation_plan": "生成新的 fixtures/gmail/inbox.json 共 9 条：其中 6 条Project Alpha相关（labels：project-alpha、vendor、procurement、legal），2条噪声（internal schedule、promo），1条与Alpha类似名称但无关（例如“Project Alphascope”）。日期覆盖 2026-05-01 到 2026-05-16。状态分布：1条里程碑与合同初版（initial），1条供应商条款更新（terms_changed），1条法律/采购评审结论（needs_revision），1条SLA与付款节点冲突说明（conflict），1条交付延期通知（delayed），最后1条替代方案与当前状态（contingency_ready或contract_pending）。确保message_id/邮箱/主题与原fixture完全不同，且数值与预算不复用原任务。",
+          "expected_behavior": "agent 生成五章结构化总结：时间线要明确列出至少3个与交付相关的里程碑及其变更（原计划/新计划/延期原因），合同/采购风险需至少提到：SLA分级或响应口径变化、付款节点与里程碑不一致带来的风险、以及需要采取的修订动作。当前状态需反映合同是否pending、是否存在替代方案/临时补丁，并说明对客户交付节奏的影响。",
+          "grading_plan": "grader检查：1) 是否完整抽取并引用与供应商条款/采购/里程碑相关邮件；2) 时间线里程碑数量与变更点是否足够且方向正确（延期/修订）；3) 风险部分是否包含SLA与付款节点两类风险（至少各一项）；4) 影响描述是否从内部团队与客户交付两个角度输出；5) 当前状态与下一步是否来自最新邮件。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T094_pinbench_project_alpha_summary_plus_4",
+          "new_task_name": "Alpha Product Scope & Feature Tradeoffs",
+          "task_goal": "总结Project Alpha在产品范围和功能取舍上的讨论：提取新增/取消功能、优先级变化、验收标准、以及对交付与用户价值的影响，最后给出当前状态与未决事项。",
+          "user_request": "在Gmail收件箱中搜索与 Project Alpha 相关的邮件，忽略无关噪声，生成结构化范围与功能取舍总结，包含：1) 项目概览 2) 功能范围与决策时间线 3) 取舍原因与风险（技术/合规/资源） 4) 对客户价值与交付的影响 5) 当前状态与未决事项。英文输出。",
+          "scenario": "团队在临近迭代时争论功能优先级：客户要求的“自定义导出与字段级权限”与“实时图表联动”之间发生取舍。邮件链包含：产品负责人提出范围裁剪、工程给出估算与依赖（例如网关能力未就绪）、以及合规/安全提醒字段级权限需要额外审计。最终形成一个“分阶段交付”：先交付基础导出与只读访问，字段级权限进入后续里程碑。",
+          "difference_from_source": "与原任务相比更偏“产品范围决策与验收取舍”，需要把邮件里的功能列表、优先级与分阶段交付方案综合成时间线与未决事项，而不是预算/技术选型的总结核心。",
+          "service_and_tool_plan": "使用 gmail_list_messages 拉取相关邮件（关注product、scope、requirements、acceptance、field-permission等关键词），然后用 gmail_get_message读取关键决策邮件以提炼取舍点与验收标准。",
+          "fixture_generation_plan": "生成新的 fixtures/gmail/inbox.json 共 11 条：其中 7条为Project Alpha相关（labels：project-alpha、product、engineering、security 或 compliance），3条为噪声（培训邀请、随机开发讨论、促销），1条为相似标题但不相关（Project Alpha旧版本支持）。日期覆盖 2026-06-05 到 2026-06-24；状态分布：1条需求澄清/客户反馈汇总（requirements_in），2条工程可行性评估（feasibility），1条范围裁剪提案（scope_cut），1条安全合规提醒（compliance_risk），1条分阶段交付方案定稿（phased_plan），1条验收标准草案（acceptance_draft），最后1条当前状态更新（waiting_on_approval）。确保所有实体名/邮箱/主题/数值与原fixture不同且不复用。",
+          "expected_behavior": "agent 输出英文结构化总结：在“功能范围与决策时间线”中至少列出3次关键决策节点（例如裁剪提案、合规提醒、分阶段交付定稿）并注明结果；“取舍原因与风险”需对应到至少两类原因（如依赖未就绪、合规审计成本）；“当前状态与未决事项”必须列出至少2个未决事项（例如审批、某能力依赖就绪日期）并与邮件最新进展一致。",
+          "grading_plan": "grader检查：1) 是否从多封邮件提取出明确的功能取舍（新增/取消/延后）而非泛泛而谈；2) 时间线是否包含决策链与结果；3) 风险部分是否与合规/资源/依赖等理由相匹配；4) 当前状态是否反映未决事项及其触发条件；5) 是否正确过滤噪声邮件与不相关主题。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T094_pinbench_project_alpha_summary_plus_5",
+          "new_task_name": "Alpha Stakeholder Update & Status Alignment",
+          "task_goal": "整合来自不同角色（交付经理、工程负责人、支持团队、客户成功/销售）的Stakeholder邮件，形成一致的对齐状态报告：说明整体进展、相互依赖、风险与需要的确认事项。",
+          "user_request": "请在Gmail收件箱中检索所有与 Project Alpha 相关的邮件，忽略无关噪声，生成利益相关方对齐的状态报告，包含：1) 项目概览 2) 角色视角进展（交付/工程/支持/客户成功） 3) 依赖关系与风险 4) 需要管理层确认的事项 5) 当前状态。英文输出。",
+          "scenario": "邮件中出现不同角色对同一项目状态的描述不一致：工程说“核心API稳定”，交付经理说“仍在等待集成验收”，支持团队担心“上线后工单量”。客户成功同步了客户沟通进度并要求提前确认培训与迁移帮助。近期还出现一封“口径更正”邮件，说明某项指标在不同环境统计口径不同，导致误解。",
+          "difference_from_source": "加入“多角色视角对齐”与“口径更正/信息冲突消解”的综合能力；需要指出不同邮件对状态的分歧并给出最终对齐版本，而不仅是单一路径的进度汇总。",
+          "service_and_tool_plan": "使用 gmail_list_messages 先收集所有带有project-alpha或相关标签的邮件，再用 gmail_get_message 对每类角色的关键消息做内容核对；之所以：需要比较并统一口径与状态。",
+          "fixture_generation_plan": "生成新的 fixtures/gmail/inbox.json 共 13 条：其中 8 条为Project Alpha相关（labels：project-alpha、delivery、engineering、support、customer-success、comms），4条噪声（random threads、agenda、promo等），1条不相关相似主题（Project Alphaware）。日期覆盖 2026-07-01 到 2026-07-25；状态分布需体现冲突：至少两条对关键状态的表述不一致（例如“integration test complete” vs “still waiting”），并包含一条口径更正邮件（metrics_definition_changed）；最后一条为管理层更新或当前状态定稿（status_alignment）。所有发件人/收件人邮箱、message_id、主题、数值与原fixture不同。",
+          "expected_behavior": "agent 应输出英文对齐状态报告：角色视角进展需要分别概括至少4个角色的要点；依赖关系与风险需指出“工程完成但交付验收未完成”“支持准备不足”等类型依赖；需要管理层确认的事项至少列出3项（例如培训计划批准、集成验收窗口确认、上线沟通口径确认）；当前状态应是基于最新邮件及口径更正消解后的最终一致结论。",
+          "grading_plan": "grader检查：1) 角色视角章节是否覆盖交付/工程/支持/客户成功（至少4类）；2) 是否识别并处理了状态不一致（需提到口径更正或分歧并给出统一口径）；3) 管理层确认事项数量与具体性是否足够（>=3且有可执行描述）；4) 当前状态是否来自最新更新并与前文对齐；5) 噪声与不相关邮件是否被正确排除。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:36:14",
+    "items": [
+      {
+        "task_id": "T094_pinbench_project_alpha_summary_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:34:51",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T094_pinbench_project_alpha_summary_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T094_pinbench_project_alpha_summary_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:35:10",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T094_pinbench_project_alpha_summary_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T094_pinbench_project_alpha_summary_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:35:28",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T094_pinbench_project_alpha_summary_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T094_pinbench_project_alpha_summary_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:35:47",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T094_pinbench_project_alpha_summary_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T094_pinbench_project_alpha_summary_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:36:14",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/T094_pinbench_project_alpha_summary_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T094_pinbench_project_alpha_summary_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T094_pinbench_project_alpha_summary/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T094_pinbench_project_alpha_summary",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

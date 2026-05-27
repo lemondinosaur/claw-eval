@@ -1,0 +1,28 @@
+[
+  {
+    "message_id": "msg_4201",
+    "from": "auth-platform@company.com",
+    "to": "incident-reports@company.com",
+    "subject": "技术补充：token_refresh_harvester 刷新提前量被错误设为0/负值导致集中到期",
+    "body": "同事们好，\n\n我从认证日志与harvester metrics里提取了关键点：\n1）定时任务 token_refresh_harvester 的刷新提前量参数 refresh_lead_time_seconds 在本次发布后从正值被误设为 0（以及少数实例出现了 -30 的回退值）。\n2）harvester 计算刷新窗口使用逻辑：window_start = token_expiry - refresh_lead_time_seconds。\n- 当 refresh_lead_time_seconds = 0 时，window_start 等于 token_expiry，导致令牌在“到期点”瞬间集中触发刷新。\n- 当 refresh_lead_time_seconds < 0 时，window_start 落在到期之后，触发更频繁/更密集的重试策略。\n3）刷新失败后客户端/任务侧未进行指数退避（缺少 backoff 幂等保护），重试与队列轮询叠加，引发“刷新请求洪泛”。\n\n建议的验证方式：\n- 将刷新提前量增加下限（min_refresh_lead_time）并确保全实例一致。\n- 对刷新失败增加指数退避 + 随机抖动 jitter。\n- 对同一token的刷新执行互斥（或幂等key）与限流。\n\n— Auth 平台",
+    "date": "2026-03-01T01:18:00+08:00",
+    "labels": [
+      "INBOX",
+      "TECH",
+      "URGENT"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_4202",
+    "from": "release-manager@company.com",
+    "to": "incident-reports@company.com",
+    "subject": "关于鉴权压测/失败退避校验未通过的说明（昨晚事故相关）",
+    "body": "团队好，\n\n就昨晚事故相关的发布流程补充说明：\n- 本次发布跳过了“鉴权压测（401/刷新失败）+ 失败退避校验”那一项检查。\n- 变更审批单里原定在预发验证：当 identity_provider 返回 transient_error 时任务是否进入指数退避并停止快速重入。\n- 由于上线紧急，校验被标记为“暂缓”，实际未纳入发布门禁。\n\n另外提醒：从任务历史看，token_refresh_harvester 在故障窗口内出现短时间重复启动/重入，可能叠加了缺少退避导致的洪泛。\n\n— 发布负责人",
+    "date": "2026-03-01T01:30:00+08:00",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": true
+  }
+]

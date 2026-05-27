@@ -1,0 +1,192 @@
+{
+  "task_id": "T029zh_cross_service_meeting_plus_4",
+  "task_name": "会议替换：既有冲突会议协商调整",
+  "prompt_text": "请处理一封来自“晨星咨询”的“改期确认”邮件。邮件说明原定会议“合规评估会”需要重排：\n\n1）读取邮件，提取新的候选窗口、会议时长（2小时）与地点要求。\n2）在通讯录中查找并获取我方参会者与对方项目联络人的邮箱：我方“陈莹”（合规部门）、“周川”（风控部门）以及对方项目联络人。\n3）查询日历：检查三人在候选窗口（2026-03-11，周三 13:00-17:00）内的冲突。\n4）删除旧事件的条件：若候选窗口内存在一条标题与“合规评估会（旧）”匹配的旧会议，且其 attendees **恰好包含**陈莹、周川和对方项目联络人这三位（都在且没有缺失），则先删除该旧事件，再创建新会议。\n- 若不满足上述条件（标题不匹配 / attendees 不包含关键三人 / 不在候选窗口内），则不能删除任何事件，只在空闲时段安排新会议。\n5）在候选窗口内选择最早可行的连续2小时，共同可用时段安排新会议，地点为“会议室D”，并创建新会议（attendees 包含三方）。\n6）给晨星咨询发送确认邮件回复：邮件正文需明确包含\n- 是否删除了旧事件（注明旧事件标题与原时间）；\n- 新会议的日期、开始/结束时间、地点；\n- 新会议参会人。\n\n请完成以上操作。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_701",
+        "title": "合规评估会（旧）",
+        "organizer": "chenying@gatebridge.com",
+        "attendees": [
+          "chenying@gatebridge.com",
+          "zhouchuan@gatebridge.com",
+          "liaison@chensinc.com"
+        ],
+        "start_time": "2026-03-11T14:00:00+08:00",
+        "end_time": "2026-03-11T15:00:00+08:00",
+        "location": "会议室E",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_702",
+        "title": "内部对齐会（占用候选窗口早段）",
+        "organizer": "pm-ops@gatebridge.com",
+        "attendees": [
+          "chenying@gatebridge.com"
+        ],
+        "start_time": "2026-03-11T13:00:00+08:00",
+        "end_time": "2026-03-11T15:00:00+08:00",
+        "location": "会议室A",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_703",
+        "title": "风控复核（占用候选窗口中段）",
+        "organizer": "risk-lead@gatebridge.com",
+        "attendees": [
+          "zhouchuan@gatebridge.com"
+        ],
+        "start_time": "2026-03-11T16:00:00+08:00",
+        "end_time": "2026-03-11T17:30:00+08:00",
+        "location": "会议室B",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_704",
+        "title": "合规培训（干扰事件：不满足关键attendees）",
+        "organizer": "compliance-trainer@gatebridge.com",
+        "attendees": [
+          "chenying@gatebridge.com",
+          "other-attendee@gatebridge.com"
+        ],
+        "start_time": "2026-03-11T13:30:00+08:00",
+        "end_time": "2026-03-11T14:30:00+08:00",
+        "location": "会议室C",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_705",
+        "title": "其他主题会议（干扰事件：标题不匹配）",
+        "organizer": "project-office@gatebridge.com",
+        "attendees": [
+          "chenying@gatebridge.com",
+          "zhouchuan@gatebridge.com",
+          "liaison@chensinc.com"
+        ],
+        "start_time": "2026-03-11T15:30:00+08:00",
+        "end_time": "2026-03-11T16:30:00+08:00",
+        "location": "会议室F",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_706",
+        "title": "对方内部例会（干扰：不在同窗口完整连续2小时）",
+        "organizer": "liaison@chensinc.com",
+        "attendees": [
+          "liaison@chensinc.com"
+        ],
+        "start_time": "2026-03-11T16:45:00+08:00",
+        "end_time": "2026-03-11T17:15:00+08:00",
+        "location": "线上",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_707",
+        "title": "非候选窗口会议（干扰：不在 13:00-17:00 内）",
+        "organizer": "saleslead@gatebridge.com",
+        "attendees": [
+          "chenying@gatebridge.com"
+        ],
+        "start_time": "2026-03-11T12:00:00+08:00",
+        "end_time": "2026-03-11T12:45:00+08:00",
+        "location": "会议室G",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-701",
+        "name": "陈莹",
+        "department": "合规部门",
+        "title": "合规经理",
+        "email": "chenying@gatebridge.com",
+        "phone": "13811001122",
+        "location": "上海"
+      },
+      {
+        "contact_id": "CT-702",
+        "name": "周川",
+        "department": "风控部门",
+        "title": "风控主管",
+        "email": "zhouchuan@gatebridge.com",
+        "phone": "13811003344",
+        "location": "上海"
+      },
+      {
+        "contact_id": "CT-703",
+        "name": "林若（项目联络人）",
+        "department": "晨星咨询 — 项目管理",
+        "title": "项目联络人",
+        "email": "liaison@chensinc.com",
+        "phone": "13722001133",
+        "location": "北京"
+      },
+      {
+        "contact_id": "CT-704",
+        "name": "周川",
+        "department": "运营支持",
+        "title": "运营专员",
+        "email": "zhouchuan2@chensinc.com",
+        "phone": "13722004455",
+        "location": "北京"
+      },
+      {
+        "contact_id": "CT-705",
+        "name": "陈莹",
+        "department": "市场部门",
+        "title": "市场经理",
+        "email": "chenying2@chensinc.com",
+        "phone": "13722006677",
+        "location": "杭州"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_701",
+        "from": "liaison@chensinc.com",
+        "to": "me@gatebridge.com",
+        "subject": "改期确认：合规评估会（2小时候选窗口）",
+        "date": "2026-03-01T10:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "你好，\n\n我们需要将原定的“合规评估会”因内部排程进行重排。\n\n新的候选窗口为：2026-03-11（周三）13:00-17:00，会议时长2小时。\n地点：会议室D。\n\n请你们检查你方参会人员在候选窗口内的冲突情况：若日历中存在与“合规评估会”相关且需一并重排的既有会议，我们希望能删除旧会议并以新时间安排一次2小时会议。\n\n请告知最终确认的会议时间与地点；如已删除旧会议，也请在回复中说明。\n\n谢谢！\n晨星咨询项目联络人\n林若"
+      },
+      {
+        "message_id": "msg_702",
+        "from": "news@chensinc.com",
+        "to": "me@gatebridge.com",
+        "subject": "关于流程模板更新的通知",
+        "date": "2026-03-01T09:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，\n\n流程模板已更新，请及时查阅。\n\n谢谢。\n"
+      },
+      {
+        "message_id": "msg_703",
+        "from": "security@chensinc.com",
+        "to": "me@gatebridge.com",
+        "subject": "安全培训：请确认参会信息",
+        "date": "2026-03-01T15:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位好，\n\n安全培训邀请已发送，请确认参会信息。\n\nRegards,\n"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在候选窗口内仅当旧事件标题匹配且 attendees 完整包含关键三人时，才允许删除旧“合规评估会（旧）”，随后在最早可行的连续2小时内创建新会议并回信确认。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 提供一封来自晨星咨询的“改期确认”邮件，明确候选窗口（2026-03-11 13:00-17:00）与地点“会议室D”，并要求说明是否删除旧会议。",
+      "contacts/contacts.json 为陈莹、周川及对方项目联络人提供唯一邮箱，并加入同名干扰联系人以测试搜索稳定性。",
+      "calendar/events.json 在 2026-03-11 候选窗口内放入可被删除的旧事件“合规评估会（旧）”（14:00-15:00，attendees 恰好包含三方），并通过额外事件组合让最早共同可用连续2小时落在 15:00-17:00。"
+    ]
+  }
+}

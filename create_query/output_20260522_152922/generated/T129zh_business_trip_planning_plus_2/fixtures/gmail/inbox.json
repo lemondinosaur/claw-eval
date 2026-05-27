@@ -1,0 +1,75 @@
+[
+  {
+    "message_id": "msg_901a",
+    "from": "north-ops@client-north.com",
+    "to": "me@company.com",
+    "subject": "北区现场巡检邀请：最迟 3/31 中午前到达（需现场确认）",
+    "date": "2026-03-24T11:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important"
+    ],
+    "body": "您好！我们在北区安排现场巡检/故障回访。请您在【3月31日 中午前】完成到达并进行现场确认（到访窗口：09:00-12:00）。\n联系人线索：北区售后对接人将协助您进场；如需要对接，请按北区当地同事信息沟通。\n谢谢！"
+  },
+  {
+    "message_id": "msg_902b",
+    "from": "west-service@client-west.com",
+    "to": "me@company.com",
+    "subject": "西区故障回访到访邀请：最迟 3/31 中午前到达（处理现场联动）",
+    "date": "2026-03-24T09:30:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "团队您好，我们需要安排西区现场故障回访。请您【最迟在3月31日 中午前到达】并完成联动处理（到访窗口：08:30-12:00）。\n到访当天我们可能有维护影响，请提前与西区运维同事对接。\n联系人线索：西区现场对接主管负责到访接待与现场路线。"
+  },
+  {
+    "message_id": "msg_903c",
+    "from": "meeting-room@client.com",
+    "to": "me@company.com",
+    "subject": "线上会议邀请：4/1 10:00-11:00（干扰项）",
+    "date": "2026-03-24T13:40:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，已邀请您参加线上会议（非现场到访）。时间：4月1日 10:00-11:00。\n本会议与现场巡检无关，请勿将其当作到访安排。"
+  },
+  {
+    "message_id": "msg_904d",
+    "from": "ops-update@client.com",
+    "to": "me@company.com",
+    "subject": "日程变更提醒（缺少城市信息）：请关注后续通知（干扰项）",
+    "date": "2026-03-24T08:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "通知：部分计划将有变更，但邮件中未包含具体城市/区域与明确到访截止时间。\n如果后续补充信息再确认，请以补充邮件为准。本邮件仅用于提醒，不要当作可执行到访邀请。"
+  },
+  {
+    "message_id": "msg_905e",
+    "from": "billing@client-north.com",
+    "to": "me@company.com",
+    "subject": "北区月度结算进度（非到访通知）",
+    "date": "2026-03-23T19:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，以下是北区月度结算进度更新：请查收附件并确认回款安排。\n（此邮件不涉及现场到访。）"
+  },
+  {
+    "message_id": "msg_906f",
+    "from": "it-support@client-west.com",
+    "to": "me@company.com",
+    "subject": "西区系统健康检查结果（非到访通知）",
+    "date": "2026-03-22T15:25:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "西区系统健康检查已完成，整体状态良好。如需进一步现场支持，将另行发送邀请。\n（此邮件不含到访截止时间。）"
+  }
+]

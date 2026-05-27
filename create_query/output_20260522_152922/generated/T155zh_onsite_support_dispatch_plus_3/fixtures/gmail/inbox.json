@@ -1,0 +1,41 @@
+[
+  {
+    "message_id": "msg_2001",
+    "from": "zhou@xinghuanbio.com",
+    "to": "support@company.com",
+    "subject": "【现场支持紧急】数据污染导致批量放行失败（请于21:30前到场）",
+    "date": "2026-04-10T15:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important",
+      "urgent"
+    ],
+    "body": "您好，技术支持团队：\n\n（以下为多语言采购条款/营销内容干扰——不影响我们真实现场要求）\nEnglish section: This engagement includes promotional materials, vendor marketing references, and a long list of procurement clauses for branding compliance. None of the following paragraphs indicate any on-site timing.\n\n— 采购条款摘要（仅供参考，避免逐字引用）—\nThe parties agree that certain documentation may be referenced in a summarized form; sensitive contractual text must not be reproduced verbatim.\n\n接下来为关键现场要求（请重点处理）：\n1）现场支持：今天21:30前工程师到达“武汉光谷”现场。\n2）立即启动采样复核流程，并进行“数据完整性校验”。\n3）若发现数据污染导致ETL输出异常：执行“ETL回滚”，随后进行“数据库一致性验证”，以确保批量放行恢复成功。\n4）请在到场后先确认止血路径与回滚边界，再开展一致性校验。\n\n我们需要你们确认：谁到场、预计到场时间、以及现场第一步将做什么。\n\n周总\n星环生物医药\n地址：武汉光谷（具体楼栋另行提供）"
+  },
+  {
+    "message_id": "msg_2002",
+    "from": "ops-news@vendor-mail.com",
+    "to": "support@company.com",
+    "subject": "Weekly procurement update（营销/条款干扰，请忽略）",
+    "date": "2026-04-10T09:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "大家好，\n\n本周我们发布多语言采购条款更新与合作伙伴宣传。文中包含大量英文条款与品牌合规说明。\n\n提示：这些内容与任何现场到场时间无关，请不要从中提取派遣要求。\n\n谢谢。"
+  },
+  {
+    "message_id": "msg_2003",
+    "from": "alert-bot@monitoring.system",
+    "to": "support@company.com",
+    "subject": "Auto-alert: Data pipeline anomaly detected（自动告警干扰）",
+    "date": "2026-04-10T14:02:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "system"
+    ],
+    "body": "自动告警：检测到数据管道异常（ETL stage mismatch）。\n\n建议查看对应工单与客户邮件的现场要求，不要直接依据此告警进行派遣决策。"
+  }
+]

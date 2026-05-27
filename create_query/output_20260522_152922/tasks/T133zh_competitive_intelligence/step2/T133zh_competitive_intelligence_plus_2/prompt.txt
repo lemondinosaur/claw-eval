@@ -1,0 +1,509 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T133zh_competitive_intelligence_plus_2",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/gmail/inbox.json",
+  "fixtures/kb/articles.json",
+  "fixtures/rss/feeds.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 2,
+  "new_task_id": "T133zh_competitive_intelligence_plus_2",
+  "new_task_name": "Channel & Pricing Intel",
+  "task_goal": "整理竞品A与竞品B在“渠道策略与定价/捆绑”方面的变化情报，面向市场/销售团队输出对比要点、潜在机会点与反制话术建议，并保存邮件草稿给市场负责人。",
+  "user_request": "请生成一份竞品情报报告供市场负责人参考：1）读取邮件获取这次要对外谈判的定价争议点与客户画像；2）用RSS抓取竞品A与竞品B最新关于渠道合作、渠道折扣、套餐捆绑或价格策略的动态（只保留明确与竞品A/竞品B相关的文章）；3）在知识库中查找我们对两家渠道与定价策略的既有分析，指出哪些旧判断不再成立；4）整合成“竞品A渠道+定价动态分析”“竞品B渠道+捆绑动态分析”“对我司的谈判影响与建议（含话术要点）”；5）准备并保存邮件草稿，不要发送。邮件收件人写“marketing_lead@ourcompany.com”，主题含“渠道与定价”三个字。",
+  "scenario": "一位大客户正在与我们及竞品A/B同时比价。该客户偏好通过本地渠道采购，并对“捆绑服务是否会导致隐藏成本”敏感。竞品A近期推出了面向中端客户的渠道返佣机制；竞品B则在新地区以“基础功能低价+增值模块订阅”的方式进行捆绑。报告需要帮助市场团队制定谈判策略：既要揭示竞品的真实成本结构，也要强调我司的可选项与透明度。",
+  "difference_from_source": "原题以AI威胁与融资出海为核心，本题改为“渠道策略与定价/捆绑”，报告结构强调谈判影响与话术要点；同时RSS筛选关键词从AI/融资变为渠道返佣/套餐/定价机制。",
+  "service_and_tool_plan": "使用gmail读取市场负责人相关邮件与客户画像；使用rss_list_articles与rss_get_article获取竞品A/B在渠道与定价方面的文章并过滤噪声；使用kb_search与kb_get_article对照历史分析；最终通过gmail_save_draft生成邮件草稿，避免gmail_send_message。",
+  "fixture_generation_plan": "生成新fixtures：1）gmail/inbox.json：至少3-5封邮件，包含1封“本周定价争议点”与1封“谈判客户画像/渠道偏好”，其余为无关通知；确保message_id与邮箱地址与原题不同；2）rss/feeds.json：约12条文章，至少5条指向竞品A/B的渠道或定价（例如“渠道返佣”“经销商计划”“套餐捆绑”“定价调整”“试用政策”），另放至少4条不相关行业新闻；竞品文章需包含可抽取的机制描述（但不复用原文章id/标题/数值）；3）kb/articles.json：至少4篇，其中竞品A定价/渠道旧分析2篇、竞品B捆绑/渠道旧分析1篇、我司透明定价或产品选配策略1篇。给出不同的旧结论与需被更新的点（例如旧说“竞品A没有渠道返佣”，新RSS显示已推出）。",
+  "expected_behavior": "代理应：先读邮件并提取谈判要点（渠道偏好、客户敏感点、需要强调的价值主张）；再用rss_list_articles按竞品A/竞品B与“渠道/定价/套餐/捆绑/折扣”筛选，逐条用rss_get_article获取详情；随后用kb_search检索相关历史分析并用kb_get_article取全文；最后输出报告：分别总结竞品A与竞品B的机制变化（来自RSS）+ 对照知识库旧判断（标注更新点）+ 对我司谈判影响与可落地话术（例如强调透明选配、成本可解释、替代方案）；最后调用gmail_save_draft保存草稿，to与主题符合要求，不发送。",
+  "grading_plan": "grader应检查：1）竞品A与竞品B的关键RSS机制覆盖是否充分；2）是否出现“旧结论→新信息→修正原因”的对照；3）话术建议是否与客户画像与谈判争议点对齐；4）邮件草稿生成且收件人/主题匹配；5）不调用gmail_send_message。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T133zh_competitive_intelligence",
+  "task_name": "竞品情报整理",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "rss",
+    "kb",
+    "gmail"
+  ],
+  "tools": [
+    "rss_list_articles",
+    "rss_get_article",
+    "kb_search",
+    "kb_get_article",
+    "gmail_list_messages",
+    "gmail_get_message",
+    "gmail_save_draft",
+    "gmail_send_message"
+  ],
+  "fixture_paths": [
+    "fixtures/gmail/inbox.json",
+    "fixtures/kb/articles.json",
+    "fixtures/rss/feeds.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T133zh_competitive_intelligence
+task_name: 竞品情报整理
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/articles
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: tasks/T133zh_competitive_intelligence/fixtures/rss/feeds.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T133zh_competitive_intelligence/fixtures/kb/articles.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T133zh_competitive_intelligence/fixtures/gmail/inbox.json
+prompt:
+  text: "需要整理竞品情报报告：\n1. 查看邮件了解报告要求和一线销售反馈\n2. 从RSS源收集竞品A和竞品B的最新动态\n3. 在知识库中查找我们已有的竞品分析\n\
+    4. 整合信息，输出竞品情报报告：\n   - 竞品A动态分析（新版本+AI功能威胁）\n   - 竞品B动态分析（融资+出海策略）\n   - 对我司的影响和应对建议\n\
+    5. 准备邮件草稿（不要直接发送）\n"
+  language: zh
+tools:
+- name: rss_list_articles
+  description: 获取RSS文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_name:
+        type: string
+        description: 按RSS源筛选
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_901",
+    "from": "product-manager@company.com",
+    "to": "me@company.com",
+    "subject": "请本周五前交竞品分析报告",
+    "date": "2026-03-24T09:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox", "important"],
+    "body": "团队好，请在本周五前完成竞品A和竞品B的最新动态分析报告，重点关注：1. 竞品A新版本对我们的威胁 2. 竞品B融资后的市场策略 3. 我们的应对建议。报告发给管理层。"
+  },
+  {
+    "message_id": "msg_902",
+    "from": "sales-rep@company.com",
+    "to": "me@company.com",
+    "subject": "客户提到竞品A的AI功能",
+    "date": "2026-03-25T11:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "今天拜访万通物流时，赵总监提到竞品A刚发布了AI助手功能，问我们什么时候也会有类似功能。我回答说在规划中。请在报告中重点分析这个竞品威胁。"
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "KB-801",
+    "title": "竞品A产品对比分析（2025Q4版）",
+    "category": "竞品分析",
+    "tags": ["竞品A", "对比", "分析"],
+    "content": "## 竞品A vs 我司产品对比\n\n### 功能对比\n| 功能 | 我司 | 竞品A |\n|------|------|-------|\n| 数据分析 | ✓(高级) | ✓(基础) |\n| AI助手 | 规划中 | 无 |\n| 移动端 | ✓ | △(体验差) |\n| API开放度 | 高 | 中 |\n\n### 竞品A弱点\n- AI能力空白（注：此信息基于3.x版本）\n- 移动端体验差\n- 定价较高\n\n### 上次更新：2025年12月",
+    "last_updated": "2025-12-15",
+    "views": 890
+  },
+  {
+    "article_id": "KB-802",
+    "title": "竞品B市场定位分析",
+    "category": "竞品分析",
+    "tags": ["竞品B", "市场", "定位"],
+    "content": "## 竞品B市场分析\n\n### 定位\n- 中小企业市场为主\n- 价格敏感型客户\n- 本土市场为主，海外布局有限\n\n### 优势\n- 价格低30%\n- 部署速度快\n- 中小企业场景覆盖全\n\n### 弱点\n- 大客户服务能力不足\n- 数据安全认证少\n- 海外拓展受限\n\n### 上次更新：2026年1月",
+    "last_updated": "2026-01-10",
+    "views": 650
+  },
+  {
+    "article_id": "KB-803",
+    "title": "我司产品核心优势总结",
+    "category": "产品资料",
+    "tags": ["产品", "优势", "竞争"],
+    "content": "## 我司核心竞争优势\n\n1. **数据分析能力行业领先**：支持多维交叉分析\n2. **API生态丰富**：500+ API接口\n3. **安全合规**：SOC2, ISO27001\n4. **大客户服务**：专属客户成功团队\n5. **AI规划**：2026Q2上线AI分析助手",
+    "last_updated": "2026-03-01",
+    "views": 2100
+  },
+  {
+    "article_id": "KB-804",
+    "title": "2026年SaaS行业趋势预测",
+    "category": "行业分析",
+    "tags": ["SaaS", "趋势", "预测"],
+    "content": "## 2026年趋势\n1. AI成为标配\n2. 垂直行业SaaS崛起\n3. 出海成为新增长点\n4. PLG(产品驱动增长)持续",
+    "last_updated": "2026-02-01",
+    "views": 1500
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+--- FILE: fixtures/rss/feeds.json ---
+[
+  {
+    "article_id": "RSS-401",
+    "title": "竞品A发布4.0版本：新增AI助手功能",
+    "category": "竞品动态",
+    "content": "竞品A今日正式发布4.0版本，核心亮点是内置AI助手，可自动完成数据分析和报告生成。该版本还优化了移动端体验。",
+    "url": "https://news.example.com/competitor-a-v4",
+    "tags": [
+      "竞品A",
+      "版本发布",
+      "AI"
+    ],
+    "source": "行业新闻",
+    "published_at": "2026-03-24T09:00:00Z",
+    "summary": "竞品A今日正式发布4.0版本，核心亮点是内置AI助手，可自动完成数据分析和报告生成。该版本还优化了移动端体验。",
+    "word_count": 55
+  },
+  {
+    "article_id": "RSS-402",
+    "title": "竞品A 4.0用户测评：AI助手表现亮眼",
+    "category": "竞品动态",
+    "content": "第三方测评机构对竞品A 4.0进行了深度评测，AI助手在简单分析任务上准确率达85%，但复杂场景仍需人工干预。性能方面，页面加载速度提升30%。",
+    "url": "https://tech-review.example.com/comp-a-review",
+    "tags": [
+      "竞品A",
+      "评测",
+      "AI"
+    ],
+    "source": "科技评测",
+    "published_at": "2026-03-25T10:00:00Z",
+    "summary": "第三方测评机构对竞品A 4.0进行了深度评测，AI助手在简单分析任务上准确率达85%，但复杂场景仍需人工干预。性能方面，页面加载速度提升30%。",
+    "word_count": 72
+  },
+  {
+    "article_id": "RSS-403",
+    "title": "竞品A CEO专访：未来3年全面拥抱AI",
+    "category": "竞品动态",
+    "content": "竞品A CEO在专访中透露，公司未来3年将把研发预算的40%投入AI方向，计划覆盖从客服到运营的全流程AI化。",
+    "url": "https://news.example.com/comp-a-ceo",
+    "tags": [
+      "竞品A",
+      "战略",
+      "AI"
+    ],
+    "source": "行业新闻",
+    "published_at": "2026-03-25T14:00:00Z",
+    "summary": "竞品A CEO在专访中透露，公司未来3年将把研发预算的40%投入AI方向，计划覆盖从客服到运营的全流程AI化。",
+    "word_count": 55
+  },
+  {
+    "article_id": "RSS-404",
+    "title": "竞品B获得C轮融资5亿元",
+    "category": "竞品动态",
+    "content": "竞品B完成C轮5亿元融资，由红杉中国领投。融资将主要用于海外市场扩张和大数据平台建设。目前竞品B的企业客户数已超过3000家。",
+    "url": "https://funding.example.com/comp-b-series-c",
+    "tags": [
+      "竞品B",
+      "融资",
+      "投资"
+    ],
+    "source": "投融资",
+    "published_at": "2026-03-23T08:00:00Z",
+    "summary": "竞品B完成C轮5亿元融资，由红杉中国领投。融资将主要用于海外市场扩张和大数据平台建设。目前竞品B的企业客户数已超过3000家。",
+    "word_count": 63
+  },
+  {
+    "article_id": "RSS-405",
+    "title": "竞品B宣布进军东南亚市场",
+    "category": "竞品动态",
+    "content": "竞品B在融资后迅速行动，宣布在新加坡设立亚太总部，计划年底前覆盖5个东南亚国家。",
+    "url": "https://news.example.com/comp-b-sea",
+    "tags": [
+      "竞品B",
+      "海外",
+      "扩张"
+    ],
+    "source": "行业新闻",
+    "published_at": "2026-03-24T11:00:00Z",
+    "summary": "竞品B在融资后迅速行动，宣布在新加坡设立亚太总部，计划年底前覆盖5个东南亚国家。",
+    "word_count": 40
+  },
+  {
+    "article_id": "RSS-406",
+    "title": "全球SaaS市场规模突破3000亿美元",
+    "category": "行业趋势",
+    "content": "Gartner最新报告显示，2025年全球SaaS市场规模首次突破3000亿美元，同比增长18%。AI和垂直行业SaaS是最大增长引擎。",
+    "url": "https://news.example.com/saas-market",
+    "tags": [
+      "SaaS",
+      "市场",
+      "趋势"
+    ],
+    "source": "行业新闻",
+    "published_at": "2026-03-22T07:00:00Z",
+    "summary": "Gartner最新报告显示，2025年全球SaaS市场规模首次突破3000亿美元，同比增长18%。AI和垂直行业SaaS是最大增长引擎。",
+    "word_count": 68
+  },
+  {
+    "article_id": "RSS-407",
+    "title": "某明星基金清盘",
+    "category": "金融",
+    "content": "某知名量化对冲基金因策略失灵宣布清盘。",
+    "url": "https://funding.example.com/fund-close",
+    "tags": [
+      "基金",
+      "金融"
+    ],
+    "source": "投融资",
+    "published_at": "2026-03-23T15:00:00Z",
+    "summary": "某知名量化对冲基金因策略失灵宣布清盘。",
+    "word_count": 19
+  },
+  {
+    "article_id": "RSS-408",
+    "title": "芯片供应链恢复正常",
+    "category": "供应链",
+    "content": "全球芯片供应链基本恢复正常，交期缩短至6周以内。",
+    "url": "https://tech-review.example.com/chip-supply",
+    "tags": [
+      "芯片",
+      "供应链"
+    ],
+    "source": "科技评测",
+    "published_at": "2026-03-24T13:00:00Z",
+    "summary": "全球芯片供应链基本恢复正常，交期缩短至6周以内。",
+    "word_count": 24
+  },
+  {
+    "article_id": "RSS-409",
+    "title": "新能源汽车销量创新高",
+    "category": "汽车",
+    "content": "3月新能源汽车零售销量突破100万辆。",
+    "url": "https://news.example.com/ev-sales",
+    "tags": [
+      "汽车",
+      "新能源"
+    ],
+    "source": "行业新闻",
+    "published_at": "2026-03-25T08:00:00Z",
+    "summary": "3月新能源汽车零售销量突破100万辆。",
+    "word_count": 19
+  },
+  {
+    "article_id": "RSS-410",
+    "title": "体育赛事新闻",
+    "category": "体育",
+    "content": "2026年世界杯预选赛最新赛果。",
+    "url": "https://news.example.com/sports",
+    "tags": [
+      "体育"
+    ],
+    "source": "综合新闻",
+    "published_at": "2026-03-25T20:00:00Z",
+    "summary": "2026年世界杯预选赛最新赛果。",
+    "word_count": 16
+  }
+]
+--- END FILE: fixtures/rss/feeds.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

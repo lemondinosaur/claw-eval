@@ -1,0 +1,321 @@
+{
+  "task_id": "T135zh_weekly_meeting_tracking_plus_5",
+  "task_name": "里程碑阶段行动项与状态收敛",
+  "prompt_text": "请生成本周会议（以 mock_today=2026-07-02 为准，统计范围为 2026-06-24 到 2026-06-30）的里程碑阶段行动项跟踪报告：\n1）查询该日期范围内的日历会议，只处理带纪要关联的会议；\n2）从纪要中提取行动项，并读取每个行动项的目标里程碑阶段（如目标：m1 / 目标：m2 / 目标：final）；\n3）在待办系统中找到对应的里程碑任务：同一行动项可能在待办中出现多个阶段候选（如 milestone-1/milestone-2/final），需要选择“最高阶段”作为最终阶段；\n4）输出每会议：\n   - 每项：给出最终状态（completed/in_progress/pending）与最终里程碑阶段（m1/m2/final）；\n   - 计算阶段收敛率 = 该会议行动项中“最终阶段为 final”的行动项数 / 该会议行动项总数；若最终选到的最高阶段与目标 final 不一致且该项最终状态未完成，则标记“未收敛”。\n5）识别纪要中有但待办中完全缺失的行动项（遗漏），列出遗漏项。\n输出必须按会议分组展示，并包含每会议收敛率与遗漏清单。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_701",
+        "title": "数据治理周会",
+        "start_time": "2026-06-25T10:00:00+08:00",
+        "end_time": "2026-06-25T11:00:00+08:00",
+        "location": "B-402",
+        "organizer": "陈澄",
+        "attendees": [
+          "陈澄",
+          "周岚",
+          "赵越"
+        ],
+        "description": "本次会议关联纪要 NOTE-R1",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_702",
+        "title": "市场复盘会",
+        "start_time": "2026-06-26T14:00:00+08:00",
+        "end_time": "2026-06-26T15:30:00+08:00",
+        "location": "C-110",
+        "organizer": "赵越",
+        "attendees": [
+          "赵越",
+          "王茜"
+        ],
+        "description": "季度市场复盘，无纪要",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_703",
+        "title": "研发同步会",
+        "start_time": "2026-06-27T09:30:00+08:00",
+        "end_time": "2026-06-27T10:30:00+08:00",
+        "location": "线上会议",
+        "organizer": "周岚",
+        "attendees": [
+          "周岚",
+          "林远"
+        ],
+        "description": "研发对齐，无纪要",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_704",
+        "title": "产品里程碑周会",
+        "start_time": "2026-06-29T16:00:00+08:00",
+        "end_time": "2026-06-29T17:00:00+08:00",
+        "location": "D-305",
+        "organizer": "林远",
+        "attendees": [
+          "林远",
+          "陈澄",
+          "王茜"
+        ],
+        "description": "本次会议关联纪要 NOTE-R2",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_705",
+        "title": "全员安全培训",
+        "start_time": "2026-06-30T09:00:00+08:00",
+        "end_time": "2026-06-30T10:00:00+08:00",
+        "location": "报告厅",
+        "organizer": "安全团队",
+        "attendees": [
+          "全员"
+        ],
+        "description": "安全培训日，无纪要",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_706",
+        "title": "运营例行对齐",
+        "start_time": "2026-06-28T11:00:00+08:00",
+        "end_time": "2026-06-28T11:30:00+08:00",
+        "location": "E-201",
+        "organizer": "王茜",
+        "attendees": [
+          "王茜",
+          "周岚"
+        ],
+        "description": "运营对齐，无纪要",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "NOTE-R1",
+        "title": "数据治理周会纪要 6/25",
+        "content": "## 数据治理周会\n\n### 行动项\n1. 【陈澄】完成主数据字段规范草案（目标：m1）\n2. 【周岚】完成血缘关系梳理与可视化方案（目标：m2）\n3. 【赵越】落实数据质量规则集v1并提交评审（目标：final）\n4. 【陈澄】输出数据共享申请流程图（目标：final）\n",
+        "participants": [
+          "陈澄",
+          "周岚",
+          "赵越"
+        ],
+        "tags": [
+          "数据治理",
+          "合规"
+        ],
+        "created_at": "2026-06-25T02:00:00Z",
+        "duration_minutes": 60
+      },
+      {
+        "note_id": "NOTE-R2",
+        "title": "产品里程碑周会纪要 6/29",
+        "content": "## 产品里程碑周会\n\n### 行动项\n1. 【林远】完成登录体验重构评估（目标：m1）\n2. 【王茜】推进终端适配兼容清单（目标：m2）\n3. 【周岚】汇总跨团队迭代风险与应对（目标：final）\n",
+        "participants": [
+          "林远",
+          "王茜",
+          "周岚"
+        ],
+        "tags": [
+          "产品",
+          "交付"
+        ],
+        "created_at": "2026-06-29T08:00:00Z",
+        "duration_minutes": 60
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-R1-01",
+        "title": "主数据字段规范草案（m1）",
+        "description": "行动项：完成主数据字段规范草案；里程碑阶段：m1；目标：m1；对应会议：NOTE-R1",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-06-27",
+        "assignee": "陈澄",
+        "tags": [
+          "数据治理",
+          "m1"
+        ]
+      },
+      {
+        "task_id": "TODO-R1-02",
+        "title": "血缘关系梳理与可视化方案（m2）",
+        "description": "行动项：完成血缘关系梳理与可视化方案；里程碑阶段：m2；目标：m2；对应会议：NOTE-R1",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-06-29",
+        "assignee": "周岚",
+        "tags": [
+          "数据治理",
+          "m2"
+        ]
+      },
+      {
+        "task_id": "TODO-R1-02b",
+        "title": "血缘关系梳理与可视化方案（m1）",
+        "description": "行动项：完成血缘关系梳理与可视化方案；里程碑阶段：m1；目标：m2；对应会议：NOTE-R1",
+        "status": "completed",
+        "priority": "low",
+        "due_date": "2026-06-27",
+        "assignee": "周岚",
+        "tags": [
+          "数据治理",
+          "m1"
+        ]
+      },
+      {
+        "task_id": "TODO-R1-03",
+        "title": "数据质量规则集v1提交评审（final）",
+        "description": "行动项：落实数据质量规则集v1并提交评审；里程碑阶段：final；目标：final；对应会议：NOTE-R1",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-06-30",
+        "assignee": "赵越",
+        "tags": [
+          "数据质量",
+          "final"
+        ]
+      },
+      {
+        "task_id": "TODO-R1-03b",
+        "title": "数据质量规则集v1初稿（m2）",
+        "description": "行动项：落实数据质量规则集v1并提交评审；里程碑阶段：m2；目标：final；对应会议：NOTE-R1",
+        "status": "in_progress",
+        "priority": "medium",
+        "due_date": "2026-06-29",
+        "assignee": "赵越",
+        "tags": [
+          "数据质量",
+          "m2"
+        ]
+      },
+      {
+        "task_id": "TODO-R1-04",
+        "title": "数据共享申请流程图（m2）",
+        "description": "行动项：输出数据共享申请流程图；里程碑阶段：m2；目标：final；对应会议：NOTE-R1",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-06-30",
+        "assignee": "陈澄",
+        "tags": [
+          "合规",
+          "m2"
+        ]
+      },
+      {
+        "task_id": "TODO-R1-04b",
+        "title": "数据共享申请流程图（m1）",
+        "description": "行动项：输出数据共享申请流程图；里程碑阶段：m1；目标：final；对应会议：NOTE-R1",
+        "status": "completed",
+        "priority": "low",
+        "due_date": "2026-06-28",
+        "assignee": "陈澄",
+        "tags": [
+          "合规",
+          "m1"
+        ]
+      },
+      {
+        "task_id": "TODO-R2-01",
+        "title": "登录体验重构评估（m1）",
+        "description": "行动项：完成登录体验重构评估；里程碑阶段：m1；目标：m1；对应会议：NOTE-R2",
+        "status": "in_progress",
+        "priority": "medium",
+        "due_date": "2026-06-30",
+        "assignee": "林远",
+        "tags": [
+          "体验",
+          "m1"
+        ]
+      },
+      {
+        "task_id": "TODO-R2-02",
+        "title": "终端适配兼容清单（m1）",
+        "description": "行动项：推进终端适配兼容清单；里程碑阶段：m1；目标：m2；对应会议：NOTE-R2",
+        "status": "completed",
+        "priority": "low",
+        "due_date": "2026-06-27",
+        "assignee": "王茜",
+        "tags": [
+          "适配",
+          "m1"
+        ]
+      },
+      {
+        "task_id": "TODO-R2-02b",
+        "title": "终端适配兼容清单（m2）",
+        "description": "行动项：推进终端适配兼容清单；里程碑阶段：m2；目标：m2；对应会议：NOTE-R2",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-07-01",
+        "assignee": "王茜",
+        "tags": [
+          "适配",
+          "m2"
+        ]
+      },
+      {
+        "task_id": "TODO-R2-03",
+        "title": "跨团队迭代风险与应对（m2）",
+        "description": "行动项：汇总跨团队迭代风险与应对；里程碑阶段：m2；目标：final；对应会议：NOTE-R2",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-07-02",
+        "assignee": "周岚",
+        "tags": [
+          "风险",
+          "m2"
+        ]
+      },
+      {
+        "task_id": "TODO-R2-03b",
+        "title": "跨团队迭代风险与应对（final）",
+        "description": "行动项：汇总跨团队迭代风险与应对；里程碑阶段：final；目标：final；对应会议：NOTE-R2",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-07-03",
+        "assignee": "周岚",
+        "tags": [
+          "风险",
+          "final"
+        ]
+      },
+      {
+        "task_id": "TODO-RX-99",
+        "title": "干扰任务：异常支付规则排查（m2）",
+        "description": "干扰里程碑任务；非来自纪要行动项；里程碑阶段：m2；目标：n/a",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-06-30",
+        "assignee": "王茜",
+        "tags": [
+          "干扰",
+          "m2"
+        ]
+      },
+      {
+        "task_id": "TODO-OTHER-77",
+        "title": "跨部门审计报告汇总（final）",
+        "description": "与任何纳入纪要行动项无匹配（不影响统计）；里程碑阶段：final",
+        "status": "completed",
+        "priority": "medium",
+        "due_date": "2026-07-04",
+        "assignee": "林远",
+        "tags": [
+          "其他",
+          "final"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原有“完成状态+遗漏项”基础上，新增同一行动项多候选里程碑的最高阶段选择、阶段收敛率计算，以及“未收敛”标记规则。",
+    "fixture_design_summary": [
+      "calendar/events.json: 2026-06-24~2026-06-30 共 6 个事件，仅 NOTE-R1、NOTE-R2 两个带纪要关联",
+      "notes/meetings.json: 2 条纪要共 6 个行动项，显式写出目标里程碑（m1/m2/final）",
+      "todo/tasks.json: 为至少 5 个行动项提供多阶段候选并覆盖 completed/in_progress/pending；包含 1 个纪要行动项在待办中完全缺失（用于遗漏统计）",
+      "通过 task title/description 中的“里程碑阶段：m1/m2/final”和“目标：...”来支撑最高阶段选择与未收敛判断"
+    ]
+  }
+}

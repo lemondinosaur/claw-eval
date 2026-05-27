@@ -1,0 +1,164 @@
+You are the Claw-Eval fixture generator. You are given:
+1. The original benchmark task's runtime task.yaml (with grader/scoring fields removed) and the original fixtures as reference.
+2. A new task description produced by Step1.
+
+Your task: generate new fixture data only for this new task, plus optional `task_name` and `prompt_text`.
+The script will automatically reuse the source task's services, tools, tool_endpoints, sandbox_files, and environment, then programmatically write task.yaml.
+
+Very important: output exactly one JSON object only. No markdown. No explanations. Do not output task.yaml. Do not output grader.py.
+
+The output JSON must be exactly:
+{
+  "task_id": "T088_pinbench_project_bootstrap_plan_plus_5",
+  "task_name": "new task name",
+  "prompt_text": "the prompt.text that will be written into task.yaml, with minor refinements allowed based on Step1 user_request",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "full text string"
+  },
+  "notes": {
+    "difference_summary": "one sentence describing how the new task differs from the source",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+Must follow these rules:
+1. Generate fixtures only. Do not generate task.yaml, grader.py, scoring, rubric, reference solution, or any other grading-related content.
+2. The file paths in `files` must match exactly the following relative paths, with no additions, omissions, or renames:
+[
+  "fixtures/todo/tasks.json"
+]
+3. `.json` fixtures must be emitted directly as JSON objects or arrays, not as strings. Only `.txt` fixtures should be strings.
+4. Fixture entities, IDs, email addresses, ticket numbers, SKUs, numbers, bodies, meeting subjects, and similar content must all be new and must not reuse specific content from the source fixtures.
+5. Cross-fixture entity references must stay consistent. For example, email addresses, contacts, customers, meeting attendees, ticket_id, and product_id must line up across files.
+6. The generated data must support the Step1 task goal and remain compatible with the source task's existing services, tools, and tool_endpoints.
+7. sandbox_files are inherited automatically from the source task. Even if the source task has an empty sandbox_files list, you must still generate the fixture files listed above because the services read them directly.
+8. If the source task is English, prefer English for `task_name`, `prompt_text`, and fixture text content.
+9. Keep the logic simple and direct. Do not introduce extra scoring traps, multi-turn clarification flows, or grader assumptions.
+10. If the task involves concrete dates, relative dates, or scheduling information, pay attention to the runtime date anchor:
+- The source task has no mock_today; if dates are involved, keep the fixtures internally consistent.
+
+The Step1-generated task description is:
+{
+  "index": 5,
+  "new_task_id": "T088_pinbench_project_bootstrap_plan_plus_5",
+  "new_task_name": "Data Pipeline Template (Python ETL)",
+  "task_goal": "为一个数据管道 ETL 模板生成 bootstrap 计划：创建项目目录与数据/配置占位、编写核心 ETL 函数接口与类型注释占位、添加测试（mock 输入与异常路径）、编写项目元数据与配置示例文件任务、撰写 README（包括运行方式与目录说明）。",
+  "user_request": "Use the todo service to bootstrap a Python ETL data pipeline template plan for \"streammason\". Create actionable tasks for: 1) creating the project directory layout (including data and configs folders as placeholders), 2) adding a core ETL function interface with type hints and docstring placeholders, 3) writing tests that use mocked input data and cover an exception path, 4) writing pyproject metadata and a sample configuration file, and 5) writing a README with how to run the pipeline and explain the folder structure. Then summarize the setup plan.",
+  "scenario": "业务触发器：当输入数据为空时，ETL 应抛出自定义异常并被测试覆盖。干扰信息：配置既可能来自配置文件也可能来自环境变量，但本次任务只要求提供配置文件示例与接口参数化，不实现环境变量读取。边界条件：测试要同时覆盖“空输入→自定义异常”与“正常输入→返回结构化结果”的两个路径。",
+  "difference_from_source": "原题是通用 Python 库（datautils + 标准四件套）；本题是 Python ETL 模板，额外包含 configs/data 占位、核心 ETL 接口与类型注释、mock 驱动的异常路径测试、配置文件示例与运行说明，并加入自定义异常行为要求。",
+  "service_and_tool_plan": "继续仅使用 todo_create_task（可选 todo_list_tasks）将各模块拆成可执行任务：目录布局、ETL 接口、测试（mock与异常路径）、pyproject 与配置示例、README。工具与服务不变。",
+  "fixture_generation_plan": "fixtures/todo/tasks.json 建议 0~1 条初始噪声任务；避免复用原题 fixture 中任何项目/邮箱/工单/数值。新建任务建议 5~7 条。关键字段：description 必须包含待测异常路径（空输入→自定义异常）与正常路径的返回结构要求；due_date 与原题不同且不使用任何原任务涉及的日期值。",
+  "expected_behavior": "代理创建并总结：项目目录与数据/配置占位、核心 ETL 函数接口（带类型注释/文档占位）、测试（mock 输入；空输入→自定义异常；正常输入→结构化结果返回）、pyproject 元数据与配置示例文件任务、README（运行方式与目录结构解释）。总结按先目录/接口/测试再元数据与文档的顺序给出。",
+  "grading_plan": "检查：1) 任务覆盖 ETL 特定内容（configs/data 占位、ETL 接口类型注释、mock 测试与异常路径）；2) 测试任务描述明确包含“空输入→自定义异常”与“正常输入→结构化结果”；3) pyproject 与配置示例文件任务存在且描述包含配置示例用途；4) README 任务包含运行方式与目录结构说明；5) 不引入多轮澄清。"
+}
+
+The source task summary is:
+{
+  "task_id": "T088_pinbench_project_bootstrap_plan",
+  "task_name": "Pinbench Project Bootstrap Plan",
+  "task_type": "file_ops",
+  "category": "file_ops",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "en",
+  "services": [
+    "todo"
+  ],
+  "tools": [
+    "todo_create_task",
+    "todo_list_tasks"
+  ],
+  "fixture_paths": [
+    "fixtures/todo/tasks.json"
+  ],
+  "sandbox_files": [
+    "fixtures/todo/tasks.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "file_ops"
+}
+
+Below are the source task's runtime task.yaml and fixtures:
+--- FILE: task.yaml ---
+task_id: T088_pinbench_project_bootstrap_plan
+task_name: Pinbench Project Bootstrap Plan
+version: '1.0'
+category: file_ops
+difficulty: easy
+tags:
+- general
+services:
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: tasks/T088_pinbench_project_bootstrap_plan/fixtures/todo/tasks.json
+prompt:
+  text: 'Instead of creating files directly, use the todo service to bootstrap a Python
+
+    library project plan for "datautils". Create actionable tasks for:
+
+    1. creating the package structure under src/datautils
+
+    2. adding tests
+
+    3. writing pyproject metadata
+
+    4. writing a README
+
+    Then summarize the setup plan.
+
+    '
+  language: en
+tools:
+- name: todo_create_task
+  description: Create a new todo task
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      priority:
+        type: string
+      due_date:
+        type: string
+    required:
+    - title
+- name: todo_list_tasks
+  description: List todo tasks
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+    required: []
+tool_endpoints:
+- tool_name: todo_create_task
+  url: http://localhost:9102/todo/tasks/create
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+sandbox_files:
+- fixtures/todo/tasks.json
+environment:
+  timeout_seconds: 180
+  max_turns: 10
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/todo/tasks.json ---
+[]
+
+--- END FILE: fixtures/todo/tasks.json ---
+
+One last reminder: output only one JSON object.

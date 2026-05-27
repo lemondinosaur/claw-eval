@@ -1,0 +1,227 @@
+[
+  {
+    "job_id": "JOB-5201",
+    "name": "CDN文件分发（证书检查）",
+    "cron_expression": "*/10 * * * *",
+    "action": "distribute_files_to_cdn",
+    "enabled": true,
+    "last_run": "2026-05-20T10:26:00Z",
+    "next_run": "2026-05-20T10:30:00Z",
+    "last_status": "failed",
+    "created_by": "deploy_bot",
+    "tags": [
+      "file_sync",
+      "cdn",
+      "content_distribute",
+      "tls"
+    ],
+    "created_at": "2026-02-12T03:10:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T10:05:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "TLSHandshakeError: certificate expired at 2026-05-20T10:03:00Z"
+      },
+      {
+        "run_at": "2026-05-20T10:15:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "TLSHandshakeError: certificate expired at 2026-05-20T10:03:00Z"
+      },
+      {
+        "run_at": "2026-05-20T10:25:00Z",
+        "status": "failed",
+        "duration_s": 11,
+        "error": "TLSHandshakeError: certificate expired at 2026-05-20T10:03:00Z"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-5202",
+    "name": "S3到中心仓内容同步",
+    "cron_expression": "*/15 * * * *",
+    "action": "sync_s3_to_central_repo",
+    "enabled": true,
+    "last_run": "2026-05-20T10:50:00Z",
+    "next_run": "2026-05-20T11:05:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "file_sync",
+      "s3",
+      "content_distribute",
+      "access"
+    ],
+    "created_at": "2026-02-28T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T10:28:00Z",
+        "status": "failed",
+        "duration_s": 4,
+        "error": "AccessDenied: s3:GetObject denied for bucket central-source"
+      },
+      {
+        "run_at": "2026-05-20T10:43:00Z",
+        "status": "failed",
+        "duration_s": 4,
+        "error": "AccessDenied: s3:GetObject denied for bucket central-source"
+      },
+      {
+        "run_at": "2026-05-20T10:50:00Z",
+        "status": "failed",
+        "duration_s": 5,
+        "error": "AccessDenied: s3:GetObject denied for bucket central-source"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-5203",
+    "name": "中心仓到下载服务的分发索引刷新",
+    "cron_expression": "0 */30 * * *",
+    "action": "refresh_download_mapping_index",
+    "enabled": true,
+    "last_run": "2026-05-20T11:20:00Z",
+    "next_run": "2026-05-20T11:50:00Z",
+    "last_status": "failed",
+    "created_by": "index_ops",
+    "tags": [
+      "file_sync",
+      "mapping",
+      "index_refresh"
+    ],
+    "created_at": "2026-03-05T09:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T10:40:00Z",
+        "status": "failed",
+        "duration_s": 7,
+        "error": "TimeoutError: mapping index refresh exceeded 30s"
+      },
+      {
+        "run_at": "2026-05-20T10:55:00Z",
+        "status": "success",
+        "duration_s": 12
+      },
+      {
+        "run_at": "2026-05-20T11:20:00Z",
+        "status": "failed",
+        "duration_s": 8,
+        "error": "TimeoutError: mapping index refresh exceeded 30s"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-5204",
+    "name": "清理过期索引（不会直接删除文件）",
+    "cron_expression": "0 1 * * *",
+    "action": "cleanup_expired_search_index",
+    "enabled": true,
+    "last_run": "2026-05-20T01:00:00Z",
+    "next_run": "2026-05-21T01:00:00Z",
+    "last_status": "failed",
+    "created_by": "index_ops",
+    "tags": [
+      "index",
+      "maintenance",
+      "search"
+    ],
+    "created_at": "2026-04-01T12:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T01:00:00Z",
+        "status": "failed",
+        "duration_s": 18,
+        "error": "ServiceUnavailable: index-service is down"
+      },
+      {
+        "run_at": "2026-05-19T01:00:00Z",
+        "status": "success",
+        "duration_s": 16
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-5205",
+    "name": "用户行为日志归档（无关干扰）",
+    "cron_expression": "0 4 * * *",
+    "action": "archive_user_behavior_logs",
+    "enabled": false,
+    "last_run": "2026-05-18T04:00:00Z",
+    "next_run": null,
+    "last_status": "failed",
+    "created_by": "admin",
+    "tags": [
+      "logs",
+      "archive"
+    ],
+    "created_at": "2026-01-10T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-18T04:00:00Z",
+        "status": "failed",
+        "duration_s": 300,
+        "error": "TimeoutError: archive storage latency too high"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-5206",
+    "name": "搜索索引增量构建（可解释为次要影响）",
+    "cron_expression": "*/20 * * * *",
+    "action": "build_incremental_search_index",
+    "enabled": true,
+    "last_run": "2026-05-20T11:00:00Z",
+    "next_run": "2026-05-20T11:20:00Z",
+    "last_status": "failed",
+    "created_by": "search_builder",
+    "tags": [
+      "index",
+      "search"
+    ],
+    "created_at": "2026-04-18T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T10:35:00Z",
+        "status": "success",
+        "duration_s": 22
+      },
+      {
+        "run_at": "2026-05-20T10:50:00Z",
+        "status": "failed",
+        "duration_s": 26,
+        "error": "ServiceUnavailable: index-service unavailable during batch ingestion"
+      },
+      {
+        "run_at": "2026-05-20T11:00:00Z",
+        "status": "failed",
+        "duration_s": 25,
+        "error": "ServiceUnavailable: index-service unavailable during batch ingestion"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-5207",
+    "name": "会议室预定通知发送（无关干扰）",
+    "cron_expression": "*/30 * * * *",
+    "action": "send_meeting_room_notifications",
+    "enabled": true,
+    "last_run": "2026-05-20T10:20:00Z",
+    "next_run": "2026-05-20T10:50:00Z",
+    "last_status": "failed",
+    "created_by": "notify_bot",
+    "tags": [
+      "notification",
+      "meeting"
+    ],
+    "created_at": "2026-01-20T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T10:20:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "error": "HTTPError: 502 Bad Gateway from calendar-gateway"
+      }
+    ]
+  }
+]

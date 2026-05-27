@@ -1,0 +1,171 @@
+{
+  "task_id": "T111zh_expense_email_check_plus_3",
+  "task_name": "Expense Mail Reconcile C（金额单位混杂）",
+  "prompt_text": "收件箱中包含多封邮件，其中有报销申请邮件与非报销沟通以及一封会议邀请。请你：\n\n1）筛选出明确的报销申请邮件；\n2）从每封报销邮件中提取“当次发票号（注意同一邮件里可能出现多个发票号，需取最后出现的那个）”与“报销金额”；\n3）对邮件中的金额文本进行规范化解析（去除“元/人民币/元整”等单位，处理千分位逗号，忽略“约”，并保留两位小数），得到可与财务系统交易 amount（CNY、两位小数）精确对比的数值；\n4）在财务系统中按发票号/交易描述找到对应交易，并核对 amount 是否一致、交易状态是否完成；\n5）输出核对报告，分类为：匹配正常、金额不符、状态异常，并在报告中明确写出“邮件金额 vs 财务金额（规范化后）”以及对应交易号与发票号。\n\n输出要求：覆盖所有报销申请邮件；排除非报销沟通与会议邀请邮件。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_c01",
+        "from": "sunwei@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：差旅费（审批中）",
+        "date": "2026-03-24T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "财务部您好，我本次出差上海的差旅费用申请报销。\n当次发票号：INV-C401\n费用合计：2,480.00元（含交通与住宿）。\n另外，历史发票号 INV-C399 仅供参考，不用于本次核对。请审核并入账。"
+      },
+      {
+        "message_id": "msg_c02",
+        "from": "zhaoqian@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：会议餐费与服务费",
+        "date": "2026-03-24T10:45:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "请协助报销本次会议相关费用。\n当次发票号INV-C402\n金额：约3,300元（含税），烦请以最终财务入账为准。\n邮件内可能出现旧信息：发票号 INV-C317（历史）仅为背景描述。以上当次发票号请以最后出现的INV-C402为准。"
+      },
+      {
+        "message_id": "msg_c03",
+        "from": "chenrui@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：办公杂项费用",
+        "date": "2026-03-24T12:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，我提交办公杂项费用报销。\n当次发票号：INV-C403\n人民币 1200 元整（包含打印耗材与邮寄）。\n同时正文提到的旧发票号 INV-C012 不属于本次报销，请以最后出现的 INV-C403 为准。谢谢。"
+      },
+      {
+        "message_id": "msg_c04",
+        "from": "qiyu@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：软件订阅费",
+        "date": "2026-03-24T15:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "财务部好，软件订阅费申请报销。\n历史发票号 INV-C405（已作废，仅说明）。\n当次发票号：INV-C404\n费用：费用合计：1,950.5 元（请按规则核对到两位小数）。"
+      },
+      {
+        "message_id": "msg_c05",
+        "from": "vendor-ops@suppliers.com",
+        "to": "finance@company.com",
+        "subject": "供应商回函：已开票（非报销申请）",
+        "date": "2026-03-24T13:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，我们确认已开具发票。\n发票号：INV-C999\n本邮件仅用于供应商回函，不对应报销申请流程。谢谢。"
+      },
+      {
+        "message_id": "msg_c06",
+        "from": "lihua@company.com",
+        "to": "hr@company.com",
+        "subject": "员工请假说明（非财务报销）",
+        "date": "2026-03-24T11:55:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我因个人事务需要请假，期间产生的相关支出为 980元（不属于报销申请）。请假时间：3月30日至4月1日。"
+      },
+      {
+        "message_id": "msg_c07",
+        "from": "meeting-room@company.com",
+        "to": "zhangwei@company.com",
+        "subject": "会议邀请：季度复盘会（无发票）",
+        "date": "2026-03-24T17:30:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您已被邀请参加会议：季度复盘会。\n时间：4月1日 14:00。\n此邀请不涉及任何发票号或报销申请。"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXC-301",
+        "date": "2026-03-24",
+        "amount": 2480.0,
+        "currency": "CNY",
+        "type": "差旅费报销",
+        "category": "费用报销",
+        "description": "差旅费核对：发票号INV-C401，金额含交通住宿",
+        "status": "completed",
+        "approved_by": "周总"
+      },
+      {
+        "transaction_id": "TXC-302",
+        "date": "2026-03-24",
+        "amount": 3300.0,
+        "currency": "CNY",
+        "type": "会议餐费",
+        "category": "费用报销",
+        "description": "会议餐费报销：发票号INV-C402（含税）",
+        "status": "pending",
+        "approved_by": "财务审核"
+      },
+      {
+        "transaction_id": "TXC-303",
+        "date": "2026-03-24",
+        "amount": 1199.0,
+        "currency": "CNY",
+        "type": "办公杂项",
+        "category": "费用报销",
+        "description": "办公杂项费用：发票号INV-C403",
+        "status": "completed",
+        "approved_by": "李主管"
+      },
+      {
+        "transaction_id": "TXC-304",
+        "date": "2026-03-24",
+        "amount": 1950.5,
+        "currency": "CNY",
+        "type": "软件订阅费",
+        "category": "费用报销",
+        "description": "订阅费报销：发票号INV-C404",
+        "status": "completed",
+        "approved_by": "王经理"
+      },
+      {
+        "transaction_id": "TXC-305",
+        "date": "2026-03-21",
+        "amount": 860.0,
+        "currency": "CNY",
+        "type": "其他行政支出",
+        "category": "运营成本",
+        "description": "非报销：办公区日常物资采购（无对应发票号）",
+        "status": "completed",
+        "approved_by": "行政部"
+      },
+      {
+        "transaction_id": "TXC-306",
+        "date": "2026-03-22",
+        "amount": 250.0,
+        "currency": "CNY",
+        "type": "交通补贴",
+        "category": "人力成本",
+        "description": "通勤交通补贴发放（不含报销发票号INV-C4xx）",
+        "status": "completed",
+        "approved_by": "HR"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新任务将报销邮件金额设置为含“元/人民币/元整/约/千分位逗号”等混杂格式，并加入同邮件多发票号取最后出现的边界干扰，同时调整邮件总量与非报销干扰类型。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 共7封：4封“报销申请”+2封非报销沟通+1封会议邀请；仅报销申请包含发票号字段线索。",
+      "报销邮件金额覆盖：千分位“2,480.00元”、带“约”的“约3,300元”、带“人民币/元整”的“人民币 1200 元整”、以及带小数的“1,950.5 元”。",
+      "报销邮件中至少两封包含多个发票号干扰，并通过“最后出现”的当次发票号确保抽取边界测试。",
+      "finance/transactions.json 共6笔：4笔与发票号INV-C401~INV-C404对齐；其中一笔状态pending，一笔金额不符（INV-C403），其余完成匹配。",
+      "其余2笔交易不包含对应发票号INV-C4xx，用于验证筛选与匹配逻辑。"
+    ]
+  }
+}

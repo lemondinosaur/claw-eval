@@ -1,0 +1,84 @@
+{
+  "source_task_id": "T099_pinbench_second_brain_recall",
+  "source_summary": {
+    "task_type": "记忆型：从持久化 notes 中检索一条“第二大脑”记忆并回忆其中的多条关键信息",
+    "services": [
+      "notes"
+    ],
+    "tools": [
+      "notes_list",
+      "notes_get"
+    ],
+    "fixture_paths": [
+      "fixtures/notes/memory.json"
+    ],
+    "core_capability": "memory recall：通过 notes_list + notes_get 找到目标记忆并完整准确提取多个字段"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T099_pinbench_second_brain_recall_plus_1",
+      "new_task_name": "Second Brain: Personal Tech Ledger",
+      "task_goal": "从 notes 服务中的一条记忆笔记提取 5 条信息：最常用的数据库、第一次上线的年份、导师姓名与机构、你正在做的项目名称与用途、以及团队的安全校验口令。",
+      "user_request": "Use the notes service as my persisted second brain. Find the stored memory note and answer these questions: 1) What is my favorite database? 2) What year did I first deploy it? 3) Who is my mentor and what is their affiliation? 4) What is my project called and what does it do? 5) What is my team’s security check phrase?",
+      "scenario": "notes 中存在多条“生活/工作杂记”笔记，其中只有一条 title 明确指向个人技术台账（例如包含关键词：tech ledger），该笔记同时包含数据库偏好、首次部署年份、导师信息、项目与用途、以及一条安全短语；其他笔记内容包含相似但不相同的信息，容易混淆。",
+      "difference_from_source": "原题固定为编程语言学习时间、导师、项目与秘密短语。本新题改为数据库偏好与首次部署年份，同时项目用途与导师机构信息的表述方式不同；干扰笔记数量与类型增加，但仍要求从同一条目标记忆中提取 5 项。",
+      "service_and_tool_plan": "继续使用 notes_list 获取候选笔记列表，再用 notes_get 按 note_id 读取每条候选，直到找到包含全部 5 个关键信息（数据库/年份/导师/项目用途/安全短语）的那条，然后从该内容中直接抽取答案。",
+      "fixture_generation_plan": "生成 tasks/.../fixtures/notes/memory.json：共 6 条笔记记录。1 条为目标记忆笔记（title/content 中包含全部 5 个字段），另外 5 条为干扰笔记（各自只包含其中 1~3 个字段，且数值与人名/机构/短语均不相同）。关键字段保持与服务一致：note_id（字符串且唯一）、title（用于定位但不直接暴露到对话输出）、content（在 content 中用固定格式行描述五项信息）、created_at（不同时间）、participants（包含 user）、duration_minutes（各自不同）。状态分布：确保 notes_list 返回顺序不确定/按 created_at 变化以迫使模型通过内容判断目标笔记。",
+      "expected_behavior": "Agent 先调用 notes_list（max_results 足够覆盖所有笔记），逐条调用 notes_get。应识别并选取唯一包含以下五项的笔记：favorite database、first deployment year、mentor name+affiliation、project name+what it does、team security check phrase。最终输出必须按 1~5 的问题顺序给出准确值（不得混用不同笔记的片段）。",
+      "grading_plan": "grader 应检查：最终答案中的 5 个要点是否全部来自同一条目标笔记；每个要点的字符串/年份/机构/项目用途/短语是否与 fixtures 完全匹配；同时允许输出包含轻微格式差异，但不允许缺项或跨笔记拼接。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T099_pinbench_second_brain_recall_plus_2",
+      "new_task_name": "Second Brain: Research Milestones",
+      "task_goal": "从 notes 中读取一条研究里程碑记忆，回答 5 个问题：你研究的领域方向、关键突破发生的日期、合作者姓名与所在单位、研究项目名与主要方法、以及你记录的内部拜访码。",
+      "user_request": "Treat the notes service as my persisted second brain. Find the stored memory note and answer: 1) What research direction am I focused on? 2) What date did the key breakthrough happen? 3) Who is my collaborator and what organization are they with? 4) What is the research project called and what is its main approach? 5) What is the internal visit code phrase my team uses?",
+      "scenario": "当前 notes 里存在一组“会议纪要”“草稿”“待办清单”，它们包含日期/人名/项目名的局部信息，但格式不完整。目标记忆笔记以“milestones”作为标题关键字，content 中用明确行列出研究方向、突破日期（含具体日/月/年）、合作者与单位、项目名称与方法、以及内部拜访码。确保某些干扰笔记也包含“visit code”但短语不同。",
+      "difference_from_source": "原题是单条记忆包含学习语言与时间、导师、项目与秘密短语。本新题改为研究方向与具体突破日期（含日月年）、合作者与组织、项目的主要方法，并加入多个包含部分字段的干扰笔记，迫使基于 content 完整性选择正确 note。",
+      "service_and_tool_plan": "使用 notes_list 获得全部候选笔记，再用 notes_get 读取候选的 content。通过检测 content 是否同时包含研究方向/突破日期/合作者/项目与方法/拜访码五种字段来定位目标笔记。",
+      "fixture_generation_plan": "生成 fixtures/notes/memory.json 共 7 条。1 条目标记忆（title 含 milestones 或类似词；content 包含五行：Research direction、Breakthrough date、Collaborator、Project & approach、Visit code）。其余 6 条干扰：分别只提供 1~4 项且日期、人名、组织、项目名、短语均与目标不同。created_at 分布要打乱（目标可能不是最新或最早），participants 固定包含 user，duration_minutes 在 3~20 之间分散。",
+      "expected_behavior": "Agent 应完成：列出笔记→逐个获取内容→找到包含全部五项的唯一笔记→按 1~5 输出对应答案。不得把干扰笔记中的字段替换进最终答案；日期必须精确到 fixtures 的原值。",
+      "grading_plan": "grader 将核验五项答案与目标笔记 content 中的对应值完全一致；还应检查是否从同一 note 读取（例如通过比对期望答案集合属于同一 note_id）；缺项/错项判失败。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T099_pinbench_second_brain_recall_plus_3",
+      "new_task_name": "Second Brain: Startup Launch Capsule",
+      "task_goal": "从 notes 中找出“启动复盘”记忆笔记并回忆 5 条事实：产品类型、首次发布时段（具体到季度或月份）、负责人姓名与公司、产品项目名称与功能描述、以及发布团队的私钥短语。",
+      "user_request": "Use the notes service as my persisted second brain. Locate the stored launch recap note and answer: 1) What product type am I working on? 2) When was the first release (use the exact time window I wrote)? 3) Who is the owner and what company are they from? 4) What is the product project called and what does it do? 5) What is the release team’s private key phrase?",
+      "scenario": "notes 内有多条“产品草案”但只有一条是“launch recap capsule”，其中写明首次发布时段以“YYYY-MM”或“Qx YYYY”形式出现，且私钥短语以多词短语保存。干扰笔记同样写了 owner 或 company，但与目标不一致；另有一条笔记包含与私钥相似但少一个词的短语，测试精确匹配。",
+      "difference_from_source": "原题考编程语言学习与团队秘密短语。本新题改为产品类型、首次发布时段（时间粒度改变）、负责人与公司、项目功能描述、私钥短语；并通过“相似短语缺词”的干扰提高区分度。",
+      "service_and_tool_plan": "notes_list 获取候选，notes_get 读取内容并查找同时包含 product type / first release time window / owner+company / project name+what it does / private key phrase 的笔记。",
+      "fixture_generation_plan": "生成 fixtures 共 5 条或 6 条。目标笔记 1 条，content 包含五行字段（必须可映射到 1~5 问题）。其余笔记包含：a) 仅有产品与时间但无私钥；b) 仅有 owner+company；c) 项目名但功能描述缺失；d) 私钥短语相似但不完全相同。note_id 与 title 不复用原题实体/短语/数值；created_at 在同一天内也要有不同时间以增加干扰。participants 固定为 ['user']。",
+      "expected_behavior": "Agent 必须严格选择目标笔记，并输出精确匹配：首次发布时段的原始格式/私钥短语的每个词都要一致。输出按 1~5 编号。",
+      "grading_plan": "grader 检查 5 个答案的逐字一致性（尤其是 time window 与 private key phrase）；确认它们对应同一 note_id。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T099_pinbench_second_brain_recall_plus_4",
+      "new_task_name": "Second Brain: Learning Path Summary",
+      "task_goal": "从 notes 中的“学习路径总结”记忆笔记提取 5 个信息：学习路径的主题、开始学习的具体月份、推荐书籍与作者、项目名称及其目标用户、以及你给团队的口令卡片短语。",
+      "user_request": "Find my stored learning path summary in the notes service and answer: 1) What is the learning path theme? 2) When did I start learning it (exact month)? 3) What book and author did I recommend? 4) What project is it tied to, and who is the target user? 5) What is the team passphrase written on the card?",
+      "scenario": "notes 中存在“学习笔记”“阅读清单”“想法草稿”。目标笔记标题包含“learning path summary”，content 按行写明主题、开始月份、推荐书籍与作者、绑定项目及目标用户、以及团队通行短语。干扰笔记会包含书名相似的另一部作品或作者缩写，且可能出现类似“card phrase”，但不完全匹配。",
+      "difference_from_source": "原题是编程语言、导师、项目、秘密短语。本新题把“语言学习时间”替换为“学习路径主题+开始月份”，把“导师”替换为“推荐书籍与作者”，把“项目用途”替换为“目标用户”。同时通过书名/作者相近干扰提高难度。",
+      "service_and_tool_plan": "先 notes_list 拿到全部笔记，针对每个 note 调用 notes_get。通过 content 中是否同时出现主题/开始月份/书名作者/项目与目标用户/卡片口令五类字段来选中目标笔记。",
+      "fixture_generation_plan": "生成 fixtures/notes/memory.json 共 8 条：1 条目标学习路径总结；7 条干扰（阅读清单、杂记等）。其中至少 2 条干扰必须包含“book”或“author”但与目标不同；至少 2 条干扰包含“card phrase”但与目标词序不同。确保目标 note 在列表中不占首位。关键字段与原 schema 相同：note_id、title、content、created_at、participants、duration_minutes。",
+      "expected_behavior": "Agent 输出 1~5 对应的准确值；月的格式必须与 fixtures 一致（例如“2023-09”或“September 2023”取决于 fixtures）。不要把干扰笔记中的书名或口令混入最终答案。",
+      "grading_plan": "grader 应做严格字段匹配：主题、开始月份、书名与作者、项目名与目标用户、口令短语均要对应同一目标 note 的 content。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T099_pinbench_second_brain_recall_plus_5",
+      "new_task_name": "Second Brain: Support Runbook Snapshot",
+      "task_goal": "从 notes 中的“运维支持运行手册快照”记忆笔记回忆 5 个要点：常用排查层级、首次处理的故障类型、负责人姓名与团队、支持系统名称及其用途、以及值班的回呼校验词。",
+      "user_request": "Use the notes service as my persisted second brain. Find the stored support runbook snapshot and answer: 1) What troubleshooting layer do I usually start with? 2) What fault type did I handle first? 3) Who is the on-call lead and which team are they on? 4) What is the support system called and what is its purpose? 5) What is the on-duty callback verification word?",
+      "scenario": "notes 里混有“客户沟通摘要”“技术文章摘录”“运行手册片段”。目标笔记 title 含“runbook snapshot”，content 里包含从排查层级到故障类型、负责人、支持系统名称与用途、回呼校验词的全量信息。干扰笔记会引用类似“fault type”与“verification word”但各自属于不同片段，且支持系统用途描述略有差异。",
+      "difference_from_source": "原题以个人编程与导师为主。本新题转为运维支持运行手册：排查层级/故障类型/值班负责人+团队/支持系统用途/回呼校验词；仍是同一类“记忆检索与多点回忆”，但题材与字段完全不同。",
+      "service_and_tool_plan": "使用 notes_list 获取候选列表，随后 notes_get 读取候选内容。选择同时覆盖五类字段的笔记，然后从其 content 精确抽取答案。",
+      "fixture_generation_plan": "生成 fixtures/notes/memory.json 共 6 条：目标 1 条，其余 5 条干扰。干扰分布：至少 2 条包含“troubleshooting layer”但不含回呼校验词；至少 1 条包含 fault type 与负责人但缺支持系统用途；至少 1 条包含回呼校验词但短语不同且支持系统名不同。note_id、title、content 中的所有实体名/团队名/系统名/短语/层级文本均不复用原题。created_at 随机分布。",
+      "expected_behavior": "Agent 应完成：检索→定位唯一目标笔记→按 1~5 输出排查层级、首次故障类型、值班负责人及团队、支持系统名与用途、回呼校验词。不得输出任何干扰笔记中的字段组合。",
+      "grading_plan": "grader 校验五个答案是否与目标 note 的 content 完全一致，并确保全部来自同一 note_id；缺项或任一项不匹配即失败。"
+    }
+  ]
+}

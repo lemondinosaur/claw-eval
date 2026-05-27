@@ -1,0 +1,327 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T025zh_ambiguous_contact_email_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/contacts/contacts.json",
+  "fixtures/gmail/inbox.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T025zh_ambiguous_contact_email_plus_3",
+  "new_task_name": "供应商对账-收款联系人歧义",
+  "task_goal": "从收件箱读取对账相关邮件，要求联系“陈会计”提供对账确认。通讯录中“陈会计”存在多名候选，必须列出所有匹配并要求用户确认具体人选后，才可发送通知邮件；发送前禁止 gmail_send_message。",
+  "user_request": "请你先查看收件箱的最新对账邮件。邮件里让我通知“陈会计”确认对账信息。因为通讯录里可能有多位“陈会计”，请先列出候选并让我选，选定后你再发邮件。",
+  "scenario": "目标邮件由财务共享服务发送，主题为“本月供应商对账确认-请回执”。正文要求在24小时内让“陈会计”回执对账结果，并提到附件中包含明细但未给出具体收件邮箱。通讯录中“陈会计”有两到三名匹配（例如：应付会计/应收会计/税务会计），并且其中一位在名称上更像“供应商对账”方向，但邮件正文未明确是应付还是应收。收件箱里还有一封与“采购部对账”相关但收件人实际应该是“采购主管/采购经理”一类称谓的干扰邮件。",
+  "difference_from_source": "源任务的歧义来自“张经理”同名多部门；新任务改为会计岗位称谓“陈会计”，需要在候选列表中体现更细粒度的“会计类型/职能方向”，并根据对账语境提供上下文提示，但仍必须在用户确认前不发送。",
+  "service_and_tool_plan": "使用 gmail_list_messages 拉取最近邮件；用 gmail_get_message 读取对账邮件正文以确定截止时间要求与通知内容；用 contacts_search 查询“陈会计”；如匹配数量大于1则对每个候选用 contacts_get 获取邮箱与职能字段；发送前仅允许 gmail_save_draft（可选），但最终发出必须在用户选择后使用 gmail_send_message。",
+  "fixture_generation_plan": "contacts.json：创建3位不同职能的“陈会计”候选（必须字段包含至少：contact_id、姓名、部门或职能方向、title、email），并确保没有任何其它联系人会被查询词轻易匹配成同名候选。gmail inbox.json：3封邮件，目标邮件为最新且包含“24小时内回执/供应商对账确认/请回执”措辞；另两封干扰邮件分别包含“采购对账/回执”但称谓不是“陈会计”，以及一封普通事务邮件不涉及对账。确保目标邮件正文里只有“陈会计”称谓而无邮箱或部门。",
+  "expected_behavior": "代理应识别需要通知“陈会计”并判断存在歧义后停止发送，输出候选列表：每个候选展示“姓名/会计职能方向（如应付或应收或税务）/部门/邮箱”。然后提出明确选择请求（例如“回复1/2/3或直接指定邮箱”）。在用户未选择前，不调用 gmail_send_message；输出中可顺带说明：从“供应商对账”语义推测更可能对应某一类会计，但仍需用户确认。",
+  "grading_plan": "grader.py 检查：1）是否从目标邮件正文提取并复述截止时间或对账目的；2）是否调用 contacts_search 并获取全部候选；3）回复是否包含所有候选的可辨识信息（尤其邮箱与职能方向）；4）send 调用为0；5）澄清问题应单次可选且不引入额外多轮澄清步骤。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T025zh_ambiguous_contact_email",
+  "task_name": "Ambiguous Contact Email",
+  "task_type": "communication",
+  "category": "communication",
+  "difficulty": "medium",
+  "tags": [
+    "general"
+  ],
+  "language": "zh",
+  "services": [
+    "contacts",
+    "gmail"
+  ],
+  "tools": [
+    "gmail_list_messages",
+    "gmail_get_message",
+    "contacts_search",
+    "contacts_get",
+    "gmail_send_message",
+    "gmail_save_draft"
+  ],
+  "fixture_paths": [
+    "fixtures/contacts/contacts.json",
+    "fixtures/gmail/inbox.json"
+  ],
+  "sandbox_files": [
+    "fixtures/contacts/contacts.json",
+    "fixtures/gmail/inbox.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "communication"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T025zh_ambiguous_contact_email
+task_name: Ambiguous Contact Email
+version: '1.0'
+category: communication
+difficulty: medium
+tags:
+- general
+services:
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: tasks/T025zh_ambiguous_contact_email/fixtures/contacts/contacts.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T025zh_ambiguous_contact_email/fixtures/gmail/inbox.json
+prompt:
+  text: '看看收件箱最新邮件，李明说让我通知张经理参加周五的预算评审会议。
+
+    帮我给张经理发一封邮件通知他。
+
+    '
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: contacts_search
+  description: 搜索通讯录中的联系人
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词（姓名、部门等）
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详细信息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_save_draft
+  description: 将邮件保存为草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+      reply_to_message_id:
+        type: string
+        description: 如果是回复邮件，原邮件ID
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+sandbox_files:
+- fixtures/contacts/contacts.json
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/contacts/contacts.json ---
+[
+  {
+    "contact_id": "CTX-001",
+    "name": "张伟",
+    "department": "工程部",
+    "title": "工程部经理",
+    "email": "zhangwei@company.com",
+    "phone": "13800110001",
+    "location": "北京总部"
+  },
+  {
+    "contact_id": "CTX-002",
+    "name": "张伟",
+    "department": "市场部",
+    "title": "市场部经理",
+    "email": "zhangwei.marketing@company.com",
+    "phone": "13800110002",
+    "location": "上海分部"
+  },
+  {
+    "contact_id": "CTX-003",
+    "name": "张薇",
+    "department": "财务部",
+    "title": "财务总监",
+    "email": "zhangwei.finance@company.com",
+    "phone": "13800110003",
+    "location": "北京总部"
+  },
+  {
+    "contact_id": "CTX-004",
+    "name": "李明",
+    "department": "产品部",
+    "title": "产品总监",
+    "email": "liming@company.com",
+    "phone": "13800110004",
+    "location": "北京总部"
+  },
+  {
+    "contact_id": "CTX-005",
+    "name": "王芳",
+    "department": "人力资源部",
+    "title": "HR经理",
+    "email": "wangfang@company.com",
+    "phone": "13800110005",
+    "location": "北京总部"
+  },
+  {
+    "contact_id": "CTX-006",
+    "name": "赵磊",
+    "department": "工程部",
+    "title": "高级工程师",
+    "email": "zhaolei@company.com",
+    "phone": "13800110006",
+    "location": "深圳分部"
+  }
+]
+
+--- END FILE: fixtures/contacts/contacts.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_201",
+    "from": "liming@company.com",
+    "to": "me@company.com",
+    "subject": "周五预算评审会议",
+    "date": "2026-02-27T09:00:00+08:00",
+    "is_read": true,
+    "labels": ["inbox"],
+    "body": "Hi，周五下午两点的预算评审会议，请张经理一起参加，我们要讨论Q2的部门预算分配。\n\n请帮忙通知一下张经理。\n\n李明"
+  },
+  {
+    "message_id": "msg_202",
+    "from": "wangfang@company.com",
+    "to": "me@company.com",
+    "subject": "新员工入职安排",
+    "date": "2026-02-27T10:30:00+08:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "你好，下周一有两位新员工入职，请安排好工位和设备。\n\n另外，入职培训的日程需要跟张经理确认一下，他那边的技术培训部分还没定。\n\n王芳"
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

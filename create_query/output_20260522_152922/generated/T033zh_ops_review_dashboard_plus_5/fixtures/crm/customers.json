@@ -1,0 +1,78 @@
+[
+  {
+    "customer_id": "CUS-401",
+    "name": "北辰工业集团",
+    "tier": "vip",
+    "status": "active",
+    "annual_revenue": 16800000,
+    "contact_person": "周总",
+    "contact_email": "zhou@beichen-industries.com",
+    "contact_phone": "186-2100-4401",
+    "industry": "装备制造",
+    "contract_end_date": "2026-06-30",
+    "renewal_risk_score": 86,
+    "recent_interactions": [
+      {
+        "date": "2026-03-01",
+        "type": "risk_signal",
+        "channel": "邮件",
+        "handled_by": "CRM-客户成功",
+        "notes": "续约风险信号：客户内部采购流程因“交付依赖数据生成/打包通知”多次延迟而冻结。周内两次询问仍未拿到可用于内部审批的交付状态证明，要求在48小时内给出明确交付时间窗口；否则将启动合同升级/转移供应商评估。"
+      },
+      {
+        "date": "2026-02-27",
+        "type": "complaint",
+        "channel": "电话",
+        "handled_by": "客户成功经理",
+        "notes": "抱怨：服务接口偶发不可用，导致物料打包后通知未及时到达采购系统。客户称“我们这边准备好了材料，但你们那边没把发货推到位”。"
+      },
+      {
+        "date": "2026-02-18",
+        "type": "order",
+        "channel": "系统",
+        "notes": "合同续约预采购：交付批次A（预计发货：3月上旬），订单号需在系统导出交付凭证后才能走审批。"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-402",
+    "name": "星河物流服务商",
+    "tier": "standard",
+    "status": "active",
+    "annual_revenue": 4200000,
+    "contact_person": "许经理",
+    "contact_email": "xu@xinghe-logistics.com",
+    "contact_phone": "186-2100-4402",
+    "industry": "物流",
+    "contract_end_date": "2026-12-15",
+    "recent_interactions": [
+      {
+        "date": "2026-02-28",
+        "type": "inquiry",
+        "channel": "工单",
+        "notes": "询问：是否能提供“交付SLA升级阈值”对应的升级说明文档，便于内部风险评估。"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-403",
+    "name": "青岚医疗器械",
+    "tier": "vip",
+    "status": "active",
+    "annual_revenue": 9800000,
+    "contact_person": "陈总",
+    "contact_email": "chen@qinglan-med.com",
+    "contact_phone": "186-2100-4403",
+    "industry": "医疗器械",
+    "contract_end_date": "2026-11-30",
+    "renewal_risk_score": 38,
+    "recent_interactions": [
+      {
+        "date": "2026-02-26",
+        "type": "meeting",
+        "channel": "视频会议",
+        "notes": "业务回顾：对交付时效有关注，但当前批次未出现明显延迟。希望后续能更透明展示升级进度与预计恢复时间。"
+      }
+    ]
+  }
+]

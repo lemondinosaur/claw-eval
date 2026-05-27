@@ -1,0 +1,670 @@
+{
+  "task_id": "T163zh_quarterly_customer_review_plus_4",
+  "task_name": "按行业细分的季度联合洞察报告（行业经理视角）",
+  "prompt_text": "时间为2026年9月下旬，请回顾Q3（7/1-9/30），为6个重点客户输出“行业经理视角”的季度联合洞察。\n\n要求：\n1) 先阅读RSS行业动态，提炼出3个“行业主题”（只能3个），并说明每个主题的形成依据：引用RSS文章的tags与summary中的关键词/趋势点。\n2) 再把每个客户映射到最合适的主题：对每个客户写出映射依据（基于CRM客户的行业字段 + RSS主题关键词对齐/解释），并确保每个客户都被成功映射到某一个主题。\n3) 对每个客户补全：季度收入趋势（基于Q3的交易数据）、CRM满意度与续约节点（含合同到期月份/季度内关键节点）、邮件沟通活跃度（活跃/一般/沉默）与关键话题（从邮件中抽取）。\n4) 邮件需识别并排除“内部群发干扰”：若某客户在9月出现多封邮件但来自内部群发（例如来自company域、或labels表明通知/群发），则不得将其计入该客户的沟通活跃度与关键话题。\n5) 最后对3个行业主题分别总结：共性风险/共性机会，并给出每个主题一条跨客户可复用的建议。\n6) 输出“行业经理”联系方式：从contacts中找title包含“行业经理”的联系人（且不是任何客户的sales_owner），并按主题分别给出对应的行业经理联系方式（至少覆盖每个主题1位）。\n\n输出结构请清晰分段：先3个行业主题 -> 再6个客户逐一映射与分析 -> 最后3个主题的共性风险/机会与可复用建议。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-2401",
+        "name": "孙婉清",
+        "email": "sunwanqing@company.com",
+        "phone": "13900110011",
+        "department": "行业研究部",
+        "title": "医疗健康行业经理",
+        "responsibilities": [
+          "医疗数字化趋势跟踪",
+          "合规与数据治理要点沉淀",
+          "行业共性机会建议"
+        ]
+      },
+      {
+        "contact_id": "CON-2402",
+        "name": "陈昊然",
+        "email": "chenhaoran@company.com",
+        "phone": "13900110022",
+        "department": "行业研究部",
+        "title": "零售与供应链行业经理",
+        "responsibilities": [
+          "供应链降本与可视化趋势",
+          "数据与流程集成方案建议",
+          "行业主题与客户映射支持"
+        ]
+      },
+      {
+        "contact_id": "CON-2403",
+        "name": "周若宁",
+        "email": "zhou_ruoning@company.com",
+        "phone": "13900110033",
+        "department": "行业研究部",
+        "title": "教育与内容平台行业经理",
+        "responsibilities": [
+          "内容智能化与学习分析趋势",
+          "AI应用价值梳理",
+          "续约风险预警建议"
+        ]
+      },
+      {
+        "contact_id": "CON-2404",
+        "name": "郑磊",
+        "email": "zhenglei@company.com",
+        "phone": "13900110044",
+        "department": "销售部",
+        "title": "客户经理",
+        "responsibilities": [
+          "客户日常对接",
+          "报价与合同条款沟通",
+          "内部协调"
+        ]
+      },
+      {
+        "contact_id": "CON-2405",
+        "name": "林诗雨",
+        "email": "linshiyu@company.com",
+        "phone": "13900110055",
+        "department": "销售部",
+        "title": "客户成功经理（干扰项）",
+        "responsibilities": [
+          "执行交付计划",
+          "内部汇报"
+        ]
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2411",
+        "name": "澄澜医院集团",
+        "tier": "vip",
+        "status": "active",
+        "industry": "医疗健康",
+        "satisfaction": 4.7,
+        "contract_end": "2026-11-15",
+        "sales_owner": "郑磊",
+        "notes": "HIS/数据治理合作顺利推进，合规审计前置，Q3续约推进中。",
+        "contact_person": "孙婉清",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2412",
+        "name": "曜川零售连锁",
+        "tier": "standard",
+        "status": "active",
+        "industry": "零售",
+        "satisfaction": 3.4,
+        "contract_end": "2026-10-20",
+        "sales_owner": "郑磊",
+        "notes": "门店扩张带来集成需求，近期关注供应链可视化与降本效益。",
+        "contact_person": "陈昊然",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2413",
+        "name": "岭南物流股份",
+        "tier": "vip",
+        "status": "active",
+        "industry": "零售供应链",
+        "satisfaction": 4.1,
+        "contract_end": "2026-12-05",
+        "sales_owner": "郑磊",
+        "notes": "运输协同与库存联动效果显著，Q3持续追加接口资源。",
+        "contact_person": "陈昊然",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2414",
+        "name": "北星教育科技",
+        "tier": "standard",
+        "status": "active",
+        "industry": "教育信息化",
+        "satisfaction": 2.8,
+        "contract_end": "2026-11-28",
+        "sales_owner": "郑磊",
+        "notes": "内容智能化落地进度慢，内部预算审视，续约存在不确定性。",
+        "contact_person": "周若宁",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2415",
+        "name": "星火学习平台",
+        "tier": "vip",
+        "status": "active",
+        "industry": "教育信息化",
+        "satisfaction": 4.4,
+        "contract_end": "2026-10-12",
+        "sales_owner": "郑磊",
+        "notes": "学习分析与推荐功能贡献良好，9月启动增值模块评估。",
+        "contact_person": "周若宁",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2416",
+        "name": "宏途能源IT联盟",
+        "tier": "standard",
+        "status": "active",
+        "industry": "能源转型IT",
+        "satisfaction": 3.1,
+        "contract_end": "2026-12-20",
+        "sales_owner": "郑磊",
+        "notes": "运维与合规要求提升，Q3推进数据治理，但存在预算波动风险。",
+        "contact_person": "孙婉清",
+        "annual_revenue": 0
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2411-07",
+        "customer_id": "CUS-2411",
+        "amount": 92000,
+        "type": "subscription",
+        "date": "2026-07-12",
+        "status": "completed",
+        "description": "Q3基础订阅+合规模块一期"
+      },
+      {
+        "transaction_id": "TXN-2411-08",
+        "customer_id": "CUS-2411",
+        "amount": 98000,
+        "type": "subscription",
+        "date": "2026-08-10",
+        "status": "completed",
+        "description": "Q3订阅续费+审计支持包"
+      },
+      {
+        "transaction_id": "TXN-2411-09",
+        "customer_id": "CUS-2411",
+        "amount": 106000,
+        "type": "subscription",
+        "date": "2026-09-08",
+        "status": "completed",
+        "description": "Q3续约推进+数据治理增强"
+      },
+      {
+        "transaction_id": "TXN-2412-07",
+        "customer_id": "CUS-2412",
+        "amount": 43000,
+        "type": "subscription",
+        "date": "2026-07-05",
+        "status": "completed",
+        "description": "门店集成订阅（基础）"
+      },
+      {
+        "transaction_id": "TXN-2412-08",
+        "customer_id": "CUS-2412",
+        "amount": 41000,
+        "type": "subscription",
+        "date": "2026-08-06",
+        "status": "completed",
+        "description": "集成优化订阅（小幅调整）"
+      },
+      {
+        "transaction_id": "TXN-2412-09",
+        "customer_id": "CUS-2412",
+        "amount": 42000,
+        "type": "subscription",
+        "date": "2026-09-09",
+        "status": "completed",
+        "description": "补充可视化模块订阅"
+      },
+      {
+        "transaction_id": "TXN-2413-07",
+        "customer_id": "CUS-2413",
+        "amount": 76000,
+        "type": "subscription",
+        "date": "2026-07-18",
+        "status": "completed",
+        "description": "运输协同订阅（新增承运商）"
+      },
+      {
+        "transaction_id": "TXN-2413-08",
+        "customer_id": "CUS-2413",
+        "amount": 83000,
+        "type": "subscription",
+        "date": "2026-08-14",
+        "status": "completed",
+        "description": "库存联动订阅+接口扩容"
+      },
+      {
+        "transaction_id": "TXN-2413-09",
+        "customer_id": "CUS-2413",
+        "amount": 90000,
+        "type": "subscription",
+        "date": "2026-09-17",
+        "status": "completed",
+        "description": "Q3追加资源+全链路可视化"
+      },
+      {
+        "transaction_id": "TXN-2414-07",
+        "customer_id": "CUS-2414",
+        "amount": 36000,
+        "type": "subscription",
+        "date": "2026-07-11",
+        "status": "completed",
+        "description": "学习分析订阅（基础）"
+      },
+      {
+        "transaction_id": "TXN-2414-08",
+        "customer_id": "CUS-2414",
+        "amount": 32000,
+        "type": "subscription",
+        "date": "2026-08-16",
+        "status": "completed",
+        "description": "降配续费（预算收紧）"
+      },
+      {
+        "transaction_id": "TXN-2414-09",
+        "customer_id": "CUS-2414",
+        "amount": 29000,
+        "type": "subscription",
+        "date": "2026-09-13",
+        "status": "completed",
+        "description": "续费延后后补款（部分功能暂停）"
+      },
+      {
+        "transaction_id": "TXN-2415-07",
+        "customer_id": "CUS-2415",
+        "amount": 54000,
+        "type": "subscription",
+        "date": "2026-07-09",
+        "status": "completed",
+        "description": "推荐与内容分发订阅"
+      },
+      {
+        "transaction_id": "TXN-2415-08",
+        "customer_id": "CUS-2415",
+        "amount": 57000,
+        "type": "subscription",
+        "date": "2026-08-12",
+        "status": "completed",
+        "description": "增值模块评估订阅"
+      },
+      {
+        "transaction_id": "TXN-2415-09",
+        "customer_id": "CUS-2415",
+        "amount": 57000,
+        "type": "subscription",
+        "date": "2026-09-21",
+        "status": "completed",
+        "description": "横盘续费（暂未追加）"
+      },
+      {
+        "transaction_id": "TXN-2416-07",
+        "customer_id": "CUS-2416",
+        "amount": 41000,
+        "type": "subscription",
+        "date": "2026-07-22",
+        "status": "completed",
+        "description": "运维数据治理订阅"
+      },
+      {
+        "transaction_id": "TXN-2416-08",
+        "customer_id": "CUS-2416",
+        "amount": 42000,
+        "type": "subscription",
+        "date": "2026-08-26",
+        "status": "completed",
+        "description": "合规策略更新包"
+      },
+      {
+        "transaction_id": "TXN-2416-09",
+        "customer_id": "CUS-2416",
+        "amount": 41500,
+        "type": "subscription",
+        "date": "2026-09-24",
+        "status": "completed",
+        "description": "运维订阅稳定续费"
+      },
+      {
+        "transaction_id": "TXN-2412-08b",
+        "customer_id": "CUS-2412",
+        "amount": 22000,
+        "type": "subscription",
+        "date": "2026-08-22",
+        "status": "completed",
+        "description": "门店波次预测补充包"
+      },
+      {
+        "transaction_id": "TXN-2413-07b",
+        "customer_id": "CUS-2413",
+        "amount": 18000,
+        "type": "subscription",
+        "date": "2026-07-28",
+        "status": "completed",
+        "description": "承运商协同试点续费"
+      },
+      {
+        "transaction_id": "TXN-2414-07b",
+        "customer_id": "CUS-2414",
+        "amount": 9000,
+        "type": "subscription",
+        "date": "2026-07-29",
+        "status": "completed",
+        "description": "内容智能化PoC续费"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2411_07a",
+        "from": "compliance@cs-hospital.cn",
+        "to": "me@company.com",
+        "subject": "Q3合规审计准备与数据口径确认",
+        "date": "2026-07-26T06:00:00Z",
+        "body": "您好，我们正在做Q3合规审计准备。请确认数据治理口径（脱敏字段、留存周期）以及审计报表导出方式。我们希望在8月前完成一次联调。——合规负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "合规"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2411_08a",
+        "from": "growth_it@cs-hospital.cn",
+        "to": "me@company.com",
+        "subject": "续约讨论：扩展数据治理增强包",
+        "date": "2026-08-31T06:30:00Z",
+        "body": "我们计划把数据治理增强包纳入下一阶段合同。附件中列了需要扩展的范围：主数据、访问控制与审计日志。请提供续约方案与里程碑排期。——IT运营",
+        "labels": [
+          "inbox",
+          "客户",
+          "续约"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2411_09a",
+        "from": "data_team@cs-hospital.cn",
+        "to": "me@company.com",
+        "subject": "关于9月上线后性能与审计报表反馈",
+        "date": "2026-09-16T08:10:00Z",
+        "body": "9月上线后系统性能稳定，审计报表导出用时明显缩短。我们想进一步优化报表模板，并确认下一次培训安排。——数据团队",
+        "labels": [
+          "inbox",
+          "客户",
+          "技术咨询"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2412_07a",
+        "from": "itops@yaochuan-retail.com",
+        "to": "me@company.com",
+        "subject": "门店波次预测：反馈与下一步集成",
+        "date": "2026-07-14T04:00:00Z",
+        "body": "波次预测效果还可以，但和门店补货流程的联动仍需打通。请帮我们梳理接口字段映射，并评估额外的可视化模块是否值得追加。——IT运维",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2412_09a",
+        "from": "itops@yaochuan-retail.com",
+        "to": "me@company.com",
+        "subject": "Q3成本压力下的系统优化请求",
+        "date": "2026-09-05T09:00:00Z",
+        "body": "我们当前面临成本压力，IT预算有收紧信号。能否给一份轻量化优化方案：在不降低核心能力的前提下减少运维成本？——运维经理",
+        "labels": [
+          "inbox",
+          "客户",
+          "成本"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2413_07a",
+        "from": "ops@lingnan-logistics.com",
+        "to": "me@company.com",
+        "subject": "承运商协同试点结果与扩展计划",
+        "date": "2026-07-29T02:00:00Z",
+        "body": "试点已跑通，承运商协同带来的时效提升很明显。我们希望在Q4扩展更多承运商，并同步库存联动接口。请给出扩展报价与排期。——运营总监",
+        "labels": [
+          "inbox",
+          "客户",
+          "扩展"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2413_08a",
+        "from": "supply@lingnan-logistics.com",
+        "to": "me@company.com",
+        "subject": "库存联动：接口错误与修复时间预期",
+        "date": "2026-08-21T03:30:00Z",
+        "body": "库存联动偶发延迟，我们需要定位是数据同步频率还是接口鉴权导致。请在本周给出根因初步判断和修复时间预期。——供应链IT",
+        "labels": [
+          "inbox",
+          "客户",
+          "故障"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2413_09a",
+        "from": "pm@lingnan-logistics.com",
+        "to": "me@company.com",
+        "subject": "全链路可视化追加需求评审",
+        "date": "2026-09-18T05:20:00Z",
+        "body": "全链路可视化当前效果符合预期。我们准备追加两个维度的报表，并希望确认能否在10月完成上线。请提供对齐的交付方案。——项目经理",
+        "labels": [
+          "inbox",
+          "客户",
+          "评审"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2415_07a",
+        "from": "product@starfire-learn.com",
+        "to": "me@company.com",
+        "subject": "推荐系统：学习路径优化与指标复盘",
+        "date": "2026-07-11T06:40:00Z",
+        "body": "我们对学习路径进行了两轮优化，关键指标改善明显。希望你们协助梳理下一阶段的A/B实验方案，以及推荐策略的可解释性说明。——产品负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "技术讨论"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2415_08a",
+        "from": "ops@starfire-learn.com",
+        "to": "me@company.com",
+        "subject": "增值模块评估：部署成本与排期",
+        "date": "2026-08-27T07:10:00Z",
+        "body": "增值模块我们倾向继续推进，但需要确认部署成本（含人天与硬件资源）以及时间排期。请提供两种预算方案。——运维负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "评估"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2415_09a",
+        "from": "support@starfire-learn.com",
+        "to": "me@company.com",
+        "subject": "9月阶段回顾：先不追加的原因说明",
+        "date": "2026-09-22T07:45:00Z",
+        "body": "我们决定9月先不追加模块，原因是内部预算暂时冻结。需要你们帮我们确保当前推荐功能的稳定性，并在10月再评估追加。——支持团队",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2414_07a",
+        "from": "admin@northstar-edu.com",
+        "to": "me@company.com",
+        "subject": "内容智能化PoC：进度偏慢的原因与资源需求",
+        "date": "2026-07-30T08:20:00Z",
+        "body": "PoC阶段遇到内容标准化工作量超出预期，需要增加一次数据标注资源。我们希望你们评估是否能调整交付节奏。——项目管理",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2416_07a",
+        "from": "it@hongtu-energy.com",
+        "to": "me@company.com",
+        "subject": "运维数据治理：合规字段清单确认",
+        "date": "2026-07-27T09:05:00Z",
+        "body": "我们需要确认运维数据治理中的合规字段清单：哪些字段必须脱敏、哪些字段可保留用于审计。麻烦给我们一份清单模板。——IT安全负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "合规"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2412_09_noise1",
+        "from": "notify@company.com",
+        "to": "me@company.com",
+        "subject": "【系统通知】Q3活动回顾与模板下载",
+        "date": "2026-09-03T10:00:00Z",
+        "body": "全体客户：Q3活动回顾与模板下载，请查看附件。",
+        "labels": [
+          "通知",
+          "群发"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2412_09_noise2",
+        "from": "newsletter@company.com",
+        "to": "me@company.com",
+        "subject": "【内部群发】供应链智能化白皮书更新",
+        "date": "2026-09-10T10:15:00Z",
+        "body": "内部群发：供应链智能化白皮书更新，本周推送。",
+        "labels": [
+          "来自company域",
+          "通知"
+        ],
+        "is_read": true
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-24101",
+        "title": "医疗数字化：合规与数据治理正在成为续约关键",
+        "summary": "医疗机构在Q3加速推进数据治理与安全合规，审计准备提前化；具备脱敏与审计日志能力的项目续约意向更强。",
+        "tags": [
+          "医疗数字化",
+          "合规",
+          "数据治理",
+          "审计"
+        ],
+        "url": "https://health-insight.example.com/24101",
+        "content": "医疗机构在Q3加速推进数据治理与安全合规，审计准备提前化；具备脱敏与审计日志能力的项目续约意向更强。",
+        "category": "医疗数字化, 合规, 数据治理",
+        "source": "健康洞察周刊",
+        "published_at": "2026-09-12T00:00:00Z",
+        "word_count": 62
+      },
+      {
+        "article_id": "RSS-24102",
+        "title": "能源转型IT：运维数据治理与风控能力需求上升",
+        "summary": "能源转型相关IT项目在Q3更强调运维数据治理、访问控制与可追溯风控；预算相对稳但对合规要求更高。",
+        "tags": [
+          "能源转型IT",
+          "运维数据治理",
+          "访问控制",
+          "可追溯"
+        ],
+        "url": "https://energy-tech.example.com/24102",
+        "content": "能源转型相关IT项目在Q3更强调运维数据治理、访问控制与可追溯风控；预算相对稳但对合规要求更高。",
+        "category": "能源转型IT, 运维, 合规",
+        "source": "能源科技快讯",
+        "published_at": "2026-08-28T00:00:00Z",
+        "word_count": 55
+      },
+      {
+        "article_id": "RSS-24103",
+        "title": "零售与供应链：降本增效推动可视化与协同扩张",
+        "summary": "零售供应链在Q3面临成本压力，但可视化与协同系统的投资反而增加；围绕库存联动、运输协同的接口扩容成为常见动作。",
+        "tags": [
+          "零售供应链",
+          "降本",
+          "可视化",
+          "协同",
+          "库存联动"
+        ],
+        "url": "https://retail-supply.example.com/24103",
+        "content": "零售供应链在Q3面临成本压力，但可视化与协同系统的投资反而增加；围绕库存联动、运输协同的接口扩容成为常见动作。",
+        "category": "零售供应链, 降本, 协同",
+        "source": "零售供应链观察",
+        "published_at": "2026-09-03T00:00:00Z",
+        "word_count": 67
+      },
+      {
+        "article_id": "RSS-24104",
+        "title": "零售竞争加剧：IT预算更谨慎但对关键模块不降级",
+        "summary": "在竞争加剧背景下，零售企业Q3更倾向“控预算但不砍关键能力”；数据分析、预测与可视化是保留项，降配通常发生在非核心环节。",
+        "tags": [
+          "零售",
+          "竞争",
+          "预算谨慎",
+          "可视化",
+          "预测"
+        ],
+        "url": "https://market-weekly.example.com/24104",
+        "content": "在竞争加剧背景下，零售企业Q3更倾向“控预算但不砍关键能力”；数据分析、预测与可视化是保留项，降配通常发生在非核心环节。",
+        "category": "零售, 预算, 预测",
+        "source": "市场动态周刊",
+        "published_at": "2026-08-30T00:00:00Z",
+        "word_count": 60
+      },
+      {
+        "article_id": "RSS-24105",
+        "title": "教育内容平台：学习分析与推荐智能化加速落地",
+        "summary": "教育内容平台在Q3围绕学习分析、推荐与内容分发加速升级；对“可解释性指标”和“部署成本”提出更高要求。",
+        "tags": [
+          "教育内容平台",
+          "学习分析",
+          "推荐",
+          "内容分发",
+          "可解释性",
+          "部署成本"
+        ],
+        "url": "https://edu-ai.example.com/24105",
+        "content": "教育内容平台在Q3围绕学习分析、推荐与内容分发加速升级；对“可解释性指标”和“部署成本”提出更高要求。",
+        "category": "教育AI, 学习分析, 推荐",
+        "source": "教育AI观察",
+        "published_at": "2026-09-07T00:00:00Z",
+        "word_count": 70
+      },
+      {
+        "article_id": "RSS-24106",
+        "title": "教育行业预算分化：PoC失败或导致续约风险上升",
+        "summary": "教育信息化项目在Q3出现预算分化：若PoC阶段交付进度偏慢、关键指标未达成，续约会被推迟甚至降配。",
+        "tags": [
+          "教育信息化",
+          "PoC",
+          "续约风险",
+          "预算分化",
+          "指标未达成"
+        ],
+        "url": "https://edu-industry.example.com/24106",
+        "content": "教育信息化项目在Q3出现预算分化：若PoC阶段交付进度偏慢、关键指标未达成，续约会被推迟甚至降配。",
+        "category": "教育信息化, 风险, PoC",
+        "source": "行业脉搏日报",
+        "published_at": "2026-08-20T00:00:00Z",
+        "word_count": 58
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原季度客户回顾基础上改为先从RSS提炼3个行业主题，再按主题映射并输出跨客户共性风险/机会与行业经理视角联系方式，同时加入9月内部群发邮件干扰排除逻辑。",
+    "fixture_design_summary": [
+      "contacts.json：提供≥2位“行业经理”标题联系人，并额外放入“客户经理”等干扰联系人，确保行业经理可被title驱动定位。",
+      "crm/customers.json：6个客户覆盖“医疗健康/零售/零售供应链/教育信息化/能源转型IT”等粗粒度行业，满意度高/中/低分布，合同到期覆盖10月/11月/12月。",
+      "finance/transactions.json：仅围绕Q3(7/1-9/30)构造交易，设置至少两家收入上升（CUS-2411、CUS-2413）、一家明显下降（CUS-2414）、一家横盘（CUS-2415），其余稳定用于对照。",
+      "gmail/inbox.json：对每客户提供关键沟通话题；包含至少1个“来自company域/通知/群发”的9月内部群发噪声邮件，用于考察异常活跃排除。",
+      "rss/feeds.json：6篇文章分布在医疗数字化/能源转型IT、零售供应链与零售竞争、教育内容平台与教育信息化风险等方向，确保可组合出3个可判定行业主题。"
+    ]
+  }
+}

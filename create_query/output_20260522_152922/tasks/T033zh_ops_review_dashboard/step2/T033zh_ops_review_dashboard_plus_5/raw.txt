@@ -1,0 +1,705 @@
+{
+  "task_id": "T033zh_ops_review_dashboard_plus_5",
+  "task_name": "运营周报：CRM合同风险与交付延迟联动",
+  "prompt_text": "请帮我准备一份本周运营周报（只读）。需要综合系统集成状态、工单系统趋势与重点问题、库存状况、CRM客户动态、知识库过时检查、定时任务状态。\n\n重点要求：\n1) 从CRM识别VIP客户的“续约风险”信号，并解释其原因与“交付延迟/服务不可用/交付物料准备不足/发货推迟”等工单类别的时间一致性。\n2) 用工单系统筛出与交付链路相关的聚簇问题（交付延期、接口不可用、打包/通知失败、发货推迟等），抽取关键工单细节作为证据。\n3) 用调度任务定位“交付依赖数据生成/物料打包通知/交付状态同步”等相关任务是否失败或未启用，并与工单高峰时间对齐。\n4) 用库存系统确认是否存在与交付物料相关的低库存SKU（低于安全线）作为辅助支撑，但避免把库存短缺当成唯一主因。\n5) 用集成健康/配置类信息说明存在轻度降级或状态标签与notes不一致的集成风险，并评估其与交付问题的可能关联强度。\n6) 用知识库检查“交付SLA与升级阈值/事件升级流程”类文档是否过时（last_updated超过半年），并在报告中说明可能导致升级策略滞后。\n\n输出要求：只做分析与总结，不要修改任何数据、不要发送邮件、不要更新工单或创建任何内容。报告中务必出现并聚焦“VIP/续约风险/交付延迟/服务不可用/SLA升级阈值”等关键词，且给出清晰的跨系统关联逻辑与行动建议。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-201",
+        "name": "delivery_support_api",
+        "display_name": "交付支持API",
+        "status": "active",
+        "error_rate": 3.4,
+        "base_url": "https://delivery-support.example.com/api",
+        "service": "api",
+        "call_volume_previous_week": 7400,
+        "monthly_calls": 8100,
+        "last_verified": "2026-03-02T01:10:00+08:00",
+        "notes": "状态面板显示active；但近期超时重试增多（3-5min内多次重试），可能影响交付状态拉取与后续通知触发。"
+      },
+      {
+        "integration_id": "INT-202",
+        "name": "notification_webhook",
+        "display_name": "交付通知Webhook",
+        "status": "active",
+        "error_rate": 6.2,
+        "base_url": "https://hooks.example.com/notify",
+        "service": "webhook",
+        "call_volume_previous_week": 3900,
+        "monthly_calls": 4200,
+        "last_verified": "2026-03-02T02:05:00+08:00",
+        "notes": "指标波动：错误率>5%但标签仍为active；notes记录存在“重试已成功但延迟发送”的情况。"
+      },
+      {
+        "integration_id": "INT-203",
+        "name": "packaging_service",
+        "display_name": "物料打包服务",
+        "status": "active",
+        "error_rate": 2.1,
+        "base_url": "https://pack.example.com/v1",
+        "service": "api",
+        "call_volume_previous_week": 1800,
+        "monthly_calls": 1960,
+        "last_verified": "2026-03-02T00:40:00+08:00"
+      },
+      {
+        "integration_id": "INT-204",
+        "name": "crm_contract_service",
+        "display_name": "CRM合同服务",
+        "status": "active",
+        "error_rate": 1.3,
+        "base_url": "https://crm-contract.example.com",
+        "service": "api",
+        "call_volume_previous_week": 2600,
+        "monthly_calls": 3050,
+        "last_verified": "2026-03-02T01:55:00+08:00",
+        "notes": "调用量稳定；偶发500但整体可用。若交付延期信息延迟写回，可能降低合同续约跟进时效。"
+      },
+      {
+        "integration_id": "INT-205",
+        "name": "inventory_reservation_api",
+        "display_name": "库存预占API",
+        "status": "degraded",
+        "error_rate": 7.8,
+        "base_url": "https://inventory.example.com/reserve",
+        "service": "api",
+        "call_volume_previous_week": 1200,
+        "monthly_calls": 1340,
+        "last_verified": "2026-03-02T02:20:00+08:00",
+        "notes": "degraded原因：预占请求队列拥塞导致响应变慢；与打包前置步骤存在时序耦合。"
+      },
+      {
+        "integration_id": "INT-206",
+        "name": "sla_reference_feed",
+        "display_name": "SLA参考数据源",
+        "status": "active",
+        "error_rate": 0.9,
+        "base_url": "https://sla-feed.example.com",
+        "service": "batch",
+        "call_volume_previous_week": 240,
+        "monthly_calls": 260,
+        "last_verified": "2026-03-02T00:15:00+08:00",
+        "notes": "状态active；但最近一次同步后仍存在数据版本不一致的投诉（可能来自上游缓存）。"
+      },
+      {
+        "integration_id": "INT-207",
+        "name": "delivery_status_sync",
+        "display_name": "交付状态同步",
+        "status": "active",
+        "error_rate": 4.7,
+        "base_url": "https://status-sync.example.com/ws",
+        "service": "api",
+        "call_volume_previous_week": 5200,
+        "monthly_calls": 5900,
+        "last_verified": "2026-03-02T01:25:00+08:00",
+        "notes": "偶发重连：状态标签仍为active，但存在“短暂降级后恢复”的超时重试记录。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-401",
+        "name": "北辰工业集团",
+        "tier": "vip",
+        "status": "active",
+        "annual_revenue": 16800000,
+        "contact_person": "周总",
+        "contact_email": "zhou@beichen-industries.com",
+        "contact_phone": "186-2100-4401",
+        "industry": "装备制造",
+        "contract_end_date": "2026-06-30",
+        "renewal_risk_score": 86,
+        "recent_interactions": [
+          {
+            "date": "2026-03-01",
+            "type": "risk_signal",
+            "channel": "邮件",
+            "handled_by": "CRM-客户成功",
+            "notes": "续约风险信号：客户内部采购流程因“交付依赖数据生成/打包通知”多次延迟而冻结。周内两次询问仍未拿到可用于内部审批的交付状态证明，要求在48小时内给出明确交付时间窗口；否则将启动合同升级/转移供应商评估。"
+          },
+          {
+            "date": "2026-02-27",
+            "type": "complaint",
+            "channel": "电话",
+            "handled_by": "客户成功经理",
+            "notes": "抱怨：服务接口偶发不可用，导致物料打包后通知未及时到达采购系统。客户称“我们这边准备好了材料，但你们那边没把发货推到位”。"
+          },
+          {
+            "date": "2026-02-18",
+            "type": "order",
+            "channel": "系统",
+            "notes": "合同续约预采购：交付批次A（预计发货：3月上旬），订单号需在系统导出交付凭证后才能走审批。"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-402",
+        "name": "星河物流服务商",
+        "tier": "standard",
+        "status": "active",
+        "annual_revenue": 4200000,
+        "contact_person": "许经理",
+        "contact_email": "xu@xinghe-logistics.com",
+        "contact_phone": "186-2100-4402",
+        "industry": "物流",
+        "contract_end_date": "2026-12-15",
+        "recent_interactions": [
+          {
+            "date": "2026-02-28",
+            "type": "inquiry",
+            "channel": "工单",
+            "notes": "询问：是否能提供“交付SLA升级阈值”对应的升级说明文档，便于内部风险评估。"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-403",
+        "name": "青岚医疗器械",
+        "tier": "vip",
+        "status": "active",
+        "annual_revenue": 9800000,
+        "contact_person": "陈总",
+        "contact_email": "chen@qinglan-med.com",
+        "contact_phone": "186-2100-4403",
+        "industry": "医疗器械",
+        "contract_end_date": "2026-11-30",
+        "renewal_risk_score": 38,
+        "recent_interactions": [
+          {
+            "date": "2026-02-26",
+            "type": "meeting",
+            "channel": "视频会议",
+            "notes": "业务回顾：对交付时效有关注，但当前批次未出现明显延迟。希望后续能更透明展示升级进度与预计恢复时间。"
+          }
+        ]
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2401",
+        "title": "交付依赖数据生成失败导致状态缺失",
+        "description": "交付依赖数据生成任务在本周多次失败，导致系统无法生成用于合同续约/内部审批的交付状态证明。客户反馈：资料缺失，采购审批无法继续。",
+        "department": "交付运营",
+        "priority": "high",
+        "status": "open",
+        "category": "delivery_dependency",
+        "product": "交付状态凭证（系统服务）",
+        "customer_id": "CUS-401",
+        "created_at": "2026-03-01T09:10:00+08:00",
+        "assigned_to": "运营值班-交付",
+        "updated_at": "2026-03-01T13:30:00+08:00",
+        "reporter": "客户成功团队",
+        "related_integration_ids": [
+          "INT-201",
+          "INT-207"
+        ]
+      },
+      {
+        "ticket_id": "TK-2402",
+        "title": "物料打包通知Webhook延迟/未送达",
+        "description": "物料打包完成后，交付通知Webhook延迟发送或未送达。影响：客户采购系统未收到“已发货/已打包”事件，导致发货排期推迟。",
+        "department": "平台运维",
+        "priority": "high",
+        "status": "open",
+        "category": "notification_delay",
+        "product": "通知事件（delivery-notify）",
+        "customer_id": "CUS-401",
+        "created_at": "2026-02-28T15:20:00+08:00",
+        "assigned_to": "平台值班",
+        "updated_at": "2026-03-01T11:40:00+08:00",
+        "reporter": "交付协调",
+        "related_integration_ids": [
+          "INT-202",
+          "INT-203"
+        ]
+      },
+      {
+        "ticket_id": "TK-2403",
+        "title": "交付接口偶发不可用（影响状态回写）",
+        "description": "交付支持API在高峰期出现超时重试，导致状态回写失败。客户侧表现为“查询交付状态一直卡住”。",
+        "department": "平台运维",
+        "priority": "medium",
+        "status": "open",
+        "category": "service_unavailable",
+        "product": "delivery_support_api",
+        "customer_id": "CUS-401",
+        "created_at": "2026-02-28T09:05:00+08:00",
+        "assigned_to": "运维值班-API",
+        "updated_at": "2026-02-29T10:45:00+08:00",
+        "reporter": "客服转交",
+        "related_integration_ids": [
+          "INT-201"
+        ]
+      },
+      {
+        "ticket_id": "TK-2404",
+        "title": "发货推迟：打包前置步骤排队超时",
+        "description": "打包前置步骤依赖库存预占API响应。近期队列拥塞导致预占超时，进而造成发货推迟与预计到货延后。",
+        "department": "供应链",
+        "priority": "medium",
+        "status": "open",
+        "category": "shipping_delay",
+        "product": "物料打包（前置）",
+        "customer_id": "CUS-401",
+        "created_at": "2026-02-27T19:40:00+08:00",
+        "assigned_to": "供应链调度",
+        "updated_at": "2026-02-28T18:10:00+08:00",
+        "reporter": "仓储组",
+        "related_integration_ids": [
+          "INT-205",
+          "INT-203"
+        ]
+      },
+      {
+        "ticket_id": "TK-2405",
+        "title": "交付状态同步任务未启用（本周缺口）",
+        "description": "发现交付状态同步相关逻辑在部分时间窗未正确启用，造成状态事件缺口。需要对齐工单与调度系统时间线以确认影响范围。",
+        "department": "交付运营",
+        "priority": "high",
+        "status": "open",
+        "category": "scheduler_disabled",
+        "product": "交付状态同步",
+        "created_at": "2026-02-29T08:30:00+08:00",
+        "assigned_to": "交付工程",
+        "updated_at": "2026-03-01T10:00:00+08:00",
+        "reporter": "值班经理",
+        "related_integration_ids": [
+          "INT-207"
+        ]
+      },
+      {
+        "ticket_id": "TK-2406",
+        "title": "客户请求升级说明：SLA阈值理解不一致",
+        "description": "客户提出交付SLA升级阈值相关疑问。现有对外口径与内部升级策略存在差异，影响客户对“何时升级/升级到谁”的预期管理。",
+        "department": "客户成功",
+        "priority": "low",
+        "status": "closed",
+        "category": "sla_policy",
+        "product": "SLA升级说明",
+        "customer_id": "CUS-401",
+        "created_at": "2026-02-26T12:10:00+08:00",
+        "assigned_to": "客户成功-运营",
+        "updated_at": "2026-02-26T17:35:00+08:00",
+        "reporter": "客户成功团队",
+        "resolution": "已提供临时口径链接；建议后续更新知识库SLA阈值文档并校对。"
+      },
+      {
+        "ticket_id": "TK-2407",
+        "title": "交付凭证生成成功率下降（半数失败）",
+        "description": "交付凭证生成接口在本周出现成功率下降，失败请求需要重试才能产出。导致部分订单的凭证生成延后，间接影响审批节奏。",
+        "department": "平台运维",
+        "priority": "medium",
+        "status": "open",
+        "category": "delivery_dependency",
+        "product": "交付凭证服务",
+        "customer_id": "CUS-403",
+        "created_at": "2026-02-29T14:50:00+08:00",
+        "assigned_to": "平台值班",
+        "updated_at": "2026-03-01T09:20:00+08:00",
+        "reporter": "客服转交",
+        "related_integration_ids": [
+          "INT-201",
+          "INT-204"
+        ]
+      },
+      {
+        "ticket_id": "TK-2408",
+        "title": "打包服务返回成功但通知链路缺失",
+        "description": "打包服务本身返回成功，但后续通知链路出现缺口，导致客户无法确认已发货事件。需要检查链路是否存在超时重试但未最终落库。",
+        "department": "平台运维",
+        "priority": "high",
+        "status": "open",
+        "category": "notification_delay",
+        "product": "packaging_service",
+        "customer_id": "CUS-401",
+        "created_at": "2026-02-27T21:20:00+08:00",
+        "assigned_to": "交付工程",
+        "updated_at": "2026-03-01T08:55:00+08:00",
+        "reporter": "交付协调",
+        "related_integration_ids": [
+          "INT-202",
+          "INT-203"
+        ]
+      },
+      {
+        "ticket_id": "TK-2409",
+        "title": "接口重试风暴后恢复（影响短时订单）",
+        "description": "监控显示存在短时超时重试风暴，随后恢复。部分工单客户仍反馈“查询交付状态偏慢”，需评估是否存在缓存未刷新。",
+        "department": "平台运维",
+        "priority": "medium",
+        "status": "closed",
+        "category": "service_unavailable",
+        "product": "delivery_support_api",
+        "created_at": "2026-02-28T12:00:00+08:00",
+        "assigned_to": "运维值班-API",
+        "updated_at": "2026-02-28T14:10:00+08:00",
+        "reporter": "值班工程师",
+        "resolution": "服务在14:05恢复；建议排查重试后缓存刷新策略。"
+      },
+      {
+        "ticket_id": "TK-2410",
+        "title": "物料准备不足：配件短缺导致局部发货推迟",
+        "description": "部分配件SKU接近或低于安全线，导致局部批次发货推迟。需与库存低库存数据对齐验证，避免误判为主因。",
+        "department": "供应链",
+        "priority": "low",
+        "status": "open",
+        "category": "material_shortage",
+        "product": "配件补齐（packing supplies）",
+        "customer_id": "CUS-402",
+        "created_at": "2026-02-27T11:25:00+08:00",
+        "assigned_to": "仓储调度",
+        "updated_at": "2026-02-28T09:30:00+08:00",
+        "reporter": "仓储组"
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "PRD-501",
+        "name": "交付配件-快装接头K2",
+        "category": "交付配件",
+        "current_stock": 14,
+        "min_stock": 40,
+        "status": "low_stock",
+        "return_rate": 0.6,
+        "return_count": 2,
+        "units_sold_this_month": 88,
+        "supplier": "盛达材料",
+        "last_restock_date": "2026-02-06",
+        "sku_alias": "K2-FITTING",
+        "notes": "低于安全线。更可能是局部批次的并行发货被延迟的次要因素；需结合调度失败与通知缺口时间线判断主因。"
+      },
+      {
+        "product_id": "PRD-502",
+        "name": "交付物料-打包缓冲泡M",
+        "category": "交付物料",
+        "current_stock": 220,
+        "min_stock": 80,
+        "status": "normal",
+        "return_rate": 0.2,
+        "return_count": 1,
+        "units_sold_this_month": 310,
+        "supplier": "恒泰包装",
+        "last_restock_date": "2026-02-20"
+      },
+      {
+        "product_id": "PRD-503",
+        "name": "交付配件-封签条带S8",
+        "category": "交付配件",
+        "current_stock": 58,
+        "min_stock": 60,
+        "status": "low_stock",
+        "return_rate": 0.3,
+        "return_count": 1,
+        "units_sold_this_month": 145,
+        "supplier": "信合工业品",
+        "last_restock_date": "2026-02-13",
+        "sku_alias": "S8-SEAL",
+        "notes": "接近安全线偏低但规模不大；与本周VIP续约风险的核心时间窗是否一致需核对。"
+      },
+      {
+        "product_id": "PRD-504",
+        "name": "交付耗材-胶带封箱G7",
+        "category": "交付物料",
+        "current_stock": 430,
+        "min_stock": 120,
+        "status": "normal",
+        "return_rate": 0.1,
+        "return_count": 0,
+        "units_sold_this_month": 520,
+        "supplier": "顺达耗材",
+        "last_restock_date": "2026-02-22"
+      },
+      {
+        "product_id": "PRD-505",
+        "name": "交付配件-标识贴A9",
+        "category": "交付配件",
+        "current_stock": 95,
+        "min_stock": 30,
+        "status": "normal",
+        "return_rate": 0.0,
+        "return_count": 0,
+        "units_sold_this_month": 160,
+        "supplier": "铭德标识",
+        "last_restock_date": "2026-02-28"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-411",
+        "title": "交付SLA升级与阈值（对外口径）",
+        "category": "交付SLA",
+        "tags": [
+          "SLA",
+          "升级阈值",
+          "交付事件升级",
+          "VIP续约"
+        ],
+        "content": "## 交付SLA升级与阈值（对外口径）\n\n### 1. 升级触发条件\n- 如果“交付依赖数据生成”失败持续 **> 4小时**，启动 Level-1 升级（通知交付工程）\n- 如果“物料打包通知”延迟累计 **> 6小时**，启动 Level-2 升级（通知客户成功负责人）\n- 若客户关键里程碑仍未推进，继续升级至 Level-3（管理层/关键客户）\n\n### 2. 升级输出要求\n- Level-1：提供预计恢复时间区间（ETA）与重试次数摘要\n- Level-2：提供对客户的解释口径与后续保障动作\n\n### 3. 常见误区\n- 不要仅以“系统显示active”作为最终依据；需结合重试与实际事件投递结果\n\n**文档版本**: v2.0\n**最后更新**: 2025-11-01\n**负责人**: 交付SLA治理小组\n",
+        "last_updated": "2025-11-01",
+        "author": "交付SLA治理小组",
+        "status": "published",
+        "views": 132
+      },
+      {
+        "article_id": "KB-412",
+        "title": "事件升级流程排查清单（交付链路）",
+        "category": "运维流程",
+        "tags": [
+          "升级流程",
+          "排查",
+          "超时重试"
+        ],
+        "content": "## 事件升级流程排查清单（交付链路）\n\n### 1. 先核对调度与链路\n- 查询：交付依赖数据生成是否失败\n- 查询：物料打包通知是否延迟或未投递\n- 核对：集成状态标签与实际错误率是否一致\n\n### 2. 再核对客户侧影响\n- 客户内部审批是否因“交付凭证缺失/事件缺口”被阻塞\n\n### 3. 输出模板\n- 问题摘要\n- 时间线（调度/工单/集成）\n- 影响范围评估\n\n**最后更新**: 2026-02-05\n**负责人**: 平台可靠性团队\n",
+        "last_updated": "2026-02-05",
+        "author": "平台可靠性团队",
+        "status": "published",
+        "views": 244
+      },
+      {
+        "article_id": "KB-413",
+        "title": "交付状态同步接口说明（历史版本）",
+        "category": "接口文档",
+        "tags": [
+          "API",
+          "交付状态同步"
+        ],
+        "content": "## 交付状态同步接口说明（历史版本）\n\n- endpoint: /delivery/status/sync\n- 兼容字段包括：event_id、delivery_batch_id、timestamp\n- 注意：当上游出现短暂降级时，可能需要额外重试刷新\n\n**文档版本**: v1.1\n**最后更新**: 2025-09-18\n**负责人**: 开发与运维协作组\n",
+        "last_updated": "2025-09-18",
+        "author": "开发与运维协作组",
+        "status": "published",
+        "views": 98
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-501",
+        "name": "delivery_dependency_data_generate",
+        "description": "交付依赖数据生成：为交付凭证/合同续约审批生成依赖数据",
+        "cron_expression": "*/15 * * * *",
+        "enabled": true,
+        "last_status": "failed",
+        "last_run": "2026-03-01T09:00:00+08:00",
+        "next_run": "2026-03-01T09:15:00+08:00",
+        "average_duration_seconds": 38,
+        "tags": [
+          "delivery",
+          "dependency",
+          "retry"
+        ],
+        "error": "DB事务超时：generate_dependencies 写入失败",
+        "execution_history": [
+          {
+            "run_at": "2026-03-01T09:00:00+08:00",
+            "status": "failed",
+            "error": "DB事务超时：generate_dependencies 写入失败",
+            "duration_seconds": 34
+          },
+          {
+            "run_at": "2026-03-01T08:45:00+08:00",
+            "status": "failed",
+            "error": "DB事务超时：generate_dependencies 写入失败",
+            "duration_seconds": 33
+          },
+          {
+            "run_at": "2026-03-01T08:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 29
+          },
+          {
+            "run_at": "2026-03-01T08:15:00+08:00",
+            "status": "failed",
+            "error": "依赖字段校验失败：delivery_batch_id缺失",
+            "duration_seconds": 22
+          }
+        ],
+        "notes": "失败序列与VIP续约风险时间窗重合：工单反馈交付凭证缺失导致采购审批冻结。"
+      },
+      {
+        "job_id": "JOB-502",
+        "name": "packaging_notification_dispatch",
+        "description": "物料打包完成后派发通知：通知Webhook投递交付事件",
+        "cron_expression": "0 */1 * * *",
+        "enabled": true,
+        "last_status": "failed",
+        "last_run": "2026-03-01T10:00:00+08:00",
+        "next_run": "2026-03-01T11:00:00+08:00",
+        "average_duration_seconds": 26,
+        "tags": [
+          "delivery",
+          "notification",
+          "webhook"
+        ],
+        "error": "Webhook 5xx：notification_webhook 返回错误，触发重试",
+        "execution_history": [
+          {
+            "run_at": "2026-03-01T10:00:00+08:00",
+            "status": "failed",
+            "error": "Webhook 5xx：notification_webhook 返回错误，触发重试",
+            "duration_seconds": 24
+          },
+          {
+            "run_at": "2026-03-01T09:00:00+08:00",
+            "status": "failed",
+            "error": "Webhook timeout：notification_webhook 30s内无响应",
+            "duration_seconds": 30
+          },
+          {
+            "run_at": "2026-03-01T08:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 19
+          },
+          {
+            "run_at": "2026-02-28T15:00:00+08:00",
+            "status": "failed",
+            "error": "Webhook 5xx：notification_webhook 返回错误，触发重试",
+            "duration_seconds": 22
+          }
+        ],
+        "notes": "notes提示：状态active但存在延迟投递/失败重试，可能造成客户采购系统未及时接收到事件。"
+      },
+      {
+        "job_id": "JOB-503",
+        "name": "delivery_status_synchronization",
+        "description": "交付状态同步：将交付事件同步到下游系统并更新客户可见状态",
+        "cron_expression": "*/30 * * * *",
+        "enabled": false,
+        "last_status": "failed",
+        "last_run": "2026-02-29T08:00:00+08:00",
+        "next_run": null,
+        "average_duration_seconds": 41,
+        "tags": [
+          "delivery",
+          "sync",
+          "disabled"
+        ],
+        "error": "任务被管理员禁用（未启用导致状态缺口）",
+        "execution_history": [
+          {
+            "run_at": "2026-02-29T08:00:00+08:00",
+            "status": "failed",
+            "error": "任务被管理员禁用（未启用导致状态缺口）",
+            "duration_seconds": 0
+          },
+          {
+            "run_at": "2026-02-29T07:30:00+08:00",
+            "status": "failed",
+            "error": "任务未启用，跳过执行",
+            "duration_seconds": 0
+          },
+          {
+            "run_at": "2026-02-29T07:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 44
+          }
+        ],
+        "disabled_by": "admin",
+        "disabled_date": "2026-02-29",
+        "disabled_reason": "临时维护：与依赖数据生成接口兼容性验证中"
+      },
+      {
+        "job_id": "JOB-504",
+        "name": "inventory_reservation_compaction",
+        "description": "库存预占数据压缩/对齐：给打包前置步骤提供视图数据",
+        "cron_expression": "*/20 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-01T09:40:00+08:00",
+        "next_run": "2026-03-01T10:00:00+08:00",
+        "average_duration_seconds": 15,
+        "tags": [
+          "inventory",
+          "reservation"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-03-01T09:40:00+08:00",
+            "status": "success",
+            "duration_seconds": 14
+          },
+          {
+            "run_at": "2026-03-01T09:20:00+08:00",
+            "status": "success",
+            "duration_seconds": 16
+          },
+          {
+            "run_at": "2026-03-01T09:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 15
+          }
+        ],
+        "notes": "该任务本周整体成功；但与库存预占API拥塞在时序上可能导致打包前置等待。"
+      },
+      {
+        "job_id": "JOB-505",
+        "name": "crm_contract_renewal_event_push",
+        "description": "CRM合同续约事件推送：把关键交付状态回传给CRM做风险评估",
+        "cron_expression": "0 */2 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-01T08:00:00+08:00",
+        "next_run": "2026-03-01T10:00:00+08:00",
+        "average_duration_seconds": 52,
+        "tags": [
+          "crm",
+          "contract"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-03-01T08:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 49
+          },
+          {
+            "run_at": "2026-03-01T06:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 55
+          },
+          {
+            "run_at": "2026-02-29T20:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 51
+          }
+        ],
+        "notes": "推送链路可用；但当上游交付事件缺口时，CRM侧只能基于更旧信息做判断。"
+      },
+      {
+        "job_id": "JOB-506",
+        "name": "monitoring_health_check",
+        "description": "每5分钟执行一次系统健康检查",
+        "cron_expression": "*/5 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-01T10:35:00+08:00",
+        "next_run": "2026-03-01T10:40:00+08:00",
+        "average_duration_seconds": 6,
+        "tags": [
+          "monitoring",
+          "critical"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-03-01T10:35:00+08:00",
+            "status": "success",
+            "duration_seconds": 6
+          },
+          {
+            "run_at": "2026-03-01T10:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 6
+          }
+        ],
+        "notes": "健康检查显示active/可用，但notes可能覆盖“超时重试/短暂降级”场景。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题以硬件质量异常为主线；新题主线改为“CRM VIP续约风险”与“交付延迟/服务不可用”跨系统联动，并额外强调库存低库存与SLA升级阈值过时的影响。",
+    "fixture_design_summary": [
+      "config/integrations.json：构造active但存在超时重试/错误率波动、状态标签与notes不一致的交付相关集成INT-201/202/207，形成“轻度降级但标签未更新”的证据源。",
+      "helpdesk/tickets.json：新增与交付链路强相关的工单聚簇（交付依赖生成失败、通知Webhook延迟、接口偶发不可用、发货推迟、任务禁用），并与CRM VIP客户CUS-401的risk_signal时间窗口对齐。",
+      "inventory/products.json：仅设置部分交付配件SKU为低于安全线（PRD-501、PRD-503），用于支撑“可能性”而非主因。",
+      "crm/customers.json：新增VIP客户CUS-401在interaction notes中直接提到“交付依赖数据生成/打包通知延迟导致采购审批冻结”，并给出续约风险信号。",
+      "kb/articles.json：加入last_updated超过半年且包含SLA升级触发阈值的文档KB-411，便于报告指出“升级策略滞后风险”。",
+      "scheduler/jobs.json：构造交付依赖数据生成失败序列（JOB-501）、物料打包通知失败/超时重试（JOB-502）、交付状态同步任务未启用（JOB-503）等，与工单时间线形成闭环。"
+    ]
+  }
+}

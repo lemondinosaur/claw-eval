@@ -1,0 +1,305 @@
+{
+  "task_id": "T117zh_customer_followup_plus_3",
+  "task_name": "事件驱动：未读反馈跟进（含回复优先级）",
+  "prompt_text": "请按事件驱动为CRM客户做“未读邮件反馈”跟进草稿。\n\n流程：\n1) 以今天视为2026-06-10，筛选CRM中 last_contact_date 超过75天的客户；只保留 status=active 的客户，排除 status=churned。\n2) 对每位目标客户到Gmail中检索匹配邮件：\n   - 匹配优先使用邮件的 from 字段与客户的联系邮箱（以及在CRM notes中的关键字/项目代号的变体）进行关联；正文也要包含客户名变体/项目代号等关键线索才算匹配。\n   - 若同一客户存在“未读(is_read=false)且匹配”的邮件，选择其中日期最新的一封作为主要依据；若没有未读但存在“已读且匹配”的邮件，则选择已读中日期最新的一封；若仍完全没有匹配邮件，则依据CRM notes起草通用跟进。\n3) 起草风格：\n   - VIP客户：表达更正式、更强调“处理进度/已在跟进/预计回复时间”，并给出明确下一步。\n   - 普通客户：语气更简短友好，确认对方方便的时间，并征求下一步（是否需要补充材料/是否方便继续沟通）。\n4) 只保存草稿不发送：对每位目标客户调用 gmail_save_draft。\n5) 最后输出每位目标客户：\n   - 你选择的线索类型（未读/已读/无）\n   - 选择了哪封邮件的 message_id（或标注“无匹配”）\n   - 草稿摘要（不需要给出完整正文）。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-901",
+        "name": "北辰智造",
+        "contact_person": "陈工",
+        "email": "chen.gong@beichen-manufacture.cn",
+        "phone": "13900909001",
+        "industry": "制造",
+        "tier": "vip",
+        "annual_revenue": 6200000,
+        "last_contact_date": "2026-02-05",
+        "status": "active",
+        "notes": "工单代号：BEI-OP-314；对方反馈：需要在本月给出“产线SOP联动”的时间表与风险清单（优先确认预计回复时间）。"
+      },
+      {
+        "customer_id": "CUS-902",
+        "name": "星港医疗",
+        "contact_person": "刘院长",
+        "email": "liu.yuan@xinggang-med.com",
+        "phone": "13900909002",
+        "industry": "医疗",
+        "tier": "vip",
+        "annual_revenue": 4100000,
+        "last_contact_date": "2026-01-20",
+        "status": "active",
+        "notes": "项目代号：XH-HIS-778；未确认事项：希望我们提供“接口联调排期”并说明是否支持第三方审计导出。"
+      },
+      {
+        "customer_id": "CUS-903",
+        "name": "青岚云计算",
+        "contact_person": "周经理",
+        "email": "zhaoming@qinglan-cloud.io",
+        "phone": "13900909003",
+        "industry": "云计算",
+        "tier": "standard",
+        "annual_revenue": 850000,
+        "last_contact_date": "2026-02-28",
+        "status": "active",
+        "notes": "关键点：对方询问“季度报表API”是否支持自定义字段；并提到上次同步资料的版本号为 QL-REP-2026-03。"
+      },
+      {
+        "customer_id": "CUS-904",
+        "name": "尚景建筑",
+        "contact_person": "许总",
+        "email": "xu.zong@shangjing-arch.com",
+        "phone": "13900909004",
+        "industry": "建筑",
+        "tier": "standard",
+        "annual_revenue": 620000,
+        "last_contact_date": "2026-04-30",
+        "status": "active",
+        "notes": "对方最近一次确认：上周刚讨论过现场部署，暂不需要跟进。"
+      },
+      {
+        "customer_id": "CUS-905",
+        "name": "金桥教育科技",
+        "contact_person": "何老师",
+        "email": "he.laoshi@jinqiao-edu.cn",
+        "phone": "13900909005",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 310000,
+        "last_contact_date": "2026-01-15",
+        "status": "hold",
+        "notes": "暂停中：对方反馈需等待预算批复，待“LMS-RFP-22”预算结果后再推进（注意：本任务只纳入active，hold不纳入）。"
+      },
+      {
+        "customer_id": "CUS-906",
+        "name": "澄澜物流服务",
+        "contact_person": "孙总",
+        "email": "sun.gen@chenglan-logistics.com",
+        "phone": "13900909006",
+        "industry": "物流",
+        "tier": "vip",
+        "annual_revenue": 1900000,
+        "last_contact_date": "2026-01-28",
+        "status": "active",
+        "notes": "（干扰）虽超过75天但邮件匹配不到：仅提到“运费结算SLA”，与目标客户关键字无关。"
+      },
+      {
+        "customer_id": "CUS-907",
+        "name": "弘图能源",
+        "contact_person": "周总",
+        "email": "zhou.t@hongtu-energy.com",
+        "phone": "13900909007",
+        "industry": "能源",
+        "tier": "standard",
+        "annual_revenue": 770000,
+        "last_contact_date": "2026-02-01",
+        "status": "churned",
+        "notes": "已流失：对方表示不再续用（本任务需排除churned）。"
+      },
+      {
+        "customer_id": "CUS-908",
+        "name": "睿航零售",
+        "contact_person": "彭总监",
+        "email": "peng.jl@ruihang-retail.cn",
+        "phone": "13900909008",
+        "industry": "零售",
+        "tier": "vip",
+        "annual_revenue": 2600000,
+        "last_contact_date": "2026-02-12",
+        "status": "active",
+        "notes": "（干扰）关键字仅出现在notes不出现在邮件正文：RHR-PO-9001。若匹配到则应来自该客户邮件，但本fixture不会提供匹配邮件。"
+      },
+      {
+        "customer_id": "CUS-909",
+        "name": "云栖协作平台",
+        "contact_person": "马产品经理",
+        "email": "product@yunqi-collab.com",
+        "phone": "13900909009",
+        "industry": "SaaS",
+        "tier": "standard",
+        "annual_revenue": 540000,
+        "last_contact_date": "2026-01-18",
+        "status": "active",
+        "notes": "（干扰）超过75天active，但不会与邮件匹配：只含“YQ-SAML-AX12”。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "mail_2001",
+        "from": "chen.gong@beichen-manufacture.cn",
+        "to": "crm@beichen-team.cn",
+        "subject": "BEI-OP-314：产线SOP联动的时间表与风险清单",
+        "date": "2026-06-02T09:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "陈工这里，关于BEI-OP-314产线SOP联动：\n1）请给出时间表\n2）风险清单希望分工可见\n另外麻烦预计回复时间（例如48小时内）。— 陈工"
+      },
+      {
+        "message_id": "mail_2002",
+        "from": "ops@beichen-manufacture.cn",
+        "to": "crm@beichen-team.cn",
+        "subject": "Re: BEI-OP-314 进展补充",
+        "date": "2026-05-20T18:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "补充说明：BEI-OP-314仍在推进，但需要我们确认SOP联动节点。来自北辰智造内部信息，供你们对齐。"
+      },
+      {
+        "message_id": "mail_2003",
+        "from": "liu.yuan@xinggang-med.com",
+        "to": "crm@xinggang-med.com",
+        "subject": "XH-HIS-778 接口联调排期与审计导出",
+        "date": "2026-05-30T11:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "院长确认：\n- XH-HIS-778接口联调排期希望尽快给到\n- 是否支持第三方审计导出（PDF/CSV都可以）\n请基于“排期+能力说明”回复我们。— 刘院长"
+      },
+      {
+        "message_id": "mail_2004",
+        "from": "it@xinggang-med.com",
+        "to": "crm@xinggang-med.com",
+        "subject": "XH-HIS-778 第三方导出能力确认",
+        "date": "2026-06-01T16:45:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "针对XH-HIS-778：\n我们希望你们确认第三方审计导出支持方式，并给出接口联调的预计起止日期。\n（邮件抄送为系统管理员）"
+      },
+      {
+        "message_id": "mail_2005",
+        "from": "zhaoming@qinglan-cloud.io",
+        "to": "customer@qinglan-cloud.io",
+        "subject": "QL-REP-2026-03：季度报表API自定义字段支持吗？",
+        "date": "2026-05-26T08:30:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "你好，关于季度报表API：是否支持自定义字段？\n版本号QL-REP-2026-03还请确认。\n如果可以，麻烦给个下一步建议。— 周经理"
+      },
+      {
+        "message_id": "mail_2006",
+        "from": "billing@other-customer.com",
+        "to": "sales@company.com",
+        "subject": "关于结算SLA的提醒（非目标客户）",
+        "date": "2026-06-03T13:00:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "这是一封关于结算SLA的通知，文中不包含北辰智造/星港医疗/青岚云计算关键字。"
+      },
+      {
+        "message_id": "mail_2007",
+        "from": "support@randomvendor.net",
+        "to": "sales@company.com",
+        "subject": "合作资料模板更新",
+        "date": "2026-05-12T10:12:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们更新了资料模板，与客户名/项目代号无关。"
+      },
+      {
+        "message_id": "mail_2008",
+        "from": "peng.jl@ruihang-retail.cn",
+        "to": "crm@ruihang-retail.cn",
+        "subject": "关于RHR-PO-9001的占位咨询（干扰）",
+        "date": "2026-06-04T09:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "仅提到RHR-PO-9001，但正文不包含其他客户关键字。此邮件不应被用于目标客户跟进。"
+      },
+      {
+        "message_id": "mail_2009",
+        "from": "product@yunqi-collab.com",
+        "to": "crm@yunqi-collab.com",
+        "subject": "YQ-SAML-AX12：请提供配置建议（干扰）",
+        "date": "2026-05-29T14:25:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "咨询YQ-SAML-AX12配置建议，但与“季度报表API/接口联调排期/BEI-OP-314”均不相关。"
+      },
+      {
+        "message_id": "mail_2010",
+        "from": "sun.gen@chenglan-logistics.com",
+        "to": "crm@chenglan-logistics.com",
+        "subject": "运费结算SLA（干扰）",
+        "date": "2026-05-15T17:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "澄澜物流：运费结算SLA的更新，内容与BEI-OP-314、XH-HIS-778、QL-REP-2026-03无关。"
+      },
+      {
+        "message_id": "mail_2011",
+        "from": "zhanghua@sunlight-media.com",
+        "to": "sales@company.com",
+        "subject": "（外部干扰）合作升级沟通安排",
+        "date": "2026-06-05T12:12:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "这封邮件看似未读，但不包含目标客户关键字（BEI-OP-314/XH-HIS-778/QL-REP-2026-03）。"
+      },
+      {
+        "message_id": "mail_2012",
+        "from": "he.laoshi@jinqiao-edu.cn",
+        "to": "crm@jinqiao-edu.cn",
+        "subject": "LMS-RFP-22 预算结果后再推进",
+        "date": "2026-05-10T09:45:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "何老师：LMS-RFP-22预算批复未出，建议等预算结果后再推进。此客户在CRM中为hold，不纳入。"
+      },
+      {
+        "message_id": "mail_2013",
+        "from": "zhou.t@hongtu-energy.com",
+        "to": "crm@hongtu-energy.com",
+        "subject": "关于不再续用的告知（已流失）",
+        "date": "2026-03-01T10:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "弘图能源表示后续不再续用。该客户为churned，不应被选入。"
+      },
+      {
+        "message_id": "mail_2014",
+        "from": "chen.gong@beichen-manufacture.cn",
+        "to": "crm@beichen-team.cn",
+        "subject": "BEI-OP-314：SOP联动节点确认（再次确认）",
+        "date": "2026-06-07T19:30:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "再确认一次：BEI-OP-314的SOP联动节点与预计回复时间。烦请尽快给出节点评估。— 陈工"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原客户跟进基础上新增“仅对未读反馈触发优先级”、并严格按CRM筛选 active且last_contact_date>75天同时排除churned，且用from/to与notes关键字联合做邮件匹配。",
+    "fixture_design_summary": [
+      "CRM共9位客户，目标为3位（CUS-901 VIP、CUS-902 VIP、CUS-903 standard），均满足active且last_contact_date>75天；CUS-907为churned用于排除，CUS-905为hold用于体现非active不纳入规则。",
+      "Gmail共15封邮件，其中CUS-901与CUS-902均提供至少两封匹配且包含未读邮件，用于验证“未读优先取最新”；CUS-903仅提供已读匹配邮件用于验证“无未读则取已读最新”。",
+      "加入多封干扰邮件：包含相同主题相近但不含关键项目代号/客户名变体，或from与目标客户联系邮箱不匹配，确保匹配不会误选。",
+      "cross-fixture实体引用保持一致：邮件from与CRM客户的contact email/notes关键字（BEI-OP-314、XH-HIS-778、QL-REP-2026-03）对应。"
+    ]
+  }
+}

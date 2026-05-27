@@ -1,0 +1,140 @@
+[
+  {
+    "integration_id": "INT-D01",
+    "name": "SLA规则配置（分地区分渠道）",
+    "status": "active",
+    "service": "sla_policy",
+    "last_verified": "2026-05-12",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "config": {
+      "critical": {
+        "response_time_minutes": 50,
+        "resolution_time_hours": 6,
+        "escalation_after_minutes": 20
+      },
+      "high": {
+        "response_time_minutes": 180,
+        "resolution_time_hours": 18,
+        "escalation_after_minutes": 90
+      },
+      "medium": {
+        "response_time_minutes": 360,
+        "resolution_time_hours": 36,
+        "escalation_after_minutes": 180
+      },
+      "low": {
+        "response_time_minutes": 1440,
+        "resolution_time_hours": 72,
+        "escalation_after_minutes": 720
+      },
+      "regionOverrides": [
+        {
+          "region_policy": "east",
+          "priorityOverrides": {
+            "critical": {
+              "response_time_minutes": 40
+            },
+            "high": {
+              "response_time_minutes": 160
+            }
+          }
+        },
+        {
+          "region_policy": "west",
+          "priorityOverrides": {
+            "critical": {
+              "response_time_minutes": 60
+            },
+            "high": {
+              "response_time_minutes": 220
+            },
+            "medium": {
+              "response_time_minutes": 420
+            }
+          }
+        }
+      ],
+      "channelOverrides": [
+        {
+          "channel_policy": "web",
+          "priorityOverrides": {
+            "critical": {
+              "response_time_minutes": 45
+            },
+            "medium": {
+              "response_time_minutes": 340
+            }
+          }
+        },
+        {
+          "channel_policy": "app",
+          "priorityOverrides": {
+            "critical": {
+              "response_time_minutes": 55
+            },
+            "medium": {
+              "response_time_minutes": 390
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "integration_id": "INT-D02",
+    "name": "地区路由SLA映射同步",
+    "status": "error",
+    "service": "sla_mapping",
+    "last_verified": "2026-05-18",
+    "monthly_calls": 0,
+    "error_rate": 1.0,
+    "config": {
+      "source_table": "ticket_region_channel_route",
+      "target_table": "sla_response_map",
+      "mapping_version_field": "policy_version"
+    },
+    "error_message": "字段变更导致同步脚本报错：缺少字段 `route_table_column`，无法完成映射写入"
+  },
+  {
+    "integration_id": "INT-D03",
+    "name": "配置缓存刷新",
+    "status": "active",
+    "service": "cache_refresh",
+    "last_verified": "2026-05-20",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "config": {
+      "cache_name": "sla_policy_cache",
+      "refresh_mode": "scheduled"
+    }
+  },
+  {
+    "integration_id": "INT-D04",
+    "name": "告警短信集成",
+    "status": "active",
+    "service": "sms",
+    "last_verified": "2026-05-10",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "config": {
+      "provider": "twilio",
+      "from_phone": "+12065550118",
+      "template": "SLA即将超时"
+    }
+  },
+  {
+    "integration_id": "INT-D05",
+    "name": "告警邮件集成",
+    "status": "active",
+    "service": "smtp",
+    "last_verified": "2026-05-09",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "config": {
+      "host": "smtp2.service.local",
+      "port": 587,
+      "auth": "oauth2"
+    }
+  }
+]

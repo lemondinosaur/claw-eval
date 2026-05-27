@@ -1,0 +1,108 @@
+task_id: T125zh_meeting_action_items_plus_2
+task_name: 合规审计行动项同步
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T125zh_meeting_action_items_plus_2/fixtures/notes/meetings.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T125zh_meeting_action_items_plus_2/fixtures/todo/tasks.json
+prompt:
+  text: '请帮我完成一次“合规审计行动项同步”工作：
+
+
+    1）读取所有合规类会议纪要
+
+    2）提取其中的行动项
+
+    3）查看当前待办清单
+
+    4）对比行动项与已有待办，找出已存在的并标注对应待办ID（避免重复）
+
+    5）输出行动项追踪表，并列出需要新建的合规整改待办（含负责人和截止日期）
+
+
+    要求：
+
+    - 只提取会议纪要中“有明确负责人且包含可解析截止日期”的行动项；以下内容视为干扰应忽略：无负责人、无截止日期的事项。
+
+    - 处理模糊对应：同一整改项可能在待办中以“工单化标题”出现（措辞不同但含义相近），负责人在纪要可能写部门名而待办为岗位称呼；仍需正确匹配到同一待办。
+
+    - 处理日期边界：纪要里可能写“本周五/下月初”等表达，但fixtures会提供已可解析的精确日期字段；代理需直接使用行动项中的“截止YYYY-MM-DD”来匹配。
+
+    - 输出追踪表需要包含：来源会议标题、行动项负责人、截止日期、行动描述、已有待办ID（若无则为空）。并给出未匹配到的待办新建建议（负责人/截止日期需与纪要一致）。'
+  language: zh
+tools:
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: all
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

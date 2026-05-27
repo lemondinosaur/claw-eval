@@ -1,0 +1,132 @@
+{
+  "task_id": "T003zh_calendar_scheduling_plus_1",
+  "task_name": "跨时区并发会议找空档",
+  "prompt_text": "请帮我在2026年3月3日（周二）安排“季度复盘会”1小时。参会者为沈佳、周航和我自己（组织者：林川）。要求大家都空闲，并且在按时区换算后仍需落在同一天。会议地点：远程会议室。系统时区为UTC；参会者日历事件以各自时区记录。请计算三方共同空闲的1小时窗口，并在创建请求中使用ISO 8601的UTC时间。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_031_global_review_block",
+        "title": "季度复盘会前期准备（干扰）",
+        "start_time": "2026-03-03T12:30:00Z",
+        "end_time": "2026-03-03T13:30:00Z",
+        "attendees": [
+          "林川",
+          "沈佳",
+          "周航"
+        ],
+        "location": "远程会议室",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_032_shen_phone_call",
+        "title": "沈佳 - 外部电话会议",
+        "start_time": "2026-03-03T09:00:00Z",
+        "end_time": "2026-03-03T10:15:00Z",
+        "attendees": [
+          "沈佳",
+          "外部客户A"
+        ],
+        "location": "电话",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_033_shen_focus_block",
+        "title": "沈佳 - 专注写作时间（冲突）",
+        "start_time": "2026-03-03T15:00:00Z",
+        "end_time": "2026-03-03T15:45:00Z",
+        "attendees": [
+          "沈佳"
+        ],
+        "location": "工位",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_034_zhou_midday_meeting",
+        "title": "周航 - 午间评审会（冲突）",
+        "start_time": "2026-03-03T11:45:00Z",
+        "end_time": "2026-03-03T12:45:00Z",
+        "attendees": [
+          "周航",
+          "产品团队"
+        ],
+        "location": "会议室B",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_035_zhou_followup",
+        "title": "周航 - 需求对齐（冲突）",
+        "start_time": "2026-03-03T16:30:00Z",
+        "end_time": "2026-03-03T17:15:00Z",
+        "attendees": [
+          "周航"
+        ],
+        "location": "线上",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_036_lin_private_block",
+        "title": "林川 - 个人事务（冲突）",
+        "start_time": "2026-03-03T13:00:00Z",
+        "end_time": "2026-03-03T14:00:00Z",
+        "attendees": [
+          "林川"
+        ],
+        "location": "自定义地点",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_037_lin_late_task",
+        "title": "林川 - 会议材料整理（边界附近干扰）",
+        "start_time": "2026-03-03T17:45:00Z",
+        "end_time": "2026-03-03T18:15:00Z",
+        "attendees": [
+          "林川"
+        ],
+        "location": "工位",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_038_noise_internal_sync",
+        "title": "内部同步（不相关干扰）",
+        "start_time": "2026-03-03T10:45:00Z",
+        "end_time": "2026-03-03T11:30:00Z",
+        "attendees": [
+          "运营团队"
+        ],
+        "location": "会议室D",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_039_noise_support_call",
+        "title": "支持热线答疑（不相关干扰）",
+        "start_time": "2026-03-03T14:30:00Z",
+        "end_time": "2026-03-03T15:20:00Z",
+        "attendees": [
+          "支持团队"
+        ],
+        "location": "远程",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_040_noise_cancelled_simulation",
+        "title": "临时占位（不相关干扰）",
+        "start_time": "2026-03-03T08:30:00Z",
+        "end_time": "2026-03-03T08:50:00Z",
+        "attendees": [
+          "系统占位"
+        ],
+        "location": "",
+        "recurring": false
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题为两位参会者找空档；新题增加到三方（含组织者）并强化“按时区换算仍需落在同一天”的边界约束。",
+    "fixture_design_summary": [
+      "events.json 新增3位用户（沈佳/周航/林川）在2026-03-03当天的冲突事件，用于制造空闲交集考验。",
+      "通过设置多个“边界附近”的冲突区间（含中午/下午交界），确保存在至少一个1小时共同空档但需要正确选择窗口。",
+      "加入2条不相关干扰事件与1条全局占位干扰事件，迫使算法进行真正的区间重叠判断。",
+      "所有新增事件均使用全新event_id与全新标题/参会者名，避免复用源fixtures中的具体实体内容。"
+    ]
+  }
+}

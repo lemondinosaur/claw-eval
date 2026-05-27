@@ -1,0 +1,216 @@
+[
+  {
+    "task_id": "TODO-801",
+    "title": "Horizon 法务条款冻结跟进（开发前置）",
+    "description": "等待法务条款冻结签署完成后解锁开发任务；外部依赖：法务审查",
+    "status": "blocked",
+    "priority": "high",
+    "due_date": "2026-04-09",
+    "assignee": "陈岚",
+    "tags": [
+      "Horizon",
+      "法务审查"
+    ],
+    "project": "Horizon",
+    "blocked_by": "Legal条款未签"
+  },
+  {
+    "task_id": "TODO-802",
+    "title": "Horizon 合同风险说明文档更新",
+    "description": "同步外部依赖风险说明，便于评审确认；外部依赖：法务审查节奏",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-10",
+    "assignee": "姚宁",
+    "tags": [
+      "Horizon",
+      "文档"
+    ],
+    "project": "Horizon"
+  },
+  {
+    "task_id": "TODO-803",
+    "title": "Horizon 关键接口验收清单",
+    "description": "编制关键接口验收清单并提交评审；内部依赖：架构验证",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-07",
+    "assignee": "沈琦",
+    "tags": [
+      "Horizon",
+      "架构"
+    ],
+    "project": "Horizon"
+  },
+  {
+    "task_id": "TODO-804",
+    "title": "Horizon 里程碑对齐沟通会材料",
+    "description": "准备里程碑对齐材料并协调法务沟通；外部依赖：法务审查",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-08",
+    "assignee": "陈岚",
+    "tags": [
+      "Horizon",
+      "协调"
+    ],
+    "project": "Horizon"
+  },
+  {
+    "task_id": "TODO-805",
+    "title": "Horizon 发布前检查清单",
+    "description": "发布前检查与自动化验证；内部依赖：测试脚本准备",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-04-06",
+    "assignee": "沈琦",
+    "tags": [
+      "Horizon",
+      "交付"
+    ],
+    "project": "Horizon"
+  },
+  {
+    "task_id": "TODO-806",
+    "title": "Ivory 供应商交付物到货校验",
+    "description": "对供应商交付物版本进行校验并进入集成验证；外部依赖：供应商交付",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-08",
+    "assignee": "许晗",
+    "tags": [
+      "Ivory",
+      "集成"
+    ],
+    "project": "Ivory",
+    "blocked_by": ""
+  },
+  {
+    "task_id": "TODO-807",
+    "title": "Ivory 集成验证用例冻结",
+    "description": "冻结集成验证用例并准备回归；外部依赖：供应商交付物待到",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-10",
+    "assignee": "许晗",
+    "tags": [
+      "Ivory",
+      "测试"
+    ],
+    "project": "Ivory"
+  },
+  {
+    "task_id": "TODO-808",
+    "title": "Ivory 第三方交付窗口信息同步",
+    "description": "同步供应商交付窗口确认结果到项目计划；外部依赖：供应商交付窗口",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-09",
+    "assignee": "姚宁",
+    "tags": [
+      "Ivory",
+      "供应链"
+    ],
+    "project": "Ivory"
+  },
+  {
+    "task_id": "TODO-809",
+    "title": "Ivory 集成测试环境准备",
+    "description": "准备测试环境与运行时依赖；内部依赖",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-04-07",
+    "assignee": "吴承",
+    "tags": [
+      "Ivory",
+      "环境"
+    ],
+    "project": "Ivory"
+  },
+  {
+    "task_id": "TODO-810",
+    "title": "Ivory API联调回归（等待交付物）",
+    "description": "在供应商交付物到货后进行 API 联调回归；外部依赖：供应商交付",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-12",
+    "assignee": "郑航",
+    "tags": [
+      "Ivory",
+      "联调"
+    ],
+    "project": "Ivory",
+    "blocked_by": ""
+  },
+  {
+    "task_id": "TODO-811",
+    "title": "Jade 回滚预案与变更脚本检查清单",
+    "description": "窗口前完成回滚预案与脚本检查；运维变更窗口已确定，任务需窗口前后跟进",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-09",
+    "assignee": "何霖",
+    "tags": [
+      "Jade",
+      "运维变更窗口"
+    ],
+    "project": "Jade"
+  },
+  {
+    "task_id": "TODO-812",
+    "title": "Jade 安全扫描前置验证",
+    "description": "完成安全扫描前置验证并确认扫描时段；外部依赖：安全扫描",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-10",
+    "assignee": "马骏",
+    "tags": [
+      "Jade",
+      "安全扫描"
+    ],
+    "project": "Jade",
+    "blocked_by": "Security扫描排期待确认"
+  },
+  {
+    "task_id": "TODO-813",
+    "title": "Jade 变更窗口执行值班安排",
+    "description": "确认值班人员与执行流程；内部依赖",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-04-08",
+    "assignee": "田澈",
+    "tags": [
+      "Jade",
+      "运维窗口"
+    ],
+    "project": "Jade"
+  },
+  {
+    "task_id": "TODO-814",
+    "title": "Jade 窗口后监控告警策略更新",
+    "description": "窗口后跟进监控与告警策略，确保回滚触发条件覆盖；窗口后续跟进风险",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-11",
+    "assignee": "邱澄",
+    "tags": [
+      "Jade",
+      "监控"
+    ],
+    "project": "Jade"
+  },
+  {
+    "task_id": "TODO-815",
+    "title": "Jade 运行时灰度发布计划",
+    "description": "制定灰度发布计划并提交评审；内部依赖：评审材料",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-04-06",
+    "assignee": "邱澄",
+    "tags": [
+      "Jade",
+      "发布"
+    ],
+    "project": "Jade"
+  }
+]

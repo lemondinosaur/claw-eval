@@ -1,0 +1,62 @@
+[
+  {
+    "note_id": "runb_4107",
+    "title": "運維支持 runbook snapshot - 回呼校验版本",
+    "content": "Troubleshooting layer (first start): UI Gateway Tier\nFirst handled fault type: OAuth token refresh failure\nOn-call lead: 李明（SRE Response Team）\nSupport system: HelioOps Portal，用途是統一工单分派、变更审计与告警汇总\nOn-duty callback verification word: 霓虹回声\n",
+    "created_at": "2026-01-22T13:45:30Z",
+    "participants": [
+      "user"
+    ],
+    "duration_minutes": 8
+  },
+  {
+    "note_id": "ops_2772",
+    "title": "客户沟通摘要 - 延迟高峰排查记录",
+    "content": "沟通结论：优先从 Troubleshooting layer（HTTP 接入层）开始定位。\n出现过的故障类型：DNS 解析抖动。\n（注：此条未包含回呼校验词。）\n",
+    "created_at": "2026-03-03T08:10:00Z",
+    "participants": [
+      "user"
+    ],
+    "duration_minutes": 6
+  },
+  {
+    "note_id": "tech_6391",
+    "title": "技术文章摘录 - 配置变更后的行为差异",
+    "content": "Troubleshooting layer（常用起手）：Service Mesh Routing Tier。\n相关故障类型：证书链校验失败。\n（注：此摘录不包含回呼校验词，也不包含支持系统用途。）\n",
+    "created_at": "2026-02-18T20:22:11Z",
+    "participants": [
+      "user"
+    ],
+    "duration_minutes": 7
+  },
+  {
+    "note_id": "memo_5086",
+    "title": "运行手册片段 - 值班处理流程（部分字段）",
+    "content": "故障类型：磁盘 I/O 超时（首次处理）。\n负责人：王怡（Incident Duty Desk）。\n（注：此片段未写支持系统用途，也未给出回呼校验词。）\n",
+    "created_at": "2026-04-09T11:05:40Z",
+    "participants": [
+      "user"
+    ],
+    "duration_minutes": 5
+  },
+  {
+    "note_id": "comm_9140",
+    "title": "客户沟通摘要 - 回呼验证与告警口径",
+    "content": "回呼校验词：暮光拂晓。\n支持系统名称：NovaPager（但用途描述与本题目标不同：仅用于告警触达，不做工单分派）。\n（注：本条同时缺失题目标的故障类型与负责人团队信息。）\n",
+    "created_at": "2026-01-30T16:48:55Z",
+    "participants": [
+      "user"
+    ],
+    "duration_minutes": 4
+  },
+  {
+    "note_id": "runb_6629",
+    "title": "运维支持 runbook snapshot - 备份片段（干扰）",
+    "content": "Troubleshooting layer (first start): Backend Cache Tier\nFirst handled fault type: Redis cluster slot mismatch\nOn-call lead: 赵宁（Platform Reliability）\nSupport system: HelioOps Console，用途是性能看板与缓存命中率分析\nOn-duty callback verification word: 清晨银鳞\n",
+    "created_at": "2026-05-01T06:30:00Z",
+    "participants": [
+      "user"
+    ],
+    "duration_minutes": 9
+  }
+]

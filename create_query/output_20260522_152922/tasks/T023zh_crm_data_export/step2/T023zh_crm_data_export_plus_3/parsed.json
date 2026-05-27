@@ -1,0 +1,174 @@
+{
+  "task_id": "T023zh_crm_data_export_plus_3",
+  "task_name": "Two-Stage Recovery 导出",
+  "prompt_text": "请从CRM系统导出VIP客户报告，但需要考虑系统导出接口可能失败。要求：\n\n1）先筛选VIP客户中最近联系日期在最近30天内的客户；\n2）生成汇总报告（名称、行业、年收入、最近联系日期）；\n3）如果在导出步骤crm_export_report报错：改为导出“最近联系日期最早的两位VIP客户”作为兜底批次，并在报告标题/summary中说明你为什么切换了策略；\n4）如查询或导出失败请重试。\n\n注意边界：若“最近30天内”只有少量客户，以筛到的数量为准；若最早日期存在并列时，只取两位（任意两位，但需在summary里声明存在并列）。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "VIPR-01",
+        "name": "青岛星桥网络科技有限公司",
+        "contact_person": "周澄",
+        "email": "chengzhou@starbridge.cn",
+        "phone": "18650010001",
+        "industry": "网络科技",
+        "tier": "VIP",
+        "annual_revenue": 6400000,
+        "last_contact_date": "2026-04-28",
+        "status": "active",
+        "notes": "近期开拓海外市场"
+      },
+      {
+        "customer_id": "VIPR-02",
+        "name": "杭州曜程数据服务有限公司",
+        "contact_person": "何岚",
+        "email": "hanela@yaochengdata.cn",
+        "phone": "18650010002",
+        "industry": "数据服务",
+        "tier": "VIP",
+        "annual_revenue": 3900000,
+        "last_contact_date": "2026-05-02",
+        "status": "active",
+        "notes": "订阅续费谈判中"
+      },
+      {
+        "customer_id": "VIPR-03",
+        "name": "南京睿航智能制造有限公司",
+        "contact_person": "沈凯",
+        "email": "kayshen@ruihang-ims.com",
+        "phone": "18650010003",
+        "industry": "智能制造",
+        "tier": "VIP",
+        "annual_revenue": 9100000,
+        "last_contact_date": "2026-05-10",
+        "status": "active",
+        "notes": "产线扩建合作"
+      },
+      {
+        "customer_id": "VIPR-04",
+        "name": "成都云栖能源技术有限公司",
+        "contact_person": "赵薇",
+        "email": "zhaowei@yqenergy.tech",
+        "phone": "18650010004",
+        "industry": "能源技术",
+        "tier": "VIP",
+        "annual_revenue": 5200000,
+        "last_contact_date": "2026-04-22",
+        "status": "active",
+        "notes": "仍需推进现场评估"
+      },
+      {
+        "customer_id": "VIPR-05",
+        "name": "合肥金橡供应链管理有限公司",
+        "contact_person": "方宁",
+        "email": "ningfang@jinxiangscm.com",
+        "phone": "18650010005",
+        "industry": "供应链",
+        "tier": "VIP",
+        "annual_revenue": 2700000,
+        "last_contact_date": "2026-04-20",
+        "status": "active",
+        "notes": "物流通道优化"
+      },
+      {
+        "customer_id": "VIPR-06",
+        "name": "厦门澄海医疗器械有限公司",
+        "contact_person": "郑昕",
+        "email": "zhengxin@chenghai-med.cn",
+        "phone": "18650010006",
+        "industry": "医疗器械",
+        "tier": "VIP",
+        "annual_revenue": 4600000,
+        "last_contact_date": "2026-03-12",
+        "status": "inactive",
+        "notes": "等待合规资料补齐"
+      },
+      {
+        "customer_id": "VIPR-07",
+        "name": "武汉北辰云计算有限公司",
+        "contact_person": "唐雨",
+        "email": "tangyu@beichencloud.cn",
+        "phone": "18650010007",
+        "industry": "云计算",
+        "tier": "VIP",
+        "annual_revenue": 8300000,
+        "last_contact_date": "2026-03-01",
+        "status": "active",
+        "notes": "架构评审已通过"
+      },
+      {
+        "customer_id": "STD-01",
+        "name": "北京盛景广告传媒集团",
+        "contact_person": "周澜",
+        "email": "lan.zhou@shengjing-ad.com",
+        "phone": "18550020001",
+        "industry": "广告传媒",
+        "tier": "standard",
+        "annual_revenue": 1200000,
+        "last_contact_date": "2026-05-03",
+        "status": "active",
+        "notes": "非VIP，保证干扰项存在"
+      },
+      {
+        "customer_id": "STD-02",
+        "name": "苏州星河电商服务有限公司",
+        "contact_person": "陆皓",
+        "email": "hao.lu@xinghe-ecom.cn",
+        "phone": "18550020002",
+        "industry": "电商服务",
+        "tier": "standard",
+        "annual_revenue": 980000,
+        "last_contact_date": "2026-04-18",
+        "status": "active",
+        "notes": "非VIP，保证筛选可靠"
+      },
+      {
+        "customer_id": "VIPR-08",
+        "name": "长沙澜桥教育科技有限公司",
+        "contact_person": "陈墨",
+        "email": "chenmo@lanqiao-edu.com",
+        "phone": "18650010008",
+        "industry": "教育科技",
+        "tier": "VIP",
+        "annual_revenue": 3100000,
+        "last_contact_date": "2026-03-01",
+        "status": "active",
+        "notes": "与VIPR-07存在最早日期并列"
+      },
+      {
+        "customer_id": "VIPR-09",
+        "name": "郑州方舟建筑工程有限公司",
+        "contact_person": "徐静",
+        "email": "xujing@fangzhoubuild.cn",
+        "phone": "18650010009",
+        "industry": "建筑工程",
+        "tier": "VIP",
+        "annual_revenue": 2400000,
+        "last_contact_date": "2026-04-08",
+        "status": "active",
+        "notes": "时间边界附近的非前二批干扰项"
+      },
+      {
+        "customer_id": "VIPR-10",
+        "name": "西安恒霖通信技术有限公司",
+        "contact_person": "姚楠",
+        "email": "yaonan@henglin-telecom.cn",
+        "phone": "18650010010",
+        "industry": "通信技术",
+        "tier": "VIP",
+        "annual_revenue": 5100000,
+        "last_contact_date": "2026-04-30",
+        "status": "active",
+        "notes": "可用于近30天筛选"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题“一次性导出所有VIP”改为“两阶段分批导出：先导出近30天VIP，若导出失败则切换兜底导出最早两位VIP，并在summary说明策略切换原因”。",
+    "fixture_design_summary": [
+      "customers.json 共12条记录，VIP ≥ 5且包含干扰项standard。",
+      "last_contact_date 覆盖近30天与更早日期：近30天内VIP控制在较少数量（用于触发“两阶段”情景）。",
+      "设置最早日期并列：VIPR-07 与 VIPR-08 的 last_contact_date 相同，确保兜底批次需要处理“并列只取两位”的边界描述。",
+      "客户ID/名称/邮箱/行业/数值均为全新数据，且跨批次可由最近联系日期排序确定第一批与兜底批次。"
+    ]
+  }
+}

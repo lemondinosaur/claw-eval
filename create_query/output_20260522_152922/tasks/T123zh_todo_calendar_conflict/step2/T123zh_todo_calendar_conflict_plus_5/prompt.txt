@@ -1,0 +1,340 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T123zh_todo_calendar_conflict_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/calendar/events.json",
+  "fixtures/todo/tasks.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务 environment.mock_today = 2026-03-27，如新任务涉及日期，请让 fixture 中的绝对日期与该日期锚点兼容。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T123zh_todo_calendar_conflict_plus_5",
+  "new_task_name": "跨天边界与临时取消",
+  "task_goal": "处理跨天事件与“临时取消/仅占用半天”的日历状态变化：找出真实冲突与非冲突，并对边界时刻（例如23:30开始）进行准确判断。",
+  "user_request": "请帮我检测：哪些待办会与日历事件发生真实冲突。注意有一部分事件在日历中标记为已取消或只影响部分时段。请准确处理跨天事件的边界时间，给出重排建议与冲突结论。",
+  "scenario": "mock_today 为 2026-02-20。日历事件包括：2/21 23:30-2/22 01:00 的夜间值班会议（status confirmed，跨天）、2/22 上午短时“对齐会”（status confirmed，9:30-10:00）、2/22 下午“临时面谈”（status canceled，标记取消但仍在数据中）、以及2/23 全天“内部演练”（confirmed）。待办包含：2/21 due_date 的 high 任务“撰写事故复盘初稿（3小时）”，2/22 due_date 的 medium 任务“提交改版需求（2小时）”，2/23 due_date 的 high 任务“完成演练后续工单（2小时）”，以及一个 low 任务 due_date=2/21 “整理材料备份（1小时）”。此外加入一个干扰：有一条日历事件 status 为 confirmed 但 end_time 与 start_time 相同的异常短事件（0分钟），要求不应造成影响。",
+  "difference_from_source": "新增跨天夜间事件与严格边界判断；并引入 canceled 事件与 0 分钟异常事件，要求正确排除它们对冲突的影响。",
+  "service_and_tool_plan": "用 calendar_list_events 拉取从 2/20 到 2/23 的事件；对所有时间边界敏感的事件调用 calendar_get_event 获取准确 start/end；用 todo_list_tasks 取 pending；对冲突候选任务调用 todo_get_task 获取估时并判断是否可在 2/21 白天完成，避免把跨天夜间会议误判为与同日所有待办冲突。最终输出“冲突/非冲突”结论与重排建议。",
+  "fixture_generation_plan": "生成 fixtures/calendar/events.json：4-6条事件，至少包含1条跨天夜间（confirmed）、1条正常上午短会（confirmed）、1条下午取消事件（canceled）、1条全天演练（confirmed），可再加1条0分钟异常事件（confirmed）作为干扰。生成 fixtures/todo/tasks.json：至少7条 pending/干扰，其中3条关键任务分别 due_date=2/21/2/22/2/23（high/medium/high），另有1条 low due_date=2/21；再加入1条 completed 状态待办用于干扰不计入。所有标题与描述均新建，且 estimated_hours 与占用时段组合保证：至少一个任务需要重排（例如 2/21 的高任务无法在白天留足3小时，或需要把部分拆到2/20晚/2/22上午）。",
+  "expected_behavior": "1) 先过滤 canceled 事件：确认面谈不影响任何待办；2) 对跨天夜间事件：只将其在本地时间落在 2/21 的部分视为占用（若为 2/21 23:30-24:00），其余落在 2/22 视为占用 2/22；3) 处理 0分钟异常事件：不产生有效占用，避免误判冲突；4) 判定 2/21 due_date 的 high 任务：若需要 3 小时而 2/21 晚间仅剩极短窗口，则建议提前到 2/21 白天前段或改到 2/20 晚间；5) 判定 2/22 medium：避开上午短会与夜间跨天部分占用；6) 判定 2/23 high：全天演练导致无法在 2/23完成，建议前置到 2/22 或 2/21 可用段；7) 输出必须包含：明确写出哪些事件被排除（canceled/0分钟），以及每个冲突待办的重排到具体日期与时段。",
+  "grading_plan": "grader.py 应检查：是否正确排除 canceled 事件与 0分钟异常事件；跨天事件的边界（2/21末与2/22初）是否被准确分配到对应日期；是否至少3个关键任务给出正确冲突判断并提供可行重排；重排建议是否考虑估时与占用时段，且不把任务安排到已占用时段或全天演练日。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T123zh_todo_calendar_conflict",
+  "task_name": "待办与日历冲突检测",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "todo",
+    "calendar"
+  ],
+  "tools": [
+    "todo_list_tasks",
+    "todo_get_task",
+    "calendar_list_events",
+    "calendar_get_event"
+  ],
+  "fixture_paths": [
+    "fixtures/calendar/events.json",
+    "fixtures/todo/tasks.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T123zh_todo_calendar_conflict
+task_name: 待办与日历冲突检测
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: tasks/T123zh_todo_calendar_conflict/fixtures/todo/tasks.json
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: tasks/T123zh_todo_calendar_conflict/fixtures/calendar/events.json
+prompt:
+  text: '我的待办事项和日历安排经常冲突。请帮我：
+
+    1. 查看所有待办事项及其截止日期
+
+    2. 查看本周的日历安排
+
+    3. 找出截止日期当天有大段会议无法工作的待办
+
+    4. 给出重新安排建议：哪些待办需要提前或延后
+
+    5. 输出冲突分析和重排建议
+
+    '
+  language: zh
+tools:
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: pending
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+tool_endpoints:
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+environment:
+  mock_today: '2026-03-27'
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/calendar/events.json ---
+[
+  {
+    "event_id": "evt_301",
+    "title": "全天培训：项目管理方法论",
+    "start_time": "2026-03-27T09:00:00+08:00",
+    "end_time": "2026-03-27T17:00:00+08:00",
+    "location": "培训中心",
+    "organizer": "HR部门",
+    "attendees": ["我", "团队全员"],
+    "description": "必修培训，全天占用，不可缺席",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_302",
+    "title": "全员大会",
+    "start_time": "2026-03-28T14:00:00+08:00",
+    "end_time": "2026-03-28T17:00:00+08:00",
+    "location": "大报告厅",
+    "organizer": "CEO办公室",
+    "attendees": ["全部员工"],
+    "description": "Q1总结大会+Q2规划，必须参加",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_303",
+    "title": "客户拜访：万通物流",
+    "start_time": "2026-03-30T08:00:00+08:00",
+    "end_time": "2026-03-30T18:00:00+08:00",
+    "location": "万通物流总部（外出）",
+    "organizer": "赵蕾",
+    "attendees": ["我", "赵蕾"],
+    "description": "重要VIP客户现场拜访，全天出差",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_304",
+    "title": "技术分享会",
+    "start_time": "2026-03-29T14:00:00+08:00",
+    "end_time": "2026-03-29T15:30:00+08:00",
+    "location": "会议室A",
+    "organizer": "李华",
+    "attendees": ["研发团队"],
+    "description": "团队内部技术分享",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_305",
+    "title": "午餐会：新员工介绍",
+    "start_time": "2026-03-31T12:00:00+08:00",
+    "end_time": "2026-03-31T13:00:00+08:00",
+    "location": "食堂包间",
+    "organizer": "HR",
+    "attendees": ["管理层"],
+    "description": "新入职同事午餐交流",
+    "status": "confirmed"
+  }
+]
+
+--- END FILE: fixtures/calendar/events.json ---
+--- FILE: fixtures/todo/tasks.json ---
+[
+  {
+    "task_id": "TODO-301",
+    "title": "完成Q1总结报告",
+    "description": "汇总Q1各部门数据，完成季度总结报告",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-03-27",
+    "assignee": "我",
+    "tags": ["报告", "Q1"],
+    "estimated_hours": 4
+  },
+  {
+    "task_id": "TODO-302",
+    "title": "提交预算审批表",
+    "description": "Q2预算审批表需在周五前提交",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-03-28",
+    "assignee": "我",
+    "tags": ["预算", "审批"],
+    "estimated_hours": 3
+  },
+  {
+    "task_id": "TODO-303",
+    "title": "准备客户演示PPT",
+    "description": "为周一的客户演示准备产品演示材料",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-03-30",
+    "assignee": "我",
+    "tags": ["客户", "演示"],
+    "estimated_hours": 5
+  },
+  {
+    "task_id": "TODO-304",
+    "title": "回复供应商报价",
+    "description": "回复3家供应商的报价方案",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-03-27",
+    "assignee": "我",
+    "tags": ["采购", "供应商"],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TODO-305",
+    "title": "更新项目文档",
+    "description": "更新项目技术文档和API文档",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-03-29",
+    "assignee": "我",
+    "tags": ["文档", "项目"],
+    "estimated_hours": 3
+  },
+  {
+    "task_id": "TODO-306",
+    "title": "整理团队周报",
+    "description": "汇总团队成员周报并整理",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-03-31",
+    "assignee": "我",
+    "tags": ["周报", "管理"],
+    "estimated_hours": 1
+  },
+  {
+    "task_id": "TODO-307",
+    "title": "阅读技术文章",
+    "description": "阅读分享的3篇微服务架构文章",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-03-28",
+    "assignee": "我",
+    "tags": ["学习", "技术"],
+    "estimated_hours": 2
+  }
+]
+
+--- END FILE: fixtures/todo/tasks.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

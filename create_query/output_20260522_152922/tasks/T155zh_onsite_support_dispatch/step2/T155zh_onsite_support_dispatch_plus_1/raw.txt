@@ -1,0 +1,392 @@
+{
+  "task_id": "T155zh_onsite_support_dispatch_plus_1",
+  "task_name": "SLA-到场派遣（数据中心断电）",
+  "prompt_text": "今天是 2026-04-02（本地时间）。请为“极光云计算”这家VIP客户的一张进入 critical 且 requires_onsite=true 的紧急现场支持工单安排派遣。\n\n要求你：\n1) 通过 helpdesk_list_tickets 找到唯一需要现场的目标工单（open、priority=critical、requires_onsite=true）。\n2) 用 helpdesk_get_ticket 获取 SLA 到场截止时间、故障描述、目标地址区域；再用 crm_get_customer 核对客户为 VIP、站点位置与 SLA 到场条款。\n3) 在收件箱中找到一封来自客户法务/运营的邮件（用 gmail_list_messages + gmail_get_message），提取关键到场窗口与“到达后30分钟内完成初始巡检，否则升级为合同罚款”的要求措辞。\n4) 使用 contacts_search + contacts_get 获取三位工程师候选的技能与地点，并用 calendar_get_user_events 检查今天的可用性/冲突：\n   - 工程师A：具备“电源/硬件故障定位 + 服务器远程控制切换（DR/主备）”能力，但今天 10:00-11:30 有不可打断会议。\n   - 工程师B：全天可用，擅长数据库恢复，但缺少电源故障定位能力。\n   - 工程师C：技能匹配度高，但因外地出差/高速封闭无法在 SLA 内到达（请从其日程或备注体现）。\n5) 结合“60分钟内到达数据中心”的 SLA，选择首选工程师与备选工程师，并准备派遣理由。\n6) 最后用 gmail_save_draft 起草通知邮件草稿：邮件需分别发送给首选工程师与客户经理，并在抄送中包含技术总监；只保存草稿，不要发送。\n\n邮件内容需包含：工单与站点摘要、SLA（到达时间）与到达后30分钟初始巡检/合同罚款升级的提醒、到场计划（用相对时间描述即可）、首选/备选安排与原因。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_2201",
+        "title": "不可打断：机房电力系统故障复盘会",
+        "start_time": "2026-04-02T10:00:00+08:00",
+        "end_time": "2026-04-02T11:30:00+08:00",
+        "location": "上海总部-研讨室C",
+        "organizer": "工单值班经理",
+        "attendees": [
+          "an_yu@company.com"
+        ],
+        "description": "电源与硬件故障定位相关复盘研讨（该时间段不可打断）。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_2202",
+        "title": "运维例行对账（可机动）",
+        "start_time": "2026-04-02T09:00:00+08:00",
+        "end_time": "2026-04-02T09:30:00+08:00",
+        "location": "线上会议",
+        "organizer": "值班主管",
+        "attendees": [
+          "bo_liu@company.com"
+        ],
+        "description": "对账与风险提示。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_2203",
+        "title": "DB恢复演练（可远程）",
+        "start_time": "2026-04-02T14:00:00+08:00",
+        "end_time": "2026-04-02T14:45:00+08:00",
+        "location": "远程Lab",
+        "organizer": "数据库负责人",
+        "attendees": [
+          "bo_liu@company.com"
+        ],
+        "description": "数据库恢复与主备切换演练（不影响现场初始巡检）。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_2204",
+        "title": "全天实施：外地现场网络割接",
+        "start_time": "2026-04-02T00:00:00+08:00",
+        "end_time": "2026-04-02T23:59:59+08:00",
+        "location": "苏州-封闭高速区域附近",
+        "organizer": "项目协调",
+        "attendees": [
+          "ch_kang@company.com"
+        ],
+        "description": "出差中；预计无法在 60分钟内抵达数据中心，且高速封闭导致无法提前到场。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_2205",
+        "title": "午餐",
+        "start_time": "2026-04-02T12:00:00+08:00",
+        "end_time": "2026-04-02T12:40:00+08:00",
+        "location": "",
+        "organizer": "",
+        "attendees": [],
+        "description": "午休时间",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-2201",
+        "name": "安宇",
+        "department": "基础架构运维",
+        "title": "现场电力/硬件故障专家",
+        "email": "an_yu@company.com",
+        "phone": "13700112211",
+        "location": "上海总部",
+        "skills": [
+          "电源/硬件故障定位",
+          "服务器远程控制切换（DR/主备）",
+          "机柜与UPS巡检",
+          "电力链路诊断"
+        ],
+        "notes": "今天 10:00-11:30 有不可打断会议；其余时段可响应并可在到达后30分钟内完成初始巡检。"
+      },
+      {
+        "contact_id": "CT-2202",
+        "name": "卜柳",
+        "department": "数据库平台",
+        "title": "数据库恢复工程师",
+        "email": "bo_liu@company.com",
+        "phone": "13700112222",
+        "location": "上海总部",
+        "skills": [
+          "数据库恢复（主备切换协助）",
+          "备份集校验",
+          "日志回放与一致性校验"
+        ],
+        "notes": "全天可用；但不具备电源/硬件故障定位能力。可作为备选负责到达后的业务数据恢复与远程协同。"
+      },
+      {
+        "contact_id": "CT-2203",
+        "name": "康辰",
+        "department": "系统工程与实施",
+        "title": "服务器与DR切换实施工程师",
+        "email": "ch_kang@company.com",
+        "phone": "13700112233",
+        "location": "外地出差中",
+        "skills": [
+          "服务器远程控制切换（DR/主备）",
+          "硬件巡检协助",
+          "关键业务切流策略"
+        ],
+        "notes": "今天被安排全天外地现场实施；高速封闭导致预计无法在 SLA 规定的 60分钟内抵达目标数据中心。"
+      },
+      {
+        "contact_id": "CT-2204",
+        "name": "顾晨",
+        "department": "客户成功部",
+        "title": "客户经理",
+        "email": "gu_chen@company.com",
+        "phone": "13700113344",
+        "location": "上海",
+        "skills": [
+          "客户沟通",
+          "SLA条款管理",
+          "合同升级提醒"
+        ],
+        "notes": "负责“极光云计算”的日常对接与SLA对齐；需要在邮件中同步到场窗口与升级抄送规则。"
+      },
+      {
+        "contact_id": "CT-2205",
+        "name": "沈澄",
+        "department": "技术管理部",
+        "title": "技术总监",
+        "email": "shen_cheng@company.com",
+        "phone": "13700114455",
+        "location": "上海总部",
+        "skills": [
+          "技术管理",
+          "应急升级评审",
+          "关键客户支持策略"
+        ],
+        "notes": "VIP critical工单需升级抄送的负责人。"
+      },
+      {
+        "contact_id": "CT-2206",
+        "name": "周鹤",
+        "department": "内部干扰联系人",
+        "title": "信息安全支持",
+        "email": "zhou_he@company.com",
+        "phone": "13700115566",
+        "location": "上海总部",
+        "skills": [
+          "安全加固审计"
+        ],
+        "notes": "仅用于干扰，不参与本次现场派遣。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2201",
+        "name": "极光云计算",
+        "contact_person": "法务运营对接",
+        "email": "ops-legal@jiguangcloud.com",
+        "phone": "18600012210",
+        "industry": "云服务",
+        "tier": "vip",
+        "annual_revenue": 9800000,
+        "last_contact_date": "2026-03-18",
+        "status": "active",
+        "location": "北京 朝阳区-数据中心园区A",
+        "sla_level": "platinum",
+        "sla_response": "60分钟内现场到达",
+        "notes": "VIP客户。critical且requires_onsite工单需 60分钟内到达数据中心。到达后30分钟内完成初始巡检，否则将依据合同升级为罚款。客户经理：顾晨。"
+      },
+      {
+        "customer_id": "CUS-2202",
+        "name": "北辰物流科技",
+        "contact_person": "IT负责人",
+        "email": "it@beichenlogi.com",
+        "phone": "18600012220",
+        "industry": "物流科技",
+        "tier": "standard",
+        "annual_revenue": 620000,
+        "last_contact_date": "2026-03-11",
+        "status": "active",
+        "location": "天津 滨海新区",
+        "sla_level": "standard",
+        "sla_response": "次日远程响应",
+        "notes": "标准客户，需远程支持即可。"
+      },
+      {
+        "customer_id": "CUS-2203",
+        "name": "星河零售集团",
+        "contact_person": "平台运营经理",
+        "email": "platform@xinghe-retail.com",
+        "phone": "18600012230",
+        "industry": "零售",
+        "tier": "standard",
+        "annual_revenue": 410000,
+        "last_contact_date": "2026-03-05",
+        "status": "active",
+        "location": "杭州 余杭区",
+        "sla_level": "standard",
+        "sla_response": "48小时内响应",
+        "notes": "非现场工单为主。"
+      },
+      {
+        "customer_id": "CUS-2204",
+        "name": "银杏金融云",
+        "contact_person": "技术负责人",
+        "email": "tech@yinxingfincloud.com",
+        "phone": "18600012240",
+        "industry": "金融云",
+        "tier": "vip",
+        "annual_revenue": 3100000,
+        "last_contact_date": "2026-03-21",
+        "status": "active",
+        "location": "上海 浦东新区-金融云机房",
+        "sla_level": "gold",
+        "sla_response": "4小时现场响应",
+        "notes": "VIP但本次场景目标为北京朝阳数据中心断电事件。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2201",
+        "from": "ops-legal@jiguangcloud.com",
+        "to": "support@company.com",
+        "subject": "合同升级提醒：到达后30分钟初始巡检窗口（断电/DR切换）",
+        "date": "2026-04-02T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important",
+          "urgent"
+        ],
+        "body": "贵司您好，我们是极光云计算法务/运营对接。\n\n关于本次机房断电导致关键业务恢复的 critical onsite 工单：\n1) 我们的SLA要求你们在收到通知后的 60分钟内到达“北京 朝阳区-数据中心园区A”。\n2) 更关键的是：工程师到达后 30分钟内必须完成“初始巡检”（包含电源/硬件状态确认与DR/主备切换可用性评估），否则将自动升级为合同罚款处理。\n\n请在派遣通知邮件中明确：到场预计时间、初始巡检开始与完成计划，以及若首选工程师受限的备选安排。\n\n如需确认窗口，请尽快回复。\n\n极光云计算 法务/运营\n—"
+      },
+      {
+        "message_id": "msg_2202",
+        "from": "security-alerts@company.com",
+        "to": "support@company.com",
+        "subject": "安全提醒：例行策略更新完成",
+        "date": "2026-04-02T08:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "策略更新已完成。无需采取额外行动。"
+      },
+      {
+        "message_id": "msg_2203",
+        "from": "newsletter@cloud-insider.com",
+        "to": "support@company.com",
+        "subject": "云计算行业周报：DR演练最佳实践",
+        "date": "2026-04-02T07:15:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "本周重点：DR演练、主备切换、断电应急流程..."
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2201",
+        "title": "数据中心断电：关键业务恢复（需电源定位+DR切换）",
+        "description": "极光云计算（CUS-2201）报告：北京朝阳数据中心园区A发生断电，导致关键业务系统无法维持服务。当前表现为UPS/配电链路异常与服务器无法稳定切换到主备环境。需要到场进行：电源/硬件故障定位 + 服务器远程控制切换（DR/主备）评估与初始巡检。\n\n客户强调：到达后30分钟内完成初始巡检，否则将升级合同罚款。",
+        "customer_id": "CUS-2201",
+        "reporter": "法务/运营对接",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-02T09:05:00+08:00",
+        "tags": [
+          "VIP",
+          "critical",
+          "断电",
+          "DR切换",
+          "requires_onsite"
+        ],
+        "category": "基础设施故障",
+        "requires_onsite": true,
+        "sla_deadline": "2026-04-02T10:05:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2202",
+        "title": "数据库连接间歇性中断",
+        "description": "北辰物流科技（CUS-2202）反馈数据库在高峰期偶发连接中断，建议远程排查连接池与网络抖动。无需现场。",
+        "customer_id": "CUS-2202",
+        "reporter": "IT负责人",
+        "department": "数据库支持",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-01T16:20:00+08:00",
+        "tags": [
+          "数据库",
+          "远程"
+        ],
+        "category": "性能问题",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-03T12:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2203",
+        "title": "报表导出偶发超时（低优先级）",
+        "description": "星河零售集团（CUS-2203）月度报表导出偶发超时，业务影响较小，优先建议优化SQL并在夜间执行变更。",
+        "customer_id": "CUS-2203",
+        "reporter": "平台运营经理",
+        "department": "数据分析",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-01T10:30:00+08:00",
+        "tags": [
+          "报表",
+          "低优先级"
+        ],
+        "category": "功能故障",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-05T18:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2204",
+        "title": "VIP：容量扩容咨询（非现场）",
+        "description": "银杏金融云（CUS-2204）咨询扩容方案与时间预估，暂不需要现场实施，提供远程建议即可。",
+        "customer_id": "CUS-2204",
+        "reporter": "技术负责人",
+        "department": "售前支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-01T13:05:00+08:00",
+        "tags": [
+          "咨询",
+          "VIP"
+        ],
+        "category": "技术咨询",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-04T16:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2205",
+        "title": "网络波动：边界路由器丢包",
+        "description": "北辰物流科技的边界路由器偶发丢包，建议远程抓包定位原因，必要时再评估现场。",
+        "customer_id": "CUS-2202",
+        "reporter": "IT负责人",
+        "department": "网络支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-30T09:25:00+08:00",
+        "tags": [
+          "网络",
+          "丢包"
+        ],
+        "category": "网络故障",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-02T20:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2206",
+        "title": "主备切换演练安排确认（干扰工单）",
+        "description": "内部演练安排确认，非客户critical onsite工单，不参与派遣决策。",
+        "customer_id": "CUS-2204",
+        "reporter": "项目协调",
+        "department": "项目管理",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-02T08:10:00+08:00",
+        "tags": [
+          "演练",
+          "非现场"
+        ],
+        "category": "项目事务",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-02T23:59:00+08:00"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的“生产系统宕机+下午2点前到场”替换为“数据中心断电恢复+60分钟内到场”，并新增邮件要求“到达后30分钟初始巡检否则合同罚款”的派遣通知要点与工程师日程可达性约束。",
+    "fixture_design_summary": [
+      "仅一张工单 TK-2201 满足 VIP、critical、requires_onsite=true，用于唯一目标识别。",
+      "客户极光云计算（CUS-2201）tier=vip且 sla_response 为“60分钟内现场到达”，并在邮件 msg_2201 中包含“到达后30分钟内完成初始巡检/升级罚款”。",
+      "工程师安宇（CT-2201）具备电源/硬件定位与DR切换能力但10:00-11:30不可打断；卜柳（CT-2202）全天可用但缺电源定位；康辰（CT-2203）技能匹配度高但全天外地且高速封闭无法60分钟内到达。",
+      "calendar/events.json 中用事件时间与备注显式体现三位工程师的日程冲突与不可达原因。",
+      "gmail/inbox.json 提供一封与到场窗口与合同罚款升级直接相关的来自客户运营/法务邮件，供草拟派遣通知邮件读取关键词。"
+    ]
+  }
+}

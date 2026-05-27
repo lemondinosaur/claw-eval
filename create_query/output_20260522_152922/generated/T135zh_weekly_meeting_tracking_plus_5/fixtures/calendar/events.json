@@ -1,0 +1,87 @@
+[
+  {
+    "event_id": "evt_701",
+    "title": "数据治理周会",
+    "start_time": "2026-06-25T10:00:00+08:00",
+    "end_time": "2026-06-25T11:00:00+08:00",
+    "location": "B-402",
+    "organizer": "陈澄",
+    "attendees": [
+      "陈澄",
+      "周岚",
+      "赵越"
+    ],
+    "description": "本次会议关联纪要 NOTE-R1",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_702",
+    "title": "市场复盘会",
+    "start_time": "2026-06-26T14:00:00+08:00",
+    "end_time": "2026-06-26T15:30:00+08:00",
+    "location": "C-110",
+    "organizer": "赵越",
+    "attendees": [
+      "赵越",
+      "王茜"
+    ],
+    "description": "季度市场复盘，无纪要",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_703",
+    "title": "研发同步会",
+    "start_time": "2026-06-27T09:30:00+08:00",
+    "end_time": "2026-06-27T10:30:00+08:00",
+    "location": "线上会议",
+    "organizer": "周岚",
+    "attendees": [
+      "周岚",
+      "林远"
+    ],
+    "description": "研发对齐，无纪要",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_704",
+    "title": "产品里程碑周会",
+    "start_time": "2026-06-29T16:00:00+08:00",
+    "end_time": "2026-06-29T17:00:00+08:00",
+    "location": "D-305",
+    "organizer": "林远",
+    "attendees": [
+      "林远",
+      "陈澄",
+      "王茜"
+    ],
+    "description": "本次会议关联纪要 NOTE-R2",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_705",
+    "title": "全员安全培训",
+    "start_time": "2026-06-30T09:00:00+08:00",
+    "end_time": "2026-06-30T10:00:00+08:00",
+    "location": "报告厅",
+    "organizer": "安全团队",
+    "attendees": [
+      "全员"
+    ],
+    "description": "安全培训日，无纪要",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_706",
+    "title": "运营例行对齐",
+    "start_time": "2026-06-28T11:00:00+08:00",
+    "end_time": "2026-06-28T11:30:00+08:00",
+    "location": "E-201",
+    "organizer": "王茜",
+    "attendees": [
+      "王茜",
+      "周岚"
+    ],
+    "description": "运营对齐，无纪要",
+    "status": "confirmed"
+  }
+]

@@ -1,0 +1,738 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T039zh_onboarding_coordinator_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/calendar/events.json",
+  "fixtures/contacts/contacts.json",
+  "fixtures/gmail/inbox.json",
+  "fixtures/inventory/products.json",
+  "fixtures/kb/articles.json",
+  "fixtures/todo/tasks.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务 environment.mock_today = 2026-03-05，如新任务涉及日期，请让 fixture 中的绝对日期与该日期锚点兼容。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T039zh_onboarding_coordinator_plus_3",
+  "new_task_name": "跨时段培训：按员工可参加性分组安排",
+  "task_goal": "为5位员工安排入职培训与通知：根据HR邮件给出的可参加时段（部分员工可在上午、部分只能下午），在同一入职日期创建一个或多个不冲突的培训事件，并向各部门经理发送对应分组通知；若某位员工所属部门无经理只保存草稿；同时创建设备与系统账号的待办任务。",
+  "user_request": "请你对“下周五”（按系统当前日期计算出具体YYYY-MM-DD）的5位新员工完成分组培训与入职协调：读取HR入职邮件与IT设备库存更新，查知识库确认入职培训组织方式与设备申请/账号准备步骤，检索通讯录获取各部门经理并处理可能的同名干扰，检查日历中当天已有会议冲突，按员工可参加性把培训分成上午组/下午组（各组时间不得与冲突事件重叠），创建相应日历事件；对有经理的部门发送通知，对无经理部门只保存草稿；最后创建待办事项并输出总结。",
+  "scenario": "系统当前日期为2026-03-05。HR邮件包含5位员工，来自4个部门：A部门“顾晨”需要开发设备并上午可参加；B部门“曹薇”下午可参加且设备需申请额外外设；C部门“邱卓”与“林雯”同属市场与内容部门但经理在通讯录中存在同名两条（需用部门字段区分），两人可参加性不同（一个只能上午另一个只能下午）；D部门“白航”属于供应链/仓配协同，但该部门没有部门经理记录。库存更新显示：仅有一部分“人体工学椅”库存紧张（low_stock），并给出“低库存后续可能需要替换为备用型号”的规则。日历当天存在多个会议碎片时段，导致上午与下午都可能出现冲突，需要灵活选择培训窗口（例如上午选择09:30-11:00，下午选择13:30-15:00，以不与既有事件重叠为准）。",
+  "difference_from_source": "原题只有单一培训场景（并且冲突是固定一段）；本题要求按员工可参加性将培训分成上午/下午两组并可能创建多个calendar_create_event；同时引入low_stock但不一定 out_of_stock 的“紧张库存替换”规则，并加入“5人/4部门/含无经理部门”组合。",
+  "service_and_tool_plan": "gmail用于读取入职与库存邮件；kb用于获取培训组织与设备申请、低库存替代策略；contacts用于经理检索与同名消解；inventory用于确认人体工学椅是否low_stock并获取替代策略依据；calendar用于冲突检查并创建两个分组培训事件（上午组与下午组）；todo用于创建分组培训与设备/账号准备待办；gmail_send_message与gmail_save_draft用于分组通知与无经理草稿策略。",
+  "fixture_generation_plan": "创建新的fixtures： (1) gmail/inbox.json：HR邮件包含5位员工与各自可参加性（上午/下午/均可）及部门；库存邮件说明人体工学椅low_stock与备用型号信息；加入1封与主题无关的营销邮件作为干扰；(2) kb/articles.json：至少2篇文章：入职培训清单需要明确“培训可分组按可参加性安排”的原则；设备申请/库存策略需要包含low_stock替换与登记说明；(3) contacts/contacts.json：至少8条联系人，包含1组同名跨两个部门（邮箱不同、title不同）；并确保供应链部门经理缺失；(4) calendar/events.json：下周五至少4个事件，分别覆盖上午与下午候选区间以迫使调整；(5) inventory/products.json：至少6个产品，包含“人体工学椅”low_stock（非0）并提供备用替代信息（在notes或字段）；(6) todo/tasks.json：至少2条已有任务用于干扰。所有姓名/ID/邮箱/日期/数值均需替换为全新且不复用源数据。",
+  "expected_behavior": "代理应：1) 从HR邮件提取5位员工的部门与可参加性，确定每个部门经理通知的覆盖范围（哪些员工在上午组/下午组参加）；2) 用contacts_search并结合部门字段处理同名联系人，保证发送给正确经理邮箱；对供应链部门无经理只创建草稿；3) 用calendar_list_events获取当日所有已事件并判断候选培训时段是否冲突，再用calendar_create_event创建上午组与下午组培训事件（至少2个事件）；4) 库存核对人体工学椅为low_stock：在总结中标记“紧张”并提出替代/临时方案，且创建todo_create_task用于跟进椅子分配与替代确认；5) 对每位员工创建待办：账号准备、工位安排（若需要）、培训签到提醒、设备申请进度；6) 通知：向有经理的部门发送一封或两封按组别内容的通知（可在subject/body体现“上午组/下午组”）；无经理部门仅保存草稿；7) 输出总结：按部门与组别列出培训安排、冲突处理结果、设备状态（可用/低库存/替代）、以及待办清单摘要。",
+  "grading_plan": "grader应检查：是否创建了至少2个calendar_create_event用于上午与下午分组且时间不与fixture中的会议重叠；是否在总结中出现“上午组/下午组/可参加性”相关信息；是否同名联系人选择正确邮箱并反映在发送/草稿收件人上；是否对low_stock产品在总结中出现“紧张/替代/跟进”并创建todo_create_task；是否无经理部门仅有gmail_save_draft且无gmail_send_message；最终总结需覆盖5位员工与待办/设备/培训状态。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T039zh_onboarding_coordinator",
+  "task_name": "Onboarding Coordinator",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "hard",
+  "tags": [
+    "general"
+  ],
+  "language": "zh",
+  "services": [
+    "gmail",
+    "calendar",
+    "todo",
+    "contacts",
+    "kb",
+    "inventory"
+  ],
+  "tools": [
+    "gmail_list_messages",
+    "gmail_get_message",
+    "gmail_send_message",
+    "gmail_save_draft",
+    "calendar_list_events",
+    "calendar_get_user_events",
+    "calendar_create_event",
+    "todo_list_tasks",
+    "todo_create_task",
+    "todo_update_task",
+    "contacts_search",
+    "contacts_get",
+    "kb_search",
+    "kb_get_article",
+    "inventory_list_products",
+    "inventory_get_product"
+  ],
+  "fixture_paths": [
+    "fixtures/calendar/events.json",
+    "fixtures/contacts/contacts.json",
+    "fixtures/gmail/inbox.json",
+    "fixtures/inventory/products.json",
+    "fixtures/kb/articles.json",
+    "fixtures/todo/tasks.json"
+  ],
+  "sandbox_files": [
+    "fixtures/contacts/contacts.json",
+    "fixtures/gmail/inbox.json",
+    "fixtures/calendar/events.json",
+    "fixtures/todo/tasks.json",
+    "fixtures/kb/articles.json",
+    "fixtures/inventory/products.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T039zh_onboarding_coordinator
+task_name: Onboarding Coordinator
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T039zh_onboarding_coordinator/fixtures/gmail/inbox.json
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: tasks/T039zh_onboarding_coordinator/fixtures/calendar/events.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: tasks/T039zh_onboarding_coordinator/fixtures/todo/tasks.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: tasks/T039zh_onboarding_coordinator/fixtures/contacts/contacts.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T039zh_onboarding_coordinator/fixtures/kb/articles.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: tasks/T039zh_onboarding_coordinator/fixtures/inventory/products.json
+prompt:
+  text: '下周一（3月9日）有3位新员工入职。请帮我协调安排入职事宜：
+
+    1. 查看HR发来的入职邮件了解各人需求
+
+    2. 查看知识库了解入职流程
+
+    3. 查找各部门经理的联系方式
+
+    4. 检查IT设备库存
+
+    5. 查看日历安排培训时间（注意避免冲突）
+
+    6. 给各部门经理发送入职通知（注意：对于没有部门经理的部门，只保存草稿不发送）
+
+    7. 创建入职跟进待办事项
+
+    8. 给我一份入职安排总结
+
+    '
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_save_draft
+  description: 将邮件保存为草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+      reply_to_message_id:
+        type: string
+        description: 如果是回复邮件，原邮件ID
+    required:
+    - to
+    - subject
+    - body
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 开始日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查看几天的日程
+        default: 1
+    required:
+    - date
+- name: calendar_get_user_events
+  description: 获取指定用户在指定日期的日程
+  input_schema:
+    type: object
+    properties:
+      user:
+        type: string
+        description: 用户邮箱
+      date:
+        type: string
+        description: 日期 (YYYY-MM-DD)
+    required:
+    - user
+    - date
+- name: calendar_create_event
+  description: 创建新的日历事件
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 事件标题
+      start_time:
+        type: string
+        description: 开始时间 (ISO 8601)
+      end_time:
+        type: string
+        description: 结束时间 (ISO 8601)
+      attendees:
+        type: array
+        items:
+          type: string
+        description: 参会人邮箱列表
+      location:
+        type: string
+        description: 会议地点
+    required:
+    - title
+    - start_time
+    - end_time
+    - attendees
+- name: todo_list_tasks
+  description: 获取待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选 (pending/in_progress/completed)
+      priority:
+        type: string
+        description: 按优先级筛选 (high/medium/low)
+    required: []
+- name: todo_create_task
+  description: 创建新的待办事项
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 待办标题
+      description:
+        type: string
+        description: 详细描述
+      priority:
+        type: string
+        description: 优先级 (high/medium/low)
+      due_date:
+        type: string
+        description: 截止日期 (YYYY-MM-DD)
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+    required:
+    - title
+- name: todo_update_task
+  description: 更新待办事项
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办事项ID
+      status:
+        type: string
+        description: 新状态
+      priority:
+        type: string
+        description: 新优先级
+      title:
+        type: string
+        description: 新标题
+      description:
+        type: string
+        description: 新描述
+    required:
+    - task_id
+- name: contacts_search
+  description: 搜索通讯录中的联系人
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词（姓名、部门等）
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详细信息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: inventory_list_products
+  description: 获取库存产品列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+      status:
+        type: string
+        description: 按库存状态筛选 (normal/out_of_stock/low_stock)
+    required: []
+- name: inventory_get_product
+  description: 获取产品库存详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_user_events
+  url: http://localhost:9101/calendar/user_events
+  method: POST
+- tool_name: calendar_create_event
+  url: http://localhost:9101/calendar/events/create
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_create_task
+  url: http://localhost:9102/todo/tasks/create
+  method: POST
+- tool_name: todo_update_task
+  url: http://localhost:9102/todo/tasks/update
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+sandbox_files:
+- fixtures/contacts/contacts.json
+- fixtures/gmail/inbox.json
+- fixtures/calendar/events.json
+- fixtures/todo/tasks.json
+- fixtures/kb/articles.json
+- fixtures/inventory/products.json
+environment:
+  mock_today: '2026-03-05'
+  timeout_seconds: 900
+  max_turns: 40
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/calendar/events.json ---
+[
+  {
+    "event_id": "evt_501",
+    "title": "Tech Review会议",
+    "organizer": "liming@company.com",
+    "attendees": ["liming@company.com", "zhangwei_eng@company.com"],
+    "start_time": "2026-03-09T10:30:00+08:00",
+    "end_time": "2026-03-09T11:30:00+08:00",
+    "location": "会议室B",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_502",
+    "title": "全员周会",
+    "organizer": "ceo@company.com",
+    "attendees": ["all@company.com"],
+    "start_time": "2026-03-09T09:00:00+08:00",
+    "end_time": "2026-03-09T09:30:00+08:00",
+    "location": "大会议室",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_503",
+    "title": "市场策略讨论",
+    "organizer": "zhangwei_mkt@company.com",
+    "attendees": ["zhangwei_mkt@company.com"],
+    "start_time": "2026-03-09T14:00:00+08:00",
+    "end_time": "2026-03-09T15:00:00+08:00",
+    "location": "会议室A",
+    "status": "confirmed"
+  }
+]
+
+--- END FILE: fixtures/calendar/events.json ---
+--- FILE: fixtures/contacts/contacts.json ---
+[
+  {
+    "contact_id": "CT-301",
+    "name": "张伟",
+    "department": "工程部",
+    "title": "工程部经理",
+    "email": "zhangwei_eng@company.com",
+    "phone": "13800001001"
+  },
+  {
+    "contact_id": "CT-302",
+    "name": "张伟",
+    "department": "市场部",
+    "title": "市场部经理",
+    "email": "zhangwei_mkt@company.com",
+    "phone": "13800001002"
+  },
+  {
+    "contact_id": "CT-303",
+    "name": "李明",
+    "department": "工程部",
+    "title": "高级工程师",
+    "email": "liming@company.com",
+    "phone": "13800001003",
+    "notes": "周一10:30-11:30有tech review会议"
+  },
+  {
+    "contact_id": "CT-304",
+    "name": "王芳",
+    "department": "人力资源部",
+    "title": "HR总监",
+    "email": "wangfang@company.com",
+    "phone": "13800001004"
+  },
+  {
+    "contact_id": "CT-305",
+    "name": "陈静",
+    "department": "IT部",
+    "title": "IT支持主管",
+    "email": "chenjing@company.com",
+    "phone": "13800001005"
+  },
+  {
+    "contact_id": "CT-306",
+    "name": "赵强",
+    "department": "安全部",
+    "title": "安全经理",
+    "email": "zhaoqiang@company.com",
+    "phone": "13800001006"
+  },
+  {
+    "contact_id": "CT-307",
+    "name": "刘洋",
+    "department": "数据部",
+    "title": "",
+    "email": "liuyang@company.com",
+    "phone": "13800001007",
+    "notes": "数据部目前没有部门经理，刘洋是资深分析师代管日常工作"
+  }
+]
+
+--- END FILE: fixtures/contacts/contacts.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_2001",
+    "from": "wangfang@company.com",
+    "to": "user@company.com",
+    "subject": "下周一新员工入职安排",
+    "body": "Hi，\n\n下周一（3月9日）有3位新员工入职，请帮忙协调安排：\n\n1. **王小明** — 工程部，前端开发工程师\n   - 部门经理：张伟\n   - 需要：MacBook Pro、工位安排、GitLab账号\n   - 培训：需要参加新员工入职培训（建议10:00-12:00）\n\n2. **刘晓婷** — 市场部，市场专员\n   - 部门经理：张伟\n   - 需要：MacBook Air、工位安排、营销工具账号\n   - 培训：同上\n\n3. **陈浩然** — 数据部，数据工程师\n   - 需要：高配工作站、工位安排、数据库访问权限\n   - 培训：同上\n   - 特殊：需要安全审查通过后才能获得数据库权限\n\n请注意：对于没有部门经理的部门，入职通知只保存草稿，不要直接发送。\n\n谢谢！\n王芳",
+    "date": "2026-03-05T10:00:00+08:00",
+    "labels": ["INBOX", "IMPORTANT"],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2002",
+    "from": "chenjing@company.com",
+    "to": "user@company.com",
+    "subject": "IT设备库存更新",
+    "body": "通知一下，MacBook Pro目前库存充足，但MacBook Air缺货，预计3月10日到货。高配工作站有库存。",
+    "date": "2026-03-05T14:00:00+08:00",
+    "labels": ["INBOX"],
+    "is_read": false
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+--- FILE: fixtures/inventory/products.json ---
+[
+  {
+    "product_id": "EQ-001",
+    "name": "MacBook Pro 14寸",
+    "category": "办公电脑",
+    "current_stock": 8,
+    "status": "normal",
+    "unit_price": 14999.00,
+    "notes": ""
+  },
+  {
+    "product_id": "EQ-002",
+    "name": "MacBook Air",
+    "category": "办公电脑",
+    "current_stock": 0,
+    "status": "out_of_stock",
+    "unit_price": 8999.00,
+    "restock_date": "2026-03-10",
+    "notes": "预计3月10日到货15台"
+  },
+  {
+    "product_id": "EQ-003",
+    "name": "高配工作站",
+    "category": "办公电脑",
+    "current_stock": 3,
+    "status": "normal",
+    "unit_price": 25999.00,
+    "notes": ""
+  },
+  {
+    "product_id": "EQ-004",
+    "name": "标准显示器",
+    "category": "外设",
+    "current_stock": 20,
+    "status": "normal",
+    "unit_price": 2499.00,
+    "notes": ""
+  },
+  {
+    "product_id": "EQ-005",
+    "name": "办公桌椅套装",
+    "category": "办公家具",
+    "current_stock": 10,
+    "status": "normal",
+    "unit_price": 3599.00,
+    "notes": ""
+  }
+]
+
+--- END FILE: fixtures/inventory/products.json ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "KB-701",
+    "title": "新员工入职流程清单",
+    "category": "HR",
+    "tags": ["入职", "新员工", "流程"],
+    "content": "# 新员工入职清单\n\n## 入职前准备\n1. IT设备申请（入职前3天）\n2. 工位安排\n3. 系统账号创建\n4. 部门经理通知\n\n## 入职当天\n1. HR接待（9:00）\n2. 入职培训（10:00-12:00）\n3. 部门介绍（14:00）\n4. IT设备领取\n\n## 安全要求\n- 涉及数据库访问权限的岗位需要通过安全审查\n- 安全审查由安全部负责，通常需要1-2个工作日\n\n## 特殊情况处理\n- 设备缺货：登记需求，到货后优先安排\n- 无部门经理：入职通知保存为草稿，由HR直接协调",
+    "last_updated": "2026-02-20",
+    "views": 2345
+  },
+  {
+    "article_id": "KB-702",
+    "title": "IT设备申请流程",
+    "category": "IT",
+    "tags": ["设备", "申请", "IT"],
+    "content": "# IT设备申请流程\n\n## 申请步骤\n1. 登录OA系统 → 资产管理 → 设备申请\n2. 填写申请表（需部门经理审批）\n3. IT部门审核后2个工作日内处理\n4. 设备准备好后通知取件\n\n## 标准配置\n- 开发岗位：MacBook Pro 14寸 + 外接显示器\n- 非开发岗位：MacBook Air 或 ThinkPad\n- 数据/AI岗位：高配工作站（需额外审批）\n\n## 设备缺货处理\n- 当前缺货设备登记到等候名单\n- 到货后按申请时间先后顺序分配\n- 缺货期间可申请临时备用设备\n\n## 注意事项\n- 新员工设备需在入职前3天提交申请\n- 特殊配置需部门总监额外审批\n- 离职时需归还全部IT设备",
+    "last_updated": "2026-02-15",
+    "views": 1876
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+--- FILE: fixtures/todo/tasks.json ---
+[
+  {
+    "task_id": "TODO-301",
+    "title": "准备Q1OKR",
+    "description": "整理并提交Q1季度OKR目标",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-03-07",
+    "tags": ["OKR", "Q1"],
+    "created_at": "2026-03-01T09:00:00+08:00"
+  },
+  {
+    "task_id": "TODO-302",
+    "title": "更新员工手册",
+    "description": "根据最新政策更新员工手册内容",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": null,
+    "tags": ["文档", "HR"],
+    "created_at": "2026-02-28T14:00:00+08:00"
+  }
+]
+
+--- END FILE: fixtures/todo/tasks.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

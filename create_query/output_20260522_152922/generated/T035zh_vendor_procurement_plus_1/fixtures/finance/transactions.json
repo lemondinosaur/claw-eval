@@ -1,0 +1,50 @@
+[
+  {
+    "transaction_id": "FIN-Q2-901",
+    "type": "预算拨付",
+    "description": "数据中心扩容-下一季度设备采购预算",
+    "amount": 2600000,
+    "currency": "CNY",
+    "date": "2026-03-03",
+    "category": "预算",
+    "department": "基础设施部",
+    "approved_by": "总监",
+    "notes": "Q2设备扩容预算（含服务器与配套）。"
+  },
+  {
+    "transaction_id": "FIN-Q1-812",
+    "type": "采购支出",
+    "description": "Q1服务器批次采购（部分型号）",
+    "amount": 1248000,
+    "currency": "CNY",
+    "date": "2026-02-04",
+    "category": "设备采购",
+    "department": "基础设施部",
+    "supplier": "环宇云联科技",
+    "notes": "采购Blade/机架服务器相关配套，已完成验收。"
+  },
+  {
+    "transaction_id": "FIN-Q1-733",
+    "type": "采购支出",
+    "description": "Q1国产化服务器采购（临界型号）",
+    "amount": 498000,
+    "currency": "CNY",
+    "date": "2026-01-18",
+    "category": "设备采购",
+    "department": "基础设施部",
+    "supplier": "华腾电子科技",
+    "notes": "用于信创适配测试，含质保延保。"
+  },
+  {
+    "transaction_id": "FIN-RT-659",
+    "type": "退货退款",
+    "description": "退货退款争议：上一批服务器质保问题退款回算",
+    "amount": 68000,
+    "currency": "CNY",
+    "date": "2026-02-24",
+    "category": "退款",
+    "department": "基础设施部",
+    "supplier": "北辰智采商贸",
+    "notes": "原因：供应商提交退款申请但未达成最终验收口径。保守口径：退款不回算当期可用额度；乐观口径：退款按系统已入账回算可用额度。将直接影响本季度可用预算差额约6.8万。"
+  }
+]

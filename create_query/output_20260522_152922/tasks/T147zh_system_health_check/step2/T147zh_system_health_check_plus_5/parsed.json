@@ -1,0 +1,445 @@
+{
+  "task_id": "T147zh_system_health_check_plus_5",
+  "task_name": "跨地域配置回滚与计划任务漂移巡检",
+  "prompt_text": "请帮我做一次“跨地域配置回滚与计划任务漂移”的系统健康巡检：\n\n1）检查所有API集成配置是否存在跨区域不一致或错误状态；重点识别“配置中心回滚后参数回到旧值但status仍可能显示active”的异常线索（例如error_rate上升、错误信息指向超时/重试策略不一致）。\n2）检查定时任务是否出现计划漂移：启停状态异常、cron_expression与预期不一致、以及last_status/first_failure与历史规律不符合。\n3）查看当前未解决工单，找出可能由配置回滚或任务漂移引起的问题；需要把工单现象分别映射到“回滚导致的参数不一致”与“scheduler cron/启停导致的执行偏差”两条原因链。\n4）在知识库中搜索与“配置回滚核对参数一致性、cron/定时任务漂移检测、修复与验证口径”相关的解决方案。\n5）输出系统健康报告：\n- 明确指出哪些问题更可能归因于配置回滚，哪些更可能归因于计划任务漂移；\n- 给出具体修复建议（如何核对当前生效参数、如何修复/回滚到正确cron与启停状态）；\n- 给出验证方式与验证口径（例如抽样同一事件的派发次数/执行频率对比、错误率是否回落、避免继续风暴）。\n\n注意：不要关闭工单。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-2001",
+        "name": "支付网关超时策略",
+        "status": "active",
+        "config": {
+          "endpoint": "https://pay-eu.example.com/api/v2",
+          "timeout_ms": 2500,
+          "retry_count": 2,
+          "region_expected": "EU-WEST-1",
+          "region_observed": "EU-WEST-1"
+        },
+        "error_rate": 0.17,
+        "error_message": "超时重试次数与回滚前预期不一致：observed retry_count=2, expected retry_count=3（可能发生旧参数回滚）",
+        "description": "支付回调处理与超时重试策略集成（跨地域后出现参数回滚表现）",
+        "service": "payment",
+        "last_verified": "2026-05-15",
+        "monthly_calls": 420000
+      },
+      {
+        "integration_id": "INT-2002",
+        "name": "支付网关风控回调",
+        "status": "error",
+        "config": {
+          "endpoint": "https://risk-asia.example.com/callback",
+          "timeout_ms": 1200,
+          "retry_count": 1
+        },
+        "error_rate": 1.0,
+        "error_message": "证书过期导致TLS握手失败（疑似独立于配置回滚）",
+        "description": "风控回调接收服务",
+        "service": "risk_callback",
+        "last_verified": "2026-05-01",
+        "monthly_calls": 110000
+      },
+      {
+        "integration_id": "INT-2003",
+        "name": "回调处理转发器",
+        "status": "active",
+        "config": {
+          "endpoint": "https://callback-router.example.com/forward",
+          "timeout_ms": 5000,
+          "retry_count": 4
+        },
+        "error_rate": 0.03,
+        "description": "订单回调转发到内部处理链路",
+        "service": "callback",
+        "last_verified": "2026-05-20",
+        "monthly_calls": 760000
+      },
+      {
+        "integration_id": "INT-2004",
+        "name": "工单派发通道",
+        "status": "active",
+        "config": {
+          "broker": "mq-prod-eu.example.com:5672",
+          "vhost": "/ops-eu",
+          "prefetch_count": 20
+        },
+        "error_rate": 0.012,
+        "description": "将工单派发事件写入消息队列",
+        "service": "mq",
+        "last_verified": "2026-05-21",
+        "monthly_calls": 3100000
+      },
+      {
+        "integration_id": "INT-2005",
+        "name": "配置审计采集",
+        "status": "active",
+        "config": {
+          "endpoint": "https://audit.example.com/ingest",
+          "buffer_size": 1500,
+          "flush_interval_seconds": 5
+        },
+        "error_rate": 0.006,
+        "description": "采集配置变更与回滚审计日志",
+        "service": "logging",
+        "last_verified": "2026-05-22",
+        "monthly_calls": 900000
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2101",
+        "subject": "同一支付回调触发重复创建工单（重复派发风暴）",
+        "customer_id": "CUS-2107",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-20T10:12:00Z",
+        "assigned_to": "林敏",
+        "category": "支付回调",
+        "description": "跨地域发布后出现同一支付事件被重复创建工单：同一事件在15分钟内派发次数从预期2次升至6次以上，且与支付超时重试策略变化同步；目前未关闭，仍持续出现。",
+        "title": "重复创建工单：支付回调超时重试异常",
+        "reporter": "林敏",
+        "department": "支付中台"
+      },
+      {
+        "ticket_id": "TK-2102",
+        "subject": "工单回调超时导致流程重试过多",
+        "customer_id": "CUS-2108",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-20T10:34:00Z",
+        "assigned_to": "周航",
+        "category": "流程编排",
+        "description": "回调处理链路出现超时，导致流程重试次数异常偏高；同一流程在短时间内多次尝试，最终派发了大量重复工单。日志提示超时重试次数与回滚前规则不一致。",
+        "title": "回调超时：流程重试过多引发工单堆积",
+        "reporter": "周航",
+        "department": "流程运营"
+      },
+      {
+        "ticket_id": "TK-2103",
+        "subject": "同一事件多次派发到工单队列（任务频率异常）",
+        "customer_id": "CUS-2109",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T11:05:00Z",
+        "assigned_to": "曹楠",
+        "category": "调度任务",
+        "description": "工单派发相关事件在观测窗口内频率异常：原本约每10分钟派发一批，现在变为更高频（疑似cron_expression漂移）。导致同一事件被重复处理并创建新工单。",
+        "title": "工单派发频率异常：疑似cron漂移",
+        "reporter": "曹楠",
+        "department": "平台运维"
+      },
+      {
+        "ticket_id": "TK-2104",
+        "subject": "支付网关错误率上升：超时与重试策略不匹配",
+        "customer_id": "CUS-2110",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T12:00:00Z",
+        "assigned_to": "苏晴",
+        "category": "集成质量",
+        "description": "EU-WEST-1区域支付网关error_rate显著上升，错误信息指向超时重试策略与预期不一致；疑似发生配置回滚到旧参数但status仍显示active。",
+        "title": "集成参数回滚疑云：超时重试策略不一致",
+        "reporter": "苏晴",
+        "department": "集成与质量"
+      },
+      {
+        "ticket_id": "TK-2105",
+        "subject": "回调处理失败：重试风暴间歇性出现",
+        "customer_id": "CUS-2111",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-19T19:40:00Z",
+        "assigned_to": "程然",
+        "category": "回调处理",
+        "description": "回调处理出现失败并触发重试风暴，呈现周期性加剧；部分时间段与任务调度周期高度相关。当前未确认根因，工单未解决。",
+        "title": "回调失败周期性：怀疑任务漂移与参数回滚耦合",
+        "reporter": "程然",
+        "department": "消息与回调"
+      },
+      {
+        "ticket_id": "TK-2106",
+        "subject": "页面缓存刷新异常（干扰项，不明显相关）",
+        "customer_id": "CUS-2112",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-18T09:10:00Z",
+        "assigned_to": "王宇",
+        "category": "前端体验",
+        "description": "部分页面缓存刷新不及时，疑似CDN边缘缓存延迟。与支付回调/调度任务未见直接关联，但也处于未解决状态。",
+        "title": "缓存刷新异常",
+        "reporter": "王宇",
+        "department": "前端"
+      },
+      {
+        "ticket_id": "TK-2107",
+        "subject": "数据同步延迟（干扰项：ETL超时导致）",
+        "customer_id": "CUS-2113",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-17T14:25:00Z",
+        "assigned_to": "冯玥",
+        "category": "数据仓库",
+        "description": "数据看板更新延迟，偶发同步超时；目前看起来更像ETL自身异常，不作为本次主因排查重点。",
+        "title": "ETL同步延迟",
+        "reporter": "冯玥",
+        "department": "数据平台"
+      },
+      {
+        "ticket_id": "TK-2108",
+        "subject": "监控告警重复：健康巡检上报频率异常（干扰项）",
+        "customer_id": "CUS-2114",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-16T08:55:00Z",
+        "assigned_to": "赵霖",
+        "category": "监控告警",
+        "description": "健康巡检上报告警出现重复告警，但不一定与支付/工单链路同源；先作为背景干扰项记录。",
+        "title": "监控告警重复",
+        "reporter": "赵霖",
+        "department": "可观测性"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-2101",
+        "title": "跨地域配置回滚核对：参数一致性与有效生效验证",
+        "category": "运维文档",
+        "tags": [
+          "配置回滚",
+          "参数一致性",
+          "生效校验",
+          "跨区域"
+        ],
+        "content": "## 跨地域配置回滚核对：参数一致性与有效生效验证\n\n### 适用场景\n- 配置中心发生回滚后，集成status仍为active，但error_rate上升且错误信息指向旧参数\n\n### 核对方法（必须做的三步）\n1. **对比预期参数 vs 当前生效参数**：\n   - 找到对应集成（如支付回调/超时重试策略）\n   - 核对关键字段：timeout_ms、retry_count、endpoint（含region）\n2. **核对生效时间窗**：\n   - 将配置回滚时间与业务指标峰值（error_rate）进行对齐\n3. **验证回落**：\n   - 在修复/回滚到正确参数后，观察错误率是否在一个调度周期内回落\n\n### 验证口径建议\n- 抽样同一类事件（同一事件ID或同一批次）的失败原因分布\n- 确认“错误信息中引用的重试次数/超时配置”与预期一致\n",
+        "last_updated": "2026-05-10",
+        "views": 642
+      },
+      {
+        "article_id": "KB-2102",
+        "title": "cron漂移检测：启停状态与执行频率偏差排查（含修复步骤）",
+        "category": "技术文档",
+        "tags": [
+          "cron",
+          "计划漂移",
+          "调度任务",
+          "启停状态"
+        ],
+        "content": "## cron漂移检测：启停状态与执行频率偏差排查（含修复步骤）\n\n### 判断依据\n- enabled与实际执行频率不一致\n- cron_expression与预期不一致\n- first_failure/last_status呈周期性\n\n### 检测步骤\n1. 获取可疑任务的：cron_expression、enabled、first_failure、failure_count、last_status\n2. 根据cron表达式计算预期执行间隔（例如*/10分钟应约10分钟一批）\n3. 对齐告警/工单创建的时间窗，查看是否呈现相同周期\n\n### 修复建议\n- 将cron_expression回滚到正确版本，并与配置变更记录对齐\n- 对于被禁用但disabled_reason与配置变更不一致的任务：核查最近一次配置发布/回滚是否覆盖了任务开关\n- 修复后先进行小流量抽样验证，再扩大范围\n\n### 验证口径\n- 抽样同一事件：工单/消息派发次数在一个周期内应回到基线\n- 监控failure_count与error_rate是否同步下降\n",
+        "last_updated": "2026-05-12",
+        "views": 511
+      },
+      {
+        "article_id": "KB-2103",
+        "title": "任务引发工单风暴的定位方法：从调度到工单触发链路映射",
+        "category": "技术文档",
+        "tags": [
+          "工单风暴",
+          "失败重试",
+          "派发链路"
+        ],
+        "content": "## 任务引发工单风暴的定位方法：从调度到工单触发链路映射\n\n### 常见触发链路\n- scheduler任务执行频率异常 → 同一事件被更频繁派发 → 工单重复创建/重试过多\n\n### 定位流程\n1. 锁定相关任务ID/标签（例如：failure-retry、ticket-dispatch、callback-handler）\n2. 读取任务first_failure与错误信息（若有）\n3. 拉取未解决工单并按created_at分桶，寻找与任务周期一致的峰值\n\n### 验证方法\n- 对比修复前后同一周期的派发次数/工单创建数量\n- 确认“同一事件”不会继续在短时间内被重复创建\n",
+        "last_updated": "2026-05-05",
+        "views": 903
+      },
+      {
+        "article_id": "KB-2104",
+        "title": "如何避免修复期间继续放大：风暴缓解与验证节奏建议",
+        "category": "运维文档",
+        "tags": [
+          "验证",
+          "风暴缓解",
+          "回滚",
+          "cron"
+        ],
+        "content": "## 如何避免修复期间继续放大：风暴缓解与验证节奏建议\n\n### 风暴缓解要点\n- 在修复cron或参数前，先确认是否存在“任务漂移导致高频执行”的可能\n- 若已确认高频派发，会继续放大工单数量：优先修复调度参数或临时降低频率\n\n### 验证节奏\n- 修复后先在小范围/短窗口验证\n- 再观察一个完整调度周期的指标回落情况（error_rate、failure_count、工单创建峰值）\n\n### 验证口径\n- 以“同一事件的重复派发次数”作为核心指标\n- 以“错误信息中关键参数字段与预期一致”为辅指标\n",
+        "last_updated": "2026-05-13",
+        "views": 377
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-2201",
+        "name": "失败重试调度任务",
+        "schedule": "*/10 * * * *",
+        "status": "enabled",
+        "last_run": "2026-05-20T11:50:00Z",
+        "last_status": "failed",
+        "description": "每10分钟重试失败的回调处理并派发工单（配置回滚后可能产生cron漂移）",
+        "tags": [
+          "failure-retry",
+          "ticket-dispatch",
+          "callback"
+        ],
+        "failure_count": 19,
+        "first_failure": "2026-05-20T10:05:00Z",
+        "cron_expression": "*/7 * * * *",
+        "enabled": true,
+        "action": "每10分钟重试失败的回调处理并派发工单",
+        "next_run": null,
+        "created_at": "2025-10-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T11:45:00Z",
+            "status": "failed",
+            "duration_s": 42
+          },
+          {
+            "run_at": "2026-05-20T11:52:00Z",
+            "status": "failed",
+            "duration_s": 45
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2202",
+        "name": "回调超时处理任务",
+        "schedule": "0 */10 * * *",
+        "status": "disabled",
+        "last_run": "2026-05-20T10:00:00Z",
+        "last_status": "failed",
+        "description": "按计划检查回调超时并触发流程重试（禁用状态可能与配置变更不一致）",
+        "tags": [
+          "callback-handler",
+          "retry"
+        ],
+        "failure_count": 7,
+        "first_failure": "2026-05-20T09:40:00Z",
+        "cron_expression": "*/10 * * * *",
+        "enabled": false,
+        "disabled_reason": "手动禁用 - 预计10:15恢复（但后续仍呈现重试周期性）",
+        "action": "每10分钟检查回调超时并触发流程重试",
+        "next_run": null,
+        "created_at": "2025-10-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T10:00:00Z",
+            "status": "failed",
+            "duration_s": 58
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2203",
+        "name": "工单派发归档任务",
+        "schedule": "*/5 * * * *",
+        "status": "enabled",
+        "last_run": "2026-05-20T11:55:00Z",
+        "last_status": "success",
+        "description": "每5分钟将已派发工单进行归档与状态同步",
+        "tags": [
+          "ticket-dispatch",
+          "archive"
+        ],
+        "failure_count": 0,
+        "first_failure": null,
+        "cron_expression": "*/5 * * * *",
+        "enabled": true,
+        "action": "每5分钟将已派发工单进行归档与状态同步",
+        "next_run": null,
+        "created_at": "2025-10-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T11:55:00Z",
+            "status": "success",
+            "duration_s": 21
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2204",
+        "name": "消息队列死信清理",
+        "schedule": "0 */2 * * *",
+        "status": "enabled",
+        "last_run": "2026-05-20T11:40:00Z",
+        "last_status": "success",
+        "description": "每2小时清理消息队列死信并回补少量失败消息",
+        "tags": [
+          "mq",
+          "cleanup"
+        ],
+        "failure_count": 1,
+        "first_failure": "2026-05-16T08:00:00Z",
+        "cron_expression": "0 */2 * * *",
+        "enabled": true,
+        "action": "每2小时清理消息队列死信并回补少量失败消息",
+        "next_run": null,
+        "created_at": "2025-10-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T11:40:00Z",
+            "status": "success",
+            "duration_s": 30
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2205",
+        "name": "告警汇总上报",
+        "schedule": "*/15 * * * *",
+        "status": "enabled",
+        "last_run": "2026-05-20T11:45:00Z",
+        "last_status": "success",
+        "description": "每15分钟聚合并上报告警到告警平台",
+        "tags": [
+          "monitoring",
+          "aggregation"
+        ],
+        "failure_count": 0,
+        "first_failure": null,
+        "cron_expression": "*/15 * * * *",
+        "enabled": true,
+        "action": "每15分钟聚合并上报告警到告警平台",
+        "next_run": null,
+        "created_at": "2025-10-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T11:45:00Z",
+            "status": "success",
+            "duration_s": 18
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2206",
+        "name": "健康巡检任务",
+        "schedule": "*/5 * * * *",
+        "status": "enabled",
+        "last_run": "2026-05-20T11:56:00Z",
+        "last_status": "success",
+        "description": "每5分钟检查集成与服务健康并上报",
+        "tags": [
+          "monitoring",
+          "health"
+        ],
+        "failure_count": 0,
+        "first_failure": null,
+        "cron_expression": "*/5 * * * *",
+        "enabled": true,
+        "action": "每5分钟检查集成与服务健康并上报",
+        "next_run": null,
+        "created_at": "2025-10-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T11:56:00Z",
+            "status": "success",
+            "duration_s": 12
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "相较原题，本题的故障链显式拆分为“跨地域配置回滚导致的参数不一致”与“scheduler计划漂移（cron/启停异常）导致的执行偏差”，并要求报告做可归因性说明。",
+    "fixture_design_summary": [
+      "config：新增1条active但error_rate升高且error_message指向超时/重试策略旧参数回滚的集成（INT-2001），另放入1条独立error干扰（INT-2002）。",
+      "scheduler：新增至少两条与重试/回调/工单派发相关的任务，并制造漂移（JOB-2201 cron从*/10漂移到*/7、failure_count上升；JOB-2202 disabled但disabled_reason与实际重试周期出现矛盾）。其余任务为success干扰。",
+      "helpdesk：未解决工单中至少3条覆盖“重复创建工单/同一事件多次派发”，至少2条覆盖“回调超时导致流程重试过多”，并加入3条干扰工单。",
+      "kb：覆盖配置回滚核对参数一致性、cron漂移检测与修复、任务到工单触发链路映射、以及修复期风暴缓解与验证口径。"
+    ]
+  }
+}

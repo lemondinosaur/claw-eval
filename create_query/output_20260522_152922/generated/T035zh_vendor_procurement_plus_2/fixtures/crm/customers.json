@@ -1,0 +1,54 @@
+[
+  {
+    "customer_id": "SUP-101",
+    "name": "北域科技",
+    "contact_person": "赵工",
+    "email": "zhao@beiyuanch.com",
+    "phone": "13901010011",
+    "industry": "IT集成",
+    "tier": "vip",
+    "annual_revenue": 12000000,
+    "last_contact_date": "2026-02-12",
+    "status": "active",
+    "notes": "合作状态正常。维保升级后出现首单退款个案：客户反馈更换配件后不满足原性能承诺，已记录为争议单并完成部分整改；建议后续采购要求提供性能验收证明。"
+  },
+  {
+    "customer_id": "SUP-102",
+    "name": "海澜数通",
+    "contact_person": "周经理",
+    "email": "zhou@hlnet.com",
+    "phone": "13701020022",
+    "industry": "IT分销",
+    "tier": "standard",
+    "annual_revenue": 6500000,
+    "last_contact_date": "2026-01-28",
+    "status": "active",
+    "notes": "历史合作稳定。近期出现过工单积压：维保响应曾延迟2-3个工作日；目前积压工单已缩减，但仍需关注旺季峰值响应能力。"
+  },
+  {
+    "customer_id": "SUP-103",
+    "name": "天秤云联",
+    "contact_person": "孙总",
+    "email": "sun@tianchengcloud.com",
+    "phone": "13601030033",
+    "industry": "IT服务",
+    "tier": "standard",
+    "annual_revenue": 4200000,
+    "last_contact_date": "2026-02-18",
+    "status": "inactive",
+    "notes": "处于暂停合作状态，原因是上次交付窗口期内未能按时完成验收并触发服务重排。"
+  },
+  {
+    "customer_id": "SUP-104",
+    "name": "星港分销",
+    "contact_person": "郑女士",
+    "email": "zheng@xgdist.com",
+    "phone": "13501040044",
+    "industry": "IT硬件分销",
+    "tier": "standard",
+    "annual_revenue": 5100000,
+    "last_contact_date": "2026-02-05",
+    "status": "active",
+    "notes": "首次合作评估阶段。过往退货记录较少，但对紧急需求的承诺细节需二次确认；建议在下单前要求书面交期与备件保障条款。"
+  }
+]

@@ -1,0 +1,41 @@
+[
+  {
+    "transaction_id": "TXN-2401",
+    "date": "2025-12-12",
+    "amount": 260000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-103",
+    "customer_name": "青橙数据",
+    "type": "客户补偿",
+    "category": "补偿支出",
+    "description": "青橙数据历史服务升级补偿（已完成）",
+    "approved_by": "siyanch@companymail.com",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-2402",
+    "date": "2026-01-05",
+    "amount": 90000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-101",
+    "customer_name": "北辰云联",
+    "type": "客户补偿",
+    "category": "补偿支出",
+    "description": "北辰云联上期问题修复补偿（已完成）",
+    "approved_by": "zihang.he@companymail.com",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-2403",
+    "date": "2025-10-18",
+    "amount": 120000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-102",
+    "customer_name": "澄海工业",
+    "type": "客户补偿",
+    "category": "补偿支出",
+    "description": "澄海工业交付延迟补偿（已完成）",
+    "approved_by": "siyanch@companymail.com",
+    "status": "completed"
+  }
+]

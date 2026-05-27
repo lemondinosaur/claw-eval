@@ -1,0 +1,193 @@
+[
+  {
+    "ticket_id": "TK-5101",
+    "title": "API网关间歇性超时（P99显著抬升）",
+    "reporter": "监控告警",
+    "created_at": "2026-02-28T20:37:00+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "API网关出现间歇性超时：P99从正常<300ms快速抬升至6.4s左右，并呈现与CDN回源曲线同步的脉冲式波动。涉及接口：/api/order/confirm、/api/payments/callback、/api/catalog/*。",
+    "tags": [
+      "api-gateway",
+      "timeout",
+      "p99"
+    ],
+    "assignee": "运维值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5102",
+    "title": "CDN回源流量飙升 & 缓存命中率跌落",
+    "reporter": "基础架构",
+    "created_at": "2026-02-28T20:41:00+08:00",
+    "priority": "high",
+    "status": "resolved",
+    "description": "CDN回源请求在20:41后快速上升，缓存命中率从94%降至58%。初步线索：回源请求头中cache_version在短时间内出现回滚批次，疑似与预热/失效重建任务参数有关。",
+    "tags": [
+      "cdn",
+      "origin",
+      "cache-version"
+    ],
+    "assignee": "基础架构值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5103",
+    "title": "客服：下单确认慢，用户加载失败",
+    "reporter": "客服部",
+    "created_at": "2026-02-28T20:46:00+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "用户反馈页面无法正常加载或下单确认等待时间异常。客服工单中多次提到“点击确认后等待超过10秒”。与订单确认接口超时指标一致。",
+    "tags": [
+      "customer-experience",
+      "order-confirm",
+      "timeout"
+    ],
+    "assignee": "客服转运维",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5104",
+    "title": "支付回调链路延迟（队列堆积）",
+    "reporter": "支付团队",
+    "created_at": "2026-02-28T20:52:00+08:00",
+    "priority": "critical",
+    "status": "resolved",
+    "description": "支付回调处理延迟，回调路由器排队显著增加，部分回调超时。监控显示与API网关超时和CDN回源拥塞同步；错误信息包含“origin timeout / upstream busy”。",
+    "tags": [
+      "payment-callback",
+      "queue",
+      "latency"
+    ],
+    "assignee": "支付团队值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5105",
+    "title": "缓存穿透/热点Key异常：预热批次后急剧恶化",
+    "reporter": "缓存中台",
+    "created_at": "2026-02-28T21:03:00+08:00",
+    "priority": "high",
+    "status": "resolved",
+    "description": "在缓存预热/失效重建批次之后观察到热点Key访问放大与穿透式回源：大量未命中并迅速回源。疑似版本号参数不一致导致的边缘无法命中。",
+    "tags": [
+      "cache",
+      "thundering-herd",
+      "hotkeys"
+    ],
+    "assignee": "缓存中台负责人",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5106",
+    "title": "第三方风控规则引擎degraded（故障窗口）",
+    "reporter": "风控平台值班",
+    "created_at": "2026-02-28T21:05:00+08:00",
+    "priority": "medium",
+    "status": "resolved",
+    "description": "风控规则引擎在故障窗口处于degraded状态：error_rate持续升高。notes提示“与缓存失效重建触发的规则评估洪峰相关”，并在21:12后逐步恢复。",
+    "tags": [
+      "risk",
+      "degraded",
+      "error-rate"
+    ],
+    "assignee": "风控平台值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5107",
+    "title": "恢复后：下单确认延迟改善但仍需核对少量订单",
+    "reporter": "电商平台",
+    "created_at": "2026-02-28T21:40:00+08:00",
+    "priority": "medium",
+    "status": "open",
+    "description": "故障恢复后下单确认延迟显著下降，但仍检测到少量超时导致订单状态未按预期更新。需要人工核对失败样本并对齐链路日志。",
+    "tags": [
+      "orders",
+      "consistency",
+      "followup"
+    ],
+    "assignee": "电商平台值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5108",
+    "title": "监控告警恢复通知：API/回源/错误率回落",
+    "reporter": "监控告警",
+    "created_at": "2026-02-28T22:05:00+08:00",
+    "priority": "low",
+    "status": "done",
+    "description": "监控指标恢复：API网关P99回落至正常区间；CDN命中率回升；支付回调延迟缓解。告警自动解除。",
+    "tags": [
+      "recovery",
+      "monitoring"
+    ],
+    "assignee": "运维值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5109",
+    "title": "关键证据：预热/失效重建任务在高峰期错误触发",
+    "reporter": "调度平台",
+    "created_at": "2026-02-28T21:18:00+08:00",
+    "priority": "high",
+    "status": "resolved",
+    "description": "调度平台对任务链路回放显示：某任务在高峰时段非预期触发了“全站缓存预热/失效重建”。该批次写入了错误的cache_version参数，随后触发边缘回源放大，形成缓存风暴。",
+    "tags": [
+      "scheduler",
+      "cache-prewarm",
+      "version-rollback"
+    ],
+    "assignee": "平台SRE",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5110",
+    "title": "错误参数链路确认：缓存版本号回滚批次关联失效重建",
+    "reporter": "缓存中台",
+    "created_at": "2026-02-28T21:30:00+08:00",
+    "priority": "critical",
+    "status": "done",
+    "description": "对缓存控制面与CDN回源适配器证据串联：失效重建请求中携带的cache_version为旧值，且与回滚批次ID一致。该不一致触发边缘无法复用缓存，导致穿透式回源。",
+    "tags": [
+      "evidence",
+      "cache-version",
+      "origin-thundering"
+    ],
+    "assignee": "缓存中台负责人",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5111",
+    "title": "临时汇总：客服与支付链路延迟与回源拥塞相关",
+    "reporter": "运维复核",
+    "created_at": "2026-02-28T21:55:00+08:00",
+    "priority": "medium",
+    "status": "resolved",
+    "description": "复核证据表明：客服下单确认慢与支付回调链路延迟均与回源拥塞时间窗重合。API网关超时是下游拥塞与等待堆积的直接后果。",
+    "tags": [
+      "correlation",
+      "customer",
+      "payment"
+    ],
+    "assignee": "运维值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-5112",
+    "title": "恢复后通知：复盘需特别关注回滚参数校验与增量预热",
+    "reporter": "架构组",
+    "created_at": "2026-02-28T22:15:00+08:00",
+    "priority": "low",
+    "status": "done",
+    "description": "建议复盘重点：版本号回滚参数需要校验；预热应只更新增量键集，避免全站失效重建；并检查是否跳过了关键验证步骤。",
+    "tags": [
+      "improvement",
+      "incremental-prewarm",
+      "validation"
+    ],
+    "assignee": "架构师",
+    "department": "技术部"
+  }
+]

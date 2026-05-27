@@ -1,0 +1,149 @@
+task_id: T143zh_quarterly_business_insight_plus_3
+task_name: 存量续费健康度与降级预警
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_3/fixtures/finance/transactions.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_3/fixtures/crm/customers.json
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_3/fixtures/rss/feeds.json
+prompt:
+  text: 'Q1已结束，请基于Q1数据生成一份“存量续费健康度与降级预警”报告：
+
+    1）从财务系统按客户汇总Q1每月订阅金额，识别是否出现连续下滑或从高档变低档的迹象（可用交易amount变化或description/type中的线索体现）；
+
+    2）查看CRM中客户的产品层级/合同条款（如是否从高级转为基础、是否存在降级条款、合同剩余天数等），并对照财务迹象；
+
+    3）从RSS中提取与“价格策略/产品迭代/行业采购偏好变化”相关的动态，解释为何会触发降级风险，并把外部趋势与具体客户/条款对应起来；
+
+    4）输出：
+
+    - 续费健康度分层（健康/需关注/高风险）并列出每一档包含哪些客户；
+
+    - 针对“高风险”客户给出Q2保续动作3项（含执行顺序）；
+
+    - 至少解释一个“财务下滑但CRM仍显示健康”的边界情况，说明你的判定依据与最终结论。'
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选
+      tier:
+        type: string
+        description: 客户等级筛选
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: rss_list_feeds
+  description: 列出RSS订阅源
+  input_schema:
+    type: object
+    properties: {}
+    required: []
+- name: rss_get_feed
+  description: 获取RSS源文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_id:
+        type: string
+        description: 订阅源ID
+    required:
+    - feed_id
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_get_feed
+  url: http://localhost:9109/rss/feeds/get
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

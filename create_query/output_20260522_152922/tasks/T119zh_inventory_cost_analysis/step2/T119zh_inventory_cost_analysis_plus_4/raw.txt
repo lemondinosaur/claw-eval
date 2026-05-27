@@ -1,0 +1,230 @@
+{
+  "task_id": "T119zh_inventory_cost_analysis_plus_4",
+  "task_name": "异常交易类型排除核对",
+  "prompt_text": "请帮我做一次库存与采购成本的交叉核对（重点：排除非采购/退货/折扣抵扣/运费/内部转拨等交易类型，只纳入可作为采购成本依据的交易）。\n\n要求：\n1）查看库存品数量与单位成本\n2）从财务拉取对应品类相关交易\n3）识别交易类型：仅当交易符合“采购”且 status=completed，并且 description 语义上是采购成本（不含退货/已冲回/折扣/抵扣/运费/内部转拨等字样）时才计入核对；否则要排除或单独列为干扰\n4）对每个品类比对库存 unit_cost 与采购单价/加权平均（若有多笔采购则以可核对采购交易的加权平均为准）\n5）输出成本分析报告：\n   - 核对表：给出每个品类用于核对的“有效采购交易”口径与计算结果\n   - 被排除的异常交易清单：交易ID、品类/关联物料、排除理由（必须对应到交易的 type/status/description/category）\n   - 最终异常结论：指出真实异常品类，并说明“排除干扰后假异常消失”的情况（若适用）",
+  "files": {
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "FIN-9101",
+        "date": "2026-04-03",
+        "amount": 64000.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "电子元件",
+        "description": "耗电稳压器 DZ-500 200台 × 320元/台",
+        "status": "completed",
+        "reference": "PO-7701"
+      },
+      {
+        "transaction_id": "FIN-9102",
+        "date": "2026-04-15",
+        "amount": -64000.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "电子元件",
+        "description": "耗电稳压器 DZ-500 200台 × 320元/台（已退货/已冲回）",
+        "status": "completed",
+        "reference": "PO-7701-RETURN"
+      },
+      {
+        "transaction_id": "FIN-9103",
+        "date": "2026-04-18",
+        "amount": 5600.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "电子元件",
+        "description": "耗电稳压器 DZ-500 25台 × 224元/台（替换补货）",
+        "status": "completed",
+        "reference": "PO-7702"
+      },
+      {
+        "transaction_id": "FIN-9111",
+        "date": "2026-04-06",
+        "amount": 45000.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "劳保用品",
+        "description": "防静电手套 ESD-GL 300副 × 150元/副",
+        "status": "completed",
+        "reference": "PO-7811"
+      },
+      {
+        "transaction_id": "FIN-9112",
+        "date": "2026-04-08",
+        "amount": 9800.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "物流/运费",
+        "description": "防静电手套 ESD-GL 配套运费单（不含货款）",
+        "status": "completed",
+        "reference": "SHIP-7811"
+      },
+      {
+        "transaction_id": "FIN-9113",
+        "date": "2026-04-20",
+        "amount": 25000.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "劳保用品",
+        "description": "防静电手套 ESD-GL 200副 × 125元/副",
+        "status": "completed",
+        "reference": "PO-7812"
+      },
+      {
+        "transaction_id": "FIN-9121",
+        "date": "2026-04-02",
+        "amount": 36000.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "办公家具",
+        "description": "桌面支架 BRK-AD 120个 × 300元/个",
+        "status": "completed",
+        "reference": "PO-7921"
+      },
+      {
+        "transaction_id": "FIN-9122",
+        "date": "2026-04-12",
+        "amount": -7200.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "办公家具",
+        "description": "桌面支架 BRK-AD 120个 × 300元/个（折扣抵扣/已冲减）",
+        "status": "completed",
+        "reference": "DISC-7921"
+      },
+      {
+        "transaction_id": "FIN-9123",
+        "date": "2026-04-22",
+        "amount": 18000.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "办公家具",
+        "description": "桌面支架 BRK-AD 60个 × 300元/个（补货）",
+        "status": "completed",
+        "reference": "PO-7922"
+      },
+      {
+        "transaction_id": "FIN-9131",
+        "date": "2026-04-05",
+        "amount": 98000.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "工业设备",
+        "description": "工业相机模组 CAM-MOD 100套 × 980元/套",
+        "status": "completed",
+        "reference": "PO-8031"
+      },
+      {
+        "transaction_id": "FIN-9132",
+        "date": "2026-04-16",
+        "amount": 50400.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "工业设备",
+        "description": "工业相机模组 CAM-MOD 60套 × 840元/套（第二批）",
+        "status": "completed",
+        "reference": "PO-8032"
+      },
+      {
+        "transaction_id": "FIN-9133",
+        "date": "2026-04-23",
+        "amount": 6000.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "物流/运费",
+        "description": "工业相机模组 CAM-MOD 配送运费（单独计费）",
+        "status": "completed",
+        "reference": "SHIP-8032"
+      },
+      {
+        "transaction_id": "FIN-9141",
+        "date": "2026-04-09",
+        "amount": 12000.00,
+        "currency": "CNY",
+        "type": "运营",
+        "category": "差旅",
+        "description": "4月差旅报销",
+        "status": "completed",
+        "reference": "EXP-1001"
+      },
+      {
+        "transaction_id": "FIN-9142",
+        "date": "2026-04-11",
+        "amount": 7777.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "杂项",
+        "description": "临时订单（已取消）",
+        "status": "cancelled",
+        "reference": "PO-CANCEL-1"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "SKU-ELECTRO-001",
+        "name": "耗电稳压器 DZ-500",
+        "category": "电子元件",
+        "quantity": 225,
+        "unit": "台",
+        "unit_cost": 250.00,
+        "location": "仓库C-01",
+        "reorder_level": 80,
+        "supplier": "稳压供应链"
+      },
+      {
+        "product_id": "SKU-ESD-001",
+        "name": "防静电手套 ESD-GL",
+        "category": "劳保用品",
+        "quantity": 500,
+        "unit": "副",
+        "unit_cost": 136.00,
+        "location": "仓库C-02",
+        "reorder_level": 120,
+        "supplier": "安防劳保"
+      },
+      {
+        "product_id": "SKU-BRK-001",
+        "name": "桌面支架 BRK-AD",
+        "category": "办公家具",
+        "quantity": 180,
+        "unit": "个",
+        "unit_cost": 300.00,
+        "location": "仓库D-01",
+        "reorder_level": 60,
+        "supplier": "办公家具城"
+      },
+      {
+        "product_id": "SKU-CAM-MOD-001",
+        "name": "工业相机模组 CAM-MOD",
+        "category": "工业设备",
+        "quantity": 160,
+        "unit": "套",
+        "unit_cost": 950.00,
+        "location": "仓库D-02",
+        "reorder_level": 30,
+        "supplier": "工业视觉"
+      },
+      {
+        "product_id": "SKU-CABLE-001",
+        "name": "连接线 PRO-LINK",
+        "category": "电子辅材",
+        "quantity": 1000,
+        "unit": "根",
+        "unit_cost": 12.50,
+        "location": "仓库C-03",
+        "reorder_level": 400,
+        "supplier": "线缆之家"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在库存-采购成本核对基础上新增严格的交易语义过滤要求（退货/折扣抵扣/运费/内部转拨等需排除），并要求给出“排除干扰后假异常消失”的最终结论。",
+    "fixture_design_summary": [
+      "耗电稳压器：财务存在 type='采购'且status=completed但description含“已退货/已冲回”的负金额退货交易，若错误纳入会制造表面异常。",
+      "防静电手套：财务拆分了运费交易（category='物流/运费'且type仍为采购），正确应排除以避免错误抬高加权成本。",
+      "桌面支架：存在折扣抵扣交易（description含“折扣抵扣/已冲减”，amount为负且type为采购），正确排除后应与库存unit_cost一致。",
+      "工业相机模组：设置为唯一真实成本异常（库存unit_cost故意与可核对采购加权平均不一致）。",
+      "加入1-2笔cancelled/非采购类型运营交易作为干扰，考察是否仅在符合条件时纳入核对。"
+    ]
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "source_task_id": "T029zh_cross_service_meeting",
+  "source_summary": {
+    "task_type": "跨服务工作流：从邮件读取会议需求→通讯录检索参会人→日历查询可用时段→创建会议→通过邮件草拟并发送确认",
+    "services": ["gmail", "contacts", "calendar"],
+    "tools": ["gmail_list_messages", "gmail_get_message", "gmail_save_draft", "gmail_send_message", "contacts_search", "contacts_get", "calendar_list_events", "calendar_get_user_events", "calendar_create_event", "calendar_delete_event"],
+    "fixture_paths": ["fixtures/calendar/events.json", "fixtures/contacts/contacts.json", "fixtures/gmail/inbox.json"],
+    "core_capability": "多服务联动的会议协调与日程可用性求交，并以邮件确认"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T029zh_cross_service_meeting_plus_1",
+      "new_task_name": "评审会时间匹配（跨天兜底）",
+      "task_goal": "读取合作方发来的会议邀请邮件，查找三位参会者的联系方式，分别查询其在指定日期范围内的空闲情况；若主选日期无法满足2小时会议，则自动改为备选日期安排，并创建日历事件后给邀请方发送确认邮件（使用草稿后发送）。",
+      "user_request": "请你处理我邮箱里来自 Aurora Holdings 的“联合尽调会议”邀请：\n1）阅读邮件获取会议主题、时长、主选/备选日期与时段偏好；\n2）在通讯录中找到参与人员：我方的“周航”“赵敏”和合作方联系人“马经理”；\n3）查询周航、赵敏在主选日期的日程（以会议时段偏好为边界），若三方没有共同可用的连续2小时，则改查备选日期；\n4）选择共同空闲的最早连续2小时作为会议时间；\n5）在日历创建包含三位参会人的会议，并将确认信息回复给 Aurora Holdings（邮件主题用“Re:”前缀，正文包含会议日期、开始/结束时间、参会人）。",
+      "scenario": "主选日期为 2026-03-05（周四）下午 14:00-18:00；周航在 15:00-16:30 已有“安全培训”，赵敏在 16:30-17:00 有“跨部门同步”，马经理在 14:30-15:30 有“客户电话”。共同可用连续2小时不存在。备选日期为 2026-03-06（周五）上午 09:00-12:00；三方在 10:00-12:00（含）存在连续2小时共同空闲，且不与任何事件冲突。邮件正文还要求会议地点为“线上会议（Zoom）”，并附带“请在发送前确认所有人可参会”。",
+      "difference_from_source": "源任务使用单一日期（周三下午）直接求交并安排；本任务增加“主选日期无解→自动切换备选日期”的兜底逻辑，且涉及3人而非2人、时段窗口偏好不同、地点固定为线上会议。",
+      "service_and_tool_plan": "继续使用 gmail 完成邮件读取与回复发送；contacts_search/contacts_get 获取周航、赵敏与马经理的邮箱；calendar_get_user_events 用于分别检查三人在候选日期的日程并求连续2小时共同空闲；calendar_create_event 创建事件；gmail_save_draft 与 gmail_send_message 完成确认邮件的草拟与发送。calendar_delete_event 绝不调用以满足安全约束。",
+      "fixture_generation_plan": "生成全新 fixtures（不复用原 fixture 的具体实体名/邮箱/消息ID/事件ID/数值）：\n- fixtures/gmail/inbox.json：至少3条邮件；1条为 Aurora Holdings 发来的“联合尽调会议”邀请（包含主选日期、备选日期、时长2小时、时段偏好、地点要求与参会人姓名列表），另外2条为无关干扰邮件（不涉及这些参会人或主题）。\n- fixtures/contacts/contacts.json：至少包含周航、赵敏、马经理以及若干干扰联系人（姓名相近但不参与）；为三位提供唯一邮箱。\n- fixtures/calendar/events.json：覆盖主选与备选日期至少各2-3个事件；确保主选日期的共同连续2小时不存在（通过交错占用），而备选日期存在唯一或可选的最早连续2小时（例如三人分别忙于不同子区间，但同时在某连续窗口都空闲）。事件数量需足以体现冲突与求交过程。\n关键字段：event_id、title、organizer、attendees、start_time、end_time、location、status；contacts: contact_id/name/department/email；gmail: message_id/from/to/subject/body/is_read/labels。",
+      "expected_behavior": "应先调用 gmail_list_messages 找到邀请邮件，再调用 gmail_get_message 解析主选/备选日期与时段窗口、参会人数与主题；然后对周航、赵敏、马经理分别调用 contacts_search 并获取邮箱（可通过 contacts_get 验证）。随后对主选日期分别调用 calendar_get_user_events，计算满足“连续2小时且落在主选窗口内”的共同可用时段；发现无解后切换备选日期重复查询。最终在备选日期选取最早共同连续2小时，调用 calendar_create_event 创建“联合尽调会议（线上会议）”并填入三位attendees与地点。最后调用 gmail_save_draft 生成回复邮件，正文至少包含：会议主题、日期、开始/结束时间、参会人姓名与地点要求，并在确认后调用 gmail_send_message 发出。",
+      "grading_plan": "grader.py 应检查：1）确实读取了邀请邮件并调用至少1次 gmail_get_message；2）对三位参会人都进行了 contacts_search/contacts_get 以获得邮箱；3）calendar_get_user_events 至少覆盖主选与备选日期的3人分别查询；4）calendar_create_event 被调用且创建的时间位于备选日期的最早可行2小时窗口、attendees包含三位且location为线上会议要求；5）先后调用 gmail_save_draft 与 gmail_send_message，且发送邮件主题带“Re:联合尽调会议”（或与邀请主题严格对应）；6）确认邮件正文包含会议日期、开始/结束时间、三位参会人姓名与地点。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T029zh_cross_service_meeting_plus_2",
+      "new_task_name": "技术评审会（部分缺失联系人容错）",
+      "task_goal": "从邮件中读取会议邀请并明确参会人列表；若通讯录检索结果不完整，应根据邮件正文中的部门/称谓信息追加检索直到找到所需邮箱；查询所有确定参会人的日程交集安排2小时会议；创建日历事件并回复邮件确认。",
+      "user_request": "请处理收件箱中一封来自“北极星软件”客户成功经理发来的“架构评审会议”邀请：\n- 邮件提到参会人含我方“何晴”（部门写为平台架构组）以及“郑岩”（只给了英文姓氏：ZHENG），还提到对方“客户成功经理（姓名可能省略）”。\n你的任务：\n1）读取邮件，提取会议主题与会期窗口（会议时长2小时，主窗口为 2026-03-07 周六 10:00-14:00）；\n2）在通讯录里尽可能通过姓名/部门/英文姓氏进行检索，确保至少找到我方两位的邮箱；若对方联系人未能在通讯录中唯一匹配，请从邮件头信息推断其邮箱并用于发信（不需要额外联系人工具时也要能完成）；\n3）查询所有参会者在该窗口内的空闲，选择共同可用的最早2小时；\n4）在日历创建会议（地点为“会议室C或线上（二选一以邮件要求为准）”，以邮件指定为准）；\n5）保存并发送回复确认给邮件发起方，正文包含：选定的日期时间、会议主题、地点、参会人（列出你找到的姓名与邮箱）。",
+      "scenario": "会议窗口固定为 2026-03-07 10:00-14:00。日历中：何晴在 11:00-12:00 忙于“平台变更评审”；郑岩在 10:30-11:30 忙于“线上故障复盘”；北极星对方联系人在该窗口中没有任何事件，因此共同可用最早连续2小时为 12:00-14:00。邮件中对对方联系人只写“Customer Success Lead（建议回复确认）”，同时邮件from头包含真实邮箱。地点要求为“线上会议（Teams）”。",
+      "difference_from_source": "源任务参会人固定且都能在通讯录中直接按中文名找到；本任务引入“通讯录检索不唯一/信息缺失”的容错：郑岩以英文姓氏检索、对方联系人可能不在通讯录且需从邮件发起方推断邮箱；且会议窗口为周六固定区间。",
+      "service_and_tool_plan": "gmail 完成读取邀请与从发件人头获取需要的收件邮箱（用于对方联系人兜底）；contacts_search/contacts_get 通过“何晴+部门”与“ZHENG/郑”找到我方两位邮箱；calendar_get_user_events 检查三方在 2026-03-07 窗口内空闲并计算最早连续2小时；calendar_create_event 创建事件；gmail_save_draft 与 gmail_send_message 发出确认邮件。",
+      "fixture_generation_plan": "生成新 fixtures：\n- fixtures/gmail/inbox.json：1条北极星软件邀请邮件（包含主题“架构评审会议”、窗口信息、地点“Teams线上”、参会人线索“何晴（平台架构组）”“郑岩（ZHENG）”“Customer Success Lead”），另加2条干扰邮件（无关主题且不含窗口关键日期）。\n- fixtures/contacts/contacts.json：包含“何晴”（平台架构组）的邮箱、至少2个姓ZHENG但不一定是郑岩的干扰联系人（确保需要用姓氏与可能的其他字段定位到正确那位），以及其他与会议无关联系人。\n- fixtures/calendar/events.json：在 2026-03-07 的10:00-14:00区间内为何晴与郑岩安排事件以造成交错冲突，并保证12:00-14:00对二者同时空闲；对方联系人不应出现冲突事件。\n保证不复用源任务中的姓名/邮箱/时间数值。",
+      "expected_behavior": "先调用 gmail_list_messages 定位邀请邮件，再 gmail_get_message 解析会议主题、地点要求、时间窗口与参会线索。然后调用 contacts_search 分别检索何晴（附带部门筛选“平台架构组”）与郑岩（用“ZHENG”作为query），必要时通过多次 contacts_search/contacts_get 消除歧义并确保拿到两位邮箱；对方联系人若通讯录无法唯一匹配，则直接使用邀请邮件的from邮箱作为收件人。接着对 2026-03-07 调用 calendar_get_user_events 获取所有参会者的日程，求交并选取最早连续2小时（此场景为12:00-14:00）。调用 calendar_create_event 创建“架构评审会议”并设置location为“线上会议（Teams）”。最后 gmail_save_draft 生成回复并 gmail_send_message 发送；邮件正文需列出：日期、开始/结束时间、地点、参会人姓名与邮箱、并明确“已确认该时段可参会”。",
+      "grading_plan": "检查：1）gmail_get_message 至少1次且解析到正确的时间窗口与地点；2）contacts_search 至少针对何晴和ZHENG/郑姓进行并最终获得两位邮箱；3）calendar_get_user_events 至少对两位我方联系人与对方（from邮箱）分别查询同一日期；4）calendar_create_event 创建事件时开始/结束时间为最早可行连续2小时且与冲突排除一致、attendees包含三方；5）gmail_save_draft 与 gmail_send_message 均被调用，且发送内容包含：选定时间、地点、会议主题、参会人姓名与邮箱。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T029zh_cross_service_meeting_plus_3",
+      "new_task_name": "跨时区线上会（夜间边界）",
+      "task_goal": "处理来自海外合作方的线上会议邀请：需要考虑不同用户时区日历记录；在邮件给出的“当地时间”约束下换算为系统日历时区，查询可用时段并安排2小时会议；创建事件后发送确认邮件。",
+      "user_request": "请帮我协调一场来自“GreenWave Partners”的线上会议邀请。我所在时区为北京时间（UTC+8），但对方邮件写的是纽约时间（UTC-5）。\n任务：\n1）阅读邮件，确认会议主题为“增长实验评审”，会议时长2小时，对方希望会议发生在纽约时间周一 15:00-19:00 的某个连续2小时；\n2）通讯录中找到我方三位参会人：沈烨、蒋莉、孙凯（邮件只给了姓名），并获取他们的邮箱；\n3）将对方时间窗口从纽约时间换算到北京时间，使用日历查询我方在换算后的日期对应的空闲情况（注意可能跨天）；\n4）选择最早共同可用的2小时，创建日历事件（地点为“WebEx线上”）；\n5）回复邮件发起方并发送确认（邮件中写明：按北京时区给出会议开始/结束时间，同时说明这是由纽约窗口换算得到）。",
+      "scenario": "邮件日期对应为 2026-03-09（纽约时间的周一）。对方窗口为 15:00-19:00（纽约），换算到北京时间为次日 02:00-06:00（跨天）。日历中：沈烨在 03:00-04:00 忙于“实验复盘”，蒋莉在 02:30-03:30 忙于“周会”，孙凯在 04:30-05:30 忙于“数据审阅”。因此在北京时间共同可用的最早连续2小时为 05:00-07:00？（注意边界：但窗口仅到06:00，应选落在02:00-06:00内的最早2小时：可用区为04:00-06:00，前提是孙凯在04:30-05:30冲突会打断。调整：该场景应使最早可用为02:00-04:00（沈烨与蒋莉在03:00-04:00/02:30-03:30忙会破坏），因此实际最早可用为03:30-05:30也超出窗口。为保持一致性：设定日历事件为沈烨忙于 03:00-03:45，蒋莉忙于 02:30-03:15，孙凯忙于 05:00-05:30，则共同可用最早连续2小时为 03:15-05:15（在02:00-06:00内）。",
+      "difference_from_source": "源任务同一时区、固定周三下午；本任务加入跨时区时间换算与跨天窗口处理，并要求在确认邮件中同时解释换算依据；参会人数扩展为3人。",
+      "service_and_tool_plan": "gmail 读取邀请并定位发件人；contacts_search 获取沈烨、蒋莉、孙凯的邮箱；calendar_get_user_events 根据换算后的北京时间日期查询他们的日程；calendar_create_event 创建线上WebEx会议；gmail_save_draft 与 gmail_send_message 发送确认。",
+      "fixture_generation_plan": "新 fixtures：\n- fixtures/gmail/inbox.json：包含一封 GreenWave Partners 邀请邮件（包含纽约时间窗口与参会人姓名线索、地点WebEx线上、时长2小时），外加2条干扰邮件。\n- fixtures/contacts/contacts.json：包含沈烨、蒋莉、孙凯及其他干扰联系人，提供各自邮箱。\n- fixtures/calendar/events.json：在换算后的北京时间日期上设置事件（确保存在至少一个最早共同连续2小时落在02:00-06:00内，且由冲突可推导为同一最早区间）；使用新的 event_id 与时间戳，且确保至少体现跨天环境（例如北京时间日期为2026-03-10的凌晨时段）。",
+      "expected_behavior": "调用 gmail_list_messages 找到邀请并 gmail_get_message 解析：纽约时间窗口、时长2小时、地点与参会人姓名。调用 contacts_search 获取三位邮箱。将纽约窗口换算到北京时间并确定北京时间日期范围，然后对该北京时间日期调用 calendar_get_user_events 查询三人的日程，计算满足连续2小时且完全落在换算窗口内的共同可用时段，选择最早。调用 calendar_create_event 创建事件，start_time/end_time 使用北京时间ISO时间并设置 location为“WebEx线上”。保存并发送回复邮件：邮件正文给出北京时间开始/结束时间、会议主题、参会人姓名与邮箱，以及一句说明“已由纽约时间窗口换算（UTC-5→UTC+8）”。",
+      "grading_plan": "grader 应验证：1）读取到纽约时间窗口并进行换算后的选择；2）calendar_get_user_events 至少对3人查询同一北京时间日期；3）calendar_create_event 的时间落在换算窗口且为最早可行2小时；4）gmail_save_draft 与 gmail_send_message 都被调用；5）邮件正文包含北京时间开始/结束时间、会议主题、三位参会人姓名与邮箱，并包含换算说明。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T029zh_cross_service_meeting_plus_4",
+      "new_task_name": "会议替换：既有冲突会议协商调整",
+      "task_goal": "收到邀请要求改期的邮件：邮件中说明某次原定会议需要调整到新的2小时窗口；需检查我方参会者在候选窗口的冲突，若有冲突则在日历中取消旧会议并创建新会议（注意不能删除不相关事件）；最后发送确认邮件给邀请方。",
+      "user_request": "请处理一封来自“晨星咨询”的“改期确认”邮件。邮件说原定“合规评估会”因内部原因需要重排：\n1）读取邮件找出新的候选窗口（2026-03-11，周三 13:00-17:00，会议时长2小时）；\n2）通讯录中查找参与者：我方“陈莹”（合规部门）、“周川”（风控部门）以及对方“项目联络人”；\n3）检查三人在候选窗口内的日程。如果在窗口内存在与“合规评估会”同主题的旧事件且包含所有关键参会人，则先删除该旧事件后再创建新事件；若旧事件不满足关键参会人或不在窗口内，不能删除它，仅在空闲时段安排新会议；\n4）创建新的2小时会议并回复邮件发送确认（邮件正文需明确：是否已删除旧事件、以及新会议时间、地点）。",
+      "scenario": "候选窗口为周三13:00-17:00。日历中存在一条旧事件：标题“合规评估会（旧）”，attendees 恰好包含陈莹、周川和对方项目联络人，且时间为 14:00-15:00（位于窗口内，但时长不够2小时）。因此需要删除旧事件后在同一窗口内安排新的2小时会议。经过查询后，最早共同可用连续2小时为 15:00-17:00（陈莹在15:00后空闲，周川在16:30前空闲，对方也空闲）。地点要求为“会议室D”。",
+      "difference_from_source": "源任务明确规定禁止删除事件；本任务要求在满足严格条件时删除“旧事件”（同主题且含关键参会人且在窗口内），再创建新事件，体现更复杂的状态变更与安全边界判断。",
+      "service_and_tool_plan": "gmail 用于读取改期邮件并发送确认；contacts_search 获取陈莹、周川与对方联系人邮箱；calendar_get_user_events 以候选窗口判断冲突与旧事件是否匹配；calendar_delete_event 用于删除满足条件的旧会议；calendar_create_event 创建新会议；最后 gmail_save_draft 与 gmail_send_message 发出确认。若旧事件不满足条件则不调用删除。",
+      "fixture_generation_plan": "新 fixtures（独立于原实体）：\n- fixtures/gmail/inbox.json：一封来自晨星咨询的改期邮件（主题含“合规评估会”，正文给出候选窗口与地点“会议室D”，并说明旧会议将重排）；再加2条干扰邮件。\n- fixtures/contacts/contacts.json：包含陈莹（合规部门）、周川（风控部门）与对方项目联络人（可能用姓名或部门描述匹配），确保邮箱唯一；另准备若干同名干扰联系人。\n- fixtures/calendar/events.json：至少包含：1）旧事件“合规评估会（旧）”在13:00-17:00内，且attendees恰好包含三方；2）新增事件安排所需的占用/空闲事件，确保最早2小时只能落在15:00-17:00。其他不相关事件需存在以干扰判断（例如同窗口但不包含关键attendees或不同标题）。\n关键字段同原结构，但event_id、attendees、标题与时间全部更换。",
+      "expected_behavior": "读取改期邮件后解析候选窗口、会议时长2小时与地点。通过通讯录获取陈莹、周川与对方项目联络人的邮箱。调用 calendar_get_user_events 确认候选窗口内冲突，并识别是否存在标题与“合规评估会（旧）”匹配的事件且attendees完全包含关键参会人。若满足条件则调用 calendar_delete_event 删除该旧事件；否则跳过删除并仅创建新事件。随后在窗口内选择最早共同可用连续2小时（场景应为15:00-17:00），调用 calendar_create_event 创建新会议，写入地点“会议室D”。最后 gmail_save_draft 生成回复并 gmail_send_message 发送；正文需明确提到：是否删除了旧事件（包含旧事件标题与时间）以及新会议的日期、开始/结束时间与参会人。",
+      "grading_plan": "grader 应检查：1）contacts_search 覆盖陈莹/周川/对方并获得邮箱；2）calendar_get_user_events 至少对三人查询候选窗口日期；3）calendar_delete_event 的调用是否满足“旧事件同主题且含关键attendees且在窗口内”的条件（并且删除的event_id与创建的新会议逻辑一致）；4）calendar_create_event 被调用且时间为最早可行2小时、地点正确、attendees包含三方；5）gmail_save_draft 与 gmail_send_message 均被调用，且邮件正文包含新会议时间、地点以及旧事件处理说明。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T029zh_cross_service_meeting_plus_5",
+      "new_task_name": "多方同步会（人数5且存在碎片化可用时段）",
+      "task_goal": "为一场多方同步会安排2小时会议：根据邮件选择5位参会者，分别查询其日历并从碎片化空闲时段中找出共同可用的最早连续2小时；若存在多个可行时段，按邮件偏好选择（例如优先上午）；创建日历事件后发送确认邮件。",
+      "user_request": "请处理我邮箱里“Helios Systems”发来的多方同步会邀请邮件：\n1）阅读邮件获取会议主题“跨团队里程碑对齐”、时长2小时、偏好策略（优先上午，如上午不行再下午）；\n2）通讯录中查找5位参会人（邮件列出姓名，但没有邮箱）：林澜、邱博、白薇、蒋晨、顾然；\n3）查询这5人在指定日期（2026-03-12，周四）的日程，找出所有人都有空的连续2小时；若上午没有共同可用，则在下午找；\n4）创建包含全部5人的日历事件（地点为“会议室E”，会议主题需与邮件一致）；\n5）给Helios Systems发回确认邮件（正文包含：最终选定时段、5位参会人姓名列表）。",
+      "scenario": "会议偏好：优先上午（09:00-12:00），若上午不存在共同可用连续2小时，则改用下午（13:30-17:30）。日历中碎片化很强：\n- 林澜：上午 09:30-10:30 空闲、11:00-12:00 空闲；下午 14:00-16:00 空闲\n- 邱博：上午 10:00-11:30 空闲；下午 13:30-14:30 忙、15:00-16:30 空闲\n- 白薇：上午 09:00-09:45 忙、10:45-12:00 空闲；下午 14:30-17:30 空闲\n- 蒋晨：上午 09:30-10:15 空闲、11:15-12:00 空闲；下午 13:30-15:30 空闲\n- 顾然：上午 10:00-12:00 空闲；下午 16:00-17:30 空闲\n因此上午共同连续2小时不存在；下午最早共同可用连续2小时为 15:30-17:30（需通过交集计算得到，且必须满足所有人均空闲）。",
+      "difference_from_source": "源任务是2人并且时段较宽松；本任务扩展为5人、可用时段高度碎片化，并加入“上午优先”的选择偏好，导致需要更复杂的连续区间求交与排序。",
+      "service_and_tool_plan": "gmail 读取邀请邮件并确认收件方；contacts_search 获取5位参会人的邮箱；calendar_get_user_events 分别查询5人的日程以求出共同连续2小时并按上午优先策略选择；calendar_create_event 创建会议；gmail_save_draft 与 gmail_send_message 发出确认。",
+      "fixture_generation_plan": "生成新 fixtures：\n- fixtures/gmail/inbox.json：至少1条来自Helios Systems的邀请邮件（包含主题、2小时、日期2026-03-12、上午优先/下午兜底、地点会议室E、参会人姓名列表），外加2条干扰邮件。\n- fixtures/contacts/contacts.json：包含5位姓名（林澜、邱博、白薇、蒋晨、顾然）及若干干扰联系人，邮箱唯一且与其他任务不同。\n- fixtures/calendar/events.json：在2026-03-12的上午与下午分别安排若干占用事件，确保存在下午最早共同连续2小时为15:30-17:30，并且上午不满足2小时连续交集。确保每人的日程都能体现碎片化（多段事件）。\n不要复用源任务中的事件ID、标题、时间戳或邮箱。",
+      "expected_behavior": "先用 gmail_list_messages 定位邀请邮件，再 gmail_get_message 解析会议日期、主题、时长、地点与选择偏好（上午优先）。对5位参会人分别调用 contacts_search 获取邮箱。然后分别对 2026-03-12 调用 calendar_get_user_events 得到各自占用/空闲信息，先在上午偏好区（09:00-12:00）寻找最早共同连续2小时；若不存在则在下午区（13:30-17:30）寻找最早共同连续2小时（场景应为15:30-17:30）。调用 calendar_create_event 创建会议，title与地点严格匹配并attendees包含全部5人。最后调用 gmail_save_draft 生成回复并 gmail_send_message 发送；正文需包含最终选定时段（带日期与开始/结束时间）和5位参会人姓名列表。",
+      "grading_plan": "grader 应检查：1）正确解析并应用“上午优先”的偏好策略；2）对5位参会人均完成 contacts_search（并能形成5个attendees）；3）calendar_get_user_events 至少对5人完成查询；4）calendar_create_event 的时间为偏好规则下的最早可行连续2小时（应为15:30-17:30），且地点/主题正确、attendees数量为5；5）gmail_save_draft 与 gmail_send_message 被调用，回复邮件正文包含最终时段与全部5人姓名列表。"
+    }
+  ]
+}

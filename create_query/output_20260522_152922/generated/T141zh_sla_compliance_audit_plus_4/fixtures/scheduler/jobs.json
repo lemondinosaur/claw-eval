@@ -1,0 +1,125 @@
+[
+  {
+    "job_id": "JOB-1211",
+    "name": "SLA升级触发（打标/升级）",
+    "schedule": "*/10 * * * *",
+    "status": "enabled",
+    "last_run": "2026-05-20T16:50:00Z",
+    "last_status": "success",
+    "description": "根据 SLA 规则的 escalation_after_minutes 计算升级触发点，命中后打上升级标签并触发升级流程",
+    "tags": [
+      "sla",
+      "escalation",
+      "labeling"
+    ],
+    "cron_expression": "*/10 * * * *",
+    "enabled": true,
+    "action": "升级触发/标签打标（参数来自 sla_policy 配置）",
+    "next_run": null,
+    "created_at": "2026-02-02T00:00:00Z",
+    "created_by": "system",
+    "failure_count": 0,
+    "error_message": "",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T16:40:00Z",
+        "status": "success",
+        "duration_s": 55
+      },
+      {
+        "run_at": "2026-05-20T16:30:00Z",
+        "status": "success",
+        "duration_s": 58
+      },
+      {
+        "run_at": "2026-05-20T16:20:00Z",
+        "status": "success",
+        "duration_s": 52
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-1212",
+    "name": "SLA超时告警",
+    "schedule": "*/15 * * * *",
+    "status": "enabled",
+    "last_run": "2026-05-20T16:45:00Z",
+    "last_status": "success",
+    "description": "检查即将超时的工单并发送超时告警（对本问题用于排除通知链路故障）",
+    "tags": [
+      "sla",
+      "alert"
+    ],
+    "cron_expression": "*/15 * * * *",
+    "enabled": true,
+    "action": "超时告警发送（依赖邮件/IM集成）",
+    "next_run": null,
+    "created_at": "2026-02-02T00:00:00Z",
+    "created_by": "system",
+    "failure_count": 0,
+    "error_message": "",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T16:30:00Z",
+        "status": "success",
+        "duration_s": 66
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-1213",
+    "name": "每日巡检（对照干扰）",
+    "schedule": "0 3 * * *",
+    "status": "enabled",
+    "last_run": "2026-05-20T03:00:00Z",
+    "last_status": "failed",
+    "description": "每日巡检健康检查与数据质量汇总（本次用于干扰，不应影响升级逻辑）",
+    "tags": [
+      "health",
+      "daily"
+    ],
+    "cron_expression": "0 3 * * *",
+    "enabled": true,
+    "action": "每日巡检任务",
+    "next_run": null,
+    "created_at": "2026-01-15T00:00:00Z",
+    "created_by": "system",
+    "failure_count": 3,
+    "error_message": "Daily check failed: invalid token",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T03:00:00Z",
+        "status": "failed",
+        "duration_s": 18
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-1214",
+    "name": "队列路由任务",
+    "schedule": "*/5 * * * *",
+    "status": "enabled",
+    "last_run": "2026-05-20T16:45:00Z",
+    "last_status": "success",
+    "description": "工单事件路由与索引同步（用于排除无关故障）",
+    "tags": [
+      "queue",
+      "routing"
+    ],
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "action": "队列路由与同步",
+    "next_run": null,
+    "created_at": "2026-01-15T00:00:00Z",
+    "created_by": "system",
+    "failure_count": 0,
+    "error_message": "",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T16:40:00Z",
+        "status": "success",
+        "duration_s": 44
+      }
+    ]
+  }
+]

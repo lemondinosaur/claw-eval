@@ -1,0 +1,262 @@
+task_id: T035zh_vendor_procurement_plus_1
+task_name: 数据中心扩容供应商卡评
+version: '1.0'
+category: procurement
+difficulty: hard
+tags:
+- general
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T035zh_vendor_procurement_plus_1/fixtures/finance/transactions.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T035zh_vendor_procurement_plus_1/fixtures/kb/articles.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T035zh_vendor_procurement_plus_1/fixtures/inventory/products.json
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/articles
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T035zh_vendor_procurement_plus_1/fixtures/rss/articles.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T035zh_vendor_procurement_plus_1/fixtures/crm/customers.json
+prompt:
+  text: '我们计划进行数据中心“下一季度扩容”的供应商评估与分阶段采购建议（只做评估分析，不提交采购单、不联系供应商）。请基于以下信息：
+
+    1) 库存系统：识别关键服务器型号的到货缺口，至少覆盖2个“低于最低阈值/临界”的服务器型号，并据此估算需要向对应供应商采购的规模与节奏。
+
+    2) RSS市场信息：检索并抽取与关键供应商强相关的新闻，重点识别并解释至少两组“明显矛盾线索”（例如：交付加速/降价 vs 售后收缩/质量抽检不通过；或售后扩编
+    vs 现场响应延迟）。对每组矛盾都要给出“正面证据 vs 负面证据”的对照，并说明对采购决策意味着什么。
+
+    3) CRM合作记录：核对重点供应商的合作状态与备注（至少两家供应商），提取能反映交付/质量/支持能力的矛盾点或需整改事项。
+
+    4) 知识库采购规则：查找评分卡权重、审批阈值与集中度上限（例如单一供应商不超过60%），并明确“预算超过比例需说明”等规则；同时结合服务器选型指南，强调与本题服务器类型相关的兼容性/信创与本地售后支持要求。
+
+    5) 财务预算与历史支出：读取预算与历史交易，重点处理一笔“退货退款导致可用额度口径争议”的交易，说明保守口径与乐观口径下的风险差异，并据此选择更可执行、更合规的分阶段采购策略。
+
+
+    输出要求：
+
+    - 给出“至少2家供应商”的评分卡结论与可比对照（使用知识库权重或等价表达，例如30/25/20/15/10）。
+
+    - 明确列出至少2处矛盾处理解释，并说明如何影响最终决策。
+
+    - 明确给出分阶段采购建议（先小批/试采/并行备选/审批触发条件），并显式声明不会调用finance_report_submit。
+
+
+    注意：不要提交采购单、不要联系供应商、不要提交财务报告。'
+  language: zh
+tools:
+- name: inventory_list_products
+  description: 获取商品库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: inventory_get_product
+  description: 获取单个商品的详细库存信息
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+    required:
+    - product_id
+- name: rss_list_articles
+  description: 获取文章列表
+  input_schema:
+    type: object
+    properties:
+      source:
+        type: string
+        description: 按来源筛选
+      category:
+        type: string
+        description: 按类别筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章完整内容
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: crm_list_customers
+  description: 获取CRM客户列表，可按状态、等级、行业筛选
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选：active, inactive, churned
+      tier:
+        type: string
+        description: 客户等级筛选：vip, standard
+      industry:
+        type: string
+        description: 按行业筛选
+    required: []
+- name: crm_get_customer
+  description: 获取单个客户的完整详细信息
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: finance_list_transactions
+  description: 获取费用交易记录列表
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 开始日期 (YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 结束日期 (YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取单笔交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: finance_report_submit
+  description: 提交财务报告
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 报告标题
+      content:
+        type: string
+        description: 报告内容
+      total_amount:
+        type: number
+        description: 总金额
+      report_type:
+        type: string
+        description: 报告类型：expense, procurement, budget
+    required:
+    - title
+    - content
+tool_endpoints:
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: finance_report_submit
+  url: http://localhost:9104/finance/report/submit
+  method: POST
+sandbox_files:
+- fixtures/inventory/products.json
+- fixtures/rss/articles.json
+- fixtures/crm/customers.json
+- fixtures/kb/articles.json
+- fixtures/finance/transactions.json
+environment:
+  timeout_seconds: 900
+  max_turns: 40

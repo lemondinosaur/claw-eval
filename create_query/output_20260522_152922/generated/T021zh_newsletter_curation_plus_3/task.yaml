@@ -1,0 +1,105 @@
+task_id: T021zh_newsletter_curation_plus_3
+task_name: 产品经理AI白皮书导读
+version: '1.0'
+category: content
+difficulty: easy
+tags:
+- general
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T021zh_newsletter_curation_plus_3/fixtures/rss/articles.json
+prompt:
+  text: '请从RSS里挑选更适合产品经理快速理解与产品落地的AI内容，整理成《产品经理AI白皮书导读》newsletter并发布。Newsletter需要：
+
+    1）标题；
+
+    2）导读（强调如何把技术变成产品决策：面向用户价值、取舍与验证）；
+
+    3）精选要点（至少7条；每条都必须包含4要素：用户价值、关键能力/机制、落地建议、潜在风险）；
+
+    4）包含一个“场景优先级建议”列表（至少5个场景，并按从易到难/从短期到长期排序，同时说明为什么更易/更难）；
+
+    5）对两篇“技术很深但几乎没有产品化路径”的文章分别给出取舍理由与替代方案建议（如果要采用，需要补齐哪些数据/指标/闭环与合规要点；或用哪些更偏闭环指标的文章替代）。
+
+    筛选阶段需要识别“产品化缺口”（例如缺少端到端流程、监控指标、用户反馈闭环、成本/合规可落地性等）。最终发布的newsletter不得包含与本次产品目标无关的生活/娱乐/体育/健康等干扰内容。'
+  language: zh
+tools:
+- name: rss_list_feeds
+  description: 获取所有RSS订阅源
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: rss_list_articles
+  description: 获取文章列表
+  input_schema:
+    type: object
+    properties:
+      source:
+        type: string
+        description: 按来源筛选
+      category:
+        type: string
+        description: 按类别筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章完整内容
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: rss_publish
+  description: 发布Newsletter
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: Newsletter标题
+      content:
+        type: string
+        description: Newsletter内容
+      recipients:
+        type: array
+        items:
+          type: string
+        description: 接收者列表
+    required:
+    - title
+    - content
+tool_endpoints:
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: rss_publish
+  url: http://localhost:9109/rss/publish
+  method: POST
+sandbox_files:
+- fixtures/rss/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

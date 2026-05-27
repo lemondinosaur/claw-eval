@@ -1,0 +1,88 @@
+[
+  {
+    "event_id": "evt_772",
+    "title": "客户运营周会（关键字）",
+    "start_time": "2026-04-03T09:30:00+08:00",
+    "end_time": "2026-04-03T10:30:00+08:00",
+    "location": "1号会议室",
+    "organizer": "陈思",
+    "attendees": [
+      "陈思",
+      "林哲",
+      "苏然"
+    ],
+    "description": "本周客户运营对齐，关联纪要: NOTE-A1",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_773",
+    "title": "产品增长周会（关键字）",
+    "start_time": "2026-04-09T15:00:00+08:00",
+    "end_time": "2026-04-09T16:00:00+08:00",
+    "location": "线上会议",
+    "organizer": "林哲",
+    "attendees": [
+      "林哲",
+      "周航",
+      "陈思"
+    ],
+    "description": "增长实验复盘，关联纪要: NOTE-B1",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_774",
+    "title": "晨会质量检查",
+    "start_time": "2026-04-04T09:00:00+08:00",
+    "end_time": "2026-04-04T09:20:00+08:00",
+    "location": "走廊白板区",
+    "organizer": "项目助理",
+    "attendees": [
+      "项目助理",
+      "王澄"
+    ],
+    "description": "质量例行检查，无纪要关联",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_775",
+    "title": "安全培训（必修）",
+    "start_time": "2026-04-06T13:30:00+08:00",
+    "end_time": "2026-04-06T14:30:00+08:00",
+    "location": "培训室B",
+    "organizer": "安全团队",
+    "attendees": [
+      "安全团队",
+      "叶乔"
+    ],
+    "description": "公司安全培训，无纪要关联",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_776",
+    "title": "跨部门对齐会",
+    "start_time": "2026-04-07T10:00:00+08:00",
+    "end_time": "2026-04-07T11:00:00+08:00",
+    "location": "3号会议室",
+    "organizer": "张晟",
+    "attendees": [
+      "张晟",
+      "赵珂"
+    ],
+    "description": "跨团队业务对齐，无纪要关联",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_777",
+    "title": "周报收尾同步",
+    "start_time": "2026-04-08T16:20:00+08:00",
+    "end_time": "2026-04-08T16:50:00+08:00",
+    "location": "研发区",
+    "organizer": "赵珂",
+    "attendees": [
+      "赵珂",
+      "叶乔"
+    ],
+    "description": "周报收尾，无纪要关联",
+    "status": "confirmed"
+  }
+]

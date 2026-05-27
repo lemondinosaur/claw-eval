@@ -1,0 +1,99 @@
+[
+  {
+    "customer_id": "CUS-901",
+    "name": "云栖制造",
+    "contact_person": "陈总",
+    "email": "chen@yunqi-manufacture.cn",
+    "phone": "13902113301",
+    "industry": "制造",
+    "tier": "vip",
+    "annual_revenue": 6400000,
+    "last_contact_date": "2026-04-18",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-901",
+        "products": [
+          "SKU-110",
+          "SKU-210",
+          "SKU-310"
+        ],
+        "total_price": 238000,
+        "date": "2026-04-07"
+      }
+    ],
+    "notes": "产线合作客户"
+  },
+  {
+    "customer_id": "CUS-902",
+    "name": "极光零售",
+    "contact_person": "赵经理",
+    "email": "zhao@jiguang-retail.com",
+    "phone": "13902113302",
+    "industry": "零售",
+    "tier": "standard",
+    "annual_revenue": 980000,
+    "last_contact_date": "2026-03-28",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-902",
+        "products": [
+          "SKU-120",
+          "SKU-220"
+        ],
+        "total_price": 124000,
+        "date": "2026-03-25"
+      }
+    ],
+    "notes": "门店扩张"
+  },
+  {
+    "customer_id": "CUS-903",
+    "name": "澜桥科技",
+    "contact_person": "孙总监",
+    "email": "sun@lanqiao-tech.cn",
+    "phone": "13902113303",
+    "industry": "科技",
+    "tier": "vip",
+    "annual_revenue": 2700000,
+    "last_contact_date": "2026-04-22",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-903",
+        "products": [
+          "SKU-110",
+          "SKU-230",
+          "SKU-330"
+        ],
+        "total_price": 191000,
+        "date": "2026-04-15"
+      }
+    ],
+    "notes": "年度续费与升级"
+  },
+  {
+    "customer_id": "CUS-904",
+    "name": "海星物流",
+    "contact_person": "周主管",
+    "email": "zhou@haixing-logistics.com",
+    "phone": "13902113304",
+    "industry": "物流",
+    "tier": "standard",
+    "annual_revenue": 610000,
+    "last_contact_date": "2026-03-19",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-904",
+        "products": [
+          "SKU-140"
+        ],
+        "total_price": 42000,
+        "date": "2026-03-12"
+      }
+    ],
+    "notes": "单项采购"
+  }
+]

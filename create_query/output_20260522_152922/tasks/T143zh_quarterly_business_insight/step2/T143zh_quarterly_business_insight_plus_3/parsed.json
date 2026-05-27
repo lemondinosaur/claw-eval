@@ -1,0 +1,421 @@
+{
+  "task_id": "T143zh_quarterly_business_insight_plus_3",
+  "task_name": "存量续费健康度与降级预警",
+  "prompt_text": "Q1已结束，请基于Q1数据生成一份“存量续费健康度与降级预警”报告：\n1）从财务系统按客户汇总Q1每月订阅金额，识别是否出现连续下滑或从高档变低档的迹象（可用交易amount变化或description/type中的线索体现）；\n2）查看CRM中客户的产品层级/合同条款（如是否从高级转为基础、是否存在降级条款、合同剩余天数等），并对照财务迹象；\n3）从RSS中提取与“价格策略/产品迭代/行业采购偏好变化”相关的动态，解释为何会触发降级风险，并把外部趋势与具体客户/条款对应起来；\n4）输出：\n- 续费健康度分层（健康/需关注/高风险）并列出每一档包含哪些客户；\n- 针对“高风险”客户给出Q2保续动作3项（含执行顺序）；\n- 至少解释一个“财务下滑但CRM仍显示健康”的边界情况，说明你的判定依据与最终结论。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-210",
+        "name": "北纬数据科技",
+        "tier": "vip",
+        "status": "active",
+        "industry": "数据服务",
+        "annual_revenue": 1240000,
+        "contract_end": "2026-07-20",
+        "notes": "目前为企业高级版；合同补充条款注明：若价格调整则可在不降级前提下置换为同级套餐。续费窗口临近但未触发降级条款。",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-211",
+        "name": "星河制造集团",
+        "tier": "standard",
+        "status": "active",
+        "industry": "工业制造",
+        "annual_revenue": 520000,
+        "contract_end": "2026-05-05",
+        "notes": "合同含“层级下调触发条款”：若连续两个月低于最低消费门槛，将自动进入降级流程；剩余天数较短，需重点跟进。",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-212",
+        "name": "云栈零售科技",
+        "tier": "standard",
+        "status": "active",
+        "industry": "零售电商",
+        "annual_revenue": 430000,
+        "contract_end": "2026-08-10",
+        "notes": "产品为标准版；合同显示“价格冻结至季度末”，但若Q2启用新定价则需重新评估；目前标注续费中等风险。",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-213",
+        "name": "金桥物流有限公司",
+        "tier": "vip",
+        "status": "active",
+        "industry": "物流运输",
+        "annual_revenue": 860000,
+        "contract_end": "2026-10-30",
+        "notes": "高级版在用；条款写明：若发生计费周期调整（如季度内延迟开票），系统会保持合同健康状态，降级仅在“开票后两周仍未补缴”时触发。",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-214",
+        "name": "梧桐教育培训",
+        "tier": "basic",
+        "status": "active",
+        "industry": "教育培训",
+        "annual_revenue": 240000,
+        "contract_end": "2026-04-18",
+        "notes": "已在2026年2月由高级版转为基础版；存在降级后的“价格更优但功能受限”条款。若Q2不续购增值包，续费大概率按基础版执行。",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-215",
+        "name": "华讯传媒广告",
+        "tier": "standard",
+        "status": "active",
+        "industry": "传媒广告",
+        "annual_revenue": 610000,
+        "contract_end": "2026-06-28",
+        "notes": "合同写明：如行业采用AI工作流导致替代方案采购上升，需在续费前完成“可替代性评估”；否则进入降级讨论。当前CRM标记为将进入评估阶段。",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-216",
+        "name": "澄海政府协同平台",
+        "tier": "standard",
+        "status": "active",
+        "industry": "政府机关",
+        "annual_revenue": 310000,
+        "contract_end": "2026-09-02",
+        "notes": "条款注明：预算重新分配期间，合同将保持active但不触发降级；若Q2预算批准延迟，将出现计费推后并在系统中短期呈现“健康”。",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-217",
+        "name": "融通云企服务",
+        "tier": "basic",
+        "status": "active",
+        "industry": "企业服务",
+        "annual_revenue": 180000,
+        "contract_end": "2026-03-30",
+        "notes": "合同即将到期；续费条款要求按季度签署且存在“连续低消费自动下调”条款；若Q1低于预期，将直接进入降级谈判。",
+        "contact_person": ""
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2101",
+        "customer_id": "CUS-210",
+        "amount": 98000,
+        "type": "subscription",
+        "date": "2026-01-18",
+        "status": "completed",
+        "description": "1月订阅费（企业高级版）"
+      },
+      {
+        "transaction_id": "TXN-2102",
+        "customer_id": "CUS-210",
+        "amount": 102000,
+        "type": "subscription",
+        "date": "2026-02-18",
+        "status": "completed",
+        "description": "2月订阅费（企业高级版）+增值模块"
+      },
+      {
+        "transaction_id": "TXN-2103",
+        "customer_id": "CUS-210",
+        "amount": 101000,
+        "type": "subscription",
+        "date": "2026-03-18",
+        "status": "completed",
+        "description": "3月订阅费（保持高级版；未触发降级）"
+      },
+      {
+        "transaction_id": "TXN-2111",
+        "customer_id": "CUS-211",
+        "amount": 56000,
+        "type": "subscription",
+        "date": "2026-01-09",
+        "status": "completed",
+        "description": "1月订阅费（标准版）"
+      },
+      {
+        "transaction_id": "TXN-2112",
+        "customer_id": "CUS-211",
+        "amount": 48000,
+        "type": "subscription",
+        "date": "2026-02-09",
+        "status": "completed",
+        "description": "2月订阅费（连续下滑；接近最低消费门槛）"
+      },
+      {
+        "transaction_id": "TXN-2113",
+        "customer_id": "CUS-211",
+        "amount": 41000,
+        "type": "subscription",
+        "date": "2026-03-09",
+        "status": "completed",
+        "description": "3月订阅费（触发“低消费”预警；存在降级准备）"
+      },
+      {
+        "transaction_id": "TXN-2121",
+        "customer_id": "CUS-212",
+        "amount": 52000,
+        "type": "subscription",
+        "date": "2026-01-26",
+        "status": "completed",
+        "description": "1月订阅费（标准版）"
+      },
+      {
+        "transaction_id": "TXN-2122",
+        "customer_id": "CUS-212",
+        "amount": 51500,
+        "type": "subscription",
+        "date": "2026-02-26",
+        "status": "completed",
+        "description": "2月订阅费（基本持平；等待新定价落地）"
+      },
+      {
+        "transaction_id": "TXN-2123",
+        "customer_id": "CUS-212",
+        "amount": 39500,
+        "type": "subscription",
+        "date": "2026-03-26",
+        "status": "completed",
+        "description": "3月订阅费（价格调整后金额下降；疑似迁移到更基础套餐）"
+      },
+      {
+        "transaction_id": "TXN-2131",
+        "customer_id": "CUS-213",
+        "amount": 74000,
+        "type": "subscription",
+        "date": "2026-01-15",
+        "status": "completed",
+        "description": "1月订阅费（高级版）"
+      },
+      {
+        "transaction_id": "TXN-2132",
+        "customer_id": "CUS-213",
+        "amount": 74000,
+        "type": "subscription",
+        "date": "2026-02-15",
+        "status": "completed",
+        "description": "2月订阅费（高级版）"
+      },
+      {
+        "transaction_id": "TXN-2133",
+        "customer_id": "CUS-213",
+        "amount": 52000,
+        "type": "subscription",
+        "date": "2026-03-15",
+        "status": "completed",
+        "description": "3月订阅费（计费延迟开票：金额暂时偏低但合同仍健康）"
+      },
+      {
+        "transaction_id": "TXN-2141",
+        "customer_id": "CUS-214",
+        "amount": 26000,
+        "type": "subscription",
+        "date": "2026-01-08",
+        "status": "completed",
+        "description": "1月订阅费（基础版；原高级已下调）"
+      },
+      {
+        "transaction_id": "TXN-2142",
+        "customer_id": "CUS-214",
+        "amount": 23500,
+        "type": "subscription",
+        "date": "2026-02-08",
+        "status": "completed",
+        "description": "2月订阅费（继续走基础版；用户侧预算受限）"
+      },
+      {
+        "transaction_id": "TXN-2143",
+        "customer_id": "CUS-214",
+        "amount": 21000,
+        "type": "subscription",
+        "date": "2026-03-08",
+        "status": "completed",
+        "description": "3月订阅费（降级后使用范围缩小）"
+      },
+      {
+        "transaction_id": "TXN-2151",
+        "customer_id": "CUS-215",
+        "amount": 69000,
+        "type": "subscription",
+        "date": "2026-01-21",
+        "status": "completed",
+        "description": "1月订阅费（标准版）"
+      },
+      {
+        "transaction_id": "TXN-2152",
+        "customer_id": "CUS-215",
+        "amount": 65000,
+        "type": "subscription",
+        "date": "2026-02-21",
+        "status": "completed",
+        "description": "2月订阅费（AI替代评估中；预算趋紧）"
+      },
+      {
+        "transaction_id": "TXN-2153",
+        "customer_id": "CUS-215",
+        "amount": 52000,
+        "type": "subscription",
+        "date": "2026-03-21",
+        "status": "completed",
+        "description": "3月订阅费（金额下降；存在降级讨论）"
+      },
+      {
+        "transaction_id": "TXN-2161",
+        "customer_id": "CUS-216",
+        "amount": 36000,
+        "type": "subscription",
+        "date": "2026-01-12",
+        "status": "completed",
+        "description": "1月订阅费（政府协同；预算拨付正常）"
+      },
+      {
+        "transaction_id": "TXN-2162",
+        "customer_id": "CUS-216",
+        "amount": 36000,
+        "type": "subscription",
+        "date": "2026-02-12",
+        "status": "completed",
+        "description": "2月订阅费（预算调整中；仍显示健康）"
+      },
+      {
+        "transaction_id": "TXN-2163",
+        "customer_id": "CUS-216",
+        "amount": 27000,
+        "type": "subscription",
+        "date": "2026-03-12",
+        "status": "completed",
+        "description": "3月订阅费（预算获批延迟；计费推后导致金额偏低）"
+      },
+      {
+        "transaction_id": "TXN-2171",
+        "customer_id": "CUS-217",
+        "amount": 21000,
+        "type": "subscription",
+        "date": "2026-01-27",
+        "status": "completed",
+        "description": "1月订阅费（基础版）"
+      },
+      {
+        "transaction_id": "TXN-2172",
+        "customer_id": "CUS-217",
+        "amount": 19500,
+        "type": "subscription",
+        "date": "2026-02-27",
+        "status": "completed",
+        "description": "2月订阅费（连续低消费；自动下调风险）"
+      },
+      {
+        "transaction_id": "TXN-2173",
+        "customer_id": "CUS-217",
+        "amount": 14000,
+        "type": "subscription",
+        "date": "2026-03-27",
+        "status": "completed",
+        "description": "3月订阅费（断崖式下降；降级谈判前兆）"
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-21001",
+        "title": "2026年Q1订阅价格策略下调：企业纷纷用更低档替代",
+        "summary": "多地SaaS厂商在Q1推出价格下调与打包折扣，促使部分客户从高级版迁移到基础或中档套餐，续费时更注重成本可控。",
+        "tags": [
+          "价格策略",
+          "订阅",
+          "迁移"
+        ],
+        "url": "https://insights.example.com/21001",
+        "content": "多地SaaS厂商在Q1推出价格下调与打包折扣，促使部分客户从高级版迁移到基础或中档套餐，续费时更注重成本可控。",
+        "category": "商业策略, 订阅",
+        "source": "商业洞察周报",
+        "published_at": "2026-03-26T00:00:00Z",
+        "word_count": 44
+      },
+      {
+        "article_id": "RSS-21002",
+        "title": "制造业IT预算收缩：用“最低消费门槛”约束供应商",
+        "summary": "工业制造企业普遍收紧IT支出，并通过最低消费门槛或分阶段开票降低风险敞口，导致季度内金额波动与降级讨论增多。",
+        "tags": [
+          "制造",
+          "预算",
+          "最低消费门槛"
+        ],
+        "url": "https://insights.example.com/21002",
+        "content": "工业制造企业普遍收紧IT支出，并通过最低消费门槛或分阶段开票降低风险敞口，导致季度内金额波动与降级讨论增多。",
+        "category": "行业动态, 预算",
+        "source": "行业分析快讯",
+        "published_at": "2026-03-14T00:00:00Z",
+        "word_count": 41
+      },
+      {
+        "article_id": "RSS-21003",
+        "title": "零售电商采购偏好转向：更重视“短周期ROI”而非高阶功能",
+        "summary": "零售电商在Q1更偏好短周期ROI方案，高阶功能被视为可选项。若合同未提供同级置换条款，续费时降档概率上升。",
+        "tags": [
+          "零售电商",
+          "采购偏好",
+          "ROI"
+        ],
+        "url": "https://insights.example.com/21003",
+        "content": "零售电商在Q1更偏好短周期ROI方案，高阶功能被视为可选项。若合同未提供同级置换条款，续费时降档概率上升。",
+        "category": "电商, 采购",
+        "source": "市场观察",
+        "published_at": "2026-03-17T00:00:00Z",
+        "word_count": 38
+      },
+      {
+        "article_id": "RSS-21004",
+        "title": "物流行业计费周期调整增多：季度内延迟开票更常见",
+        "summary": "物流企业在Q1出现较多计费周期调整与延迟开票现象，合同层面可能短期保持健康，但财务金额会呈现阶段性偏低。",
+        "tags": [
+          "物流",
+          "计费延迟",
+          "开票调整"
+        ],
+        "url": "https://insights.example.com/21004",
+        "content": "物流企业在Q1出现较多计费周期调整与延迟开票现象，合同层面可能短期保持健康，但财务金额会呈现阶段性偏低。",
+        "category": "运营, 计费",
+        "source": "供应链与运营简报",
+        "published_at": "2026-03-22T00:00:00Z",
+        "word_count": 40
+      },
+      {
+        "article_id": "RSS-21005",
+        "title": "政府数字化预算再分配：SaaS项目暂停或缩减，续费仍可能保持active",
+        "summary": "政府部门在预算再分配阶段暂停部分SaaS或缩减规模，系统上常表现为合同仍处于active但后续会进入重新谈判与降级预案。",
+        "tags": [
+          "政府",
+          "预算",
+          "项目缩减"
+        ],
+        "url": "https://insights.example.com/21005",
+        "content": "政府部门在预算再分配阶段暂停部分SaaS或缩减规模，系统上常表现为合同仍处于active但后续会进入重新谈判与降级预案。",
+        "category": "政务, 预算",
+        "source": "公共事务观察",
+        "published_at": "2026-03-19T00:00:00Z",
+        "word_count": 37
+      },
+      {
+        "article_id": "RSS-21006",
+        "title": "传媒行业AI工作流扩散：广告主把预算转向替代工具",
+        "summary": "AI内容生成推动传媒行业降本增效，广告主更愿意评估替代工具并要求供应商提供更强的成本论证；若评估未过将引发降级。",
+        "tags": [
+          "传媒",
+          "AI",
+          "替代工具"
+        ],
+        "url": "https://insights.example.com/21006",
+        "content": "AI内容生成推动传媒行业降本增效，广告主更愿意评估替代工具并要求供应商提供更强的成本论证；若评估未过将引发降级。",
+        "category": "传媒, AI",
+        "source": "行业市场周刊",
+        "published_at": "2026-03-21T00:00:00Z",
+        "word_count": 42
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在保留多服务任务结构下，新题聚焦Q1存量续费健康度分层与降级预警，并加入“财务下滑但CRM仍显示健康”的冲突边界客户与Q2保续动作顺序输出要求。",
+    "fixture_design_summary": [
+      "finance覆盖Q1三个月、8个客户，每个客户至少3笔订阅交易；包含连续下滑、断崖式下降、从高级迹象降到基础/更低档、以及“计费延迟/推后导致金额偏低”的线索。",
+      "crm为8个客户提供不同合同剩余天数、产品层级（vip/standard/basic）与降级/计费延迟/评估阶段等条款说明，用于与finance迹象对照并处理冲突。",
+      "rss提供6篇文章，主题覆盖价格下调与迁移、最低消费门槛预算收缩、采购偏好转向、物流计费延迟、政府预算再分配、传媒AI替代评估，用于对降级风险做行业归因。"
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "product_id": "EQ-210",
+    "name": "人体工学椅 A（ERG-CHAIR-A）",
+    "category": "办公家具",
+    "current_stock": 4,
+    "status": "low_stock",
+    "unit_price": 699.0,
+    "notes": "紧张：需要根据low_stock规则准备替代型号并登记。"
+  },
+  {
+    "product_id": "EQ-211",
+    "name": "人体工学椅 B（ERG-CHAIR-B）",
+    "category": "办公家具",
+    "current_stock": 9,
+    "status": "normal",
+    "unit_price": 649.0,
+    "notes": "替代备选：作为人体工学椅A紧张时的临时替换型号。"
+  },
+  {
+    "product_id": "EQ-310",
+    "name": "办公笔记本（默认前端/通用）",
+    "category": "办公电脑",
+    "current_stock": 7,
+    "status": "normal",
+    "unit_price": 10999.0,
+    "notes": "配置为默认标准化型号"
+  },
+  {
+    "product_id": "EQ-311",
+    "name": "办公笔记本（增长运营/轻量）",
+    "category": "办公电脑",
+    "current_stock": 6,
+    "status": "normal",
+    "unit_price": 8999.0,
+    "notes": ""
+  },
+  {
+    "product_id": "EQ-320",
+    "name": "USB扩展外设（扩展坞）",
+    "category": "外设",
+    "current_stock": 18,
+    "status": "normal",
+    "unit_price": 189.0,
+    "notes": "用于增长与运营部额外外设需求"
+  },
+  {
+    "product_id": "EQ-410",
+    "name": "标准显示器 24英寸",
+    "category": "外设",
+    "current_stock": 22,
+    "status": "normal",
+    "unit_price": 249.0,
+    "notes": ""
+  }
+]

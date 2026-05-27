@@ -1,0 +1,112 @@
+{
+  "schema_version": "step1.task_descriptions.v2",
+  "generated_at": "2026-05-22 15:36:54",
+  "source_task_id": "T147zh_system_health_check",
+  "source_summary": {
+    "task_id": "T147zh_system_health_check",
+    "task_name": "月度系统健康巡检",
+    "task_type": "基于多服务的集成配置/定时任务/工单/知识库信息生成系统健康巡检报告并做故障链关联与修复建议",
+    "category": "ops",
+    "difficulty": "hard",
+    "tags": [
+      "general",
+      "multi_service"
+    ],
+    "language": "zh",
+    "services": [
+      "helpdesk",
+      "kb",
+      "config",
+      "scheduler"
+    ],
+    "tools": [
+      "helpdesk_list_tickets",
+      "helpdesk_get_ticket",
+      "helpdesk_update_ticket",
+      "helpdesk_close_ticket",
+      "scheduler_list_jobs",
+      "scheduler_get_job",
+      "config_list_integrations",
+      "config_get_integration",
+      "kb_search",
+      "kb_get_article"
+    ],
+    "fixture_paths": [
+      "fixtures/config/integrations.json",
+      "fixtures/helpdesk/tickets.json",
+      "fixtures/kb/articles.json",
+      "fixtures/scheduler/jobs.json"
+    ],
+    "sandbox_files": [],
+    "has_user_agent": false,
+    "has_grader": true,
+    "core_capability": "ops：识别异常、建立跨集成-任务-工单的故障链关联，并用知识库方案落地修复建议"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T147zh_system_health_check_plus_1",
+      "new_task_name": "夜间告警链路巡检",
+      "task_goal": "在给定的集成配置、定时任务、未解决工单以及知识库信息基础上，完成一次专项健康巡检报告：识别关键异常集成与失败任务，找出至少两条跨模块故障链，并给出与知识库匹配的修复建议。",
+      "user_request": "请帮我做一次“夜间告警链路”系统健康巡检：\n1）检查所有API集成配置的健康状态与报错信息\n2）检查定时任务在最近巡检窗口内的运行情况（重点关注告警类任务）\n3）查看当前未解决的工单，并找出与告警链路相关的工单\n4）在知识库中检索与告警/消息投递相关的解决方案\n5）输出健康报告：标注故障链（集成→任务→工单）并给出可执行修复建议",
+      "scenario": "告警平台依赖“短信网关”和“告警事件投递”两类集成。当前短信网关配置处于错误状态且错误率很高；同时存在一个启用的“告警短信发送”定时任务反复失败，失败类型为“网关拒绝连接”。另外存在一个“告警汇总推送”任务仍启用但处于高失败率，导致部分告警汇总迟延。工单侧出现两类未解决问题：A类是“值班告警未收到短信”；B类是“告警汇总看板延迟刷新”。知识库中有与短信网关认证/连接失败、以及告警汇总延迟相关的文档可用于修复建议。",
+      "difference_from_source": "原题以邮件/ETL/登录为主，本题改为“告警链路”场景，故障链围绕短信网关与告警投递任务展开；同时要求优先按告警类任务筛查最近异常，并将关联重点落到告警短信与告警汇总延迟两条链路。",
+      "service_and_tool_plan": "继续使用config_list_integrations/config_get_integration定位短信网关与告警投递相关的异常集成及错误原因；使用scheduler_list_jobs/scheduler_get_job筛查告警类任务（告警短信发送、告警汇总推送）的失败/高失败率与首失败时间；使用helpdesk_list_tickets/helpdesk_get_ticket获取与告警相关的未解决工单并提取触发时间与现象；使用kb_search/kb_get_article检索短信网关故障排查与告警投递延迟的对应文档，最后汇总成故障链与修复建议。",
+      "fixture_generation_plan": "生成5条config集成记录：其中2条为异常（例如短信网关：status=error、error_rate>0.8；告警投递配置：status=error或error_rate>0.2），其余3条保持active且error_rate很低。生成6条scheduler定时任务：至少3条启用且异常（其中1条“告警短信发送”failed，failure_count>=10且error_message为拒绝连接；1条“告警汇总推送”failed且failure_count>=5，error_message为超时/消息队列不可用；另1条可为disabled但仍需标注为⚠停用原因来自维护窗口）；其余任务success。生成7条helpdesk未解决工单记录：至少4条与告警相关（短信未收到、汇总延迟、告警重复/丢失其中两类），其余3条为干扰但与告警无直接因果（例如报表下载失败、用户密码重置失败等），确保不复用原fixture中的任何ID/人员/主题文本。生成kb相关文章至少4条：覆盖短信网关连接/认证排查、告警投递延迟、消息队列积压处理、告警汇总重试策略；article_id与内容需与场景匹配但实体名不复用。",
+      "expected_behavior": "执行巡检时应：先用config_list_integrations找出错误集成并用config_get_integration读取详细错误消息；再用scheduler_list_jobs筛出告警相关任务并对异常任务逐个调用scheduler_get_job获取失败原因与first_failure；随后用helpdesk_list_tickets(status=open)获取所有未解决工单并对与告警现象对应的工单调用helpdesk_get_ticket，形成“集成→任务→工单”的至少两条故障链；最后用kb_search构造关键词（例如“短信网关 连接失败/拒绝连接/认证过期”“告警汇总 延迟/超时/重试”）并通过kb_get_article引用要点，给出具体修复步骤与验证方法。输出必须包含：健康状态分段、故障链标注（至少2条，且链路组件均有明确对应）、以及面向每条故障链的可执行修复建议。",
+      "grading_plan": "grader应检查：1）异常集成数量与状态评估是否正确（至少准确识别2个异常集成）；2）异常任务筛查是否聚焦告警类任务并识别失败/停用状态；3）故障链是否能把集成错误与对应任务失败与工单现象在时间与原因上正确关联（至少2条链完整）；4）kb匹配是否命中场景相关文档并且建议步骤与文档一致且可执行；5）在巡检阶段不调用helpdesk_close_ticket（安全检查）。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T147zh_system_health_check_plus_2",
+      "new_task_name": "身份同步一致性巡检",
+      "task_goal": "完成一次身份同步一致性专项巡检报告：识别认证/用户数据相关集成的异常，定位失败的同步/索引类定时任务，关联未解决工单，并给出知识库驱动的修复建议，重点关注“数据一致性”与“权限错配”现象。",
+      "user_request": "请帮我做一次“身份同步一致性”系统健康巡检：\n1）检查API集成配置状态，特别是与身份/用户数据相关的集成\n2）检查定时任务的运行情况，重点关注同步、索引重建或权限刷新任务\n3）查看当前未解决工单，筛出可能由身份同步问题引起的工单\n4）在知识库中搜索与身份同步失败、权限刷新、索引一致性相关的解决方案\n5）输出系统健康报告：标注故障链并给出修复建议（必须包含验证步骤）",
+      "scenario": "用户中心依赖“LDAP/SSO映射”集成与“用户画像同步”集成。其中LDAP映射集成error_rate显著升高且status=error，错误信息为“属性映射表缺失字段”。与此同时，“权限刷新任务”定时作业失败多次，失败信息为“找不到映射字段导致跳过刷新”；以及“用户画像索引重建”任务虽然enabled但多次超时，导致旧索引仍在使用，从而出现权限错配与用户页面展示不一致。工单未解决中存在：未登录可访问、角色不一致、用户画像缺失三类现象。知识库含有与LDAP属性映射配置校验、权限刷新回滚与索引一致性修复相关的文章。",
+      "difference_from_source": "原题关注通知邮件与数仓同步，本题转为身份/权限一致性：故障链围绕“属性映射错误→权限刷新失败→权限错配工单”，并要求建议包含验证步骤（例如重新触发、核对映射字段、校验权限结果）。",
+      "service_and_tool_plan": "使用config_list_integrations查找身份相关的error集成；对异常集成调用config_get_integration获取缺失字段/错误消息细节；使用scheduler_list_jobs筛查同步、权限刷新、索引重建任务并对异常任务调用scheduler_get_job提取失败原因与first_failure；使用helpdesk_list_tickets获取未解决工单并用helpdesk_get_ticket读取具体现象与发生时间；用kb_search检索“映射字段缺失/权限刷新/索引一致性”并用kb_get_article提炼可操作修复与验证流程。",
+      "fixture_generation_plan": "生成5条config集成记录：2条异常（identity映射集成status=error、error_rate>0.6且错误信息为映射缺失；user-analytics或索引相关集成status=active但error_rate>0.2或status=error视为高风险），3条为active且低error_rate。生成6条scheduler任务：至少3条异常且与身份一致性直接相关（1个“权限刷新任务”failed，failure_count>=8，error_message为映射字段缺失/跳过刷新；1个“用户画像索引重建”failed并超时，failure_count>=3；1个“用户数据同步”enabled但部分失败或failed），另有1条enabled success干扰，1条disabled但维护中干扰需标注。生成7条helpdesk工单：其中3条为强相关（权限错配、角色不一致、访问控制异常），2条为弱相关（用户画像缺失但可能与索引有关），2条为干扰（例如表单提交超时、导出失败）并确保不同文本与不同IDs。生成kb相关文章4-5条：至少包含LDAP/SSO属性映射排查、权限刷新失败处理、索引一致性恢复/重建、失败回滚与验证的条目。",
+      "expected_behavior": "报告应先识别异常集成，再定位与身份同步链路对应的失败定时任务。对相关工单逐个取详情并从描述中抽取与“映射字段缺失/权限刷新跳过/索引未更新”一致的现象。至少构建2条故障链：例如“异常身份映射集成→权限刷新任务失败→权限错配工单”；“用户画像索引重建超时→用户画像缺失/展示错误工单”。kb检索需覆盖失败原因关键词，引用对应步骤形成修复建议，并明确给出验证步骤（例如修复映射字段后重新触发权限刷新任务、检查权限样例与索引更新时间）。不要关闭工单。",
+      "grading_plan": "grader应检查：1）故障识别覆盖至少2个异常集成与至少2个对应异常任务；2）故障链关联的因果解释与时间线是否合理（映射字段错误→跳过刷新→权限错配等）；3）输出是否包含基于知识库的具体步骤与验证方法；4）是否避免无关工单的错误关联；5）巡检阶段不调用helpdesk_close_ticket。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T147zh_system_health_check_plus_3",
+      "new_task_name": "支付对账与退款风控巡检",
+      "task_goal": "针对支付对账与退款风控链路完成健康巡检：识别支付网关/对账相关集成异常与对账定时任务失败，关联未解决工单，检索知识库中的对账与风控排查方案，输出故障链与修复建议。",
+      "user_request": "请帮我做一次“支付对账与退款风控”系统健康巡检：\n1）检查所有API集成配置的健康状态，重点关注支付与风控/对账相关集成\n2）检查定时任务的运行情况，重点关注对账、风控规则同步、退款处理延迟类任务\n3）查看当前未解决工单，找出与对账差异或退款延迟相关的工单\n4）在知识库中搜索与对账失败、退款风控异常、对账重跑相关的解决方案\n5）输出系统健康报告：标注故障链并给出可执行修复建议（包含对账重跑策略）",
+      "scenario": "支付系统依赖“支付网关回调”与“对账数据汇聚”两类集成。当前支付回调集成处于error且error_rate较高，错误信息为“签名校验失败”。与此同时，“对账汇总任务”启用但多次失败，失败原因是“回调数据验签失败导致数据行数为0”，导致系统无法生成对账差异报告。另有一个“退款风控规则同步”任务为disabled，因为上次维护计划未恢复，导致退款规则未更新。工单未解决包括：对账差异报告为空、部分退款状态卡住、退款规则未生效。知识库中有关于“签名校验失败排查”、对账任务重跑、以及disabled任务恢复流程的文档。",
+      "difference_from_source": "原题以邮件与ETL为核心，本题加入“规则同步任务停用导致退款风控异常”的独立链/并行因素，并将故障链改为“验签失败→对账汇总失败→对账差异为空工单”与“任务停用→退款规则未生效→退款相关工单”。",
+      "service_and_tool_plan": "使用config_list_integrations找异常支付与对账相关集成，并对异常项调用config_get_integration读取验签错误细节；使用scheduler_list_jobs筛查对账汇总、退款风控规则同步等任务并用scheduler_get_job获取失败信息或disabled_reason；使用helpdesk_list_tickets拉取未解决工单并用helpdesk_get_ticket解析对账差异为空与退款状态卡住现象；用kb_search检索签名校验失败、对账重跑、以及任务恢复/维护窗口说明，随后用kb_get_article生成修复步骤。",
+      "fixture_generation_plan": "config生成5条：2条异常（支付回调集成status=error、error_rate>0.7且error_message为签名校验失败；对账汇聚集成status=active但error_rate>0.15或status=error但错误率较低），其余3条active低error_rate。scheduler生成6条：至少3条与支付链路相关并异常/停用（对账汇总任务failed，failure_count>=6且错误为验签失败导致数据为空；退款风控规则同步任务disabled带disabled_reason例如“变更后未自动启用”；退款处理延迟任务可为enabled但success或间歇failed），其余任务作为干扰。helpdesk生成8条未解决工单：其中至少4条强关联（对账差异报告为空、验签失败告警、退款状态卡住、退款规则未生效），其余4条干扰（例如商户结算报表缺失但可能与其他链路相关），避免复用原ID/主题/人员/数值。kb生成4-5条：至少包含验签校验排查、对账重跑/补数策略、退款风控规则同步恢复、对disabled任务恢复后的验证。",
+      "expected_behavior": "流程上应识别支付回调异常集成并提取“签名校验失败”作为根因；随后确认对账汇总任务失败原因与根因一致（例如验签失败→数据行数为0→对账差异为空）。对disabled的退款风控规则同步任务进行明确标注，并将其与退款规则未生效工单关联。KB检索应分别覆盖对账重跑策略与验签校验修复，并给出步骤（例如更新密钥/重置签名配置后，按时间窗重跑对账；检查规则同步任务恢复并验证退款生效）。输出需包含至少两条故障链（其中一条可能包含disabled节点作为独立链/并行因素）。不在巡检阶段关闭工单。",
+      "grading_plan": "grader应检查：1）对支付回调验签错误与对账汇总失败的因果是否准确；2）disabled任务是否被纳入并正确关联到退款规则相关工单；3）输出的对账重跑策略是否具体且与kb要点一致；4）工单关联不应包含明显无关干扰项；5）不调用helpdesk_close_ticket。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T147zh_system_health_check_plus_4",
+      "new_task_name": "消息队列积压与通知重试巡检",
+      "task_goal": "完成一次消息队列积压与通知重试专项巡检：识别消息相关集成或任务异常，定位失败与重试策略问题，关联未解决工单，并生成可执行的排查与止血建议。",
+      "user_request": "请帮我做一次“消息队列积压与通知重试”系统健康巡检：\n1）检查集成配置，特别是与消息分发、通知发送相关的集成\n2）检查定时任务，重点关注消息消费、通知重试、死信处理类任务\n3）查看当前未解决工单，筛出通知延迟/重复/丢失相关问题\n4）在知识库中搜索与消息队列积压、重试幂等、死信（DLQ）处理相关的解决方案\n5）输出系统健康报告：给出故障链与修复建议（需区分“积压”与“重复”两种不同根因）",
+      "scenario": "系统通知依赖“消息队列”集成。当前消息队列集成仍为active但error_rate上升，伴随“连接抖动”。同时“通知重试任务”失败次数增加，错误为“消费游标过期”。另有“死信队列清理”任务仍启用且成功，但“通知消费任务”出现延迟增长。工单层面出现三种现象：1）通知明显延迟；2）部分通知重复发送；3）极少数通知丢失但无法定位到具体批次。知识库覆盖幂等控制、DLQ处理、以及消费游标与重试窗口调整方法，可用于构建分类型修复建议。",
+      "difference_from_source": "原题偏“故障链因果（集成→任务→工单）”，本题要求更细的现象分类：必须把“积压导致延迟”和“重试策略导致重复”区分成不同根因与不同建议；同时将知识库匹配用于DLQ与幂等方案，而不仅是单一报错排查。",
+      "service_and_tool_plan": "用config_list_integrations先定位消息队列相关集成的异常error_rate与错误信息；对异常集成用config_get_integration读取连接抖动/参数异常细节；使用scheduler_list_jobs筛出通知消费/通知重试/DLQ清理等任务，并对失败/异常任务调用scheduler_get_job获取错误消息与first_failure；使用helpdesk_list_tickets与helpdesk_get_ticket解析未解决通知工单中的现象标签与发生时间；用kb_search检索“积压 幂等 DLQ 游标过期 重试重复”等并用kb_get_article提供分类型修复与验证建议。",
+      "fixture_generation_plan": "config生成5条：至少1条与消息队列强相关但出现warning性质（active但error_rate显著升高或status=error轻度），其余4条为健康低error_rate。scheduler生成6条：至少3条与消息消费/重试/DLQ相关（通知消费任务enabled且last_status可为failed或success但表现出延迟；通知重试任务failed且failure_count>=7，error为游标过期；死信清理任务enabled success作为干扰或与丢失现象不一致；另有1条任务disabled干扰但与通知无关）。helpdesk生成9条未解决工单：至少4条通知延迟，2条通知重复，1条通知丢失，其余2条为干扰（如登录慢）。所有文本与ID/时间均需全新且不复用原fixture。kb生成4-5条：至少包含DLQ处理、重试幂等、消费游标过期/恢复、消息积压限流与速率调整。",
+      "expected_behavior": "报告应将根因拆分：A类“积压导致延迟”应关联消息队列异常集成与通知消费任务延迟/失败；B类“重复发送”应关联通知重试任务失败与重试窗口/幂等缺失，并给出止血措施（例如提高幂等校验粒度、调整重试退避、先暂停重试或限制速率再恢复）。对丢失现象若证据不足，需要在报告中明确“不足以确认链路”，但仍给出如何核对DLQ与消费游标的建议。应包含至少两条故障链或一条故障链+一条分类型根因解释，且每条建议都要对应知识库条目。巡检阶段不关闭工单。",
+      "grading_plan": "grader应检查：1）是否区分“延迟/重复/丢失”并给出不同根因与不同建议；2）故障链关联是否至少覆盖消息队列集成与异常通知任务；3）对丢失现象是否处理为证据不足并给出核对方案（而非强行关联）；4）kb引用是否匹配DLQ/幂等/游标恢复等主题；5）不调用helpdesk_close_ticket。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T147zh_system_health_check_plus_5",
+      "new_task_name": "跨地域配置回滚与计划任务漂移巡检",
+      "task_goal": "完成一次“跨地域配置回滚与计划任务漂移”系统健康巡检：识别配置集成异常或不一致，定位scheduler中与配置相关的任务漂移（例如cron表达式或启停状态异常），关联未解决工单，并给出知识库驱动的回滚/校验建议。",
+      "user_request": "请帮我做一次“跨地域配置回滚与计划任务漂移”系统健康巡检：\n1）检查所有API集成配置是否存在跨区域不一致或错误状态\n2）检查定时任务是否出现计划漂移（启停异常、cron异常、last_status不符合预期）\n3）查看当前未解决工单，找出可能由配置回滚或任务漂移引起的问题\n4）在知识库中搜索与配置回滚、定时任务漂移排查、cron校验相关的解决方案\n5）输出系统健康报告：明确指出哪些问题可归因为配置回滚，哪些是任务漂移，并给出修复建议与验证方式",
+      "scenario": "某次跨地域发布后，配置中心发生回滚：导致“支付网关超时策略”集成在一个区域被回滚到旧参数，虽然status仍为active，但error_rate在该区域指标上升并伴随“超时重试次数与预期不符”。与此同时，scheduler中的“失败重试调度任务”仍enabled但cron_expression与预期不一致，出现任务漂移（例如原本每10分钟执行变成每7分钟），造成消息/工单风暴。工单未解决集中在“重复创建工单”“回调超时导致流程重试过多”两类。知识库提供了配置回滚核对、cron漂移检测与修复步骤、以及验证口径。",
+      "difference_from_source": "原题没有强调“计划漂移”和“跨区域配置不一致”，本题要求把问题拆成两类归因：配置回滚导致的参数不一致 vs scheduler cron/启停漂移导致的执行偏差，并要求输出“可归因性说明”。",
+      "service_and_tool_plan": "使用config_list_integrations搜集所有集成的状态与error_rate，并对关键异常集成调用config_get_integration获取超时/重试相关的错误信息与参数差异线索；使用scheduler_list_jobs按tag或status筛出与“重试调度/回调处理/工单派发”相关的任务，并对可疑任务调用scheduler_get_job对比cron_expression、enabled与first_failure；使用helpdesk_list_tickets拉取未解决工单并用helpdesk_get_ticket提取重复创建或重试过多的触发时间；使用kb_search检索“配置回滚 核对 参数一致性 cron漂移 检测 修复”，再用kb_get_article形成验证口径与修复步骤。",
+      "fixture_generation_plan": "config生成5条：至少1条为active但表现出参数不一致（error_rate>0.1且error_message为参数回滚导致重试/超时策略不符），另1条为error但可与配置无关作为干扰。其余3条健康低error_rate。scheduler生成6条：至少2条与“重试调度/回调处理/工单派发”相关且出现漂移（任务1：enabled=true但cron_expression与预期不同且failure_count上升；任务2：disabled但disabled_reason与配置变更不一致或恢复时间错误；其余任务为success干扰）。helpdesk生成8条未解决工单：其中至少3条为“重复创建工单/同一事件多次派发”，至少2条为“回调超时导致流程重复重试”，其余3条干扰（例如页面缓存异常）。kb生成4-6条：包含配置回滚核对、cron漂移检测与修复、以及任务执行频率变化的验证方法。",
+      "expected_behavior": "报告应先从config层面标出疑似回滚引起的参数不一致集成，并提取错误信息或参数字段线索；再从scheduler层面识别cron_expression与启停状态异常的任务漂移点，并读取其first_failure/失败原因；随后把工单的触发时间映射到任务漂移周期，形成“配置回滚→异常参数→回调/重试异常→工单重复/流程重试过多”的故障链，以及“任务漂移独立解释（cron变化→执行风暴）”的归因说明。修复建议必须包含：如何核对当前生效参数、如何修复/回滚到正确cron与启停状态、以及验证口径（例如抽样同一事件的派发次数、对比任务执行频率与错误率）。不关闭工单。",
+      "grading_plan": "grader应检查：1）是否进行了“可归因性拆分”（配置回滚 vs 任务漂移）而非混为一谈；2）cron_expression/启停状态异常是否被正确识别并与工单重复现象在时间与原因上对齐；3）修复建议是否包含明确的核对与验证口径；4）kb匹配是否覆盖回滚核对与cron漂移主题；5）不调用helpdesk_close_ticket。"
+    }
+  ]
+}

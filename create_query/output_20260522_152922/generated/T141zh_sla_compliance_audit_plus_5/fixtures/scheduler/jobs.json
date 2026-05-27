@@ -1,0 +1,97 @@
+[
+  {
+    "job_id": "JOB-G11",
+    "name": "历史SLA回放/修正报表",
+    "schedule": "*/10 * * * *",
+    "status": "failed",
+    "last_run": "2026-04-22T00:05:00Z",
+    "last_status": "failed",
+    "description": "定时回放历史工单SLA并生成修正报表（受时区解析影响）。",
+    "tags": [
+      "sla",
+      "replay",
+      "report"
+    ],
+    "failure_count": 3,
+    "first_failure": "2026-04-21T23:40:00Z",
+    "cron_expression": "*/10 * * * *",
+    "enabled": true,
+    "action": "历史SLA回放/修正报表：拉取回放窗口数据并计算响应时长",
+    "next_run": null,
+    "created_at": "2025-12-01T00:00:00Z",
+    "created_by": "system",
+    "error_message": "回放数据缺失或时区解析错误：INT-G02 时间偏移无法识别，导致部分记录跳过",
+    "execution_history": [
+      {
+        "run_at": "2026-04-21T23:50:00Z",
+        "status": "failed",
+        "duration_s": 85
+      },
+      {
+        "run_at": "2026-04-22T00:00:00Z",
+        "status": "failed",
+        "duration_s": 78
+      },
+      {
+        "run_at": "2026-04-22T00:05:00Z",
+        "status": "failed",
+        "duration_s": 92
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-G12",
+    "name": "每日SLA达标汇总（通知版）",
+    "schedule": "0 9 * * *",
+    "status": "enabled",
+    "last_run": "2026-04-22T09:00:00Z",
+    "last_status": "success",
+    "description": "每天9点生成前一天的SLA达标汇总并发送通知（仅用于告警/汇总，不回放修正）。",
+    "tags": [
+      "sla",
+      "alert"
+    ],
+    "failure_count": 0,
+    "first_failure": null,
+    "cron_expression": "0 9 * * *",
+    "enabled": true,
+    "action": "每日SLA达标汇总并通知",
+    "next_run": null,
+    "created_at": "2025-12-15T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-04-22T09:00:00Z",
+        "status": "success",
+        "duration_s": 66
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-G13",
+    "name": "例行数据备份",
+    "schedule": "30 2 * * *",
+    "status": "enabled",
+    "last_run": "2026-04-22T02:30:00Z",
+    "last_status": "success",
+    "description": "例行备份任务，与SLA回放无关（干扰项）。",
+    "tags": [
+      "backup"
+    ],
+    "failure_count": 0,
+    "first_failure": null,
+    "cron_expression": "30 2 * * *",
+    "enabled": true,
+    "action": "执行例行数据备份",
+    "next_run": null,
+    "created_at": "2025-10-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-04-22T02:30:00Z",
+        "status": "success",
+        "duration_s": 140
+      }
+    ]
+  }
+]

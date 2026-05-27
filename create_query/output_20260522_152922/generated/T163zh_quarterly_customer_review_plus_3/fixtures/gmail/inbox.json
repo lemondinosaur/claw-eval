@@ -1,0 +1,152 @@
+[
+  {
+    "message_id": "msg_21001",
+    "from": "lana@qltech.cn",
+    "to": "me@company.com",
+    "subject": "关于SLA连续超时的升级通知",
+    "date": "2026-04-09T03:12:00Z",
+    "body": "您好，青岚科技这里必须升级：自4月1日起，我们的两类工单平均48小时后才有初步响应，且升级到二线仍在24小时内未给出明确处理方案。\n请求：请在48小时内给出根因分析与修复路径，否则我们将评估降级方案并冻结部分加购。\n——李娜，青岚科技IT负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "升级"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_21002",
+    "from": "support@qltech.cn",
+    "to": "me@company.com",
+    "subject": "后续跟进：性能未改善，整改工单仍待确认",
+    "date": "2026-04-26T07:40:00Z",
+    "body": "跟进上次问题。4月中旬的性能优化承诺截至目前仍未稳定：报表刷新延迟明显，夜间批处理经常卡住。\n另外，我们收到贵方尚未关闭的整改项，状态显示“待确认”。\n请安排技术复盘会，并给出可执行的整改清单与时间点。\n——研发运维，青岚科技",
+    "labels": [
+      "inbox",
+      "客户",
+      "投诉"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_21003",
+    "from": "billing@qltech.cn",
+    "to": "me@company.com",
+    "subject": "关于addon降级谈判的财务口径",
+    "date": "2026-05-23T08:10:00Z",
+    "body": "我们正在和采购同事讨论续费方案：由于AI分析addon在5月中旬被暂停，我们希望把降级与整改闭环绑定。\n请提供：1）暂停期间的影响说明；2）恢复/降级的审批路径；3）如果无法按期恢复，将如何处理续费延迟。\n——财务BP，青岚科技",
+    "labels": [
+      "inbox",
+      "客户",
+      "升级"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_21004",
+    "from": "zhangwei@bridge-logistics.com",
+    "to": "me@company.com",
+    "subject": "投诉：对账差异导致线路优化服务中断",
+    "date": "2026-04-17T02:20:00Z",
+    "body": "华桥物流需要投诉升级：我们发现线路优化相关addon的计费与实际使用存在差异，导致系统在4月底开始无法正常扣费并中断服务。\n希望你们在5个工作日内给出对账明细与修正方案，否则将不再续购高级接口包。\n——张伟，华桥物流财务系统负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "投诉"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_21005",
+    "from": "ops@bridge-logistics.com",
+    "to": "me@company.com",
+    "subject": "升级：响应慢且功能无法落地",
+    "date": "2026-05-10T06:55:00Z",
+    "body": "后续升级反馈：本月我们仍多次提工单，但平均响应超过48小时。\n此外，线路优化接口虽然部署完成，但在我们实际运输场景中无法落地，影响调度效率。\n请安排一次商务+技术联合评估，并给出替代方案或服务调整建议。\n——运维负责人，华桥物流",
+    "labels": [
+      "inbox",
+      "客户",
+      "升级"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_21006",
+    "from": "user@northsea-mfg.cn",
+    "to": "me@company.com",
+    "subject": "投诉：关键报表延迟超过48小时仍未恢复",
+    "date": "2026-04-23T01:25:00Z",
+    "body": "北海制造投诉：关键经营报表刷新延迟经常超过48小时。\n我们已连续两周提交工单，但仍未给出明确恢复时间。\n请在48小时内安排根因排查与升级方案，否则我们会启动续费条件重新评估。\n——信息化负责人，北海制造",
+    "labels": [
+      "inbox",
+      "客户",
+      "投诉"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_21007",
+    "from": "it@northsea-mfg.cn",
+    "to": "me@company.com",
+    "subject": "跟进：整改中但仍待验证，报表口径不一致",
+    "date": "2026-05-18T04:30:00Z",
+    "body": "跟进上次整改：目前系统虽恢复到可用状态，但报表口径仍与内部数据口径不一致，导致我们无法按期汇总。\n请提供整改闭环材料，并给出下一步的验证计划。\n——IT主管，北海制造",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_21008",
+    "from": "mgr@orangesea-retail.cn",
+    "to": "me@company.com",
+    "subject": "关于对账差异的投诉升级",
+    "date": "2026-05-05T03:50:00Z",
+    "body": "橙海零售投诉升级：营销自动化addon的账单与实际活动结算不一致。\n我们需要你们提供差异原因说明并在10个工作日内完成修正，否则后续续费将按基础配置执行。\n——运营经理，橙海零售",
+    "labels": [
+      "inbox",
+      "客户",
+      "投诉"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_21009",
+    "from": "it@orangesea-retail.cn",
+    "to": "me@company.com",
+    "subject": "中性沟通：希望在合同到期前确认下一步",
+    "date": "2026-04-28T09:05:00Z",
+    "body": "您好，我们目前使用情况总体可接受。临近6月底合同到期，想请你们在下次会议前整理续费选项（基础/调整后档位）以及需要我们配合的材料。\n——IT负责人，橙海零售",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_21010",
+    "from": "head@starclass.edu",
+    "to": "me@company.com",
+    "subject": "季度中性更新：确认配额与课程数据使用边界",
+    "date": "2026-05-08T06:20:00Z",
+    "body": "星辰教育这里想做一次中性确认：我们最近调整了课程数据的使用范围，希望你们帮忙确认学习数据addon在当前档位下的配额与后续续费边界。\n如有需要，我们愿意提供使用报告。\n——教研负责人，星辰教育",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_21011",
+    "from": "finance@starclass.edu",
+    "to": "me@company.com",
+    "subject": "关于addon终止影响的确认（财务侧）",
+    "date": "2026-05-27T11:10:00Z",
+    "body": "财务确认：学习数据addon从5月开始终止使用，我们希望你们从账单侧确认收入变化，并给出下一步建议（是否降级为基础订阅）。\n——财务BP，星辰教育",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": false
+  }
+]

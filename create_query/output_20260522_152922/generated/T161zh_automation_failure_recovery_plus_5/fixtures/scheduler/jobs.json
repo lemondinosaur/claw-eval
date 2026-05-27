@@ -1,0 +1,275 @@
+[
+  {
+    "job_id": "JOB-2101",
+    "name": "产品主数据拉取与解析",
+    "cron_expression": "5 */4 * * *",
+    "action": "pull_and_parse_masterdata",
+    "enabled": true,
+    "last_run": "2026-03-26T04:05:00Z",
+    "next_run": "2026-03-26T08:05:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "masterdata",
+      "parse",
+      "mapping"
+    ],
+    "created_at": "2025-08-12T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T04:05:00Z",
+        "status": "failed",
+        "duration_s": 18,
+        "error": "ParseError: 上游HTTP成功但解析缺字段 — Missing required field: newSkuTitle (映射模板仍依赖旧字段 oldSkuName)"
+      },
+      {
+        "run_at": "2026-03-26T00:05:00Z",
+        "status": "failed",
+        "duration_s": 17,
+        "error": "ParseError: 上游HTTP成功但解析缺字段 — Missing required field: marketCode (契约新增字段未纳入模板)"
+      },
+      {
+        "run_at": "2026-03-25T20:05:00Z",
+        "status": "failed",
+        "duration_s": 19,
+        "error": "ParseError: 上游HTTP成功但解析缺字段 — Missing required field: newSkuTitle"
+      },
+      {
+        "run_at": "2026-03-25T16:05:00Z",
+        "status": "failed",
+        "duration_s": 16,
+        "error": "ParseError: 上游HTTP成功但解析缺字段 — Missing required field: marketCode"
+      },
+      {
+        "run_at": "2026-03-24T08:05:00Z",
+        "status": "success",
+        "duration_s": 24
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2102",
+    "name": "库存写入/更新",
+    "cron_expression": "20 */4 * * *",
+    "action": "write_inventory_from_parsed_data",
+    "enabled": true,
+    "last_run": "2026-03-26T04:20:00Z",
+    "next_run": "2026-03-26T08:20:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "inventory",
+      "write"
+    ],
+    "created_at": "2025-08-19T00:00:00Z",
+    "depends_on": [
+      "JOB-2101"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T04:20:00Z",
+        "status": "failed",
+        "duration_s": 6,
+        "error": "DependencyError: 解析结果不完整，无法安全写入 — 上游缺字段导致写入中止(critical fields missing)"
+      },
+      {
+        "run_at": "2026-03-26T00:20:00Z",
+        "status": "failed",
+        "duration_s": 5,
+        "error": "WriteAbort: 检测到解析缺字段( newSkuTitle / marketCode )，为避免部分写入覆盖，已中止。"
+      },
+      {
+        "run_at": "2026-03-25T20:20:00Z",
+        "status": "failed",
+        "duration_s": 6,
+        "error": "DependencyError: 依赖JOB-2101失败，无法获取完整主数据映射结果"
+      },
+      {
+        "run_at": "2026-03-24T08:20:00Z",
+        "status": "success",
+        "duration_s": 31
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2103",
+    "name": "补货触发与价格变更记录生成",
+    "cron_expression": "0 9 * * *",
+    "action": "trigger_restock_and_price_records",
+    "enabled": true,
+    "last_run": "2026-03-26T09:00:00Z",
+    "next_run": "2026-03-27T09:00:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "restock",
+      "price",
+      "downstream"
+    ],
+    "created_at": "2025-09-05T00:00:00Z",
+    "depends_on": [
+      "JOB-2102"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T09:00:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "StaleDataError: 库存数据不可靠 — detected stale/partial products，按规则跳过补货触发与价格变更记录生成"
+      },
+      {
+        "run_at": "2026-03-25T09:00:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "StaleDataError: 库存数据过期或部分写入风险未解除，无法生成补货记录"
+      },
+      {
+        "run_at": "2026-03-24T09:00:00Z",
+        "status": "success",
+        "duration_s": 14
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2104",
+    "name": "无关订单同步",
+    "cron_expression": "*/10 * * * *",
+    "action": "sync_orders_irrelevant",
+    "enabled": true,
+    "last_run": "2026-03-26T10:10:00Z",
+    "next_run": "2026-03-26T10:20:00Z",
+    "last_status": "failed",
+    "created_by": "admin",
+    "tags": [
+      "orders",
+      "interference"
+    ],
+    "created_at": "2025-07-11T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T10:10:00Z",
+        "status": "failed",
+        "duration_s": 60,
+        "error": "TimeoutError: 订单同步上游响应超时(60s)，与库存主链无依赖"
+      },
+      {
+        "run_at": "2026-03-26T10:00:00Z",
+        "status": "failed",
+        "duration_s": 60,
+        "error": "TimeoutError: 订单同步上游响应超时(60s)"
+      },
+      {
+        "run_at": "2026-03-25T10:00:00Z",
+        "status": "success",
+        "duration_s": 22
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2105",
+    "name": "映射模板健康检查(辅助)",
+    "cron_expression": "15 */2 * * *",
+    "action": "validate_mapping_template_fields",
+    "enabled": true,
+    "last_run": "2026-03-26T04:15:00Z",
+    "next_run": "2026-03-26T06:15:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "mapping",
+      "validation"
+    ],
+    "created_at": "2025-09-20T00:00:00Z",
+    "depends_on": [
+      "JOB-2101"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T04:15:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "error": "ValidationError: 映射模板缺字段定义 — marketCode 未配置，newSkuTitle 仍引用旧字段"
+      },
+      {
+        "run_at": "2026-03-26T02:15:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "error": "ValidationError: 映射模板缺字段定义 — marketCode 未配置"
+      },
+      {
+        "run_at": "2026-03-24T06:15:00Z",
+        "status": "success",
+        "duration_s": 2
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2106",
+    "name": "告警汇总与工单关联",
+    "cron_expression": "*/30 * * * *",
+    "action": "aggregate_alerts_and_link_tickets",
+    "enabled": true,
+    "last_run": "2026-03-26T10:30:00Z",
+    "next_run": "2026-03-26T11:00:00Z",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": [
+      "helpdesk",
+      "triage"
+    ],
+    "created_at": "2025-10-02T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T10:30:00Z",
+        "status": "success",
+        "duration_s": 7
+      },
+      {
+        "run_at": "2026-03-26T10:00:00Z",
+        "status": "success",
+        "duration_s": 6
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2107",
+    "name": "库存全量一致性校验(门控)",
+    "cron_expression": "0 */6 * * *",
+    "action": "inventory_consistency_gate",
+    "enabled": true,
+    "last_run": "2026-03-26T04:00:00Z",
+    "next_run": "2026-03-26T10:00:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "consistency",
+      "gate"
+    ],
+    "created_at": "2025-10-10T00:00:00Z",
+    "depends_on": [
+      "JOB-2102"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T04:00:00Z",
+        "status": "failed",
+        "duration_s": 12,
+        "error": "ConsistencyError: 检测到 stale/partial 产品占比过高，触发门控失败(不允许补货触发进入生产态)"
+      },
+      {
+        "run_at": "2026-03-25T22:00:00Z",
+        "status": "failed",
+        "duration_s": 11,
+        "error": "ConsistencyError: stale/partial 占比仍未下降"
+      },
+      {
+        "run_at": "2026-03-24T22:00:00Z",
+        "status": "success",
+        "duration_s": 10
+      }
+    ]
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "event_id": "evt_501",
+    "title": "产品发布彩排",
+    "start_time": "2026-05-04T09:00:00Z",
+    "end_time": "2026-05-04T11:00:00Z",
+    "location": "线上演播室",
+    "organizer": "Marketing Ops",
+    "attendees": [
+      "我"
+    ],
+    "description": "关键彩排（以UTC录入）；本地时间将落在午后时段占用",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_502",
+    "title": "安全评审委员会",
+    "start_time": "2026-05-05T09:30:00+08:00",
+    "end_time": "2026-05-05T12:00:00+08:00",
+    "location": "会议室B",
+    "organizer": "安全合规部",
+    "attendees": [
+      "我",
+      "安全合规部同事"
+    ],
+    "description": "评审委员会会议（+08:00录入，confirmed）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_503",
+    "title": "跨部门训练营",
+    "start_time": "2026-05-06T00:00:00+08:00",
+    "end_time": "2026-05-06T23:59:00+08:00",
+    "location": "培训中心主楼",
+    "organizer": "L&D",
+    "attendees": [
+      "我",
+      "全体相关人员"
+    ],
+    "description": "全天参与（+08:00录入，confirmed）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_504",
+    "title": "电话同步：发布物料",
+    "start_time": "2026-05-04T10:20:00+08:00",
+    "end_time": "2026-05-04T10:40:00+08:00",
+    "location": "虚拟会议室",
+    "organizer": "外部供应商",
+    "attendees": [
+      "我"
+    ],
+    "description": "短时占用（边界挤入干扰，非整段半天）",
+    "status": "confirmed"
+  }
+]

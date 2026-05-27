@@ -1,0 +1,191 @@
+[
+  {
+    "job_id": "JOB-2401",
+    "name": "订单支付回写-回滚补偿",
+    "cron_expression": "0 1 * * *",
+    "action": "crm_payback_rewrite_compensate",
+    "enabled": true,
+    "last_run": "2026-04-23T01:20:00Z",
+    "next_run": "2026-04-24T01:20:00Z",
+    "last_status": "failed",
+    "created_by": "payments_ops",
+    "tags": [
+      "crm",
+      "rollback",
+      "compensation"
+    ],
+    "created_at": "2025-12-02T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-23T01:10:00Z",
+        "status": "failed",
+        "duration_s": 42,
+        "error": "CancelWindowError: 回滚窗口内任务取消（回写CRM失败）触发补偿重试"
+      },
+      {
+        "run_at": "2026-04-23T05:10:00Z",
+        "status": "cancelled",
+        "duration_s": 18,
+        "error": "UserCancelled: 一致性修复暂停后取消（预计补偿在4月23日23:00后执行）"
+      },
+      {
+        "run_at": "2026-04-24T02:05:00Z",
+        "status": "success",
+        "duration_s": 65
+      },
+      {
+        "run_at": "2026-04-22T02:05:00Z",
+        "status": "success",
+        "duration_s": 63
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2402",
+    "name": "对账核心增量对齐",
+    "cron_expression": "0 3 * * *",
+    "action": "reconciliation_incremental_align",
+    "enabled": true,
+    "last_run": "2026-04-25T03:00:00Z",
+    "next_run": "2026-04-26T03:00:00Z",
+    "last_status": "success",
+    "created_by": "recon_team",
+    "tags": [
+      "reconciliation",
+      "repair"
+    ],
+    "created_at": "2025-10-10T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-23T02:30:00Z",
+        "status": "failed",
+        "duration_s": 55,
+        "error": "DataStalenessError: 回滚后发票标记未切换，增量对齐失败（INT-2402）"
+      },
+      {
+        "run_at": "2026-04-23T09:30:00Z",
+        "status": "failed",
+        "duration_s": 52,
+        "error": "ConsistencyRepairMismatch: consistency_repair窗口期间字段不一致（INT-2401/INT-2403）"
+      },
+      {
+        "run_at": "2026-04-24T03:15:00Z",
+        "status": "success",
+        "duration_s": 88
+      },
+      {
+        "run_at": "2026-04-21T03:10:00Z",
+        "status": "success",
+        "duration_s": 82
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2403",
+    "name": "发票状态补偿回写",
+    "cron_expression": "0 8 * * 1-6",
+    "action": "invoice_status_compensation_writeback",
+    "enabled": true,
+    "last_run": "2026-04-24T08:00:00Z",
+    "next_run": "2026-04-27T08:00:00Z",
+    "last_status": "success",
+    "created_by": "invoice_ops",
+    "tags": [
+      "invoice",
+      "compensation"
+    ],
+    "created_at": "2025-11-05T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-23T06:40:00Z",
+        "status": "failed",
+        "duration_s": 12,
+        "error": "InvoiceReversalNotFound: 撤销标记缺失，无法生成补偿开票（INT-2402）"
+      },
+      {
+        "run_at": "2026-04-23T18:05:00Z",
+        "status": "cancelled",
+        "duration_s": 9,
+        "error": "CancelDueToSyncDelay: 同步延迟过大，取消本轮补偿（预计4月24日02:40后恢复）"
+      },
+      {
+        "run_at": "2026-04-24T08:00:00Z",
+        "status": "success",
+        "duration_s": 39
+      },
+      {
+        "run_at": "2026-04-22T08:00:00Z",
+        "status": "success",
+        "duration_s": 36
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2404",
+    "name": "库存出入库一致性修复",
+    "cron_expression": "0 7 * * *",
+    "action": "inventory_movement_consistency_repair",
+    "enabled": true,
+    "last_run": "2026-04-24T07:00:00Z",
+    "next_run": "2026-04-25T07:00:00Z",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": [
+      "inventory",
+      "repair"
+    ],
+    "created_at": "2025-08-20T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-23T07:00:00Z",
+        "status": "failed",
+        "duration_s": 48,
+        "error": "DuplicateOutEventDetected: 回滚窗口出库重复事件未完全抵消（INT-2404）"
+      },
+      {
+        "run_at": "2026-04-23T20:10:00Z",
+        "status": "success",
+        "duration_s": 74
+      },
+      {
+        "run_at": "2026-04-21T07:00:00Z",
+        "status": "success",
+        "duration_s": 60
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2405",
+    "name": "月末汇总对外报送",
+    "cron_expression": "0 9 28-31 * *",
+    "action": "month_end_external_report",
+    "enabled": true,
+    "last_run": "2026-04-26T09:00:00Z",
+    "next_run": "2026-04-27T09:00:00Z",
+    "last_status": "success",
+    "created_by": "finance_team",
+    "tags": [
+      "report",
+      "monthly"
+    ],
+    "created_at": "2025-07-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-26T09:00:00Z",
+        "status": "success",
+        "duration_s": 210
+      },
+      {
+        "run_at": "2026-04-25T09:00:00Z",
+        "status": "success",
+        "duration_s": 205
+      },
+      {
+        "run_at": "2026-04-23T09:00:00Z",
+        "status": "cancelled",
+        "duration_s": 10,
+        "error": "DeferredDueToRollbackWindow: 回滚窗口未完全收敛，取消汇总输出"
+      }
+    ]
+  }
+]

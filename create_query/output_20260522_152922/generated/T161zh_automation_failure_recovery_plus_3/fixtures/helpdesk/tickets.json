@@ -1,0 +1,67 @@
+[
+  {
+    "ticket_id": "TK-MT-4201",
+    "title": "租户B：库存显示可见但实际不可用，补货停止（隔离失败）",
+    "description": "我们是租户B。系统页面能看到部分库存数量，但下单/补货始终没有触发。日志里反复出现“tenant scope mismatch / 隔离标识错误”。请尽快恢复：A租户不受影响，B受影响最明显。",
+    "reporter": "运维-韩沐（tenant B）",
+    "department": "运维平台",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-22T08:05:00Z",
+    "tags": [
+      "租户B",
+      "隔离失败",
+      "403",
+      "补货停止"
+    ],
+    "category": "系统故障"
+  },
+  {
+    "ticket_id": "TK-MT-4202",
+    "title": "租户B：一致性校验拒绝执行，缓存标记不可用后导致链路中断",
+    "description": "触发自动化后，“隔离一致性校验”拒绝执行并把共享缓存置为不可用。导致后续所有租户的自动补货都停止（安全策略）。但根因似乎只发生在租户B的隔离标识。",
+    "reporter": "供应链-何晴（tenant B）",
+    "department": "供应链",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-22T08:40:00Z",
+    "tags": [
+      "一致性校验",
+      "共享缓存",
+      "安全策略",
+      "租户隔离"
+    ],
+    "category": "链路中断"
+  },
+  {
+    "ticket_id": "TK-MT-4203",
+    "title": "租户A：也收到共享缓存报警，但库存页仍可显示（疑似间接受影响）",
+    "description": "我们是租户A，库存数量看起来能显示，但共享缓存报警让我们看到“自动补货停止”的红色告警。请确认这是隔离校验失败引起的全局保护，而不是A的库存写入本身出了问题。",
+    "reporter": "运营-苏岑（tenant A）",
+    "department": "运营",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-22T09:10:00Z",
+    "tags": [
+      "共享缓存报警",
+      "保护机制",
+      "租户A"
+    ],
+    "category": "告警异常"
+  },
+  {
+    "ticket_id": "TK-MT-4204",
+    "title": "硬件：温控模块读数异常（无关）",
+    "description": "机房温控模块偶发读数跳变，建议联系硬件同事处理。该问题与自动化链路应无直接关联。",
+    "reporter": "机房-周远",
+    "department": "基础设施",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-22T07:55:00Z",
+    "tags": [
+      "硬件",
+      "温控"
+    ],
+    "category": "硬件故障"
+  }
+]

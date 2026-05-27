@@ -1,0 +1,141 @@
+[
+  {
+    "job_id": "JOB-401",
+    "name": "token_refresh_harvester",
+    "description": "每5分钟扫描并刷新即将到期的token（按刷新提前量计算窗口）",
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-03-01T01:10:00+08:00",
+    "action": "刷新token（window_start基于refresh_lead_time_seconds）",
+    "created_by": "auth_platform_team",
+    "tags": [
+      "token",
+      "refresh",
+      "harvester"
+    ],
+    "notes": "故障窗口内出现集中到期点刷新：refresh_lead_time_seconds 在部分实例回退为0或负值。并且刷新失败后缺少指数退避/互斥保护，导致短时间重入。参数变更来源：发布配置误写 + 回退逻辑未做下限校验。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T00:40:00+08:00",
+        "status": "success",
+        "duration_seconds": 16,
+        "notes": "正常执行；刷新提前量为正值（预计>300s），刷新分布较均匀。"
+      },
+      {
+        "run_time": "2026-03-01T00:45:00+08:00",
+        "status": "failed",
+        "duration_seconds": 210,
+        "notes": "identity_provider 返回 transient_error，任务进入失败重试；未观察到指数退避。刷新请求与token_expiry高度重合（到期点集中）。"
+      },
+      {
+        "run_time": "2026-03-01T00:50:00+08:00",
+        "status": "failed",
+        "duration_seconds": 195,
+        "notes": "短时间重入：同一时间窗口内多次启动（互斥/幂等key缺失或未生效）。失败后继续快速轮询，放大请求洪泛。"
+      },
+      {
+        "run_time": "2026-03-01T00:55:00+08:00",
+        "status": "failed",
+        "duration_seconds": 178,
+        "notes": "刷新提前量观测值落到0或-30附近；到期点集中触发进一步增强。"
+      },
+      {
+        "run_time": "2026-03-01T01:10:00+08:00",
+        "status": "failed",
+        "duration_seconds": 165,
+        "notes": "故障后期仍存在失败重试残留；identity_provider error_rate已下降但部分分支仍快速重入。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-402",
+    "name": "authz_token_introspection_cache_warmup",
+    "description": "每日刷新鉴权缓存预热",
+    "cron_expression": "15 2 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T02:15:00+08:00",
+    "action": "预热token校验缓存",
+    "created_by": "authz_team",
+    "tags": [
+      "cache",
+      "warmup"
+    ],
+    "notes": "与本次故障窗口的5分钟harvester刷新链路无直接关联，仅用于排除干扰。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T02:15:00+08:00",
+        "status": "success",
+        "duration_seconds": 42,
+        "notes": "预热完成"
+      },
+      {
+        "run_time": "2026-02-28T02:15:00+08:00",
+        "status": "success",
+        "duration_seconds": 38,
+        "notes": "预热完成"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-403",
+    "name": "identity_provider_healthcheck",
+    "description": "每1分钟探测identity_provider健康与错误率",
+    "cron_expression": "* * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T01:20:00+08:00",
+    "action": "探测集成错误率并记录",
+    "created_by": "ops_team",
+    "tags": [
+      "identity_provider",
+      "healthcheck"
+    ],
+    "notes": "故障窗口期间探测到error_rate持续升高，并在notes中记录“刷新请求洪泛迹象”。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T00:45:00+08:00",
+        "status": "success",
+        "duration_seconds": 2,
+        "notes": "healthcheck记录：error_rate>45%，疑似refresh_thundering herd"
+      },
+      {
+        "run_time": "2026-03-01T01:10:00+08:00",
+        "status": "success",
+        "duration_seconds": 2,
+        "notes": "error_rate回落至约10-15%，但仍有失败重试信号"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-404",
+    "name": "api_authz_cleanup_stale_sessions",
+    "description": "清理过期会话（每小时一次）",
+    "cron_expression": "0 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T01:00:00+08:00",
+    "action": "清理陈旧会话",
+    "created_by": "session_team",
+    "tags": [
+      "session",
+      "cleanup"
+    ],
+    "notes": "常规维护任务，无明显异常耗时，用于佐证不是会话清理本身导致洪泛。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T01:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 23,
+        "notes": "清理完成"
+      },
+      {
+        "run_time": "2026-03-01T00:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 22,
+        "notes": "清理完成"
+      }
+    ]
+  }
+]

@@ -1,0 +1,145 @@
+task_id: T131zh_order_profit_analysis_plus_3
+task_name: 退款后净利润与异常分级
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_3/fixtures/finance/transactions.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_3/fixtures/inventory/items.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_3/fixtures/crm/customers.json
+prompt:
+  text: '请分析每个客户最近订单的利润情况，并按异常严重程度（轻微/严重）分级。
+
+
+    要求：
+
+    1) 从CRM获取每个客户的最近订单及其产品组合；
+
+    2) 从库存系统获取每个产品的 unit_cost（成本价）与 selling_price（售价，需用于和订单售价一致性校验）；
+
+    3) 从财务系统在给定区间内核对与该订单相关的收款与退款：仅计入“订单相关交易”（订单收款/订单退款/收款冲正等与订单利润相关的type/category组合）；对于“服务费退款”等非订单退款交易，需依赖type/category判断并排除；
+
+    4) 计算账面利润：账面利润 = 售价 - 成本；账面利润率 = (售价-成本)/售价；
+
+    5) 计算净回款：净回款 = 相关收款金额合计 + 相关退款金额合计（退款为负数）；
+
+    6) 计算净影响利润率（口径在报告中说明并保持自洽）：按 (净回款-成本)/售价；
+
+    7) 异常分级规则：当净回款 < 售价 且退款比例（|退款合计|/售价）超过阈值时，或出现净亏损（净回款-成本 < 0）则判定为“严重”；否则判定为“轻微”；并简要说明判定依据（如：净回款低于售价、退款比例、是否净亏损、是否存在超额退款表象）。
+
+
+    输出：为每位客户生成一份报告，包含字段：售价、成本、账面利润、净回款、净影响利润率、异常分级（并在异常分级处给出判定依据）。'
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: inventory_list_items
+  description: 查看库存/产品列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取产品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

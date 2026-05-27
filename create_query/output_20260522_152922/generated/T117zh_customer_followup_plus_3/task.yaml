@@ -1,0 +1,142 @@
+task_id: T117zh_customer_followup_plus_3
+task_name: 事件驱动：未读反馈跟进（含回复优先级）
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_3/fixtures/crm/customers.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_3/fixtures/gmail/inbox.json
+prompt:
+  text: "请按事件驱动为CRM客户做“未读邮件反馈”跟进草稿。\n\n流程：\n1) 以今天视为2026-06-10，筛选CRM中 last_contact_date\
+    \ 超过75天的客户；只保留 status=active 的客户，排除 status=churned。\n2) 对每位目标客户到Gmail中检索匹配邮件：\n\
+    \   - 匹配优先使用邮件的 from 字段与客户的联系邮箱（以及在CRM notes中的关键字/项目代号的变体）进行关联；正文也要包含客户名变体/项目代号等关键线索才算匹配。\n\
+    \   - 若同一客户存在“未读(is_read=false)且匹配”的邮件，选择其中日期最新的一封作为主要依据；若没有未读但存在“已读且匹配”的邮件，则选择已读中日期最新的一封；若仍完全没有匹配邮件，则依据CRM\
+    \ notes起草通用跟进。\n3) 起草风格：\n   - VIP客户：表达更正式、更强调“处理进度/已在跟进/预计回复时间”，并给出明确下一步。\n \
+    \  - 普通客户：语气更简短友好，确认对方方便的时间，并征求下一步（是否需要补充材料/是否方便继续沟通）。\n4) 只保存草稿不发送：对每位目标客户调用\
+    \ gmail_save_draft。\n5) 最后输出每位目标客户：\n   - 你选择的线索类型（未读/已读/无）\n   - 选择了哪封邮件的 message_id（或标注“无匹配”）\n\
+    \   - 草稿摘要（不需要给出完整正文）。"
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

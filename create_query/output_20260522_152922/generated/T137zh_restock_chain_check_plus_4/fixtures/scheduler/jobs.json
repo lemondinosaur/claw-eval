@@ -1,0 +1,277 @@
+[
+  {
+    "job_id": "JOB-991",
+    "name": "文具补货任务-A4纸+笔",
+    "cron_expression": "0 7 * * 1-5",
+    "action": "restock_stationery_batch",
+    "enabled": true,
+    "last_run": "2026-04-08T07:00:00Z",
+    "next_run": "2026-04-10T07:00:00Z",
+    "last_status": "failed",
+    "created_by": "供应运营",
+    "tags": [
+      "补货",
+      "文具",
+      "签名校验"
+    ],
+    "integration_id": "INT-945",
+    "created_at": "2025-11-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-08T07:00:00Z",
+        "status": "failed",
+        "duration_s": 55,
+        "error": "SignatureExpired: supplier signature expired during verification",
+        "error_type": "SignatureExpired",
+        "hint": "密钥轮换未完成；证书链仍为旧版本"
+      },
+      {
+        "run_at": "2026-04-07T07:00:00Z",
+        "status": "failed",
+        "duration_s": 58,
+        "error": "AuthenticationError: signature rejected (expired)",
+        "error_type": "AuthenticationError",
+        "hint": "签名过期"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-992",
+    "name": "办公耗材补货任务-标签贴",
+    "cron_expression": "0 7 * * 1-5",
+    "action": "restock_office_consumables_labels",
+    "enabled": true,
+    "last_run": "2026-04-08T07:05:00Z",
+    "next_run": "2026-04-10T07:05:00Z",
+    "last_status": "failed",
+    "created_by": "供应运营",
+    "tags": [
+      "补货",
+      "办公耗材",
+      "签名校验"
+    ],
+    "integration_id": "INT-945",
+    "created_at": "2025-11-02T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-08T07:05:00Z",
+        "status": "failed",
+        "duration_s": 62,
+        "error": "AuthenticationError: credentials expired for signature verifier",
+        "error_type": "AuthenticationError",
+        "hint": "credentials_expired=true；密钥轮换未完成"
+      },
+      {
+        "run_at": "2026-04-06T07:05:00Z",
+        "status": "failed",
+        "duration_s": 60,
+        "error": "SignatureExpired: request signature timestamp out of range",
+        "error_type": "SignatureExpired",
+        "hint": "签名过期"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-993",
+    "name": "IT设备补货任务-笔记本+路由器",
+    "cron_expression": "0 8 * * 1-5",
+    "action": "restock_it_devices_and_network",
+    "enabled": true,
+    "last_run": "2026-04-08T08:00:00Z",
+    "next_run": "2026-04-10T08:00:00Z",
+    "last_status": "failed",
+    "created_by": "IT采购",
+    "tags": [
+      "补货",
+      "IT设备",
+      "签名校验"
+    ],
+    "integration_id": "INT-947",
+    "created_at": "2025-09-12T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-08T08:00:00Z",
+        "status": "failed",
+        "duration_s": 95,
+        "error": "AuthenticationError: API credentials expired (signature verifier)",
+        "error_type": "AuthenticationError",
+        "hint": "credentials_expired=true；轮换脚本未触发"
+      },
+      {
+        "run_at": "2026-04-07T08:00:00Z",
+        "status": "failed",
+        "duration_s": 92,
+        "error": "AuthenticationError: signing credential invalid",
+        "error_type": "AuthenticationError",
+        "hint": "认证失败"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-994",
+    "name": "IT外设补货任务-显示器(低水位跟进)",
+    "cron_expression": "0 8 * * 1-5",
+    "action": "restock_it_displays",
+    "enabled": true,
+    "last_run": "2026-04-08T08:10:00Z",
+    "next_run": "2026-04-10T08:10:00Z",
+    "last_status": "failed",
+    "created_by": "IT采购",
+    "tags": [
+      "补货",
+      "IT设备",
+      "签名校验"
+    ],
+    "integration_id": "INT-947",
+    "created_at": "2025-09-13T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-08T08:10:00Z",
+        "status": "failed",
+        "duration_s": 88,
+        "error": "SignatureExpired: verifier certificate expired",
+        "error_type": "SignatureExpired",
+        "hint": "证书过期；密钥轮换未完成"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-995",
+    "name": "家具与外设补货任务-办公椅+键盘",
+    "cron_expression": "0 9 * * 1-5",
+    "action": "restock_furniture_and_peripherals",
+    "enabled": true,
+    "last_run": "2026-04-08T09:00:00Z",
+    "next_run": "2026-04-10T09:00:00Z",
+    "last_status": "failed",
+    "created_by": "行政采购",
+    "tags": [
+      "补货",
+      "家具",
+      "签名校验"
+    ],
+    "integration_id": "INT-952",
+    "created_at": "2025-10-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-08T09:00:00Z",
+        "status": "failed",
+        "duration_s": 70,
+        "error": "SignatureExpired: signing key expired or not yet valid",
+        "error_type": "SignatureExpired",
+        "hint": "密钥轮换未完成；疑似时钟偏差"
+      },
+      {
+        "run_at": "2026-04-07T09:00:00Z",
+        "status": "failed",
+        "duration_s": 68,
+        "error": "AuthenticationError: signature verification failed",
+        "error_type": "AuthenticationError",
+        "hint": "签名验证链路异常"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-996",
+    "name": "IT外设补货任务-鼠标垫",
+    "cron_expression": "0 9 * * 1-5",
+    "action": "restock_it_accessories_mousepads",
+    "enabled": true,
+    "last_run": "2026-04-08T09:05:00Z",
+    "next_run": "2026-04-10T09:05:00Z",
+    "last_status": "failed",
+    "created_by": "行政采购",
+    "tags": [
+      "补货",
+      "IT外设",
+      "签名校验"
+    ],
+    "integration_id": "INT-952",
+    "created_at": "2025-10-02T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-08T09:05:00Z",
+        "status": "failed",
+        "duration_s": 72,
+        "error": "AuthenticationError: credentials expired for signing verifier",
+        "error_type": "AuthenticationError",
+        "hint": "credentials_expired=true且signature_expired=true"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-997",
+    "name": "后勤补货任务-矿泉水(干扰任务)",
+    "cron_expression": "0 10 * * 1-5",
+    "action": "restock_backoffice_water",
+    "enabled": true,
+    "last_run": "2026-04-08T10:00:00Z",
+    "next_run": "2026-04-10T10:00:00Z",
+    "last_status": "success",
+    "created_by": "后勤运营",
+    "tags": [
+      "补货",
+      "后勤",
+      "token鉴权"
+    ],
+    "integration_id": "INT-946",
+    "created_at": "2025-12-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-08T10:00:00Z",
+        "status": "success",
+        "duration_s": 24
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-998",
+    "name": "后勤补货任务-滤芯(边界低水位但成功)",
+    "cron_expression": "0 10 * * 1-5",
+    "action": "restock_backoffice_filters",
+    "enabled": true,
+    "last_run": "2026-04-08T10:05:00Z",
+    "next_run": "2026-04-10T10:05:00Z",
+    "last_status": "success",
+    "created_by": "后勤运营",
+    "tags": [
+      "补货",
+      "耗材",
+      "token鉴权"
+    ],
+    "integration_id": "INT-946",
+    "created_at": "2025-12-02T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-08T10:05:00Z",
+        "status": "success",
+        "duration_s": 26
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-999",
+    "name": "清洁补货任务-湿巾(未受影响)",
+    "cron_expression": "0 11 * * 1-5",
+    "action": "restock_cleaning_wipes",
+    "enabled": true,
+    "last_run": "2026-04-08T11:00:00Z",
+    "next_run": "2026-04-10T11:00:00Z",
+    "last_status": "success",
+    "created_by": "行政运营",
+    "tags": [
+      "补货",
+      "清洁",
+      "签名校验"
+    ],
+    "integration_id": "INT-948",
+    "created_at": "2025-08-20T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-08T11:00:00Z",
+        "status": "success",
+        "duration_s": 21
+      }
+    ]
+  }
+]

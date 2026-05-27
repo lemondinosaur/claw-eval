@@ -1,0 +1,163 @@
+[
+  {
+    "ticket_id": "HD-1187",
+    "title": "生产环境：回滚按钮不可用/回滚未执行",
+    "description": "【环境：prod】发布后应自动回滚，但回滚按钮无法使用，回滚未能执行。现象发生在 2026-05-21 19:10 左右；变更类型：release 健康检查。自动回滚触发链路报错：回滚API返回 500。",
+    "reporter": "值班SRE-周岚",
+    "department": "SRE",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-21T19:26:00Z",
+    "tags": [
+      "prod",
+      "回滚",
+      "health-check",
+      "release",
+      "button-unavailable"
+    ],
+    "category": "变更失败"
+  },
+  {
+    "ticket_id": "HD-1188",
+    "title": "生产环境：变更健康检查失败后应触发回滚但未触发",
+    "description": "【环境：prod】变更健康检查失败触发器未调用回滚API，导致生产处于不稳定状态。时间线：2026-05-21T19:05Z 健康检查判定失败，随后回滚触发任务报错 500；影响范围：核心服务A、支付路由。",
+    "reporter": "平台运维-赵磊",
+    "department": "运维平台",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-21T19:40:00Z",
+    "tags": [
+      "prod",
+      "rollback-trigger",
+      "500",
+      "unstable"
+    ],
+    "category": "故障联动"
+  },
+  {
+    "ticket_id": "HD-1189",
+    "title": "生产环境：观测告警飙升疑与回滚未执行相关",
+    "description": "【环境：prod】2026-05-21T19:12Z 起观测告警持续上升。发布健康检查失败后应回滚，但回滚未执行。变更类型：release 灰度扩大，回滚触发链路疑似失败；请求建议：先确认回滚API是否返回500并恢复自动回滚。",
+    "reporter": "监控值班-郑薇",
+    "department": "SRE",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-21T19:55:00Z",
+    "tags": [
+      "prod",
+      "monitoring",
+      "rollback",
+      "release"
+    ],
+    "category": "观测与告警"
+  },
+  {
+    "ticket_id": "HD-1190",
+    "title": "预发环境：变更回滚未触发但健康检查显示正常",
+    "description": "【环境：stage】某次变更发布后，按流程应触发回滚，但回滚未触发。健康检查报告显示正常（与实际发布链路不一致）。回滚触发任务失败原因：任务参数校验失败（字段缺失），导致触发链路中止。时间线：2026-05-21T18:40Z。",
+    "reporter": "测试运维-陈凯",
+    "department": "测试平台",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-21T18:58:00Z",
+    "tags": [
+      "stage",
+      "rollback-trigger",
+      "param-validation",
+      "field-missing"
+    ],
+    "category": "变更失败"
+  },
+  {
+    "ticket_id": "HD-1191",
+    "title": "预发环境：回滚触发任务未运行/触发条件不完整",
+    "description": "【环境：stage】回滚触发链路未执行，怀疑由于任务参数缺失导致触发失败。变更类型：release（发布健康检查链路参数缺失）。预计应在 2026-05-21T18:42Z 调用回滚API，但未发生。",
+    "reporter": "平台QA-邓敏",
+    "department": "测试平台",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-21T19:05:00Z",
+    "tags": [
+      "stage",
+      "rollback",
+      "trigger-not-fired",
+      "missing-parameter"
+    ],
+    "category": "故障联动"
+  },
+  {
+    "ticket_id": "HD-1192",
+    "title": "预发环境：观测平台通知延迟",
+    "description": "【环境：stage】观测平台告警通知延迟约 15 分钟，未发现回滚触发链路直接异常。该问题可能造成现象先后顺序错觉，但与回滚API调用失败无明确关联。",
+    "reporter": "值班NOC-王昊",
+    "department": "NOC",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-21T19:20:00Z",
+    "tags": [
+      "stage",
+      "notification-delay"
+    ],
+    "category": "通知异常"
+  },
+  {
+    "ticket_id": "HD-1193",
+    "title": "生产环境：审计日志缺失影响排查",
+    "description": "【环境：prod】2026-05-21T19:00Z-19:20Z 审计日志缺失，导致回滚相关请求难以追踪。暂未确认回滚触发是否成功，但该工单本身不包含明确的回滚触发失败原因。",
+    "reporter": "安全审计-孙悦",
+    "department": "安全",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-21T19:33:00Z",
+    "tags": [
+      "prod",
+      "audit-log-missing"
+    ],
+    "category": "审计与合规"
+  },
+  {
+    "ticket_id": "HD-1194",
+    "title": "生产环境：权限变更导致部分操作失败",
+    "description": "【环境：prod】2026-05-21T18:55Z 进行权限策略调整，导致部分管理操作权限受限。该工单未直接指向回滚触发任务错误，但可能间接影响回滚按钮行为。",
+    "reporter": "权限管理员-蒋晨",
+    "department": "IAM",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-21T19:10:00Z",
+    "tags": [
+      "prod",
+      "permission-change"
+    ],
+    "category": "权限变更"
+  },
+  {
+    "ticket_id": "HD-1195",
+    "title": "预发环境：镜像拉取偶发超时（疑似无关）",
+    "description": "【环境：stage】部分实例在 2026-05-21T18:30Z-18:50Z 拉取镜像偶发超时。未显示回滚触发链路错误；建议作为并行排查项排除。",
+    "reporter": "运维值班-姚锦",
+    "department": "测试平台",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-21T18:52:00Z",
+    "tags": [
+      "stage",
+      "image-pull-timeout"
+    ],
+    "category": "基础设施"
+  },
+  {
+    "ticket_id": "HD-1196",
+    "title": "生产环境：发布流水线重试导致时间线交叉",
+    "description": "【环境：prod】发布流水线出现重试，导致不同环节时间线交叉。该工单不直接提供回滚API调用错误，但可能与“回滚未执行”时间点重叠。",
+    "reporter": "发布负责人-许捷",
+    "department": "发布工程",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-21T20:02:00Z",
+    "tags": [
+      "prod",
+      "pipeline-retry"
+    ],
+    "category": "发布流程"
+  }
+]

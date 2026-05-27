@@ -1,0 +1,141 @@
+task_id: T131zh_order_profit_analysis_plus_2
+task_name: 高毛利组合对比与成本口径校验
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_2/fixtures/finance/transactions.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_2/fixtures/inventory/items.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_2/fixtures/crm/customers.json
+prompt:
+  text: '请帮我分析各客户订单利润并做组合对比：
+
+
+    1) 从CRM获取每个客户的最近订单及产品清单
+
+    2) 从库存系统核算每个产品的成本价；特别注意服务类产品可能有不同计量单位（例如“人天/工时/个”），需在报告中说明你的成本口径是否直接使用unit_cost进行成本核算
+
+    3) 从财务匹配该客户在指定月份的订单交易状态（仅纳入月份内且与订单相关的交易；日期落在月份外的交易不纳入计算）
+
+    4) 计算利润率=(售价-成本)/售价；若库存中缺失成本信息（如unit_cost为null/缺失），或订单日期超出交易范围导致无法核算，请在报告中明确标记为“利润无法完整核算”，并说明原因
+
+    5) 输出按利润率从高到低排序的客户清单；无法核算的放在末尾或单独分组
+
+    6) 给出简要洞察：高毛利组合主要由哪些产品类别/组合构成
+
+
+    请严格按上述边界条件标记异常与“利润无法完整核算”。'
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: inventory_list_items
+  description: 查看库存/产品列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取产品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

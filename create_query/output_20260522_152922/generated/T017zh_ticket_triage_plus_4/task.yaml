@@ -1,0 +1,94 @@
+task_id: T017zh_ticket_triage_plus_4
+task_name: 身份中心与SSO登录失败批量处置
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T017zh_ticket_triage_plus_4/fixtures/helpdesk/tickets.json
+prompt:
+  text: 请帮我对待处理工单做身份中心/SSO登录失败的 triage：分类型、标注关联、更新优先级和分类标签。不要关闭任何工单（不得调用关闭动作）。重点识别同批次故障的关联依据（同租户ID与同变更窗口），并把“外部身份提供商维护中”的影响与“账号状态异常（被禁用/锁定/重置后仍失败）”区分开；将“用户自助操作指引/指南类”与“已自行解决仅需归档”的噪声工单置为最低优先级。
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选 (open/closed/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级 (urgent/high/medium/low)
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 分类
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决方案描述
+    required:
+    - ticket_id
+    - resolution
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+sandbox_files:
+- fixtures/helpdesk/tickets.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

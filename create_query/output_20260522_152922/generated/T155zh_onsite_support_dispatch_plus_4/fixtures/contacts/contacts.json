@@ -1,0 +1,79 @@
+[
+  {
+    "contact_id": "CT-2101",
+    "name": "工程师A",
+    "department": "运维部",
+    "title": "资深运维工程师",
+    "email": "enga2101@company.com",
+    "phone": "13900111101",
+    "location": "上海总部",
+    "skills": [
+      "高可用排障",
+      "交换路由诊断",
+      "Linux系统故障",
+      "数据库连接池分析"
+    ],
+    "notes": "擅长生产链路排障与现场应急；可处理系统故障与网络隔离策略"
+  },
+  {
+    "contact_id": "CT-2102",
+    "name": "工程师B",
+    "department": "架构部",
+    "title": "后端技术专家",
+    "email": "engb2102@company.com",
+    "phone": "13900111102",
+    "location": "上海总部",
+    "skills": [
+      "微服务故障定位",
+      "性能优化",
+      "日志聚合分析",
+      "消息队列排障"
+    ],
+    "notes": "偏后端与应用层定位；对高并发与超时问题经验丰富"
+  },
+  {
+    "contact_id": "CT-2103",
+    "name": "工程师C",
+    "department": "安全与网络部",
+    "title": "网络安全工程师",
+    "email": "engc2103@company.com",
+    "phone": "13900111103",
+    "location": "上海总部",
+    "skills": [
+      "VPN与隧道排障",
+      "DNS解析异常定位",
+      "防火墙策略排查",
+      "安全告警研判"
+    ],
+    "notes": "适合网络/安全相关现场；对远程隔离与策略修复熟练"
+  },
+  {
+    "contact_id": "CT-2104",
+    "name": "韩薇",
+    "department": "客户成功部",
+    "title": "客户经理",
+    "email": "hanwei@company.com",
+    "phone": "13900111104",
+    "location": "上海总部",
+    "skills": [
+      "SLA管理",
+      "客户沟通",
+      "派遣协调"
+    ],
+    "notes": "负责蓝桥通信（CUS-2105）的日常对接与现场支持协调"
+  },
+  {
+    "contact_id": "CT-2105",
+    "name": "技术总监-张磊",
+    "department": "技术部",
+    "title": "技术总监",
+    "email": "zhanglei@company.com",
+    "phone": "13900111105",
+    "location": "上海总部",
+    "skills": [
+      "技术升级审批",
+      "应急资源调度监督"
+    ],
+    "notes": "当VIP关键工单需要拒派或需说明时，作为升级通知抄送对象"
+  }
+]

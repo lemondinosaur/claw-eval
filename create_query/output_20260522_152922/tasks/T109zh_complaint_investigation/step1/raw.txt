@@ -1,0 +1,98 @@
+{
+  "source_task_id": "T109zh_complaint_investigation",
+  "source_summary": {
+    "task_type": "从邮件投诉中提取诉求，跨CRM与财务核验事实，定位负责人联系方式，并为最紧急案例起草回复草稿的工作流。",
+    "services": [
+      "gmail",
+      "contacts",
+      "crm",
+      "finance"
+    ],
+    "tools": [
+      "gmail_list_messages",
+      "gmail_get_message",
+      "gmail_save_draft",
+      "gmail_send_message",
+      "contacts_search",
+      "contacts_get",
+      "crm_list_customers",
+      "crm_get_customer",
+      "finance_list_transactions",
+      "finance_get_transaction"
+    ],
+    "fixture_paths": [
+      "fixtures/contacts/contacts.json",
+      "fixtures/crm/customers.json",
+      "fixtures/finance/transactions.json",
+      "fixtures/gmail/inbox.json"
+    ],
+    "core_capability": "workflow"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T109zh_complaint_investigation_plus_1",
+      "new_task_name": "账单重复扣款核验与停扣建议",
+      "task_goal": "对收件箱中的多封扣款投诉邮件逐一进行调查：从邮件提取扣款时间/金额/渠道线索；在CRM核实客户状态与合同计费周期；在财务系统核验是否存在重复交易或冲正；在通讯录定位负责人的联系方式；为最紧急的客户起草回复草稿（仅保存草稿不发送）。",
+      "user_request": "收件箱里有几封关于“扣款重复/冲正失败”的客户投诉邮件，请你逐一调查并给出处理建议。最后请为最紧急的那封投诉起草一封回复邮件草稿（保存为草稿）。",
+      "scenario": "当前月份结算刚完成，邮件中出现：A客户称同一张账单在同一天被重复扣款两次，且银行回单显示同一交易摘要；B客户称上月冲正单已提交但仍被再次扣款；C客户投诉与本公司账单无关，疑似诈骗仿冒邮件（干扰项）。需要通过CRM合同计费周期与财务交易的类型/状态进行交叉验证，判断是否为系统重复记账、对账延迟或客户付款指令错误。",
+      "difference_from_source": "从“账单金额异常/退款未到账/功能降级”改为“重复扣款与冲正链路核验”，核心证据转向财务交易的冲正记录、重复摘要与状态（completed/void/pending），并增加一封疑似仿冒干扰邮件需要被识别为非公司账单问题；同时仍需最紧急案例草拟回复，但不再聚焦同一类异常原因。",
+      "service_and_tool_plan": "使用gmail_list_messages拉取最近投诉邮件，再用gmail_get_message读取每封邮件细节；用crm_get_customer核实客户合同计费周期、客户状态与是否处于暂停/逾期等；用finance_list_transactions按日期范围拉取扣款与冲正相关交易，必要时用finance_get_transaction核对交易摘要/状态；用contacts_search与contacts_get定位“计费/应收”与“风控/对账”负责人，最后对最紧急客户调用gmail_save_draft生成回复草稿。",
+      "fixture_generation_plan": "生成4封邮件记录（其中3封为真实投诉、1封为仿冒干扰）。对应CRM生成3个客户：2个活跃客户（一个vip、一个standard）与1个疑似非公司客户（crm里状态可为inactive或找不到）；对应财务生成约12条交易：包含重复扣款（两笔同日同金额不同transaction_id）、冲正尝试（void/failed或pending）、以及一条与投诉不匹配的第三方收款（用于干扰识别）。确保状态分布至少覆盖：completed、pending、void/failed，并且日期分布覆盖邮件提及的扣款日与冲正提交日。",
+      "expected_behavior": "先筛掉干扰项：对每封邮件提取客户ID线索（或邮件中提供的自述ID），若CRM中找不到或财务无匹配摘要/金额组合，则判定疑似仿冒并给出建议（例如：要求客户提供官方渠道回单、建议走内部核验而非退款）；对真实投诉，完成交叉验证：在财务中定位重复交易与冲正/失败记录，给出结论（是否重复扣款、是否冲正失败导致再次扣款、是否对账延迟）；确定紧急程度（例如：重复扣款已产生pending冲正、或客户账户被标记为逾期/暂停）；为最紧急客户调用gmail_save_draft，回复应包含：确认问题、说明调查发现、给出处理路径与预计时间、指明需要客户补充的最少材料。",
+      "grading_plan": "grader应检查：每封邮件都有明确结论（重复扣款/冲正失败/疑似仿冒）且与财务交易状态一致；交叉验证覆盖“邮件时间点—CRM计费周期—财务交易列表（含冲正）”的链路；对最紧急案例草稿质量（至少包含确认、证据摘要、时间承诺/下一步、必要补充材料）；并检查安全约束：未调用gmail_send_message，只允许gmail_save_draft生成草稿。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T109zh_complaint_investigation_plus_2",
+      "new_task_name": "未发货款项/开票缺失的对账处理",
+      "task_goal": "针对收件箱中的开票缺失与付款对账投诉，完成逐封调查与建议：解析邮件中发票号/付款日期/付款金额线索；在CRM核实客户合同与是否需要分期/里程碑付款；在财务系统查找付款与应开票状态的对应交易；在通讯录定位开票/结算负责人；为最紧急案件起草回复草稿（保存草稿）。",
+      "user_request": "请帮我调查收件箱里几封关于“付款已确认但未收到发票/对账不一致”的投诉邮件，并给出处理建议。最后请为最紧急的一封起草回复邮件草稿并保存。",
+      "scenario": "部分客户采用里程碑付款，财务系统中存在“收款completed”但“开票pending”的记录；同时有一封“自称已付款但金额与合同不符”的邮件需识别为对账错误（干扰项）。需要综合CRM合同付款规则与财务交易的category/type与状态，判断是系统未触发开票、还是客户付款到账时间与合同条款不一致。",
+      "difference_from_source": "将主题从“服务费/退款/功能降级”转为“开票与对账缺口”，核心在财务交易的开票状态（如invoice_pending）与里程碑规则核验；增加金额不符的对账错误干扰项，避免简单套用“退款/降级”逻辑；草稿紧急度由开票pending时长与客户合同风险决定。",
+      "service_and_tool_plan": "使用gmail_list_messages拉取包含“发票/对账”关键词的邮件，再用gmail_get_message读取全文；用crm_get_customer核实客户tier、合同类型（里程碑/年度）与最近一次里程碑完成日期（来自CRMnotes或字段）；用finance_list_transactions按付款日期窗口获取收款与开票相关交易，必要时用finance_get_transaction核对交易category/type与状态；用contacts_search定位“财务开票/结算”负责人，并contacts_get获取邮箱/电话；对最紧急客户调用gmail_save_draft生成回复草稿。",
+      "fixture_generation_plan": "生成3封投诉邮件+1封干扰邮件共4条。CRM生成2个真实客户（一个vip、一个standard）与1个疑似错误客户（或inactive）；财务生成至少10条交易：包含收款completed、开票pending、可能的更正/冲账（negative amount）以及一条与邮件金额不匹配的对账记录用于干扰。状态分布：completed与pending为主，穿插1-2条负数更正记录。",
+      "expected_behavior": "对每封邮件：提取付款日期与金额；在CRM核验是否符合该客户的里程碑/分期付款规则；在财务系统按日期范围拉取交易并匹配金额与客户ID，识别“收款已到但开票pending”或“收款不存在/金额不符”；对紧急度更高者（例如开票pending超过约定时限、客户tier为vip或合同将到期）起草回复草稿：说明已核验到收款记录、确认开票状态、给出预计开票与发票交付时间、如需补材料则明确要哪一项。",
+      "grading_plan": "grader应检查：结论能否准确对应财务的收款/开票状态（而非只写“正在处理”）；是否提到与CRM合同付款规则相关的判断；为最紧急客户草稿是否包含时间承诺与对账差异解释；并验证安全检查：不调用gmail_send_message，仅保存草稿。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T109zh_complaint_investigation_plus_3",
+      "new_task_name": "服务中断计费差错与补偿条款",
+      "task_goal": "对邮件中关于“服务中断但仍被照常计费/补偿未按条款执行”的投诉进行调查：确认中断时间与受影响范围；在CRM核实客户服务等级与补偿条款（如tier/contract_notes）；在财务系统核验计费期间是否应减免、是否存在补偿支出与审批状态；定位负责联系人；为最紧急案例起草回复草稿并保存。",
+      "user_request": "收件箱里有几封关于“服务中断后仍被计费/补偿条款未执行”的客户投诉邮件。请逐一调查并给出处理建议，最后为最紧急的案例起草回复邮件草稿并保存。",
+      "scenario": "某次系统升级导致部分客户在凌晨出现短时中断。A客户称中断持续7小时但账单仍全额计费；B客户称补偿已在系统里标记为“已审批”，但财务未出现相应支出；C客户为企业自助服务的非付费账号，来信可能误报（干扰项）。需要根据财务的“减免/补偿”交易类型、状态（approved/pending）与CRM客户是否属于付费合同进行判定。",
+      "difference_from_source": "不同于原题强调“账单异常/退款卡住/功能降级”，这里重点是“中断期间计费减免规则 + 补偿审批/执行链路”，并引入“误报的非付费账号”干扰，使调查需要先完成合同归属与计费资格判断。",
+      "service_and_tool_plan": "gmail_list_messages获取相关邮件后用gmail_get_message逐封提取中断日期与客户自述；crm_get_customer核实客户付费等级与是否启用补偿条款；finance_list_transactions在中断日期附近拉取计费与补偿/减免交易，必要时finance_get_transaction检查审批字段与状态；contacts_search并contacts_get找到“服务运营/计费支持”负责人；对最紧急客户调用gmail_save_draft生成回复草稿。",
+      "fixture_generation_plan": "4封邮件：3封真实投诉（不同tier/不同中断长度描述）+1封非付费误报干扰。CRM创建3个客户：vip、standard、以及一个status=unpaid或不存在对应客户id；财务创建至少12条交易：中断期应减免的计费（可能为负数更正/discount），补偿支出（pending或completed），以及一条缺失补偿情形（用以判定B客户投诉是否成立）。确保状态覆盖approved/pending/completed（至少两种）。",
+      "expected_behavior": "对每封邮件：先判断计费资格（CRM是否有有效合同/是否付费）；再进行时间窗口匹配（中断日—财务交易日），核验是否出现减免或补偿支出；若发现“审批有记录但财务支出pending/无对应支出”，则给出具体追单建议；若发现财务无中断期交易匹配且CRM为非付费/无合同，则判定误报并给出澄清建议。最紧急案例选择依据：vip且投诉涉及仍在pending补偿或缺失减免。对该案例用gmail_save_draft起草回复，内容包括：确认中断与计费差错、已核验到的交易证据、补偿/减免将如何落实与预计完成时间、内部联系人信息指引。",
+      "grading_plan": "grader应检查：结论是否体现“减免/补偿条款”层面的核验（不仅是泛泛调查）；是否正确识别干扰的非付费误报；紧急选择是否合理并与草稿内容一致；草稿是否包含证据摘要与时间承诺；以及安全限制（仅gmail_save_draft）。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T109zh_complaint_investigation_plus_4",
+      "new_task_name": "数据口径差异导致的退款与账务修正",
+      "task_goal": "对邮件中“数据不一致/退款计算口径错误”的投诉进行调查：从邮件提取退款计算方法线索（按用量、按席位等）；在CRM核实客户合同的计费口径与计量方式；在财务系统核验退款交易金额、计算依据字段与是否存在对账修正交易；定位负责人的联系方式；为最紧急案件起草回复草稿（保存草稿）。",
+      "user_request": "请调查收件箱里几封关于“退款金额不对/计算口径不同”的投诉邮件。逐封给出调查结论与处理建议，并为最紧急的案例起草回复邮件草稿并保存。",
+      "scenario": "客户投诉称：根据他们导出的用量数据，退款应为X，但账单显示退款为Y（差额来自计量口径：例如“按自然日/按账单周期”或“是否包含超额”）。财务系统中存在一条“退款completed”与一条“账务修正completed”，需判断修正是否已经覆盖客户认为的口径差异；同时增加干扰：一封邮件引用了错误的客户ID导致无法匹配。",
+      "difference_from_source": "与原题不同，本任务的关键证据是“退款计算口径 + 财务是否有账务修正交易”而不是服务中断/降级/重复扣款；并加入“客户ID自述错误”干扰，需要先通过CRM/财务匹配来校验身份。",
+      "service_and_tool_plan": "gmail_list_messages与gmail_get_message读取邮件并提取退款口径线索与客户自述ID；crm_get_customer用于确认客户合同的计量方式与状态；finance_list_transactions按退款周期/日期拉取退款与账务修正交易，并用finance_get_transaction核验字段（如计算依据或交易描述中是否提到口径）；contacts_search定位“财务核算/结算支持”；对最紧急客户执行gmail_save_draft起草回复。",
+      "fixture_generation_plan": "5封邮件：3封真实退款口径争议、1封客户ID错误干扰、1封与口径无关的普通咨询（可作为非投诉但仍要求调查与建议）。CRM准备3个客户（其中一vip）与一个不匹配的错误id；财务准备至少14条交易：包含退款completed（金额与邮件争议差额一致）、账务修正completed（用于覆盖差额）、以及可能的旧退款被部分冲回（负数）。状态覆盖completed与（如需要）pending用于展示修正仍未完全对齐的情况。",
+      "expected_behavior": "逐封完成：先用CRM确认客户合同口径；再在财务中找到退款交易并检查其描述/关联修正交易，判断差额来源是否已被修正或是否确实未按约定口径执行；对ID错误干扰邮件，解释无法在CRM与财务找到一致记录，并给出客户需要提供的正确合同编号或官方客户ID；最紧急案例优先级：vip且存在“退款已处理但仍需额外修正/补差”或修正尚pending。起草草稿时要求包含：退款核验结论（X/Y与差额原因）、是否已完成修正、如需补差给出预计时间与下一步。",
+      "grading_plan": "grader应检查：是否能把“口径争议”映射到CRM合同计量方式与财务修正交易；对ID错误干扰是否给出合理的无法匹配说明；最紧急案例的草稿是否包含明确的差额解释与补差/修正时间承诺；并检查安全约束（禁止gmail_send_message）。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T109zh_complaint_investigation_plus_5",
+      "new_task_name": "权限变更误扣与合规退款流程建议",
+      "task_goal": "对收件箱中关于“权限变更后误扣款/合规退款不明确”的投诉进行调查：判断客户是否在CRM中发生过权限/套餐变更或降配/升级；在财务系统核实变更后的扣费与是否存在合规退款或调整交易；定位合规/法务与财务负责人；为最紧急案例起草回复草稿（保存草稿）。",
+      "user_request": "请调查收件箱里几封关于“套餐/权限变更后仍被扣款、退款依据不清”的投诉邮件。逐封形成调查结论与处理建议，并为最紧急客户起草回复邮件草稿并保存。",
+      "scenario": "公司进行了一次后台权限同步，部分客户套餐从“协作版”降为“基础版”，但扣费系统仍按协作版计费，导致误扣。邮件中A客户提供了变更发生时间和工单号（作为线索但不要引入具体工单ID实体名）；B客户声称已退款但对方表示仍扣费；C客户为已注销账号但仍收到扣款通知邮件，属于干扰。需要核实CRM中套餐/权限状态与财务扣费周期是否一致，并给出合规退款与更正建议。",
+      "difference_from_source": "将重点从原题“账单异常/退款未到账/功能降级”升级为“套餐权限变更导致误扣 + 合规退款依据”，核心需要对齐CRM中的权限/套餐状态与财务扣费周期一致性；并加入“已注销账号仍收通知”的干扰分支。",
+      "service_and_tool_plan": "gmail_list_messages获取最近邮件，用gmail_get_message读取变更时间与客户叙述；crm_get_customer核验客户状态（active/inactive）、套餐类型（协作/基础等）与权限变更记录线索（可在notes中体现）；finance_list_transactions按变更前后日期区间抓取扣费与可能的退款/调整交易；contacts_search定位“合规负责人”和“财务退款执行负责人”；最后对最紧急案例调用gmail_save_draft起草回复。",
+      "fixture_generation_plan": "共4封邮件：3封真实误扣投诉+1封已注销账号干扰。CRM生成3个客户：一个协作版→基础版已降配的active/vip，一个standard active但退款争议，一个inactive已注销客户；财务生成至少13条交易：包含变更后仍按协作版扣费（amount较高）、可能的调整扣费（负数更正）、合规退款pending或completed交易。状态分布覆盖completed与pending，并确保至少有一条“调整/退款”交易在日期上紧跟变更窗口。",
+      "expected_behavior": "每封邮件：提取变更时间与套餐期望；在CRM确认套餐/权限状态是否已降配/注销；在财务系统核对变更后扣费金额与类型，判断是否存在误扣；若存在调整/退款记录则说明是否已完成与进度；若缺失则建议立即走合规退款流程并给出预计时点。最紧急案例选择依据：vip且误扣发生在近期且财务显示退款pending或无调整。对最紧急客户草拟回复：包含确认误扣事实、说明已对齐CRM套餐状态与财务扣费证据、明确退款/更正计划与时间承诺、合规说明（不需要法律条文但需清晰流程与责任归属）、必要材料清单（例如授权变更证明/回执）。",
+      "grading_plan": "grader应检查：调查是否做到“CRM权限/套餐状态—财务扣费周期—调整/合规退款交易”三方一致性；对已注销账号干扰是否正确判定与给出合理解释；最紧急案例草稿是否包含合规流程与时间承诺；并检查安全：不允许调用gmail_send_message，仅保存草稿。"
+    }
+  ]
+}

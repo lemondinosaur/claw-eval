@@ -1,0 +1,67 @@
+[
+  {
+    "task_id": "TODO-518",
+    "title": "完成发布页内容审核并提交前端上线包",
+    "description": "用于旗舰终端V2发布页内容审核（对应文案终稿与上线条件自查）",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-12",
+    "assignee": "林婉",
+    "tags": [
+      "发布页",
+      "产品",
+      "市场"
+    ]
+  },
+  {
+    "task_id": "TODO-519",
+    "title": "提交“旗舰终端V2”核心卖点素材包",
+    "description": "汇总图文与参数表素材包，供发布页制作与验收",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-10",
+    "assignee": "陈宇",
+    "tags": [
+      "素材",
+      "市场"
+    ]
+  },
+  {
+    "task_id": "TODO-520",
+    "title": "发布页埋点字段映射与校验用例",
+    "description": "完成埋点字段映射、校验口径与用例整理",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-15",
+    "assignee": "周航",
+    "tags": [
+      "数据埋点",
+      "技术"
+    ]
+  },
+  {
+    "task_id": "TODO-521",
+    "title": "日常：更新团队周报",
+    "description": "整理本周进展并提交周报",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-04-05",
+    "assignee": "曹宁",
+    "tags": [
+      "日常"
+    ]
+  },
+  {
+    "task_id": "TODO-522",
+    "title": "已完成：应急回滚演练记录归档",
+    "description": "完成并归档回滚演练记录（含问题点与耗时）",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-04-14",
+    "assignee": "赵敏",
+    "tags": [
+      "回滚演练",
+      "运维"
+    ]
+  }
+]

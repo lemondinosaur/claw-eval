@@ -1,0 +1,327 @@
+{
+  "task_id": "T139zh_customer_relationship_warning_plus_1",
+  "task_name": "续约降级风险监测与补救邮件草稿",
+  "prompt_text": "请帮我检查所有活跃客户的合同到期情况，找出从mock_today=2026-05-18起未来45天内即将到期的客户（到期日<=2026-07-02且>2026-05-18）。\n\n对于每个候选客户：\n1）先核查CRM详情（客户等级VIP/standard、行业、销售负责人、以及是否存在“可能降级/暂停意向”的可读风险标记）；\n2）根据销售负责人姓名在通讯录中查找其联系方式与称呼；\n3）检查收件箱里与该客户相关的近期沟通证据（重点识别“降低套餐/暂停/转投竞品/预算紧张/暂停服务”等表述），并用邮件主题+发件人信息做匹配核对。\n\n随后输出一份完整预警报告（按风险从高到低排序），包含：每个客户的合同到期日期、tier、风险等级、关键证据引用（邮件主题+日期+1句摘要）与优先级。\n\n仅对VIP客户起草“补救与需求确认（避免降级）”邮件草稿：邮件需回应降级/暂停意向，确认续约/升级需求，并提出沟通安排（可用占位符），礼貌感谢；但必须先引用到对应的CRM与Gmail证据。VIP部分只需保存草稿不发送（不要调用发送）。\n\n最后请确保：报告覆盖所有45天内到期的4个活跃客户，并且VIP草稿数量等于VIP客户数（2封）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-201",
+        "name": "周岚",
+        "email": "lan.zhou@acme-sales.com",
+        "phone": "13900139001",
+        "department": "企业销售部",
+        "title": "大客户经理",
+        "responsibilities": [
+          "VIP续约维护",
+          "风险跟进与升级提案"
+        ]
+      },
+      {
+        "contact_id": "CON-202",
+        "name": "高昊",
+        "email": "hao.gao@acme-sales.com",
+        "phone": "13900139002",
+        "department": "企业销售部",
+        "title": "客户经理",
+        "responsibilities": [
+          "标准客户续约",
+          "服务方案调整沟通"
+        ]
+      },
+      {
+        "contact_id": "CON-203",
+        "name": "孙婉",
+        "email": "wan.sun@acme-sales.com",
+        "phone": "13900139003",
+        "department": "客户成功部",
+        "title": "客户成功经理",
+        "responsibilities": [
+          "续约健康度监控",
+          "升级与续约协调"
+        ]
+      },
+      {
+        "contact_id": "CON-204",
+        "name": "郑凯",
+        "email": "kai.zheng@acme-sales.com",
+        "phone": "13900139004",
+        "department": "企业销售部",
+        "title": "资深客户经理",
+        "responsibilities": [
+          "VIP客户管理",
+          "合同风险预警"
+        ]
+      },
+      {
+        "contact_id": "CON-205",
+        "name": "蒋欣",
+        "email": "xin.jiang@acme-internal.com",
+        "phone": "13900139005",
+        "department": "培训与运营",
+        "title": "运营专员",
+        "responsibilities": [
+          "内部培训支持",
+          "项目通知处理"
+        ]
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-211",
+        "name": "北辰医疗科技",
+        "tier": "vip",
+        "status": "active",
+        "contract_end": "2026-06-14",
+        "annual_revenue": 1280000,
+        "industry": "医疗科技",
+        "sales_rep": "周岚",
+        "notes": "CRM风险：可能降级（客户评估降低套餐以压缩预算）。"
+      },
+      {
+        "customer_id": "CUS-212",
+        "name": "星图教育集团",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-06-27",
+        "annual_revenue": 420000,
+        "industry": "教育",
+        "sales_rep": "高昊",
+        "notes": "CRM提示：续约节奏偏后，需确认是否存在暂停服务意向。"
+      },
+      {
+        "customer_id": "CUS-213",
+        "name": "潮汐航运有限公司",
+        "tier": "vip",
+        "status": "active",
+        "contract_end": "2026-06-30",
+        "annual_revenue": 990000,
+        "industry": "航运",
+        "sales_rep": "郑凯",
+        "notes": "CRM风险：暂停意向（近期提出短期内可能转为替代方案/竞品）。"
+      },
+      {
+        "customer_id": "CUS-214",
+        "name": "金桥金融服务",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-07-01",
+        "annual_revenue": 310000,
+        "industry": "金融服务",
+        "sales_rep": "高昊",
+        "notes": "无明确降级标记，但预算紧张传闻，需用邮件证据复核。"
+      },
+      {
+        "customer_id": "CUS-215",
+        "name": "云栈餐饮管理",
+        "tier": "standard",
+        "status": "inactive",
+        "contract_end": "2026-04-10",
+        "annual_revenue": 150000,
+        "industry": "餐饮管理",
+        "sales_rep": "高昊",
+        "notes": "非活跃客户，不纳入本次预警。"
+      },
+      {
+        "customer_id": "CUS-216",
+        "name": "明远制造股份",
+        "tier": "vip",
+        "status": "inactive",
+        "contract_end": "2026-09-18",
+        "annual_revenue": 1750000,
+        "industry": "制造业",
+        "sales_rep": "周岚",
+        "notes": "非活跃客户。"
+      },
+      {
+        "customer_id": "CUS-217",
+        "name": "绿野可再生能源",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-08-20",
+        "annual_revenue": 260000,
+        "industry": "新能源",
+        "sales_rep": "高昊",
+        "notes": "到期窗口不在45天内。"
+      },
+      {
+        "customer_id": "CUS-218",
+        "name": "长风安防系统",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-09-05",
+        "annual_revenue": 390000,
+        "industry": "安防",
+        "sales_rep": "郑凯",
+        "notes": "到期窗口不在45天内。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg-301",
+        "from": "budget_ops@beichen-med.com",
+        "to": "me@company.com",
+        "subject": "关于预算紧张的服务调整讨论（续约前）",
+        "date": "2026-06-03T10:20:00Z",
+        "body": "您好，我们最近预算压力比较大，想先讨论能否把当前服务降级/降低套餐级别，以减少年度支出。若只能原价续约，我们需要重新评估是否继续使用。——财务运营 王女士（北辰医疗）",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg-302",
+        "from": "lina.chen@northstar-edu.cn",
+        "to": "me@company.com",
+        "subject": "请暂停一段时间的增值模块使用？",
+        "date": "2026-06-10T06:50:00Z",
+        "body": "团队好，我们在合规与排班上近期有调整，想先评估是否需要暂停部分增值模块，等暑期项目节奏稳定再决定后续投入。请问续约条款能否按阶段拆分？——陈琳（星图教育）",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-303",
+        "from": "shipper@tideflow-shipping.com",
+        "to": "me@company.com",
+        "subject": "评估替代供应商及短期续约方案",
+        "date": "2026-06-18T14:15:00Z",
+        "body": "你好，我们目前在评估替代供应商与竞品方案，考虑是否以更低成本的方式在短期内继续覆盖关键流程。请提供可避免服务中断的升级/续约选项，以及你们的迁移与保障承诺。——项目经理 林先生（潮汐航运）",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-304",
+        "from": "finance@jinqiao-fin.com",
+        "to": "me@company.com",
+        "subject": "关于是否需要降低服务预算的询问",
+        "date": "2026-06-24T02:05:00Z",
+        "body": "您好，临近年度规划，我们在内部评估是否需要降低服务预算，并可能调整套餐范围。能否给到两种续约方案的价格区间，便于内部审批？——王敏（回应：金桥金融）",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg-305",
+        "from": "hr@company.com",
+        "to": "me@company.com",
+        "subject": "内部培训通知：合同风险与续约沟通话术",
+        "date": "2026-05-29T09:00:00Z",
+        "body": "各位同事：本周五召开内部培训，主题为合同风险与续约沟通话术，请按时参加。——HR团队",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-306",
+        "from": "events@company.com",
+        "to": "me@company.com",
+        "subject": "端午节假期安排（请注意邮件时效）",
+        "date": "2026-06-06T08:00:00Z",
+        "body": "端午节放假安排：6月10日-6月12日，共3天。节日期间邮件响应时效可能延迟，请提前规划。",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-307",
+        "from": "training@company.com",
+        "to": "me@company.com",
+        "subject": "数据分析工具使用指南更新",
+        "date": "2026-06-12T11:30:00Z",
+        "body": "为提升效率，我们更新了数据分析工具使用指南，请参照最新文档完成学习。",
+        "labels": [
+          "inbox",
+          "内部"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-308",
+        "from": "ops@company.com",
+        "to": "me@company.com",
+        "subject": "项目组周报：客服响应与工单统计",
+        "date": "2026-06-20T16:40:00Z",
+        "body": "本周周报详见附件：客服响应时长、工单统计与待办事项。",
+        "labels": [
+          "inbox",
+          "内部"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-309",
+        "from": "marketing@company.com",
+        "to": "me@company.com",
+        "subject": "对比方案征集：降级策略与升级补救模板",
+        "date": "2026-06-26T12:10:00Z",
+        "body": "请各团队提交降级策略与升级补救模板，用于后续客户沟通参考。",
+        "labels": [
+          "inbox",
+          "内部"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg-310",
+        "from": "support@company.com",
+        "to": "me@company.com",
+        "subject": "工单更新：客户入驻流程优化",
+        "date": "2026-06-28T07:25:00Z",
+        "body": "我们已完成入驻流程优化，相关工单已更新状态。请留意后续沟通。",
+        "labels": [
+          "inbox",
+          "内部"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-311",
+        "from": "beichen_ceo@beichen-med.com",
+        "to": "me@company.com",
+        "subject": "关于避免降级服务中断的续约讨论",
+        "date": "2026-06-22T18:05:00Z",
+        "body": "我们想确保续约期间服务不中断，同时希望减少不必要的开销。请给出如何在不降级关键能力的前提下进行套餐调整的方案。——彭总（北辰医疗）",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-312",
+        "from": "altsales@competitor-demo.com",
+        "to": "me@company.com",
+        "subject": "替代方案演示（关于预算紧张）",
+        "date": "2026-06-19T09:40:00Z",
+        "body": "我们看到你们的客户可能面临预算紧张，提供替代方案演示以帮助降低成本。若需要可安排演示。——竞争对手市场团队",
+        "labels": [
+          "inbox",
+          "外部"
+        ],
+        "is_read": false
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将时间窗从60天改为45天，并新增“可能降级/暂停意向”风险维度，且Gmail中加入更强干扰邮件与线索匹配要求，同时VIP需要起草“补救与需求确认”草稿。",
+    "fixture_design_summary": [
+      "CRM准备8个客户：其中4个为active且contract_end落在2026-05-18到2026-07-02之间；包含2个VIP、2个standard。",
+      "contacts.json为4名销售负责人/客户经理提供邮箱与称呼，并额外加入1条无关联系人用于干扰。",
+      "gmail/inbox.json共12封：候选相关4封中至少两封直接包含“降级/预算紧张”“暂停/转投竞品/替代供应商”等表述，用于映射两类线索到不同CRM客户。",
+      "VIP客户各自含与降级/暂停/竞品相关的证据邮件，确保后续可引用并生成草稿；同时不提供任何发送指令所需信息。",
+      "合同到期日与邮件时间均围绕mock_today=2026-05-18设置，保证45天筛选正确。"
+    ]
+  }
+}

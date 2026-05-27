@@ -1,0 +1,91 @@
+[
+  {
+    "integration_id": "INT-211",
+    "name": "channel_stock_api",
+    "display_name": "渠道库存API",
+    "status": "active",
+    "error_rate": 6.8,
+    "base_url": "https://channel-stock.example.com/api",
+    "call_volume_previous_week": 17600,
+    "service": "api",
+    "last_verified": "2026-03-14T23:00:00+08:00",
+    "notes": "监控标签仍为active；错误率偶发升高，notes显示“部分请求重试、部分超时后返回旧库存快照”。"
+  },
+  {
+    "integration_id": "INT-212",
+    "name": "inventory_to_channel_sync",
+    "display_name": "库存到渠道同步",
+    "status": "active",
+    "error_rate": 9.4,
+    "base_url": "https://sync.example.com/inventory-to-channel",
+    "service": "api",
+    "call_volume_previous_week": 4200,
+    "monthly_calls": 5100,
+    "last_verified": "2026-03-14T22:45:00+08:00",
+    "notes": "status标记active但历史上存在连续重试；部分渠道单号在同步窗口内未刷新库存。建议结合调度任务禁用/失败排查。"
+  },
+  {
+    "integration_id": "INT-213",
+    "name": "retail_order_webhook",
+    "display_name": "零售订单Webhook",
+    "status": "degraded",
+    "error_rate": 3.2,
+    "base_url": "https://orders.example.com/webhook",
+    "service": "webhook",
+    "call_volume_previous_week": 9800,
+    "monthly_calls": 10150,
+    "last_verified": "2026-03-14T23:05:00+08:00",
+    "notes": "连接抖动导致回调延迟，可能放大“发货延迟超时”工单聚簇。"
+  },
+  {
+    "integration_id": "INT-214",
+    "name": "fraud_risk_feed",
+    "display_name": "渠道风控风标推送",
+    "status": "active",
+    "error_rate": 0.6,
+    "base_url": "https://risk.example.com/feed",
+    "service": "stream",
+    "call_volume_previous_week": 3100,
+    "monthly_calls": 3300,
+    "last_verified": "2026-03-14T23:10:00+08:00",
+    "notes": "错误率低；notes主要与风控规则触发相关。"
+  },
+  {
+    "integration_id": "INT-215",
+    "name": "reporting_notifier",
+    "display_name": "运营报表通知器",
+    "status": "active",
+    "error_rate": 0.3,
+    "base_url": "https://notify.example.com/ops",
+    "service": "webhook",
+    "call_volume_previous_week": 620,
+    "monthly_calls": 700,
+    "last_verified": "2026-03-14T21:00:00+08:00"
+  },
+  {
+    "integration_id": "INT-216",
+    "name": "inventory_readonly_audit",
+    "display_name": "库存只读审计",
+    "status": "active",
+    "error_rate": 1.1,
+    "base_url": "https://audit.example.com/inventory",
+    "service": "api",
+    "call_volume_previous_week": 2400,
+    "monthly_calls": 2600,
+    "last_verified": "2026-03-14T23:25:00+08:00",
+    "notes": "最近一次审计发现：部分门店SKU在“安全线以下”时仍被请求出库；需要结合库存阈值策略核对。"
+  },
+  {
+    "integration_id": "INT-217",
+    "name": "channel_catalog_cache",
+    "display_name": "渠道商品缓存",
+    "status": "active",
+    "error_rate": 0.0,
+    "base_url": "https://catalog.example.com/cache",
+    "service": "api",
+    "call_volume_previous_week": 1500,
+    "monthly_calls": 80,
+    "last_verified": "2026-03-14T23:30:00+08:00",
+    "notes": "错误率为0但调用量显著下降；可能导致渠道侧缓存未刷新，间接影响库存一致性。"
+  }
+]

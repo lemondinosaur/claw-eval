@@ -1,0 +1,117 @@
+[
+  {
+    "job_id": "JOB-440",
+    "name": "notification_dispatch",
+    "description": "定时派发消息与告警（依赖退避策略与SMTP中继状态）",
+    "cron_expression": "*/2 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T01:56:00+08:00",
+    "action": "派发待发送消息到下游邮件中继",
+    "created_by": "messaging_platform",
+    "tags": [
+      "notification",
+      "dispatch",
+      "smtp"
+    ],
+    "notes": "故障窗口内出现 enabled 状态切换与短间隔重入：上一轮未完成时又触发下一轮；退避/重试策略参数在配置回滚后未正确重置，导致退避上限=0，触发重试风暴并放大重复/乱序。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T01:10:00+08:00",
+        "status": "failed",
+        "duration_seconds": 92,
+        "notes": "SMTP中继调用失败，触发重试；退避上限=0导致几乎无退避，短时间队列增长。"
+      },
+      {
+        "run_time": "2026-03-01T01:12:00+08:00",
+        "status": "failed",
+        "duration_seconds": 118,
+        "notes": "在上一轮仍未完成时再次启动（疑似不可重入/互斥缺失），同一告警多次派发导致重复。"
+      },
+      {
+        "run_time": "2026-03-01T01:14:00+08:00",
+        "status": "failed",
+        "duration_seconds": 104,
+        "notes": "退避窗口与重试间隔冲突继续生效；消息到达顺序出现乱序。"
+      },
+      {
+        "run_time": "2026-03-01T01:15:30+08:00",
+        "status": "success",
+        "duration_seconds": 130,
+        "notes": "下游SMTP恢复到可用状态的一瞬间派发成功，但由于重试链路仍在，仍造成少量乱序包。"
+      },
+      {
+        "run_time": "2026-03-01T01:18:00+08:00",
+        "status": "success",
+        "duration_seconds": 45,
+        "notes": "队列开始消化，重复发送显著下降。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-441",
+    "name": "dead_letter_requeue",
+    "description": "将死信队列的消息重新入队以再次派发",
+    "cron_expression": "*/5 * * * *",
+    "enabled": false,
+    "last_status": "stopped",
+    "last_run": "2026-03-01T01:05:00+08:00",
+    "action": "从DLQ取回失败消息并入队",
+    "created_by": "messaging_platform",
+    "tags": [
+      "dlq",
+      "requeue"
+    ],
+    "notes": "故障窗口开始前已手动关闭以避免进一步放大重复；因此重复主要来源于notification_dispatch自身重入与退避参数错误。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T01:00:00+08:00",
+        "status": "stopped",
+        "duration_seconds": 0,
+        "notes": "任务被disabled，未执行。"
+      },
+      {
+        "run_time": "2026-02-29T23:55:00+08:00",
+        "status": "success",
+        "duration_seconds": 20,
+        "notes": "正常将少量DLQ消息重新入队。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-442",
+    "name": "smtp_health_probe",
+    "description": "每分钟探测SMTP中继健康状态并写入状态供dispatch读取",
+    "cron_expression": "* * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T01:56:30+08:00",
+    "action": "探测mail_relay_smtp并更新健康状态",
+    "created_by": "integrations_team",
+    "tags": [
+      "smtp",
+      "health"
+    ],
+    "notes": "故障窗口期间探测结果持续为degraded，恢复后在 01:46 左右转为active。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T01:10:30+08:00",
+        "status": "success",
+        "duration_seconds": 2,
+        "notes": "探测到SMTP失败，标记degraded。"
+      },
+      {
+        "run_time": "2026-03-01T01:46:30+08:00",
+        "status": "success",
+        "duration_seconds": 2,
+        "notes": "探测结果转为active。"
+      },
+      {
+        "run_time": "2026-03-01T01:56:30+08:00",
+        "status": "success",
+        "duration_seconds": 2,
+        "notes": "保持active。"
+      }
+    ]
+  }
+]

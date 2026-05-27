@@ -1,0 +1,69 @@
+[
+  {
+    "task_id": "TODO-701",
+    "title": "提交数据访问权限整改方案",
+    "description": "资料：完成数据访问权限整改方案并提交至合规台账；需对齐整改期范围与责任边界。",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-12",
+    "assignee": "信息安全岗-权限管理",
+    "tags": [
+      "合规",
+      "数据访问",
+      "整改"
+    ]
+  },
+  {
+    "task_id": "TODO-702",
+    "title": "归档访问日志留存策略说明",
+    "description": "补充并提交访问日志留存策略说明，完成合规归档。",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-04-10",
+    "assignee": "合规负责人-周洁",
+    "tags": [
+      "合规",
+      "审计"
+    ]
+  },
+  {
+    "task_id": "TODO-703",
+    "title": "完成特权账号复核并闭环",
+    "description": "对特权账号进行复核、整改与闭环清单提交。",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-14",
+    "assignee": "信息安全岗-特权账号",
+    "tags": [
+      "合规",
+      "权限管理"
+    ]
+  },
+  {
+    "task_id": "TODO-704",
+    "title": "发布第三方尽调评分模板",
+    "description": "更新并发布第三方尽调评分模板（含评分口径和权重）。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-15",
+    "assignee": "风控经理-高翔",
+    "tags": [
+      "合规",
+      "供应商"
+    ]
+  },
+  {
+    "task_id": "TODO-705",
+    "title": "完成供应商数据处理协议差异整改包（截止更晚）",
+    "description": "针对数据处理协议差异完成整改包（注意：本条截止日期与纪要可能不同，用于测试匹配误差）。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-04-25",
+    "assignee": "合规顾问-郑宁",
+    "tags": [
+      "合规",
+      "供应商",
+      "整改"
+    ]
+  }
+]

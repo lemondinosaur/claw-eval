@@ -1,0 +1,77 @@
+task_id: T015zh_kb_search_plus_5
+task_name: 远程安全误区澄清
+version: '1.0'
+category: knowledge
+difficulty: easy
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T015zh_kb_search_plus_5/fixtures/kb/articles.json
+prompt:
+  text: 我担心远程办公不安全。请基于知识库检索并整合：哪些远程办公行为属于违规（例如在公共WiFi处理敏感文件、未启用自动锁屏、违规录屏/截屏等），应该如何进行合规设置（锁屏/网络/会议录制），以及如果已经发生了相关违规操作，应该立刻怎么补救与上报。最后请给出一份可勾选的自查清单，并在关键结论处引用对应的知识库文章标题/编号。
+  language: zh
+tools:
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按类别筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: kb_update_article
+  description: 更新知识库文章内容
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+      content:
+        type: string
+        description: 更新后的内容
+    required:
+    - article_id
+    - content
+tool_endpoints:
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: kb_update_article
+  url: http://localhost:9106/kb/articles/update
+  method: POST
+sandbox_files:
+- fixtures/kb/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 25

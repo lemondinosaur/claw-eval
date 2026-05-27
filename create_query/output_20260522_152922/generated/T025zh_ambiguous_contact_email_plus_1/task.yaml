@@ -1,0 +1,141 @@
+task_id: T025zh_ambiguous_contact_email_plus_1
+task_name: 预算评审-临时变更通知
+version: '1.0'
+category: communication
+difficulty: medium
+tags:
+- general
+services:
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T025zh_ambiguous_contact_email_plus_1/fixtures/contacts/contacts.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T025zh_ambiguous_contact_email_plus_1/fixtures/gmail/inbox.json
+prompt:
+  text: 请查看收件箱最新收到的邮件：邮件中要求通知“张经理”参加一次“临时变更”的会议，会议时间已临时调整为“周三上午”。由于通讯录里“张经理”对应多个候选人且邮件正文只写了称谓，没有明确部门或邮箱，请你先列出所有可能的“张经理”候选（包含姓名-部门-职务-邮箱），并让用户明确选择；在用户确认前，请不要发送邮件（可先准备草稿，但需等待确认）。
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: contacts_search
+  description: 搜索通讯录中的联系人
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词（姓名、部门等）
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详细信息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_save_draft
+  description: 将邮件保存为草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+      reply_to_message_id:
+        type: string
+        description: 如果是回复邮件，原邮件ID
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+sandbox_files:
+- fixtures/contacts/contacts.json
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

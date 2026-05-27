@@ -1,0 +1,219 @@
+[
+  {
+    "message_id": "hrdmx_1001",
+    "from": "oncall-ops@reliability.zeta.example",
+    "to": "me@mycompany.com",
+    "subject": "[P0][ONCALL] Online search error rate spike - 15:00-15:45 UTC",
+    "date": "2026-03-03T14:58:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "alert"
+    ],
+    "body": "值班告警：线上搜索服务错误率在 15:00-15:45 UTC 内飙升（HTTP 5xx 约 18%），影响用户查询与推荐结果。请立即确认是否为真实线上事件→通知 oncall→开始排障与回滚评估。该事件不属于演练。"
+  },
+  {
+    "message_id": "hrdmx_1002",
+    "from": "compliance-team@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "Compliance log archive required by 17:00 today (evidence submission)",
+    "date": "2026-03-03T09:12:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "合规要求：请在今天 17:00 前完成日志归档并提交证据材料（截图/导出清单）到合规工单系统。若无差异，仍需提交“无变更确认”。联系人：compliance-ops。"
+  },
+  {
+    "message_id": "hrdmx_1003",
+    "from": "hr-ops@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "Training attendance confirmation due today 16:30",
+    "date": "2026-03-03T10:40:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "hr"
+    ],
+    "body": "HR 截止：请确认你已参加《安全编码与数据保护》培训，并在今天 16:30 前完成签到确认表单。未完成将影响本季度合规状态。"
+  },
+  {
+    "message_id": "hrdmx_1004",
+    "from": "noreply@incidentworkshop.org",
+    "to": "me@mycompany.com",
+    "subject": "incident postmortem workshop recap: schedule update",
+    "date": "2026-03-02T18:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "这是一封内部演练/复盘工作坊（tabletop + postmortem workshop）更新邮件：我们将在下周完成“模拟搜索故障”的复盘回顾。\n请不要将其当作线上事故；本邮件不包含任何真实影响线上指标或值班告警时间窗。"
+  },
+  {
+    "message_id": "hrdmx_1005",
+    "from": "accounts@vendor-orchard.example",
+    "to": "me@mycompany.com",
+    "subject": "Invoice clarification needed - PO 77841, submit supporting receipt by Friday",
+    "date": "2026-03-03T08:25:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "billing"
+    ],
+    "body": "关于发票疑问：PO 77841 的税务拆分需要补交收据/支持文件。请在本周五前提交（如未完成将延迟付款流程）。该事项紧迫度中等，但仍请尽快处理。金额涉及 6,900.00 美元。"
+  },
+  {
+    "message_id": "hrdmx_1006",
+    "from": "devrel@openfeature.io",
+    "to": "me@mycompany.com",
+    "subject": "OpenFeature v1.4 released - new SDK docs and migration guide",
+    "date": "2026-03-03T11:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "newsletter"
+    ],
+    "body": "OpenFeature 新版本发布公告：v1.4 包含新的 SDK 文档与迁移指南。"
+  },
+  {
+    "message_id": "hrdmx_1007",
+    "from": "newsletter@teampulse.example",
+    "to": "me@mycompany.com",
+    "subject": "TeamPulse Weekly Report - Week 10 (high level metrics only)",
+    "date": "2026-03-03T07:30:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "newsletter"
+    ],
+    "body": "订阅周报：本周高层指标汇总、项目进度与提醒事项（不包含生产事故）。"
+  },
+  {
+    "message_id": "hrdmx_1008",
+    "from": "store@brightdeals.example",
+    "to": "me@mycompany.com",
+    "subject": "Flash Deal: 40% off lab supplies ends tonight",
+    "date": "2026-03-01T20:10:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "promotional"
+    ],
+    "body": "促销：实验用品 40% 折扣，仅限今晚。"
+  },
+  {
+    "message_id": "hrdmx_1009",
+    "from": "security-ops@mycompany.com",
+    "to": "engineering@mycompany.com",
+    "subject": "PII access attestation due by Wed EOD - submit confirmation",
+    "date": "2026-03-03T13:20:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "security"
+    ],
+    "body": "安全/合规要求：PII 访问须做确认声明。截止时间：周三（今天）EOD 前提交。需要在工单系统提交“确认已审阅”。"
+  },
+  {
+    "message_id": "hrdmx_1010",
+    "from": "finance-ops@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "Quarter closing: reconcile travel receipts by March 7",
+    "date": "2026-03-03T12:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "finance"
+    ],
+    "body": "财务：季度结算差旅收据核对截止为 3 月 7 日。请完成分类核对并在系统中提交结算清单（如无差异也需提交确认）。"
+  },
+  {
+    "message_id": "hrdmx_1011",
+    "from": "automated@post-release-ci.example",
+    "to": "me@mycompany.com",
+    "subject": "[CI] Scheduled deployment window notice - no action required",
+    "date": "2026-03-03T06:15:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "automated"
+    ],
+    "body": "部署窗口提醒：今晚 02:00-03:00 UTC 进行例行部署。本邮件为通知类，无需立即操作。"
+  },
+  {
+    "message_id": "hrdmx_1012",
+    "from": "oncall@reliability.zeta.example",
+    "to": "me@mycompany.com",
+    "subject": "Re: incident drill ended - tabletop evidence collected (NOT a real page)",
+    "date": "2026-03-03T13:40:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "再次确认：这是内部 tabletop/drill 结束的证据收集邮件，不是线上真实事故。没有真实错误率数据与影响时间窗。建议归档或安排在会议纪要中。"
+  },
+  {
+    "message_id": "hrdmx_1013",
+    "from": "community@linux-foundation.example",
+    "to": "me@mycompany.com",
+    "subject": "Linux Foundation: community call recording available (March 2026)",
+    "date": "2026-03-02T16:22:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "community"
+    ],
+    "body": "社区公告：3 月社区电话会议录音已发布，可在页面查看。"
+  },
+  {
+    "message_id": "hrdmx_1014",
+    "from": "ops-pm@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "Action item: confirm rollout readiness by tomorrow noon",
+    "date": "2026-03-03T09:58:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "项目运营：请在明天中午前确认版本发布的 rollout readiness（勾选 checklist 并回复）。截止在 12:00。"
+  },
+  {
+    "message_id": "hrdmx_1015",
+    "from": "vendor-orchard.example@invoices.example",
+    "to": "me@mycompany.com",
+    "subject": "Following up: missing attachment for credit note on INV-90412",
+    "date": "2026-03-03T15:10:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "billing"
+    ],
+    "body": "跟进：INV-90412 的贷项需要补充附件（结算明细）。请在本周内补齐，否则影响对账。紧迫度偏中低。"
+  },
+  {
+    "message_id": "hrdmx_1016",
+    "from": "hr-ops@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "Reminder: policy acknowledgment due by end of day (Mar 3)",
+    "date": "2026-03-03T11:50:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "hr"
+    ],
+    "body": "HR 提醒：请完成公司政策确认（policy acknowledgment）并在今天下班前提交。未完成将无法通过本日合规抽检。"
+  },
+  {
+    "message_id": "hrdmx_1017",
+    "from": "billing-center@vendor-orchard.example",
+    "to": "me@mycompany.com",
+    "subject": "PO 77841 payment status update - requires your confirmation",
+    "date": "2026-03-03T16:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "billing"
+    ],
+    "body": "PO 77841 的付款状态需要你确认：请回复是否已提交补充收据。若今天 18:00 前未确认，供应商将进入自动升级流程。"
+  }
+]

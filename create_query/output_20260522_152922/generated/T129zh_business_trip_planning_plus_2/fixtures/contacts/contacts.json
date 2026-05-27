@@ -1,0 +1,82 @@
+[
+  {
+    "contact_id": "CT-N01",
+    "name": "赵岚",
+    "department": "北区运维中心",
+    "title": "售后对接经理",
+    "email": "anlzhao@company-north.com",
+    "phone": "13901010011",
+    "location": "北区",
+    "notes": "负责北区现场巡检对接与现场协调"
+  },
+  {
+    "contact_id": "CT-N02",
+    "name": "钱志",
+    "department": "北区解决方案团队",
+    "title": "技术交付负责人",
+    "email": "qianzhi@company-north.com",
+    "phone": "13901010022",
+    "location": "北区",
+    "notes": "负责北区故障回访技术确认与资料归档"
+  },
+  {
+    "contact_id": "CT-N03",
+    "name": "孙敏",
+    "department": "北区客户成功",
+    "title": "客户成功专员",
+    "email": "sunmin@company-north.com",
+    "phone": "13901010033",
+    "location": "北区",
+    "notes": "对接北区客户现场安排与联络窗口"
+  },
+  {
+    "contact_id": "CT-W01",
+    "name": "周澄",
+    "department": "西区售后服务站",
+    "title": "现场对接主管",
+    "email": "zhoucheng@company-west.com",
+    "phone": "13902020011",
+    "location": "西区",
+    "notes": "负责西区到访接待、现场门禁与路线指引"
+  },
+  {
+    "contact_id": "CT-W02",
+    "name": "吴桐",
+    "department": "西区运维保障",
+    "title": "运维技术支持",
+    "email": "wutong@company-west.com",
+    "phone": "13902020022",
+    "location": "西区",
+    "notes": "负责西区维护窗口期间的技术联动与回溯"
+  },
+  {
+    "contact_id": "CT-W03",
+    "name": "郑琪",
+    "department": "西区客户关系",
+    "title": "客户经理",
+    "email": "qizheng@company-west.com",
+    "phone": "13902020033",
+    "location": "西区",
+    "notes": "负责西区客户沟通、到访确认与时间协调"
+  },
+  {
+    "contact_id": "CT-S01",
+    "name": "林澄",
+    "department": "南区服务团队",
+    "title": "售后工程师（干扰）",
+    "email": "lincheng@company-south.com",
+    "phone": "13903030011",
+    "location": "南区",
+    "notes": "非目标区域联系人，用于干扰"
+  },
+  {
+    "contact_id": "CT-E01",
+    "name": "何霖",
+    "department": "东区技术支持（干扰）",
+    "title": "技术支持工程师（干扰）",
+    "email": "helin@company-east.com",
+    "phone": "13904040011",
+    "location": "东区",
+    "notes": "非目标区域联系人，用于干扰"
+  }
+]

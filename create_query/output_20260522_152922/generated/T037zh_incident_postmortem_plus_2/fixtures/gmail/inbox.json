@@ -1,0 +1,40 @@
+[
+  {
+    "message_id": "mail_2401",
+    "from": "oncall_engineer@company.com",
+    "to": "incident-reporter@company.com",
+    "subject": "【值班】补偿重放重复批次与游标未提交定位",
+    "body": "团队好，\n\n我们在分析“事件补偿重放”相关链路时，发现关键差异：\n\n1）补偿任务按 batch_id=BR-88371 拉取事件；理想流程应当：\n- 读取游标 cursor=CT-77201\n- 处理事件列表\n- 在同一事务边界内提交游标（cursor commit）\n\n2）实际情况：游标写入失败/未提交（observed cursor_commit_status=FAILED），但Worker已开始重试；因此同一 cursor 区间在下一次调度仍会被视为“未消费”，触发重复批次。\n\n3）幂等保护依赖 idempotency_key=(batch_id, event_id)。由于去重存储在窗口期也degraded，部分幂等键未落库，导致重复事件继续向风控规则引擎投递。\n\n建议根因表述：游标一致性（cursor 与事件处理结果）缺失 + 幂等键落库不可靠 -> 重放放大 -> 风控误判。\n\n— 值班工程师",
+    "date": "2026-03-02T01:40:00+08:00",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "mail_2402",
+    "from": "risk_platform@company.com",
+    "to": "incident-reporter@company.com",
+    "subject": "Re: 风控判定异常原因：输入字段缺失触发默认分支",
+    "body": "收到。风控侧复盘了规则引擎的入参分布：\n\n- 缺失字段：order_risk_context.channel 为 null；user_profile_hash 为空字符串\n- 规则引擎行为：当缺失字段命中“兼容分支”时，规则走默认路径 result=ALLOW（即错误放行）；而部分事件又因重复后续处理进入“拦截分支”，表现为一部分订单拦截、一部分重复后续。\n\n另外，同一 order_id 在 short window 内出现多次 rule_eval（至少 3 次），与“同批次重复发布/重复投递”现象吻合。\n\n因此，风控不是单点故障：\n- 上游补偿重放产生重复事件\n- 同期 payload 缺失导致分支走偏\n\n— 风控平台同学",
+    "date": "2026-03-02T02:10:00+08:00",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "mail_2403",
+    "from": "release_mgr@company.com",
+    "to": "incident-reporter@company.com",
+    "subject": "变更提醒：昨日评审改为仅功能测试，端到端回放校验推迟",
+    "body": "各位好，\n\n关于“事件补偿重放”相关变更的评审记录我再同步一次：\n\n- 上线前评审：已完成功能层面测试（smoke + payload schema 校验）\n- 但端到端回放校验（包含游标一致性与重复检测）被推迟到下个迭代\n\n变更点：新增了 compensation_replay 的 retry 策略与默认容错逻辑。\n\n如果你们在复盘中需要核对评审缺口，直接以“端到端回放校验推迟”为证据。\n\n— 发布经理",
+    "date": "2026-03-02T00:55:00+08:00",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": false
+  }
+]

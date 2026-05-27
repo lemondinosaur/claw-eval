@@ -1,0 +1,79 @@
+[
+  {
+    "transaction_id": "TXA-101",
+    "date": "2026-04-05",
+    "amount": 2590.0,
+    "currency": "CNY",
+    "type": "差旅费报销",
+    "category": "费用报销",
+    "description": "李娜差旅费结算，发票号INV-104",
+    "status": "completed",
+    "approved_by": "财务主管"
+  },
+  {
+    "transaction_id": "TXA-102",
+    "date": "2026-04-05",
+    "amount": 799.99,
+    "currency": "CNY",
+    "type": "办公用品报销",
+    "category": "费用报销",
+    "description": "周磊采购办公用品，发票号INV-105（含税）",
+    "status": "completed",
+    "approved_by": "财务主管"
+  },
+  {
+    "transaction_id": "TXA-103",
+    "date": "2026-04-06",
+    "amount": 980.0,
+    "currency": "CNY",
+    "type": "软件服务费",
+    "category": "运营成本",
+    "description": "云服务订阅费用，发票号INV-106",
+    "status": "completed",
+    "approved_by": "成本经理"
+  },
+  {
+    "transaction_id": "TXA-104",
+    "date": "2026-04-06",
+    "amount": 1234.56,
+    "currency": "CNY",
+    "type": "培训费报销",
+    "category": "费用报销",
+    "description": "外部培训结算，发票号INV-107",
+    "status": "pending",
+    "approved_by": "HR经理"
+  },
+  {
+    "transaction_id": "TXA-105",
+    "date": "2026-04-04",
+    "amount": 320.0,
+    "currency": "CNY",
+    "type": "餐饮招待",
+    "category": "费用报销",
+    "description": "客户招待餐费，发票号INV-108",
+    "status": "canceled",
+    "approved_by": "财务主管"
+  },
+  {
+    "transaction_id": "TXA-106",
+    "date": "2026-04-06",
+    "amount": 4500.0,
+    "currency": "CNY",
+    "type": "水电费",
+    "category": "运营成本",
+    "description": "办公楼水电费（无对应发票）",
+    "status": "completed",
+    "approved_by": "行政部"
+  },
+  {
+    "transaction_id": "TXA-107",
+    "date": "2026-04-05",
+    "amount": 56000.0,
+    "currency": "CNY",
+    "type": "员工工资",
+    "category": "人力成本",
+    "description": "2026年4月员工工资发放（不含发票）",
+    "status": "completed",
+    "approved_by": "财务总监"
+  }
+]

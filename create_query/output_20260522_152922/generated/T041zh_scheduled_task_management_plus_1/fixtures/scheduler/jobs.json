@@ -1,0 +1,386 @@
+[
+  {
+    "job_id": "JOB-401",
+    "name": "report_ingest_dependency",
+    "cron_expression": "0 6 * * *",
+    "action": "从上游依赖拉取报表增量并写入报表服务",
+    "enabled": true,
+    "last_run": "2026-03-01T06:00:00+08:00",
+    "next_run": "2026-03-02T06:00:00+08:00",
+    "last_status": "failed",
+    "error": "依赖调用失败：上游网关返回 502 Bad Gateway（拉取报表增量超时后中止）",
+    "created_by": "prod_scheduler",
+    "tags": [
+      "dependency",
+      "report",
+      "ingest"
+    ],
+    "created_at": "2025-10-03T09:00:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T06:00:00+08:00",
+        "status": "failed",
+        "error": "依赖调用失败：上游网关返回 502 Bad Gateway（拉取报表增量超时后中止）",
+        "duration_seconds": 41
+      },
+      {
+        "run_time": "2026-02-28T06:00:00+08:00",
+        "status": "failed",
+        "error": "依赖调用失败：上游网关返回 502 Bad Gateway（连接超时）",
+        "duration_seconds": 38
+      },
+      {
+        "run_time": "2026-02-27T06:00:00+08:00",
+        "status": "failed",
+        "error": "依赖调用失败：上游网关返回 502 Bad Gateway（读取响应超时）",
+        "duration_seconds": 45
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-402",
+    "name": "billing_reconcile_dependency",
+    "cron_expression": "15 6 * * *",
+    "action": "对账任务：依赖上游结算接口数据并执行差异修复",
+    "enabled": true,
+    "last_run": "2026-03-01T06:15:00+08:00",
+    "next_run": "2026-03-02T06:15:00+08:00",
+    "last_status": "failed",
+    "error": "依赖服务超时：上游结算 API timeout，重试耗尽",
+    "created_by": "finops",
+    "tags": [
+      "dependency",
+      "reconcile",
+      "billing"
+    ],
+    "created_at": "2025-11-17T16:20:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T06:15:00+08:00",
+        "status": "failed",
+        "error": "依赖服务超时：上游结算 API timeout，重试耗尽",
+        "duration_seconds": 93
+      },
+      {
+        "run_time": "2026-02-28T06:15:00+08:00",
+        "status": "failed",
+        "error": "依赖服务超时：上游结算 API timeout，重试耗尽",
+        "duration_seconds": 88
+      },
+      {
+        "run_time": "2026-02-27T06:15:00+08:00",
+        "status": "failed",
+        "error": "依赖服务超时：上游结算 API timeout，重试耗尽",
+        "duration_seconds": 90
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-403",
+    "name": "compensation_chain_repair",
+    "cron_expression": "10 7 * * *",
+    "action": "依赖异常后的补偿链条：修复缺失明细与回填状态",
+    "enabled": false,
+    "last_run": "2026-02-29T07:10:00+08:00",
+    "next_run": null,
+    "last_status": "failed",
+    "error": "任务被禁用，未执行补偿链条",
+    "last_disable_reason": "误操作：将补偿链条任务关闭但未恢复",
+    "created_by": "ops_delegate",
+    "tags": [
+      "compensation",
+      "compensation_chain",
+      "repair"
+    ],
+    "created_at": "2025-12-20T11:35:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-29T07:10:00+08:00",
+        "status": "failed",
+        "error": "任务被禁用，未执行补偿链条",
+        "duration_seconds": 0
+      },
+      {
+        "run_time": "2026-02-28T07:10:00+08:00",
+        "status": "success",
+        "duration_seconds": 214
+      },
+      {
+        "run_time": "2026-02-27T07:10:00+08:00",
+        "status": "success",
+        "duration_seconds": 206
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-404",
+    "name": "resource_write_sync_a",
+    "cron_expression": "*/20 * * * *",
+    "action": "写入资源同步 A：向 target_resource 写入批次记录",
+    "enabled": true,
+    "last_run": "2026-03-01T06:40:00+08:00",
+    "next_run": "2026-03-01T07:00:00+08:00",
+    "last_status": "success",
+    "created_by": "dataflow",
+    "tags": [
+      "sync",
+      "write",
+      "target_resource"
+    ],
+    "created_at": "2025-09-09T12:00:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T06:40:00+08:00",
+        "status": "success",
+        "duration_seconds": 73
+      },
+      {
+        "run_time": "2026-03-01T06:20:00+08:00",
+        "status": "success",
+        "duration_seconds": 69
+      },
+      {
+        "run_time": "2026-03-01T06:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 72
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-405",
+    "name": "resource_write_sync_b",
+    "cron_expression": "*/20 * * * *",
+    "action": "写入资源同步 B：向 target_resource 写入批次记录（与 A 同窗口）",
+    "enabled": true,
+    "last_run": "2026-03-01T06:40:00+08:00",
+    "next_run": "2026-03-01T07:00:00+08:00",
+    "last_status": "failed",
+    "error": "写入锁冲突/duplicate key：target_resource 批次写入发生竞争",
+    "created_by": "dataflow",
+    "tags": [
+      "sync",
+      "write",
+      "target_resource",
+      "conflict_prone"
+    ],
+    "created_at": "2025-09-10T12:05:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T06:40:00+08:00",
+        "status": "failed",
+        "error": "写入锁冲突/duplicate key：target_resource 批次写入发生竞争",
+        "duration_seconds": 22
+      },
+      {
+        "run_time": "2026-03-01T06:20:00+08:00",
+        "status": "failed",
+        "error": "写入锁冲突/duplicate key：target_resource 批次写入发生竞争",
+        "duration_seconds": 19
+      },
+      {
+        "run_time": "2026-03-01T06:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 68
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-406",
+    "name": "indexer_rebuild",
+    "cron_expression": "0 1 * * 0",
+    "action": "每周重建搜索索引",
+    "enabled": true,
+    "last_run": "2026-02-29T01:00:00+08:00",
+    "next_run": "2026-03-07T01:00:00+08:00",
+    "last_status": "success",
+    "created_by": "search_team",
+    "tags": [
+      "index",
+      "rebuild"
+    ],
+    "created_at": "2025-08-20T10:00:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-29T01:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 401
+      },
+      {
+        "run_time": "2026-02-22T01:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 389
+      },
+      {
+        "run_time": "2026-02-15T01:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 412
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-407",
+    "name": "user_profile_rollup",
+    "cron_expression": "30 2 * * *",
+    "action": "用户画像日滚动聚合",
+    "enabled": true,
+    "last_run": "2026-03-01T02:30:00+08:00",
+    "next_run": "2026-03-02T02:30:00+08:00",
+    "last_status": "success",
+    "created_by": "analytics_team",
+    "tags": [
+      "analytics",
+      "rollup"
+    ],
+    "created_at": "2025-12-01T09:12:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T02:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 128
+      },
+      {
+        "run_time": "2026-02-28T02:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 121
+      },
+      {
+        "run_time": "2026-02-27T02:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 130
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-408",
+    "name": "daily_event_cleanup",
+    "cron_expression": "5 3 * * *",
+    "action": "清理过期事件表数据",
+    "enabled": true,
+    "last_run": "2026-03-01T03:05:00+08:00",
+    "next_run": "2026-03-02T03:05:00+08:00",
+    "last_status": "success",
+    "created_by": "platform",
+    "tags": [
+      "cleanup",
+      "events"
+    ],
+    "created_at": "2025-07-25T08:30:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T03:05:00+08:00",
+        "status": "success",
+        "duration_seconds": 61
+      },
+      {
+        "run_time": "2026-02-28T03:05:00+08:00",
+        "status": "success",
+        "duration_seconds": 58
+      },
+      {
+        "run_time": "2026-02-27T03:05:00+08:00",
+        "status": "success",
+        "duration_seconds": 60
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-409",
+    "name": "threshold_alert_digest",
+    "cron_expression": "0 8 * * *",
+    "action": "汇总告警阈值并发送摘要给平台值班",
+    "enabled": true,
+    "last_run": "2026-03-01T08:00:00+08:00",
+    "next_run": "2026-03-02T08:00:00+08:00",
+    "last_status": "success",
+    "created_by": "sre",
+    "tags": [
+      "alerts",
+      "digest"
+    ],
+    "created_at": "2025-10-10T13:10:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T08:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 25
+      },
+      {
+        "run_time": "2026-02-28T08:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 24
+      },
+      {
+        "run_time": "2026-02-27T08:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 26
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-410",
+    "name": "monthly_cost_report",
+    "cron_expression": "0 9 1 * *",
+    "action": "月度成本报告生成并归档",
+    "enabled": true,
+    "last_run": "2026-03-01T09:00:00+08:00",
+    "next_run": "2026-04-01T09:00:00+08:00",
+    "last_status": "success",
+    "created_by": "finops",
+    "tags": [
+      "finance",
+      "report"
+    ],
+    "created_at": "2025-06-30T09:00:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T09:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 156
+      },
+      {
+        "run_time": "2026-02-01T09:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 149
+      },
+      {
+        "run_time": "2026-01-01T09:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 162
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-411",
+    "name": "temp_cookie_rotation",
+    "cron_expression": "0 4 * * *",
+    "action": "临时更换会话 cookie 密钥（temporary）",
+    "enabled": true,
+    "last_run": "2026-03-01T04:00:00+08:00",
+    "next_run": "2026-03-02T04:00:00+08:00",
+    "last_status": "success",
+    "created_by": "security_team",
+    "tags": [
+      "temporary",
+      "security",
+      "cookie"
+    ],
+    "created_at": "2026-01-10T10:10:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T04:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 17
+      },
+      {
+        "run_time": "2026-02-28T04:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 16
+      },
+      {
+        "run_time": "2026-02-27T04:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 18
+      }
+    ]
+  }
+]

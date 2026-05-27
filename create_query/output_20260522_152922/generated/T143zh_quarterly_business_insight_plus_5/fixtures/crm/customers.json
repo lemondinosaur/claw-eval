@@ -1,0 +1,112 @@
+[
+  {
+    "customer_id": "CUS-1001",
+    "name": "北辰工业云",
+    "tier": "vip",
+    "status": "active",
+    "industry": "工业软件",
+    "annual_revenue": 1320000,
+    "contract_end": "2026-09-10",
+    "notes": "合同稳定，近期存在结算口径调整风险，需要对齐财务入账口径",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-1002",
+    "name": "星河电商集成",
+    "tier": "standard",
+    "status": "active",
+    "industry": "电子商务",
+    "annual_revenue": 610000,
+    "contract_end": "2026-07-05",
+    "notes": "季末集中扣费正常，但需确认是否含一次性补记",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-1003",
+    "name": "金桥物流云",
+    "tier": "vip",
+    "status": "active",
+    "industry": "物流运输",
+    "annual_revenue": 980000,
+    "contract_end": "2026-10-30",
+    "notes": "价格战期间续费谈判进行中，可能出现订阅与服务拆分入账差异",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-1004",
+    "name": "皓月制造集团",
+    "tier": "standard",
+    "status": "disputed",
+    "industry": "制造业",
+    "annual_revenue": 420000,
+    "contract_end": "2026-04-18",
+    "notes": "出现争议工单：部分发票与交付里程碑对不上，财务入账需保守处理",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-1005",
+    "name": "海潮教育科技",
+    "tier": "vip",
+    "status": "active",
+    "industry": "教育科技",
+    "annual_revenue": 760000,
+    "contract_end": "2026-08-22",
+    "notes": "预计续费但CRM可能存在更新滞后，需对齐财务失败后重记的时间线",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-1006",
+    "name": "长风媒体广告",
+    "tier": "standard",
+    "status": "churned",
+    "industry": "传媒广告",
+    "annual_revenue": 0,
+    "contract_end": "2026-01-25",
+    "notes": "已停用并流失，但财务仍可能存在退款后重记入账，需排查补记",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-1007",
+    "name": "安泰政务服务",
+    "tier": "standard",
+    "status": "inactive",
+    "industry": "政府服务",
+    "annual_revenue": 250000,
+    "contract_end": "2026-02-28",
+    "notes": "合同到期未续，CRM标记停用但需核对是否存在渠道支付调整导致的延后扣费",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-1008",
+    "name": "云栈零售平台",
+    "tier": "standard",
+    "status": "active",
+    "industry": "零售电商",
+    "annual_revenue": 340000,
+    "contract_end": "2026-06-12",
+    "notes": "疑似一次性结算占比异常，需核对type与计费项目映射",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-1009",
+    "name": "极光网络安全",
+    "tier": "vip",
+    "status": "active",
+    "industry": "网络安全",
+    "annual_revenue": 1140000,
+    "contract_end": "2026-11-08",
+    "notes": "订阅为主，但存在一次性补录导致的收入结构偏差可能",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-1010",
+    "name": "晨曦医疗信息",
+    "tier": "standard",
+    "status": "disputed",
+    "industry": "医疗信息化",
+    "annual_revenue": 300000,
+    "contract_end": "2026-05-30",
+    "notes": "存在争议与部分退款记录，需对齐财务退款重记与CRM合同状态",
+    "contact_person": ""
+  }
+]

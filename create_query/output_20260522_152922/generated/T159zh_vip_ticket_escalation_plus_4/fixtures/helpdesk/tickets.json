@@ -1,0 +1,55 @@
+[
+  {
+    "ticket_id": "TK-2401",
+    "title": "VIP安全告警：疑似账号异常登录并触发风控封禁（无法登录）",
+    "description": "北极星金融（CUS-2401）反馈：系统检测到疑似账号异常登录并触发自动风控封禁，导致其关键交易系统无法完成登录/鉴权。客户担心可能存在未授权访问，要求在1小时内给出是否确认入侵迹象的结论方向，并提供取证计划摘要及临时恢复边界（可按特定IP段解封或切换只读模式）。工单需按critical安全事件升级处理。",
+    "customer_id": "CUS-2401",
+    "reporter": "袁安全经理",
+    "department": "安全对接",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-02T09:05:00Z",
+    "tags": [
+      "安全告警",
+      "账号异常",
+      "风控封禁",
+      "VIP",
+      "疑似未授权"
+    ],
+    "category": "安全事件"
+  },
+  {
+    "ticket_id": "TK-2402",
+    "title": "界面加载慢：报表筛选操作响应慢",
+    "description": "云桥物流（CUS-2402）反馈报表页面筛选操作响应慢，非安全相关问题，请协助排查性能瓶颈。",
+    "customer_id": "CUS-2402",
+    "reporter": "周经理",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-02T07:55:00Z",
+    "tags": [
+      "报表",
+      "性能",
+      "前端"
+    ],
+    "category": "性能问题"
+  },
+  {
+    "ticket_id": "TK-2403",
+    "title": "权限模板导入失败",
+    "description": "晨曦传媒（CUS-2403）反馈权限模板导入失败，出现字段映射校验错误，需要进一步定位导入参数。",
+    "customer_id": "CUS-2403",
+    "reporter": "蒋负责人",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-02T10:05:00Z",
+    "tags": [
+      "权限",
+      "导入",
+      "配置"
+    ],
+    "category": "功能问题"
+  }
+]

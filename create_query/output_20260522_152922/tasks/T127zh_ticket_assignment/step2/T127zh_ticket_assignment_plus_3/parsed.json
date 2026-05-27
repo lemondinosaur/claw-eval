@@ -1,0 +1,171 @@
+{
+  "task_id": "T127zh_ticket_assignment_plus_3",
+  "task_name": "基于SLA的紧急/延后分派",
+  "prompt_text": "当前有4个未分配的工单（状态均为open，优先级分别为high、high、medium、low）。请你逐个查看每条工单详情，判断问题归属部门，并结合SLA/优先级决定处理顺序与负责人类型（例如“24小时响应组/普通处理组”）。\n要求：输出分配建议表（工单→建议处理人→分配理由）。\n- 分配理由必须包含SLA或紧急度证据（例如优先级、description中的“已超SLA 2小时”等关键字），并明确“先处置谁、为什么分配给某类负责人”。\n- 有一条工单描述缺失关键信息（例如tags缺失或category为空/不存在），但description仍包含“故障时段/影响范围/系统名称”等线索：请基于可用线索做最佳路由，并在理由中写明你采用了哪些替代线索，而不是拒绝或提问。\n- 不要多轮追问；必须用现有信息直接给出最终分派建议。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-1001",
+        "name": "高敏",
+        "department": "极速响应运维组-24h",
+        "title": "24小时响应值班负责人",
+        "email": "gaomin@company.com",
+        "phone": "13900112001",
+        "location": "北京总部",
+        "notes": "负责关键系统SLA故障的24小时响应、告警处置与升级"
+      },
+      {
+        "contact_id": "CT-1002",
+        "name": "周航",
+        "department": "普通运维组",
+        "title": "运维经理",
+        "email": "zhouhang@company.com",
+        "phone": "13900112002",
+        "location": "北京总部",
+        "notes": "负责常规运维、批处理运维与非SLA紧急问题处理"
+      },
+      {
+        "contact_id": "CT-1003",
+        "name": "徐琳",
+        "department": "数据质量组",
+        "title": "数据质量负责人",
+        "email": "xulin@company.com",
+        "phone": "13900112003",
+        "location": "北京总部",
+        "notes": "负责数据口径校验、报表准确性、数据异常溯源"
+      },
+      {
+        "contact_id": "CT-1004",
+        "name": "郑博",
+        "department": "安全合规支持",
+        "title": "安全合规工程师",
+        "email": "zhengbo@company.com",
+        "phone": "13900112004",
+        "location": "北京总部",
+        "notes": "负责权限合规审计、账号权限变更流程与安全策略校验"
+      },
+      {
+        "contact_id": "CT-1005",
+        "name": "陈祎",
+        "department": "网络平台支持",
+        "title": "网络平台支持负责人",
+        "email": "chenyi@company.com",
+        "phone": "13900112005",
+        "location": "北京总部",
+        "notes": "负责VPN/网络接入、网关与远程访问故障定位"
+      },
+      {
+        "contact_id": "CT-1006",
+        "name": "孙佳",
+        "department": "支持工单组-普通",
+        "title": "工单处理组负责人",
+        "email": "sunjia@company.com",
+        "phone": "13900112006",
+        "location": "北京总部",
+        "notes": "负责用户请求类、权限申请类等非系统故障工单的受理与分派"
+      },
+      {
+        "contact_id": "CT-1007",
+        "name": "赵磊",
+        "department": "行政支持",
+        "title": "行政支持专员",
+        "email": "zhaolei@company.com",
+        "phone": "13900112007",
+        "location": "北京总部",
+        "notes": "负责办公设备/环境类支持请求"
+      },
+      {
+        "contact_id": "CT-1008",
+        "name": "刘畅",
+        "department": "数据平台运维",
+        "title": "数据平台运维",
+        "email": "liuchang@company.com",
+        "phone": "13900112008",
+        "location": "北京总部",
+        "notes": "负责数据平台运行与基础故障排查"
+      },
+      {
+        "contact_id": "CT-1009",
+        "name": "张宁",
+        "department": "安全应急响应组-24h",
+        "title": "安全应急负责人",
+        "email": "zhangning@company.com",
+        "phone": "13900112009",
+        "location": "北京总部",
+        "notes": "负责疑似安全事件的24小时应急处置与合规联动"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-1101",
+        "title": "核心门户接口超时导致下单失败",
+        "description": "核心门户API在今天 10:05 起出现间歇性超时，请求在网关侧累计排队。影响范围：仅影响移动端下单链路，部分用户重试后仍失败。已触发告警，预计将超出SLA。",
+        "reporter": "电商部孙经理",
+        "department": "电商部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-02T10:08:00Z",
+        "tags": [
+          "接口超时",
+          "下单",
+          "网关告警"
+        ],
+        "category": "系统故障",
+        "sla": "响应2小时内"
+      },
+      {
+        "ticket_id": "TK-1102",
+        "title": "已超SLA 2小时：日志采集延迟（ELK）",
+        "description": "从今天 09:20 起，日志采集任务持续延迟；目前告警显示“已超SLA 2小时”。影响范围：仅影响ELK索引写入，检索页面可用但数据落后。系统名称：LogIngest-ELK。",
+        "reporter": "运维部蔡工程师",
+        "department": "运维部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-02T11:15:00Z",
+        "tags": [
+          "日志采集",
+          "ELK",
+          "延迟"
+        ],
+        "category": "数据平台故障",
+        "sla": "响应1小时内"
+      },
+      {
+        "ticket_id": "TK-1103",
+        "title": "权限变更申请：项目组成员新增与合规校验",
+        "description": "申请为项目Alpha新增5名成员的系统访问权限。包含变更记录与审批号：APR-7741。需要核验最小权限原则与审计策略后完成配置。",
+        "reporter": "研发部李主管",
+        "department": "研发部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-02T12:30:00Z",
+        "tags": [],
+        "category": "",
+        "sla": "响应4小时内"
+      },
+      {
+        "ticket_id": "TK-1104",
+        "title": "VPN连接间歇失败（缺失tags）",
+        "description": "故障时段：今天 13:10-13:40 之间出现VPN连接间歇失败；影响范围：影响北京与上海两地远程员工；系统名称：VPN-Gateway。当前无明确tags与分类字段。",
+        "reporter": "人事部王助理",
+        "department": "人事部",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-02T13:42:00Z",
+        "tags": null,
+        "category": null,
+        "sla": "响应12小时内"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "由6条工单缩为4条，并要求理由中显式体现SLA/紧急度证据；同时新增一条字段缺失的边界工单需基于“系统名称+影响范围/故障时段”等线索做最佳分派。",
+    "fixture_design_summary": [
+      "contacts提供9位负责人，覆盖“极速响应运维组-24h/普通运维组/数据质量组/安全合规支持/网络平台支持/支持工单组-普通/行政支持/数据平台运维/安全应急响应组-24h”，便于按SLA与紧急度路由。",
+      "tickets共4条：TK-1101与TK-1102为high且包含SLA线索（含“已超SLA 2小时”），用于优先级与24h响应组/运维处理组匹配。",
+      "TK-1103为medium工单，故意让tags为空且category为空字符串，用于“缺失字段但仍完成最佳判断”的边界处理；依据description中的审批号与最小权限/审计策略线索路由到安全合规支持或普通工单处理组。",
+      "TK-1104为low工单且tags为null、category为null，description包含故障时段、影响范围与系统名称VPN-Gateway，用于依据替代线索路由到网络平台支持。",
+      "所有ticket_id与contact_id、邮件地址、系统名称均为新内容，且跨fixture引用一致（负责人可由department/关键词搜索得到）。"
+    ]
+  }
+}

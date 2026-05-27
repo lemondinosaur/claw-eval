@@ -1,0 +1,735 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T031zh_escalation_budget_triage_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/contacts/contacts.json",
+  "fixtures/crm/customers.json",
+  "fixtures/finance/transactions.json",
+  "fixtures/gmail/inbox.json",
+  "fixtures/helpdesk/tickets.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T031zh_escalation_budget_triage_plus_5",
+  "new_task_name": "跨区域客服风控：多重升级与重复客户去重",
+  "task_goal": "处理跨区域客服风控升级邮件：同一客户可能在不同区域多次升级，需要去重后汇总后仍按阈值规则分流（同客户多封邮件取最大等效补偿金额进行决策）；对“重复已处理”邮件识别为无需重复发送/草稿；输出按客户维度的处理摘要。",
+  "user_request": "收件箱里有多封来自不同区域（华东/华南/海外）的客户升级邮件。请处理：1）读取所有升级邮件2）在CRM中查找客户tier、annual_revenue、status3）在helpdesk中找到每个客户相关的升级工单（可能多条）4）做去重：如果同一客户出现多封邮件，只保留该客户“最高要求补偿金额”的那条作为决策依据，其余邮件标记为“重复升级无需再发”但仍需在摘要说明；5）重复处理识别：如果某客户在helpdesk已有tag“已提交审批”且历史finance显示存在completed补偿记录，则该客户本轮跳过任何send/draft动作，仅更新工单加tag“无需重复”；6）决策规则：active且未重复处理时，<=5%发送客户服务联络人“处理通知”；>5%保存草稿“需上级审批”；churned或邮件含“已停用账户”则通知法务并更新异常标签，不做客户承诺；最后给我摘要：按客户列出：保留的那封邮件ID（最高金额那封）、比率、动作（sent/draft/legal/skip-repeat）、以及处理到的工单ID列表。",
+  "scenario": "收件箱共10封邮件：涉及6个客户，其中有2个客户各出现2次升级（来自不同区域），另有2封为干扰：一封无客户编号、另一封金额为负数或明显无效。CRM包含2个churned客户。Helpdesk对某个客户已有“已提交审批”标签，且finance里有其completed补偿记录；因此需要触发“无需重复”跳过逻辑。对其余客户，需要选择工单：同客户存在多个工单（按升级区域标签优先，但如果保留邮件最高金额那条对应的区域不同仍允许选最相关升级工单）。",
+  "difference_from_source": "原题是逐邮件处理；本题引入跨区域多封同客户去重与按客户维度汇总决策（取最高金额），并加入“重复已处理”识别（结合helpdesk已有审批tag与finance completed记录跳过send/draft）。",
+  "service_and_tool_plan": "gmail_list_messages与gmail_get_message读取10封并解析客户编号与补偿金额（需校验负数/无效）；crm_get_customer获取年收入/状态/等级；helpdesk_list_tickets与helpdesk_get_ticket用于获取客户相关工单并选择用于更新的工单集合；helpdesk_update_ticket写入tags如“重复升级无需再发”“无需重复”“已提交审批”“预算内/预算外/异常-法务”；contacts_search定位客户服务与法务；gmail_send_message用于预算内，gmail_save_draft用于预算外；finance_list_transactions/finance_get_transaction用于判断completed记录以触发重复跳过。",
+  "fixture_generation_plan": "生成fixtures：gmail/inbox.json 10条，message_id新值，包含：6个不同客户编号（新格式），其中2个客户各2封（总10封中的4封），另外2封为干扰（无编号1封、金额为负1封）。有效邮件每条包含补偿金额（正数）与区域标识（华东/华南/海外）以及升级说明。contacts.json：客户服务联络人1名、法务联络人1名，email为全新。crm/customers.json：至少6个客户，其中2个churned，其余active；tier至少2个vip；annual_revenue用于使至少一客户预算内、一客户预算外，并且设置某客户在重复跳过条件满足（active）。helpdesk/tickets.json：至少14条；对每个客户至少2条工单以体现工单列表；其中被“已提交审批”tag的客户至少1条工单已有该tag且status=open；另加入tag/描述区分区域。finance/transactions.json：至少2-4条，确保对“已提交审批”的客户存在completed补偿记录以触发skip-repeat；其余客户可有或无历史记录。",
+  "expected_behavior": "1）读取并解析10封：对无客户编号或金额无效（负数）邮件skip并在摘要注明；2）对其余邮件按客户编号分组：对每客户找最高补偿金额对应的那封邮件作为决策依据；3）对每个客户调用crm_get_customer；若churned或正文含“已停用账户”：选择该客户最相关升级工单集合，helpdesk_update_ticket写“异常-法务”，并gmail_send_message通知法务；4）对active客户：检查重复处理条件：在helpdesk工单中是否已有tag“已提交审批”，以及finance是否存在completed补偿记录；若满足：不进行gmail_send_message/gmail_save_draft，仅对对应工单helpdesk_update_ticket加tag“无需重复”；5）否则按最高金额决策：<=5% -> gmail_send_message给客户服务联络人（预算内处理通知）；>5% -> gmail_save_draft给客户服务联络人（需上级审批）；6）对于同一客户的非最高金额邮件，在摘要标注“重复升级无需再发”（但不得发邮件）；7）输出摘要按客户维度：客户编号、最高金额邮件ID、最高金额/年收入比率、动作类型、所更新的工单ID列表。",
+  "grading_plan": "grader检查：1）gmail_get_message覆盖10封；2）去重逻辑：对同客户应只出现一个sent/draft/legal动作，对非最高金额邮件不得触发重复动作；3）重复已处理识别：当helpdesk已有“已提交审批”且finance存在completed记录时，必须skip-repeat且不调用gmail_send_message/gmail_save_draft；4）阈值规则严格执行<=5%发送、>5%草稿；5）churned或“已停用账户”必须走法务通知；6）摘要按客户维度而非按邮件维度列出，并包含“重复升级无需再发/无需重复/预算内/预算外/异常-法务”等关键词。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T031zh_escalation_budget_triage",
+  "task_name": "Cross-Service Customer Escalation Triage with Budget Constraints",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "hard",
+  "tags": [
+    "general"
+  ],
+  "language": "zh",
+  "services": [
+    "gmail",
+    "contacts",
+    "helpdesk",
+    "crm",
+    "finance"
+  ],
+  "tools": [
+    "gmail_list_messages",
+    "gmail_get_message",
+    "gmail_send_message",
+    "gmail_save_draft",
+    "contacts_search",
+    "contacts_get",
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "helpdesk_update_ticket",
+    "crm_list_customers",
+    "crm_get_customer",
+    "finance_list_transactions",
+    "finance_get_transaction"
+  ],
+  "fixture_paths": [
+    "fixtures/contacts/contacts.json",
+    "fixtures/crm/customers.json",
+    "fixtures/finance/transactions.json",
+    "fixtures/gmail/inbox.json",
+    "fixtures/helpdesk/tickets.json"
+  ],
+  "sandbox_files": [
+    "fixtures/gmail/inbox.json",
+    "fixtures/crm/customers.json",
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/contacts/contacts.json",
+    "fixtures/finance/transactions.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T031zh_escalation_budget_triage
+task_name: Cross-Service Customer Escalation Triage with Budget Constraints
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T031zh_escalation_budget_triage/fixtures/gmail/inbox.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: tasks/T031zh_escalation_budget_triage/fixtures/contacts/contacts.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: tasks/T031zh_escalation_budget_triage/fixtures/helpdesk/tickets.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: tasks/T031zh_escalation_budget_triage/fixtures/crm/customers.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: tasks/T031zh_escalation_budget_triage/fixtures/finance/transactions.json
+prompt:
+  text: "收件箱里有多封客户投诉和升级邮件。请帮我处理：\n1. 阅读所有投诉邮件\n2. 在CRM中查找对应客户的等级和年收入\n3. 匹配工单系统中的相关工单\n\
+    4. 对于每个投诉按以下规则处理：\n   (a) 补偿金额 <= 客户年收入的5%：直接发送处理通知邮件给客户服务部\n   (b) 补偿金额 > 客户年收入的5%：仅保存草稿，需要上级审批\n\
+    \   (c) 发现异常（如已流失客户）：标记为异常并通知法务部\n5. 给我一份处理摘要\n"
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_save_draft
+  description: 将邮件保存为草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+      reply_to_message_id:
+        type: string
+        description: 如果是回复邮件，原邮件ID
+    required:
+    - to
+    - subject
+    - body
+- name: contacts_search
+  description: 搜索通讯录中的联系人
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词（姓名、部门等）
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详细信息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选 (open/closed/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详细信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级 (low/medium/high/critical)
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 工单分类
+    required:
+    - ticket_id
+- name: crm_list_customers
+  description: 获取客户列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选 (active/churned)
+      tier:
+        type: string
+        description: 按等级筛选 (vip/standard)
+      industry:
+        type: string
+        description: 按行业筛选
+    required: []
+- name: crm_get_customer
+  description: 获取客户详细信息
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: finance_list_transactions
+  description: 获取财务交易记录列表
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 开始日期 (YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 结束日期 (YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取财务交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+- fixtures/crm/customers.json
+- fixtures/helpdesk/tickets.json
+- fixtures/contacts/contacts.json
+- fixtures/finance/transactions.json
+environment:
+  timeout_seconds: 900
+  max_turns: 40
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/contacts/contacts.json ---
+[
+  {
+    "contact_id": "CT-201",
+    "name": "王丽",
+    "department": "客户服务部",
+    "title": "客服总监",
+    "email": "wangli@company.com",
+    "phone": "13900201001",
+    "location": "北京总部"
+  },
+  {
+    "contact_id": "CT-202",
+    "name": "张明",
+    "department": "财务部",
+    "title": "财务经理",
+    "email": "zhangming@company.com",
+    "phone": "13900201002",
+    "location": "北京总部"
+  },
+  {
+    "contact_id": "CT-203",
+    "name": "李强",
+    "department": "销售部",
+    "title": "销售总监",
+    "email": "liqiang@company.com",
+    "phone": "13900201003",
+    "location": "北京总部"
+  },
+  {
+    "contact_id": "CT-204",
+    "name": "赵红",
+    "department": "法务部",
+    "title": "法务经理",
+    "email": "zhaohong@company.com",
+    "phone": "13900201004",
+    "location": "北京总部"
+  }
+]
+
+--- END FILE: fixtures/contacts/contacts.json ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-001",
+    "name": "明达集团",
+    "contact_person": "王建国",
+    "email": "wangjianguo@mingda.com",
+    "phone": "13800011001",
+    "industry": "系统集成",
+    "tier": "standard",
+    "annual_revenue": 2500000,
+    "last_contact_date": "2026-02-20",
+    "status": "active",
+    "notes": "长期合作客户，交付偶有延迟"
+  },
+  {
+    "customer_id": "CUS-002",
+    "name": "天宇传媒",
+    "contact_person": "李敏",
+    "email": "limin@tianyu-media.com",
+    "phone": "13800011002",
+    "industry": "传媒",
+    "tier": "standard",
+    "annual_revenue": 1800000,
+    "last_contact_date": "2026-02-15",
+    "status": "active",
+    "notes": "对服务响应速度较敏感"
+  },
+  {
+    "customer_id": "CUS-003",
+    "name": "华信科技",
+    "contact_person": "张总",
+    "email": "zhangzong@huaxin-tech.com",
+    "phone": "13800011003",
+    "industry": "科技",
+    "tier": "vip",
+    "annual_revenue": 8900000,
+    "last_contact_date": "2026-02-28",
+    "status": "active",
+    "notes": "战略VIP客户，年合同金额大，近期服务投诉频繁"
+  },
+  {
+    "customer_id": "CUS-004",
+    "name": "博通信息",
+    "contact_person": "赵经理",
+    "email": "zhaojingli@botong-info.com",
+    "phone": "13800011004",
+    "industry": "信息技术",
+    "tier": "vip",
+    "annual_revenue": 6200000,
+    "last_contact_date": "2026-02-25",
+    "status": "active",
+    "notes": "VIP客户，数据分析平台项目进行中"
+  },
+  {
+    "customer_id": "CUS-005",
+    "name": "联想创新",
+    "contact_person": "刘洋",
+    "email": "liuyang@lianxiang-cx.com",
+    "phone": "13800011005",
+    "industry": "科技",
+    "tier": "standard",
+    "annual_revenue": 3600000,
+    "last_contact_date": "2026-02-22",
+    "status": "active",
+    "notes": "标准客户，但收入贡献较高，有流失风险"
+  },
+  {
+    "customer_id": "CUS-006",
+    "name": "新晨科技",
+    "contact_person": "陈总",
+    "email": "chenzong@xinchen-tech.com",
+    "phone": "13800011006",
+    "industry": "科技",
+    "tier": "vip",
+    "annual_revenue": 5100000,
+    "last_contact_date": "2026-02-18",
+    "status": "active",
+    "notes": "VIP客户，合同稳定"
+  },
+  {
+    "customer_id": "CUS-007",
+    "name": "远景数据",
+    "contact_person": "周明",
+    "email": "zhouming@yuanjing-data.com",
+    "phone": "13800011007",
+    "industry": "数据服务",
+    "tier": "standard",
+    "annual_revenue": 1200000,
+    "last_contact_date": "2026-01-30",
+    "status": "active",
+    "notes": "小型客户，需求简单"
+  },
+  {
+    "customer_id": "CUS-008",
+    "name": "恒达电子",
+    "contact_person": "吴涛",
+    "email": "wutao@hengda-elec.com",
+    "phone": "13800011008",
+    "industry": "电子",
+    "tier": "standard",
+    "annual_revenue": 900000,
+    "last_contact_date": "2025-11-15",
+    "status": "churned",
+    "churn_date": "2025-11-15",
+    "churn_reason": "合同到期未续约",
+    "notes": "已流失客户，合同到期未续约"
+  }
+]
+
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/finance/transactions.json ---
+[
+  {
+    "transaction_id": "TXN-1601",
+    "date": "2025-08-15",
+    "amount": 200000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-003",
+    "customer_name": "华信科技",
+    "type": "客户补偿",
+    "category": "补偿支出",
+    "description": "华信科技2025年Q2服务中断补偿",
+    "approved_by": "王丽",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1602",
+    "date": "2025-10-20",
+    "amount": 30000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-001",
+    "customer_name": "明达集团",
+    "type": "客户补偿",
+    "category": "补偿支出",
+    "description": "明达集团2025年Q3交付延迟补偿",
+    "approved_by": "张明",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1603",
+    "date": "2025-09-10",
+    "amount": 80000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-004",
+    "customer_name": "博通信息",
+    "type": "客户补偿",
+    "category": "补偿支出",
+    "description": "博通信息2025年Q3功能缺陷补偿",
+    "approved_by": "王丽",
+    "status": "completed"
+  }
+]
+
+--- END FILE: fixtures/finance/transactions.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_1601",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "【紧急】华信科技投诉升级 - 要求50万补偿",
+    "date": "2026-02-28T09:15:00+08:00",
+    "is_read": false,
+    "labels": ["inbox", "important", "escalation"],
+    "body": "转发客户投诉：\n\n客户编号：CUS-003\n客户名称：华信科技\n联系人：张总\n\n投诉内容：\n张总来电反映，近三个月来我司服务响应时间严重超标，多次反馈未得到有效解决。具体问题包括：\n1. 技术支持工单平均响应时间超过48小时（SLA承诺24小时内）\n2. 上月系统故障导致其业务中断6小时\n3. 客户经理更换频繁，交接不到位\n\n客户要求：\n- 书面道歉\n- 补偿金额：50万元\n- 指定专属客户经理\n\n该客户为VIP客户，年合同金额较大，请尽快处理。\n\n客服部 小王"
+  },
+  {
+    "message_id": "msg_1602",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "明达集团交付延迟投诉 - 要求5万补偿",
+    "date": "2026-02-28T10:30:00+08:00",
+    "is_read": false,
+    "labels": ["inbox", "escalation"],
+    "body": "客户投诉通知：\n\n客户编号：CUS-001\n客户名称：明达集团\n联系人：王建国\n\n投诉内容：\n王建国反映我司上季度交付的系统集成项目延迟了两周，导致其内部项目计划受到影响。客户要求我司承担因延迟造成的额外成本。\n\n客户要求：\n- 补偿金额：5万元\n- 后续项目交付保障承诺\n\n此为标准客户，投诉级别一般。\n\n客服部 小李"
+  },
+  {
+    "message_id": "msg_1603",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "博通信息产品缺陷反馈 - 要求15万补偿",
+    "date": "2026-02-28T11:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox", "important", "escalation"],
+    "body": "客户升级通知：\n\n客户编号：CUS-004\n客户名称：博通信息\n联系人：赵经理\n\n投诉内容：\n赵经理反映我司交付的数据分析平台存在严重缺陷，导致数据统计结果偏差超过5%。已经影响到其Q4的决策报告准确性。技术团队已确认是我方算法模块的Bug。\n\n客户要求：\n- 立即修复缺陷\n- 补偿金额：15万元\n- 提供数据修正服务\n\n该客户为VIP客户，请优先处理。\n\n客服部 小张"
+  },
+  {
+    "message_id": "msg_1604",
+    "from": "liqiang@company.com",
+    "to": "me@company.com",
+    "subject": "Fwd: 联想创新产品体验问题 - 内部转发",
+    "date": "2026-02-28T13:45:00+08:00",
+    "is_read": false,
+    "labels": ["inbox", "escalation"],
+    "body": "你好，\n\n转发一下这个客户的问题，我这边处理不了，需要你帮忙决策。\n\n客户编号：CUS-005\n客户名称：联想创新\n联系人：刘洋\n年收入贡献：约360万\n\n客户反映我们的产品使用体验不佳，多次反馈改进建议未被采纳。现在要求20万元的补偿，否则考虑更换供应商。\n\n这个客户虽然不是VIP，但年收入不低，建议认真对待。\n\n销售部 李强"
+  },
+  {
+    "message_id": "msg_1605",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "天宇传媒服务投诉 - 要求3万补偿",
+    "date": "2026-02-28T14:20:00+08:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "客户投诉通知：\n\n客户编号：CUS-002\n客户名称：天宇传媒\n联系人：李敏\n\n投诉内容：\n李敏反映上周联系客服咨询账单问题，等待时间超过30分钟，且客服人员态度不够专业。客户感到不满。\n\n客户要求：\n- 补偿金额：3万元\n- 改善客服响应速度\n\n此为标准客户，小额投诉。\n\n客服部 小王"
+  },
+  {
+    "message_id": "msg_1606",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "Re: 【紧急】华信科技投诉升级 - 催促处理",
+    "date": "2026-02-28T16:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox", "important"],
+    "body": "补充通知：\n\n华信科技张总刚才再次来电催促，表示如果今天内没有收到正式回复，将考虑暂停下季度的合同续签。\n\n请务必尽快给出处理方案。\n\n客服部 小王"
+  },
+  {
+    "message_id": "msg_1607",
+    "from": "unknown-sender@external.com",
+    "to": "me@company.com",
+    "subject": "恒达电子补偿申请 - 要求10万",
+    "date": "2026-02-28T17:10:00+08:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "你好，\n\n我是恒达电子（CUS-008）的吴涛。虽然我们之前的合同已经结束，但在合同期内遗留的技术问题一直未得到解决，给我们造成了持续的损失。\n\n我们要求贵司补偿10万元，用于覆盖我方自行修复相关问题的费用。\n\n请尽快答复。\n\n吴涛\n恒达电子"
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-1601",
+    "title": "华信科技服务质量投诉",
+    "description": "华信科技（CUS-003）张总投诉我司服务响应时间严重超标。技术支持工单平均响应时间超过48小时，远超SLA承诺的24小时。上月系统故障导致客户业务中断6小时。客户经理更换频繁，交接不到位。客户情绪激烈，威胁暂停合同续签。",
+    "customer_id": "CUS-003",
+    "reporter": "客服小王",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-02-28T09:00:00Z",
+    "tags": ["VIP", "升级", "服务质量"]
+  },
+  {
+    "ticket_id": "TK-1602",
+    "title": "明达集团交付延迟投诉",
+    "description": "明达集团（CUS-001）王建国反映上季度系统集成项目延迟两周交付，导致客户内部项目计划受影响。客户要求补偿因延迟造成的额外成本5万元。",
+    "customer_id": "CUS-001",
+    "reporter": "客服小李",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-02-28T10:20:00Z",
+    "tags": ["交付延迟"]
+  },
+  {
+    "ticket_id": "TK-1603",
+    "title": "博通信息产品缺陷反馈",
+    "description": "博通信息（CUS-004）赵经理反映数据分析平台存在严重缺陷，数据统计结果偏差超过5%，影响Q4决策报告。技术团队已确认为算法模块Bug。客户要求立即修复并补偿15万元。",
+    "customer_id": "CUS-004",
+    "reporter": "客服小张",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-02-28T10:50:00Z",
+    "tags": ["VIP", "产品缺陷", "技术问题"]
+  },
+  {
+    "ticket_id": "TK-1604",
+    "title": "联想创新产品体验问题",
+    "description": "联想创新（CUS-005）刘洋反映产品使用体验不佳，多次提交改进建议未被采纳。客户考虑更换供应商，要求20万元补偿。销售部李强内部转发。",
+    "customer_id": "CUS-005",
+    "reporter": "销售部李强",
+    "department": "销售部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-02-28T13:30:00Z",
+    "tags": ["产品体验", "流失风险"]
+  },
+  {
+    "ticket_id": "TK-1605",
+    "title": "天宇传媒客服不满意",
+    "description": "天宇传媒（CUS-002）李敏反映联系客服咨询账单问题时等待时间超过30分钟，客服人员态度不够专业。客户要求补偿3万元并改善客服响应速度。",
+    "customer_id": "CUS-002",
+    "reporter": "客服小王",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-02-28T14:10:00Z",
+    "tags": ["客服体验"]
+  }
+]
+
+--- END FILE: fixtures/helpdesk/tickets.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

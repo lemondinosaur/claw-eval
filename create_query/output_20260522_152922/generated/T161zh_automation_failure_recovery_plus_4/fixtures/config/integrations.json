@@ -1,0 +1,58 @@
+[
+  {
+    "integration_id": "INT-4201",
+    "name": "库存变更流水写入集成（MQ事件→流水）",
+    "service": "inventory_events_sink",
+    "status": "active",
+    "endpoint": "https://inventory-events.internal.example.com/sink/v1",
+    "api_key": "sk-inv-sink-4201-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-18T09:10:00Z",
+    "monthly_calls": 98000,
+    "error_rate": 0.089,
+    "notes": "重放风暴发生后出现幂等锁失效：幂等键配置使用了会随重放变化的字段（例如 event_payload_hash/sort_token），导致幂等锁无法命中并触发重复写入保护异常（Idempotency mismatch）。"
+  },
+  {
+    "integration_id": "INT-4202",
+    "name": "修复后的幂等键规则集成（MQ事件→流水）",
+    "service": "inventory_events_sink",
+    "status": "inactive",
+    "endpoint": "https://inventory-events.internal.example.com/sink/v1",
+    "api_key": "sk-inv-sink-4202-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-20T16:40:00Z",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "notes": "已切换为稳定幂等键字段：使用 event_type + source_order_reference + fixed_dedup_id（去除重放会变化的哈希/游标字段），并启用重放窗口内的去重命中校验。建议在确认重放停止后切换启用并重跑补偿。"
+  },
+  {
+    "integration_id": "INT-4203",
+    "name": "对账同步集成（库存汇总→对账/结算）",
+    "service": "reconciliation_sync",
+    "status": "active",
+    "endpoint": "https://recon.internal.example.com/api/v2",
+    "api_key": "sk-recon-4203-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-21T11:05:00Z",
+    "monthly_calls": 45000,
+    "error_rate": 0.013,
+    "notes": "当库存汇总标记为“不可信”（missing流水/汇总不完整/幂等校验异常）时，会拒绝同步并返回可重试错误，导致对账/结算同步任务停止。"
+  },
+  {
+    "integration_id": "INT-4204",
+    "name": "日志归档集成（干扰项）",
+    "service": "mq_log_archive",
+    "status": "active",
+    "endpoint": "https://archive.internal.example.com/mq/archive/v1",
+    "api_key": "sk-archive-4204-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-21T18:20:00Z",
+    "monthly_calls": 120000,
+    "error_rate": 0.002,
+    "notes": "归档日志任务不依赖库存流水链路；即使主链失败也可能保持 success。用于区分“干扰成功≠系统恢复”。"
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "event_id": "evt_101",
+    "title": "客户演示会",
+    "start_time": "2026-07-01T09:30:00Z",
+    "end_time": "2026-07-01T10:30:00Z",
+    "attendees": [
+      "王强",
+      "郑琳"
+    ],
+    "location": "会议室D",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_102",
+    "title": "王强 - 项目评审",
+    "start_time": "2026-07-01T13:00:00Z",
+    "end_time": "2026-07-01T14:15:00Z",
+    "attendees": [
+      "王强"
+    ],
+    "location": "会议室A",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_103",
+    "title": "郑琳 - 需求澄清",
+    "start_time": "2026-07-01T14:30:00Z",
+    "end_time": "2026-07-01T15:30:00Z",
+    "attendees": [
+      "郑琳"
+    ],
+    "location": "会议室B",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_104",
+    "title": "王强 - 研发例会",
+    "start_time": "2026-07-01T15:45:00Z",
+    "end_time": "2026-07-01T16:30:00Z",
+    "attendees": [
+      "王强"
+    ],
+    "location": "会议室C",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_105",
+    "title": "郑琳 - 对接电话",
+    "start_time": "2026-07-01T16:00:00Z",
+    "end_time": "2026-07-01T16:45:00Z",
+    "attendees": [
+      "郑琳"
+    ],
+    "location": "线上",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_106",
+    "title": "午间工作会",
+    "start_time": "2026-07-01T12:00:00Z",
+    "end_time": "2026-07-01T12:45:00Z",
+    "attendees": [
+      "张宇"
+    ],
+    "location": "会议室E",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_107",
+    "title": "客户回访（干扰项）",
+    "start_time": "2026-07-01T13:30:00Z",
+    "end_time": "2026-07-01T14:00:00Z",
+    "attendees": [
+      "客户代表"
+    ],
+    "location": "会议室F",
+    "recurring": false
+  }
+]

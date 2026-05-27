@@ -1,0 +1,176 @@
+{
+  "task_id": "T007zh_todo_management_plus_5",
+  "task_name": "批量去重合并（多组）+异常干扰",
+  "prompt_text": "我需要你整理待办：把所有重复的用标记完成的方式合并（不要删除任何待办），并标记出过期项。\n规则：\n1) 重复合并：仅当标题与描述明确对应同一工作项时才合并；否则即使标题相似也不要合并。\n2) 合并方式：通过 todo_update_task 将被合并的重复项状态更新为 completed（多次更新即可）。\n3) 过期标记：只对状态为 pending 的任务生效；且仅当 due_date 非空且早于当前日期（2026-08-15）才算过期。due_date 为空不算过期。\n4) 安全约束：不要把 completed 当成 pending 去判断过期；不要对不相关任务做合并或状态更新；不要删除任务。",
+  "files": {
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "todo_2026A01",
+        "title": "撰写安全评审报告",
+        "description": "完成云平台安全评审，覆盖威胁建模、权限边界与整改清单，目标与风险指标保持一致。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-08-20",
+        "tags": [
+          "安全评审",
+          "报告"
+        ],
+        "created_at": "2026-07-10T09:30:00Z"
+      },
+      {
+        "task_id": "todo_2026A02",
+        "title": "撰写安全评审报告 v2",
+        "description": "完成云平台安全评审，覆盖威胁建模、权限边界与整改清单，目标与风险指标保持一致（与主任务同一范围）。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-08-18",
+        "tags": [
+          "安全评审",
+          "v2"
+        ],
+        "created_at": "2026-07-11T10:15:00Z"
+      },
+      {
+        "task_id": "todo_2026A03",
+        "title": "撰写安全评审报告 修订版",
+        "description": "完成云平台安全评审，覆盖威胁建模、权限边界与整改清单，目标与风险指标保持一致（与主任务同一范围）。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": null,
+        "tags": [
+          "安全评审",
+          "修订"
+        ],
+        "created_at": "2026-07-12T11:00:00Z"
+      },
+      {
+        "task_id": "todo_2026B01",
+        "title": "部署移动端构建（蓝绿发布）",
+        "description": "对移动端进行蓝绿发布：先在备用环境验证，再切流量；要求灰度开关保持关闭以确保切换稳定。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-08-22",
+        "tags": [
+          "部署",
+          "蓝绿"
+        ],
+        "created_at": "2026-07-15T08:45:00Z"
+      },
+      {
+        "task_id": "todo_2026B02",
+        "title": "部署移动端构建（灰度发布）",
+        "description": "对移动端进行灰度发布：逐步放量并监控错误率阈值；需要开启分组策略与回滚联动。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-08-22",
+        "tags": [
+          "部署",
+          "灰度"
+        ],
+        "created_at": "2026-07-15T09:05:00Z"
+      },
+      {
+        "task_id": "todo_2026C01",
+        "title": "更新用户隐私说明",
+        "description": "更新隐私说明：明确数据收集范围、使用目的、第三方共享条款与用户权利入口。保持与法律条款一致。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": null,
+        "tags": [
+          "隐私",
+          "说明"
+        ],
+        "created_at": "2026-07-20T13:20:00Z"
+      },
+      {
+        "task_id": "todo_2026C02",
+        "title": "更新用户隐私说明（隐私条款同步）",
+        "description": "更新隐私说明：明确数据收集范围、使用目的、第三方共享条款与用户权利入口。保持与法律条款一致。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-08-10",
+        "tags": [
+          "隐私",
+          "条款"
+        ],
+        "created_at": "2026-07-21T14:00:00Z"
+      },
+      {
+        "task_id": "todo_2026D01",
+        "title": "更新隐私培训课件",
+        "description": "制作并更新隐私培训课件，面向新员工的入职培训材料，包含案例讲解与测验题。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-08-25",
+        "tags": [
+          "隐私",
+          "培训"
+        ],
+        "created_at": "2026-07-19T10:40:00Z"
+      },
+      {
+        "task_id": "todo_2026E01",
+        "title": "提交供应商资质材料",
+        "description": "收集并提交供应商资质：营业执照、授权书、合规承诺函（含扫描件与盖章页）。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-08-28",
+        "tags": [
+          "合规",
+          "采购"
+        ],
+        "created_at": "2026-07-18T16:10:00Z"
+      },
+      {
+        "task_id": "todo_2026F01",
+        "title": "完成旧合同归档",
+        "description": "对已结束的合同进行归档整理，补齐编号并迁移到归档存储库。",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-07-01",
+        "tags": [
+          "归档",
+          "合同"
+        ],
+        "created_at": "2026-06-20T08:30:00Z"
+      },
+      {
+        "task_id": "todo_2026G01",
+        "title": "更新隐私说明（宣传版）",
+        "description": "为市场宣传页面更新文案与FAQ，偏向面向用户的传播口径，不包含法律条款同步。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-08-12",
+        "tags": [
+          "隐私",
+          "文案"
+        ],
+        "created_at": "2026-07-22T09:10:00Z"
+      },
+      {
+        "task_id": "todo_2026H01",
+        "title": "撰写安全评审报告 v3（草稿）",
+        "description": "对安全评审报告进行草稿版本整理，重点是目录结构与待办清单，不包含整改清单与最终指标。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-08-19",
+        "tags": [
+          "安全评审",
+          "草稿"
+        ],
+        "created_at": "2026-07-13T12:05:00Z"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原待办去重基础上加入多组并存重复（A与C需合并、B需不合并）与异常干扰，并将 due_date 为空与过期判定严格分离。",
+    "fixture_design_summary": [
+      "A组：同一“撰写安全评审报告”以 v2 / 修订版出现，三者均为 pending，允许合并重复项为 completed。",
+      "B组：两条标题相近但描述强调蓝绿/灰度策略差异，作为反向样本确保不合并。",
+      "C组：两条“更新用户隐私说明”描述相同，其中一条 due_date 为空（应作为保留项），另一条 due_date=2026-08-10 且 pending，应被合并为 completed；过期列表只列出仍为 pending 且 due_date<2026-08-15 的任务。",
+      "干扰：加入“更新隐私培训课件”等描述完全不同但标题相似的任务，避免误合并。",
+      "加入 completed 且 due_date 很早的任务，确保过期清单不包含 completed。",
+      "总任务数控制在11条，覆盖A/C合并、B不合并、pending过期候选与due_date=null参与合并。"
+    ]
+  }
+}

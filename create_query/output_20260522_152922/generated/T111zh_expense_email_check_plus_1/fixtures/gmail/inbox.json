@@ -1,0 +1,74 @@
+[
+  {
+    "message_id": "msg_a01",
+    "from": "lina@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：差旅费 2590.00元",
+    "date": "2026-04-05T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "财务部您好，我的差旅费用合计2590.00元，发票号INV-104。请核对并尽快处理。"
+  },
+  {
+    "message_id": "msg_a02",
+    "from": "zhoulei@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：办公用品 800.00元",
+    "date": "2026-04-05T11:40:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，本次办公用品报销金额为800.00元，发票号INV-105。注意：本次报销金额以最终核准为准，但仍以本邮件正文的金额与发票号为准。"
+  },
+  {
+    "message_id": "msg_a03",
+    "from": "chenqi@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：软件服务费 980.00元",
+    "date": "2026-04-06T10:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "管理员您好，软件服务费报销合计980.00元，发票号INV-106。请安排入账。"
+  },
+  {
+    "message_id": "msg_a04",
+    "from": "wumeng@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：培训费 1234.56元",
+    "date": "2026-04-06T15:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位好，我参加外部培训费用共1234.56元，发票号INV-107。该笔已完成部门流程，请财务核对。"
+  },
+  {
+    "message_id": "msg_a05",
+    "from": "sarah@vendor.com",
+    "to": "finance@company.com",
+    "subject": "发票问题咨询：对账明细需要确认",
+    "date": "2026-04-06T17:30:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，我们收到一张发票的对账明细后有疑问，想确认是否已入账。请协助核对“发票问题”对应的交易信息。"
+  },
+  {
+    "message_id": "msg_a06",
+    "from": "renwu@company.com",
+    "to": "all@company.com",
+    "subject": "制度通知：报销流程调整说明",
+    "date": "2026-04-04T16:45:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "通知各部门：从下周起报销流程将调整。与本制度通知相关的事项请参考附件，不涉及具体报销金额。"
+  }
+]

@@ -1,0 +1,111 @@
+task_id: T021zh_newsletter_curation_plus_5
+task_name: 工程研发洞察：框架复盘与对比
+version: '1.0'
+category: content
+difficulty: easy
+tags:
+- general
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T021zh_newsletter_curation_plus_5/fixtures/rss/articles.json
+prompt:
+  text: '请从RSS中挑选与“工程框架选型、性能评测、方法论对比、系统权衡”相关的文章，整理成《工程研发洞察》newsletter并发布。
+
+
+    Newsletter需要：
+
+    1) 导读（中文）；
+
+    2) 精选要点（至少6条，每条点明对应文章的关键信息）；
+
+    3) 对比维度表（至少4个维度，例如：吞吐/延迟、可扩展性、可观测性、成本、迁移难度、工程维护；维度需能从入选文章中提取并对齐）；
+
+    4) 选型建议（至少3条，每条包含“适用条件”与“不适用条件”）；
+
+    5) 降采纳说明：对至少1篇“只讲结论不讲方法/指标”的文章给出降采纳说明，需明确指出其缺失的内容（例如：无指标定义/无实验环境/无对比基线/无统计口径）；
+
+    6) 内容排除：不要把生活/娱乐/体育/健康等干扰类内容当作工程选型依据；但可在“边界/提醒”中简短点到与主题无关的文章不会被采用。
+
+
+    请确保：最终入选用于对比与精选的工程类文章不少于6篇，并在内部调用RSS工具读取每篇入选文章的完整内容，再调用rss_publish发布newsletter。'
+  language: zh
+tools:
+- name: rss_list_feeds
+  description: 获取所有RSS订阅源
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: rss_list_articles
+  description: 获取文章列表
+  input_schema:
+    type: object
+    properties:
+      source:
+        type: string
+        description: 按来源筛选
+      category:
+        type: string
+        description: 按类别筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章完整内容
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: rss_publish
+  description: 发布Newsletter
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: Newsletter标题
+      content:
+        type: string
+        description: Newsletter内容
+      recipients:
+        type: array
+        items:
+          type: string
+        description: 接收者列表
+    required:
+    - title
+    - content
+tool_endpoints:
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: rss_publish
+  url: http://localhost:9109/rss/publish
+  method: POST
+sandbox_files:
+- fixtures/rss/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

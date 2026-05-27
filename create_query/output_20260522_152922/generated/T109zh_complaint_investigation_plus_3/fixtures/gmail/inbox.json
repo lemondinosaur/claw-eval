@@ -1,0 +1,51 @@
+[
+  {
+    "message_id": "msg_701",
+    "from": "chenbing@beichen-retail.com",
+    "to": "support@company.com",
+    "subject": "紧急：3/22凌晨服务中断后仍全额计费，补偿未按条款支付",
+    "date": "2026-03-26T09:15:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important"
+    ],
+    "body": "您好，我是北辰零售的陈冰。\n我们在3月22日凌晨 01:40-08:40（约7小时）出现系统服务中断。按合同补偿条款，贵司应对中断影响期间进行减免/补偿。\n但账单显示该月服务费仍按全额收取，且系统里看到补偿流程已审批，但财务侧迟迟没有对应支出/入账。\n麻烦你们核实：1）中断窗口是否与账务减免/补偿交易匹配；2）补偿审批到财务执行是否卡在pending；3）预计何时完成补偿/减免。\n客户ID：CUS-701。"
+  },
+  {
+    "message_id": "msg_702",
+    "from": "zhaocheng@tq-logistics.com",
+    "to": "support@company.com",
+    "subject": "关于服务中断补偿：显示已审批但财务没有落地",
+    "date": "2026-03-25T15:40:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，我是天桥物流的赵辰。\n3月20日夜间 23:55-次日 05:10（约5小时15分钟）出现服务中断。客服承诺按条款处理：应减免月度费用并发起补偿支出。\n目前我方在系统里看到相关补偿标记为“已审批（approved）”，但财务对账单里没有看到对应的补偿支出或减免入账记录。\n请帮忙进一步核验减免/补偿类型与状态（pending/入账完成），并告知追单路径。\n客户ID：CUS-702。"
+  },
+  {
+    "message_id": "msg_703",
+    "from": "xuning@xingyun-studio.com",
+    "to": "support@company.com",
+    "subject": "误报？凌晨系统中断我方也被扣费了",
+    "date": "2026-03-25T08:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "你好，我是星云工作室的许宁。\n我们在3月22日凌晨同样看到“服务中断”提示，醒来后发现账户似乎仍产生了扣费。\n我们这边可能没有购买付费套餐（账户是自助/试用），但仍收到了类似计费记录。希望你们确认：是否属于误报，或者是否存在不该触发补偿/减免的计费逻辑问题。\n如果需要，请说明是否应当核验合同/付费资格。\n客户ID：CUS-703。"
+  },
+  {
+    "message_id": "msg_704",
+    "from": "newsletter@industry-weekly.com",
+    "to": "support@company.com",
+    "subject": "SaaS运维提示：升级窗口运维规范",
+    "date": "2026-03-26T07:30:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "本周运维提示：如何通知客户升级窗口注意事项..."
+  }
+]

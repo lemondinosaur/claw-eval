@@ -1,0 +1,223 @@
+[
+  {
+    "message_id": "rgp_1001",
+    "from": "release-ops@pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "P0 Release Gate 阻塞：测试环境无法部署（已卡住）",
+    "date": "2026-05-22T07:55:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "engineering"
+    ],
+    "body": "Release Gate 通知：测试环境（staging-us-east）今天 07:20 起无法完成部署。我们尝试了两次流水线发布都在“环境就绪检查”失败。当前现象是环境不可用而不是代码问题。请立刻确认：是否需要回滚到上一个可部署构建、以及是否能切换到备用集群来保证今天窗口期。"
+  },
+  {
+    "message_id": "rgp_1002",
+    "from": "qa-lead@pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "构建闸门失败：ui 可执行包在集成测试阶段报错（需要今天下午确认）",
+    "date": "2026-05-22T08:25:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "qa"
+    ],
+    "body": "最新构建通过编译，但在集成测试阶段失败：/reports/contract-runner 返回 500。日志显示 API 返回为空集合，疑似契约数据准备缺失。请确认是否能通过补充回归数据/重新生成测试工单修复。若无法修复，需在发布前夜决定是否降级到上一版本 ui 包。"
+  },
+  {
+    "message_id": "rgp_1003",
+    "from": "pm-ops@pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "客户反馈汇总：请在今天中午前提交（发布前夜）",
+    "date": "2026-05-22T09:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "product"
+    ],
+    "body": "各渠道客户反馈已收集完毕，需要你在今天 12:00 前整理并提交到发布闸门材料中。重点是：与本次版本相关的 5 条“正负面反馈”以及对发布风险的简短建议。请不要等待最终定稿，先以当前版本事实为准。"
+  },
+  {
+    "message_id": "rgp_1004",
+    "from": "build-bot@ci.pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "[CI] 构建通过，但需要补回归记录（Release Gate 追踪）",
+    "date": "2026-05-22T10:10:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "automated"
+    ],
+    "body": "本次主分支构建已通过：commit a91c7b3。所有单元测试与端到端冒烟通过，但发布闸门要求补充一份回归记录（regression checklist）并关联到本次构建号。回归记录缺失会影响闸门放行流程，请尽快补齐。"
+  },
+  {
+    "message_id": "rgp_1005",
+    "from": "vendor-support@quartzlogistics.com",
+    "to": "me@mycompany.com",
+    "subject": "供应商状态更新：预计交付延迟约 1-2 天（可能影响备货）",
+    "date": "2026-05-22T10:40:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "vendor"
+    ],
+    "body": "关于本周的装配物料交付：预计延迟 24-48 小时，原因是外部清关流程卡住。当前不清楚该延迟是否影响软件发布所需的必备配套（如是否存在替代物料/是否可用本地库存）。建议我们核对发布 BOM 与替代方案后再做决策。"
+  },
+  {
+    "message_id": "rgp_1006",
+    "from": "supply-chain@pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "Re: 物料交付窗口变更：周四前后到货的概率提升",
+    "date": "2026-05-22T11:15:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "supply"
+    ],
+    "body": "我们从供应商处收到更细信息：如果清关今天晚些时候放行，物料最早可在周四上午到货。仍需要你/团队核对是否与软件发布的关键依赖绑定（例如是否必须当天完成某项现场校验）。目前仅为“概率提升”，不是确定阻塞。"
+  },
+  {
+    "message_id": "rgp_1007",
+    "from": "partner-ops@northwind-partners.com",
+    "to": "me@mycompany.com",
+    "subject": "潜在延迟通知：供应批次可能比计划晚到 3 天",
+    "date": "2026-05-22T11:35:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "vendor"
+    ],
+    "body": "下一批合作物料预计比计划晚到约 72 小时。请评估这是否会影响你们发布时的“必需实物”环节。我们这边尚未给出软件依赖结论；建议由发布负责人核对依赖清单与是否存在替代路径。"
+  },
+  {
+    "message_id": "rgp_1008",
+    "from": "release-manager@pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "发布闸门会议：今日 15:30 同步（请带上环境状态与风险清单）",
+    "date": "2026-05-22T12:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "meeting"
+    ],
+    "body": "下午 15:30 我们开一次简短发布闸门同步。请你准备：1）环境是否可部署的状态；2）任何可能导致发布延期的风险清单。不会发送邮件通知之外的内容，直接在报告里带好要点。"
+  },
+  {
+    "message_id": "rgp_1009",
+    "from": "security@pinbench.io",
+    "to": "engineering@pinbench.io",
+    "subject": "安全通知：关键服务凭据轮换（请在周五前完成自检）",
+    "date": "2026-05-21T18:40:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "security"
+    ],
+    "body": "请在周五前完成关键服务凭据轮换与自检，并在团队看板标记已完成。若与你们发布闸门当日部署冲突，请优先选择不影响发布的窗口处理。"
+  },
+  {
+    "message_id": "rgp_1010",
+    "from": "cto@pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "blocker 仅为建议：请升级观测告警阈值（非阻塞）",
+    "date": "2026-05-22T06:30:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "engineering"
+    ],
+    "body": "标题里出现 blocker 的字样，但实际情况不是发布阻塞：我们只是建议把监控告警阈值从 90% 调整到 95%，以减少误报。不会影响当前发布闸门是否能放行。若你们需要保守可先忽略这项建议，等发布后再处理。"
+  },
+  {
+    "message_id": "rgp_1011",
+    "from": "training@academy.pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "教育培训报名确认：6 月课程席位已保留（可忽略发布前夜）",
+    "date": "2026-05-22T09:50:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "learning"
+    ],
+    "body": "你已报名“高可靠发布流程”培训。注意：本次课程与本周发布前夜无直接依赖，不需要你立即采取行动。若你现在忙于发布闸门，可先忽略此邮件，之后会在课程开始前再提醒。"
+  },
+  {
+    "message_id": "rgp_1012",
+    "from": "newsletter@relayweekly.com",
+    "to": "me@mycompany.com",
+    "subject": "RelayWeekly：本周发布工程实践精选（不含行动项）",
+    "date": "2026-05-22T05:20:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "newsletter"
+    ],
+    "body": "本周文章包含：灰度发布回滚策略、发布闸门材料模板、以及团队沟通习惯。无需要你在今天执行的行动项。"
+  },
+  {
+    "message_id": "rgp_1013",
+    "from": "promo@shopcloud.example",
+    "to": "me@mycompany.com",
+    "subject": "限时促销：团队工单工具 30% off（48 小时）",
+    "date": "2026-05-22T00:30:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "promotional"
+    ],
+    "body": "我们在 48 小时内提供折扣。与本次软件发布无关，属于营销邮件。"
+  },
+  {
+    "message_id": "rgp_1014",
+    "from": "ops-updates@pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "团队更新：今天下午迁移窗口结束后将恢复常规监控",
+    "date": "2026-05-22T12:25:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "ops"
+    ],
+    "body": "计划中的迁移窗口预计在今天下午结束。结束后会恢复常规监控与告警通知。若与你们发布闸门部署冲突，请在报告里注明你们的窗口影响范围。"
+  },
+  {
+    "message_id": "rgp_1015",
+    "from": "product-lead@pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "Release Gate 材料：请补一页“回归范围与已知限制”",
+    "date": "2026-05-22T13:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "product"
+    ],
+    "body": "为了让闸门放行更顺畅，请补充一页材料：回归范围（包含/不包含哪些模块）以及已知限制。若已有回归记录缺失，优先按可用信息先写清楚“已覆盖/待补充”。"
+  },
+  {
+    "message_id": "rgp_1016",
+    "from": "vendor-support@helios-compressors.com",
+    "to": "me@mycompany.com",
+    "subject": "交付延迟：只确认‘可能延期’，不影响软件部署依赖判断",
+    "date": "2026-05-22T13:40:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "vendor"
+    ],
+    "body": "我们确认：本批次交付存在可能延迟，但不会直接影响软件部署本身。是否会影响你们发布时的物料装配环节，需要你们团队核对依赖关系与替代方案。当前我们不掌握你们的软件与发布环节的依赖细节。"
+  },
+  {
+    "message_id": "rgp_1017",
+    "from": "eng-lead@pinbench.io",
+    "to": "me@mycompany.com",
+    "subject": "非紧急更新：本次变更文档已发布（供回看）",
+    "date": "2026-05-22T14:10:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "documentation"
+    ],
+    "body": "变更文档已发布，包含接口变更与回归说明。若你在写发布闸门材料需要引用，可直接使用。无需立即处理。"
+  }
+]

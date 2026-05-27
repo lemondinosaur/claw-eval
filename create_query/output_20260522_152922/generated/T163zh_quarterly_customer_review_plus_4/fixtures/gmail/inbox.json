@@ -1,0 +1,207 @@
+[
+  {
+    "message_id": "msg_2411_07a",
+    "from": "compliance@cs-hospital.cn",
+    "to": "me@company.com",
+    "subject": "Q3合规审计准备与数据口径确认",
+    "date": "2026-07-26T06:00:00Z",
+    "body": "您好，我们正在做Q3合规审计准备。请确认数据治理口径（脱敏字段、留存周期）以及审计报表导出方式。我们希望在8月前完成一次联调。——合规负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "合规"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2411_08a",
+    "from": "growth_it@cs-hospital.cn",
+    "to": "me@company.com",
+    "subject": "续约讨论：扩展数据治理增强包",
+    "date": "2026-08-31T06:30:00Z",
+    "body": "我们计划把数据治理增强包纳入下一阶段合同。附件中列了需要扩展的范围：主数据、访问控制与审计日志。请提供续约方案与里程碑排期。——IT运营",
+    "labels": [
+      "inbox",
+      "客户",
+      "续约"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2411_09a",
+    "from": "data_team@cs-hospital.cn",
+    "to": "me@company.com",
+    "subject": "关于9月上线后性能与审计报表反馈",
+    "date": "2026-09-16T08:10:00Z",
+    "body": "9月上线后系统性能稳定，审计报表导出用时明显缩短。我们想进一步优化报表模板，并确认下一次培训安排。——数据团队",
+    "labels": [
+      "inbox",
+      "客户",
+      "技术咨询"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2412_07a",
+    "from": "itops@yaochuan-retail.com",
+    "to": "me@company.com",
+    "subject": "门店波次预测：反馈与下一步集成",
+    "date": "2026-07-14T04:00:00Z",
+    "body": "波次预测效果还可以，但和门店补货流程的联动仍需打通。请帮我们梳理接口字段映射，并评估额外的可视化模块是否值得追加。——IT运维",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2412_09a",
+    "from": "itops@yaochuan-retail.com",
+    "to": "me@company.com",
+    "subject": "Q3成本压力下的系统优化请求",
+    "date": "2026-09-05T09:00:00Z",
+    "body": "我们当前面临成本压力，IT预算有收紧信号。能否给一份轻量化优化方案：在不降低核心能力的前提下减少运维成本？——运维经理",
+    "labels": [
+      "inbox",
+      "客户",
+      "成本"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2413_07a",
+    "from": "ops@lingnan-logistics.com",
+    "to": "me@company.com",
+    "subject": "承运商协同试点结果与扩展计划",
+    "date": "2026-07-29T02:00:00Z",
+    "body": "试点已跑通，承运商协同带来的时效提升很明显。我们希望在Q4扩展更多承运商，并同步库存联动接口。请给出扩展报价与排期。——运营总监",
+    "labels": [
+      "inbox",
+      "客户",
+      "扩展"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2413_08a",
+    "from": "supply@lingnan-logistics.com",
+    "to": "me@company.com",
+    "subject": "库存联动：接口错误与修复时间预期",
+    "date": "2026-08-21T03:30:00Z",
+    "body": "库存联动偶发延迟，我们需要定位是数据同步频率还是接口鉴权导致。请在本周给出根因初步判断和修复时间预期。——供应链IT",
+    "labels": [
+      "inbox",
+      "客户",
+      "故障"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2413_09a",
+    "from": "pm@lingnan-logistics.com",
+    "to": "me@company.com",
+    "subject": "全链路可视化追加需求评审",
+    "date": "2026-09-18T05:20:00Z",
+    "body": "全链路可视化当前效果符合预期。我们准备追加两个维度的报表，并希望确认能否在10月完成上线。请提供对齐的交付方案。——项目经理",
+    "labels": [
+      "inbox",
+      "客户",
+      "评审"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2415_07a",
+    "from": "product@starfire-learn.com",
+    "to": "me@company.com",
+    "subject": "推荐系统：学习路径优化与指标复盘",
+    "date": "2026-07-11T06:40:00Z",
+    "body": "我们对学习路径进行了两轮优化，关键指标改善明显。希望你们协助梳理下一阶段的A/B实验方案，以及推荐策略的可解释性说明。——产品负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "技术讨论"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2415_08a",
+    "from": "ops@starfire-learn.com",
+    "to": "me@company.com",
+    "subject": "增值模块评估：部署成本与排期",
+    "date": "2026-08-27T07:10:00Z",
+    "body": "增值模块我们倾向继续推进，但需要确认部署成本（含人天与硬件资源）以及时间排期。请提供两种预算方案。——运维负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "评估"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2415_09a",
+    "from": "support@starfire-learn.com",
+    "to": "me@company.com",
+    "subject": "9月阶段回顾：先不追加的原因说明",
+    "date": "2026-09-22T07:45:00Z",
+    "body": "我们决定9月先不追加模块，原因是内部预算暂时冻结。需要你们帮我们确保当前推荐功能的稳定性，并在10月再评估追加。——支持团队",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2414_07a",
+    "from": "admin@northstar-edu.com",
+    "to": "me@company.com",
+    "subject": "内容智能化PoC：进度偏慢的原因与资源需求",
+    "date": "2026-07-30T08:20:00Z",
+    "body": "PoC阶段遇到内容标准化工作量超出预期，需要增加一次数据标注资源。我们希望你们评估是否能调整交付节奏。——项目管理",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2416_07a",
+    "from": "it@hongtu-energy.com",
+    "to": "me@company.com",
+    "subject": "运维数据治理：合规字段清单确认",
+    "date": "2026-07-27T09:05:00Z",
+    "body": "我们需要确认运维数据治理中的合规字段清单：哪些字段必须脱敏、哪些字段可保留用于审计。麻烦给我们一份清单模板。——IT安全负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "合规"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2412_09_noise1",
+    "from": "notify@company.com",
+    "to": "me@company.com",
+    "subject": "【系统通知】Q3活动回顾与模板下载",
+    "date": "2026-09-03T10:00:00Z",
+    "body": "全体客户：Q3活动回顾与模板下载，请查看附件。",
+    "labels": [
+      "通知",
+      "群发"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2412_09_noise2",
+    "from": "newsletter@company.com",
+    "to": "me@company.com",
+    "subject": "【内部群发】供应链智能化白皮书更新",
+    "date": "2026-09-10T10:15:00Z",
+    "body": "内部群发：供应链智能化白皮书更新，本周推送。",
+    "labels": [
+      "来自company域",
+      "通知"
+    ],
+    "is_read": true
+  }
+]

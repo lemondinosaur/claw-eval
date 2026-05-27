@@ -1,0 +1,142 @@
+task_id: T135zh_weekly_meeting_tracking_plus_4
+task_name: 跨标签过滤与资源干扰
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_4/fixtures/calendar/events.json
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_4/fixtures/notes/meetings.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_4/fixtures/todo/tasks.json
+prompt:
+  text: '请为我生成“目标主题周会”的行动项跟踪报告：
+
+
+    1）在本周日历范围内找到所有会议事件；
+
+    2）从事件中挑出主题为“治理与合规”的会议；
+
+    3）对这些会议：只加载与事件关联的纪要（notes中可能存在同主题但不属于该会议的干扰纪要，必须排除）；
+
+    4）抽取纪要里的行动项，并与待办匹配输出状态；
+
+    5）识别纪要中有但待办缺失的行动项（遗漏）；
+
+    6）报告按“治理与合规会议标题”分组，并给出每组完成率与遗漏清单。
+
+
+    要求：如果同一会议存在多个同标签纪要候选，要用事件关联信息排除不相关的纪要。'
+  language: zh
+tools:
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: all
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+tool_endpoints:
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+environment:
+  mock_today: '2026-03-26'
+  timeout_seconds: 600
+  max_turns: 30

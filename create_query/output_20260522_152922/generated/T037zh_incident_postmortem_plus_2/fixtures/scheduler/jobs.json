@@ -1,0 +1,136 @@
+[
+  {
+    "job_id": "JOB-611",
+    "name": "event_compensation_replay",
+    "description": "事件补偿重放：按游标批次重放缺失事件，失败重试与人工暂停支持",
+    "cron_expression": "*/7 * * * *",
+    "enabled": true,
+    "last_status": "stopped",
+    "last_run": "2026-03-02T02:03:00+08:00",
+    "action": "重放事件批次（含cursor提交与幂等落库步骤）",
+    "created_by": "replay_platform_team",
+    "tags": [
+      "replay",
+      "compensation",
+      "cursor",
+      "idempotency"
+    ],
+    "notes": "故障窗口内重复触发。历史显示游标提交失败后触发重试，导致同一 cursor 区间重复批次投递；同时幂等键落库失败放大重复进入风控链路。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-02T01:11:00+08:00",
+        "status": "failed",
+        "duration_seconds": 38,
+        "notes": "处理 batch_id=BR-88371，cursor=CT-77201；cursor_commit_status=FAILED；redelivery开始；幂等键idempotency_key落库部分失败。"
+      },
+      {
+        "run_time": "2026-03-02T01:18:00+08:00",
+        "status": "failed",
+        "duration_seconds": 46,
+        "notes": "重试同一 cursor 区间，仍提示 cursor未提交/回退；Worker继续拉取，重复发布同批事件到event_bus与queue_gateway。"
+      },
+      {
+        "run_time": "2026-03-02T01:25:00+08:00",
+        "status": "failed",
+        "duration_seconds": 44,
+        "notes": "重复批次继续出现，导致risk_rules_engine入参缺失比例上升；错误率保持高位。"
+      },
+      {
+        "run_time": "2026-03-02T01:52:00+08:00",
+        "status": "success",
+        "duration_seconds": 61,
+        "notes": "尝试恢复后仍触发部分重复投递（去重落库仍不稳定），直到02:03人工暂停。"
+      },
+      {
+        "run_time": "2026-03-02T02:03:00+08:00",
+        "status": "stopped",
+        "duration_seconds": 0,
+        "notes": "人工暂停job，停止后续重复批次增长；观察到redelivery下降。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-612",
+    "name": "risk_replay_validator",
+    "description": "风控回放校验器：对重放后的入参与幂等落库进行校验（理想情况下应阻断不一致批次）",
+    "cron_expression": "*/10 * * * *",
+    "enabled": false,
+    "last_status": "stopped",
+    "last_run": "2026-03-01T23:50:00+08:00",
+    "action": "校验重放一致性（cursor-幂等-入参）",
+    "created_by": "risk_platform_team",
+    "tags": [
+      "validator",
+      "end-to-end"
+    ],
+    "notes": "该校验器在上线评审后被暂时关闭，用于规避性能影响；因此端到端回放校验门禁缺失，无法在故障初期阻断重复批次下游流转。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T23:50:00+08:00",
+        "status": "stopped",
+        "duration_seconds": 0,
+        "notes": "关闭状态：不执行一致性拦截。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-613",
+    "name": "worker_queue_redelivery_monitor",
+    "description": "Worker重试/重复投递监控：统计redelivery速率并告警",
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-02T02:10:00+08:00",
+    "action": "检查redelivery与队列积压",
+    "created_by": "ops_team",
+    "tags": [
+      "monitoring",
+      "redelivery"
+    ],
+    "notes": "故障窗口内持续告警。02:03暂停补偿重放后，redelivery速率显著回落。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-02T01:20:00+08:00",
+        "status": "success",
+        "duration_seconds": 4,
+        "notes": "告警：redelivery速率异常上升（同batch重复投递）。"
+      },
+      {
+        "run_time": "2026-03-02T01:45:00+08:00",
+        "status": "success",
+        "duration_seconds": 5,
+        "notes": "告警：worker重试次数飙升，队列堆积持续增长。"
+      },
+      {
+        "run_time": "2026-03-02T02:10:00+08:00",
+        "status": "success",
+        "duration_seconds": 4,
+        "notes": "告警解除趋势：redelivery下降，积压开始消化。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-614",
+    "name": "daily_order_state_audit",
+    "description": "日终审计：对订单状态反复与幂等异常进行抽检",
+    "cron_expression": "0 2 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-02T02:00:00+08:00",
+    "action": "抽检订单状态与去重异常",
+    "created_by": "data_platform_team",
+    "tags": [
+      "audit",
+      "orders"
+    ],
+    "notes": "抽检在故障窗口末期触发，发现部分订单状态反复与重复规则评估记录关联明显。",
+    "execution_history": [
+      {
+        "run_time": "2026-03-02T02:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 90,
+        "notes": "发现异常样本：order_id重复评估与重复后续处理（状态反复）。"
+      }
+    ]
+  }
+]

@@ -1,0 +1,95 @@
+[
+  {
+    "task_id": "TD-P 4101",
+    "title": "补交PIA：数据范围说明（隐私影响评估）",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-05-18",
+    "progress": 10,
+    "notes": "缺口：数据范围说明未完成（处理目的与数据类别边界、数据来源/处理地点/跨境标注缺失）。待补齐后提交系统，预计 5/20 进入复核。",
+    "created_at": "2026-05-01"
+  },
+  {
+    "task_id": "TD-P 4102",
+    "title": "补交PIA：数据主体影响评估引用一致性",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-18",
+    "progress": 20,
+    "notes": "引用章节与措辞一致性未完成。与数据范围说明同批提交。",
+    "created_at": "2026-05-02"
+  },
+  {
+    "task_id": "TD-INP 4103",
+    "title": "对齐PIA：合规模块复核前的材料自查",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-05-20",
+    "progress": 55,
+    "notes": "已整理章节结构与引用框架，待完成数据范围说明后进行一致性校对，并准备提交复核。",
+    "created_at": "2026-05-04"
+  },
+  {
+    "task_id": "TD-INP 4201",
+    "title": "安全培训记录：等待负责人上传最新批次",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-05-21",
+    "progress": 35,
+    "blocked_by": "信息安全负责人尚未上传最新批次参训名单与签收证明",
+    "notes": "材料未齐全：培训时间线与系统记录需重新导出并上传。上传后我方在 5/21 前完成字段对齐并提交。",
+    "created_at": "2026-05-03"
+  },
+  {
+    "task_id": "TD-CMP 4202",
+    "title": "安全培训记录：字段对齐与提交（待合规抽查）",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-05-21",
+    "progress": 100,
+    "notes": "已完成字段对齐与提交到材料系统；当前状态为“已提交但待合规抽查”，等待抽查反馈后确认通过/需补充。",
+    "completed_at": "2026-05-21",
+    "created_at": "2026-05-05"
+  },
+  {
+    "task_id": "TD-P 4301",
+    "title": "供应商准入条款：提交审批材料包（待会签）",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-05-23",
+    "progress": 70,
+    "notes": "草案已完成但审批签字未开始。待打包修订对照与风险说明并提交给合规审批专员。",
+    "created_at": "2026-05-04"
+  },
+  {
+    "task_id": "TD-CMP 4302",
+    "title": "供应商准入条款：已提交审批（待签字/待审核）",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-05-24",
+    "progress": 100,
+    "notes": "材料包已提交审批流程；当前合规中心记录为“已提交但待签字/待审核”。签字完成后更新为通过。",
+    "completed_at": "2026-05-23",
+    "created_at": "2026-05-05"
+  },
+  {
+    "task_id": "TD-GL 4401",
+    "title": "整理季度合规审查材料清单与索引",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-05-19",
+    "progress": 5,
+    "notes": "为审查准备统一目录。当前只建立索引骨架，待PIA与培训/准入条款进度更新后补齐。",
+    "created_at": "2026-05-02"
+  },
+  {
+    "task_id": "TD-GL 4402",
+    "title": "合规审批签字排期跟进（会议纪要复核）",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-05-24",
+    "progress": 0,
+    "notes": "待与合规审批专员确认签字会签时间窗，并同步更新待办说明。",
+    "created_at": "2026-05-03"
+  }
+]

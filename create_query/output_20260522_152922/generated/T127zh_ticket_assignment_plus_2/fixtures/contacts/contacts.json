@@ -1,0 +1,102 @@
+[
+  {
+    "contact_id": "CT-1001",
+    "name": "陈思源",
+    "department": "平台运维组",
+    "title": "平台运维负责人",
+    "email": "siyuan.chen@company.com",
+    "phone": "13900111001",
+    "location": "北京总部",
+    "notes": "负责平台基础服务稳定性、系统可用性、账号登录相关的运维处置"
+  },
+  {
+    "contact_id": "CT-1002",
+    "name": "刘子航",
+    "department": "CRM平台组",
+    "title": "CRM平台负责人",
+    "email": "zihang.liu@company.com",
+    "phone": "13900111002",
+    "location": "北京总部",
+    "notes": "负责CRM账户同步、用户数据一致性与核心CRM平台问题定位"
+  },
+  {
+    "contact_id": "CT-1003",
+    "name": "周婉婷",
+    "department": "审批流中台组",
+    "title": "审批流中台负责人",
+    "email": "wanting.zhou@company.com",
+    "phone": "13900111003",
+    "location": "北京总部",
+    "notes": "负责审批流引擎、流程节点、权限校验与审批状态异常处理"
+  },
+  {
+    "contact_id": "CT-1004",
+    "name": "赵凯文",
+    "department": "消息与通知组",
+    "title": "消息中间件负责人",
+    "email": "kaiwen.zhao@company.com",
+    "phone": "13900111004",
+    "location": "北京总部",
+    "notes": "负责消息队列、站内消息、短信/邮件通知通道与投递失败排查"
+  },
+  {
+    "contact_id": "CT-1005",
+    "name": "孙怡然",
+    "department": "数据报表组",
+    "title": "数据报表负责人",
+    "email": "yiran.sun@company.com",
+    "phone": "13900111005",
+    "location": "北京总部",
+    "notes": "负责数据导出器、报表口径一致性、BI指标校验与导出任务排障"
+  },
+  {
+    "contact_id": "CT-1006",
+    "name": "曹明哲",
+    "department": "支付运维组",
+    "title": "支付运维工程师",
+    "email": "mingzhe.cao@company.com",
+    "phone": "13900111006",
+    "location": "北京总部",
+    "notes": "负责支付网关联调、回调处理、交易状态对账与支付故障运维"
+  },
+  {
+    "contact_id": "CT-1007",
+    "name": "沈若宁",
+    "department": "设备与资产组",
+    "title": "资产与设备支持负责人",
+    "email": "ruoning.shen@company.com",
+    "phone": "13900111007",
+    "location": "北京总部",
+    "notes": "负责会议室设备、办公资产更换与维保协调（打印机/投影/座椅/会议终端等）"
+  },
+  {
+    "contact_id": "CT-1008",
+    "name": "王梓航",
+    "department": "行政支持组",
+    "title": "行政支持专员",
+    "email": "zihang.wang@company.com",
+    "phone": "13900111008",
+    "location": "北京总部",
+    "notes": "负责办公环境保障、临时设施申报与办公设备使用问题的对接处理"
+  },
+  {
+    "contact_id": "CT-1009",
+    "name": "周子墨",
+    "department": "合规安全组",
+    "title": "安全审计负责人",
+    "email": "zimmo.zhou@company.com",
+    "phone": "13900111009",
+    "location": "北京总部",
+    "notes": "负责权限变更审计、登录风控事件追查与合规检查"
+  },
+  {
+    "contact_id": "CT-1010",
+    "name": "郑海波",
+    "department": "技术架构组",
+    "title": "技术架构支持",
+    "email": "haibo.zheng@company.com",
+    "phone": "13900111010",
+    "location": "北京总部",
+    "notes": "负责跨系统联动排查、模块依赖梳理与架构级定位"
+  }
+]

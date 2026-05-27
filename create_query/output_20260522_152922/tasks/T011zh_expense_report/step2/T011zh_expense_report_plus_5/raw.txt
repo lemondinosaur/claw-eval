@@ -1,0 +1,309 @@
+{
+  "task_id": "T011zh_expense_report_plus_5",
+  "task_name": "多币种换算与币种一致性校验（仅提交本币）",
+  "prompt_text": "帮我整理并提交2026年6月的报销报告。\n系统只允许提交人民币（CNY）费用：\n1）若存在非CNY交易（如USD/EUR），请先排除并在提交说明中明确说明原因；即使交易描述里写了“已按汇率折算”，也不得使用其折算金额。\n2）对CNY交易做安全去重：只有当“同一商户+同一日期+同一金额+同一币种”的记录完全一致时才可视为重复，不能把“同商户同日但币种不同”的记录当作重复或合并。\n3）若存在CNY退款为负数，需要纳入提交的CNY总额计算。\n最终提交时：提交的transactions全部为CNY，并且total_amount等于所有被提交CNY交易金额（含负数退款）的求和。",
+  "files": {
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "txn_101",
+        "date": "2026-06-01",
+        "amount": 520.00,
+        "currency": "CNY",
+        "merchant": "上海书城",
+        "category": "办公",
+        "description": "采购图书与资料",
+        "receipt_url": "receipts/txn_101.jpg"
+      },
+      {
+        "transaction_id": "txn_102",
+        "date": "2026-06-02",
+        "amount": 68.50,
+        "currency": "CNY",
+        "merchant": "瑞幸咖啡",
+        "category": "餐饮",
+        "description": "团队咖啡",
+        "receipt_url": "receipts/txn_102.jpg"
+      },
+      {
+        "transaction_id": "txn_103",
+        "date": "2026-06-03",
+        "amount": 399.00,
+        "currency": "CNY",
+        "merchant": "携程旅行",
+        "category": "差旅",
+        "description": "城市交通服务",
+        "receipt_url": "receipts/txn_103.jpg"
+      },
+      {
+        "transaction_id": "txn_104",
+        "date": "2026-06-04",
+        "amount": 1599.00,
+        "currency": "CNY",
+        "merchant": "华住酒店",
+        "category": "差旅",
+        "description": "住宿费 2晚",
+        "receipt_url": "receipts/txn_104.jpg"
+      },
+      {
+        "transaction_id": "txn_105",
+        "date": "2026-06-05",
+        "amount": 980.00,
+        "currency": "CNY",
+        "merchant": "腾讯云",
+        "category": "IT/云服务",
+        "description": "云主机月度费用",
+        "receipt_url": "receipts/txn_105.jpg"
+      },
+      {
+        "transaction_id": "txn_106",
+        "date": "2026-06-06",
+        "amount": 125.00,
+        "currency": "CNY",
+        "merchant": "京东到家",
+        "category": "办公",
+        "description": "办公零食补给",
+        "receipt_url": "receipts/txn_106.jpg"
+      },
+      {
+        "transaction_id": "txn_107",
+        "date": "2026-06-07",
+        "amount": 2200.00,
+        "currency": "CNY",
+        "merchant": "南方航空",
+        "category": "差旅",
+        "description": "机票费用（含税）",
+        "receipt_url": "receipts/txn_107.jpg"
+      },
+      {
+        "transaction_id": "txn_108",
+        "date": "2026-06-08",
+        "amount": 230.00,
+        "currency": "CNY",
+        "merchant": "顺丰速运",
+        "category": "办公",
+        "description": "样品寄送",
+        "receipt_url": "receipts/txn_108.jpg"
+      },
+      {
+        "transaction_id": "txn_109",
+        "date": "2026-06-09",
+        "amount": 88.00,
+        "currency": "CNY",
+        "merchant": "星巴克",
+        "category": "餐饮",
+        "description": "客户拜访咖啡",
+        "receipt_url": "receipts/txn_109.jpg"
+      },
+      {
+        "transaction_id": "txn_110",
+        "date": "2026-06-10",
+        "amount": 300.00,
+        "currency": "CNY",
+        "merchant": "滴滴出行",
+        "category": "差旅",
+        "description": "市内出行",
+        "receipt_url": "receipts/txn_110.jpg"
+      },
+      {
+        "transaction_id": "txn_111",
+        "date": "2026-06-11",
+        "amount": 680.00,
+        "currency": "CNY",
+        "merchant": "自助餐厅-望江",
+        "category": "餐饮",
+        "description": "午餐团建",
+        "receipt_url": "receipts/txn_111.jpg"
+      },
+      {
+        "transaction_id": "txn_112",
+        "date": "2026-06-12",
+        "amount": 9800.00,
+        "currency": "CNY",
+        "merchant": "阿里云",
+        "category": "IT/云服务",
+        "description": "企业云资源服务费",
+        "receipt_url": "receipts/txn_112.jpg"
+      },
+      {
+        "transaction_id": "txn_113",
+        "date": "2026-06-13",
+        "amount": 248.00,
+        "currency": "CNY",
+        "merchant": "京东商城",
+        "category": "办公",
+        "description": "采购鼠标垫",
+        "receipt_url": "receipts/txn_113.jpg"
+      },
+      {
+        "transaction_id": "txn_114",
+        "date": "2026-06-14",
+        "amount": 150.00,
+        "currency": "CNY",
+        "merchant": "物联网云平台",
+        "category": "IT/云服务",
+        "description": "API调用服务订阅",
+        "receipt_url": "receipts/txn_114.jpg"
+      },
+      {
+        "transaction_id": "txn_115",
+        "date": "2026-06-15",
+        "amount": 45.00,
+        "currency": "CNY",
+        "merchant": "滴滴出行",
+        "category": "差旅",
+        "description": "返程打车",
+        "receipt_url": "receipts/txn_115.jpg"
+      },
+      {
+        "transaction_id": "txn_116",
+        "date": "2026-06-16",
+        "amount": 320.00,
+        "currency": "CNY",
+        "merchant": "家乐福",
+        "category": "办公",
+        "description": "会议用水与纸品",
+        "receipt_url": "receipts/txn_116.jpg"
+      },
+      {
+        "transaction_id": "txn_117",
+        "date": "2026-06-17",
+        "amount": 760.00,
+        "currency": "CNY",
+        "merchant": "复印打印中心",
+        "category": "办公",
+        "description": "文件打印与复印",
+        "receipt_url": "receipts/txn_117.jpg"
+      },
+      {
+        "transaction_id": "txn_118",
+        "date": "2026-06-18",
+        "amount": 430.00,
+        "currency": "CNY",
+        "merchant": "网约车聚合平台",
+        "category": "差旅",
+        "description": "外出交通费用",
+        "receipt_url": "receipts/txn_118.jpg"
+      },
+      {
+        "transaction_id": "txn_118_DUP",
+        "date": "2026-06-18",
+        "amount": 430.00,
+        "currency": "CNY",
+        "merchant": "网约车聚合平台",
+        "category": "差旅",
+        "description": "外出交通费用",
+        "receipt_url": "receipts/txn_118_dup.jpg"
+      },
+      {
+        "transaction_id": "txn_119",
+        "date": "2026-06-19",
+        "amount": -120.00,
+        "currency": "CNY",
+        "merchant": "上海书城",
+        "category": "办公",
+        "description": "退款 - 资料订单取消",
+        "receipt_url": "receipts/txn_119.jpg"
+      },
+      {
+        "transaction_id": "txn_120",
+        "date": "2026-06-20",
+        "amount": 120.00,
+        "currency": "CNY",
+        "merchant": "上海书城",
+        "category": "办公",
+        "description": "资料订单支付",
+        "receipt_url": "receipts/txn_120.jpg"
+      },
+      {
+        "transaction_id": "txn_201",
+        "date": "2026-06-21",
+        "amount": 35.90,
+        "currency": "USD",
+        "merchant": "CloudOffice Subscription",
+        "category": "IT/云服务",
+        "description": "软件订阅（已按汇率折算为人民币）",
+        "receipt_url": "receipts/txn_201.jpg"
+      },
+      {
+        "transaction_id": "txn_202",
+        "date": "2026-06-21",
+        "amount": 35.90,
+        "currency": "CNY",
+        "merchant": "CloudOffice Subscription",
+        "category": "IT/云服务",
+        "description": "软件订阅（人民币结算）",
+        "receipt_url": "receipts/txn_202.jpg"
+      },
+      {
+        "transaction_id": "txn_203",
+        "date": "2026-06-22",
+        "amount": 210.00,
+        "currency": "EUR",
+        "merchant": "EuroJet Travel",
+        "category": "差旅",
+        "description": "机票（已按汇率折算为人民币）",
+        "receipt_url": "receipts/txn_203.jpg"
+      },
+      {
+        "transaction_id": "txn_204",
+        "date": "2026-06-22",
+        "amount": 210.00,
+        "currency": "CNY",
+        "merchant": "EuroJet Travel",
+        "category": "差旅",
+        "description": "机票（人民币结算）",
+        "receipt_url": "receipts/txn_204.jpg"
+      },
+      {
+        "transaction_id": "txn_205",
+        "date": "2026-06-23",
+        "amount": 15.75,
+        "currency": "USD",
+        "merchant": "GitTools",
+        "category": "IT/云服务",
+        "description": "开发工具订阅（已按汇率折算为人民币）",
+        "receipt_url": "receipts/txn_205.jpg"
+      },
+      {
+        "transaction_id": "txn_206",
+        "date": "2026-06-24",
+        "amount": 760.00,
+        "currency": "EUR",
+        "merchant": "数据中心托管",
+        "category": "IT/云服务",
+        "description": "托管费用（已按汇率折算为人民币）",
+        "receipt_url": "receipts/txn_206.jpg"
+      },
+      {
+        "transaction_id": "txn_207",
+        "date": "2026-06-25",
+        "amount": 760.00,
+        "currency": "CNY",
+        "merchant": "数据中心托管",
+        "category": "IT/云服务",
+        "description": "托管费用（人民币结算）",
+        "receipt_url": "receipts/txn_207.jpg"
+      },
+      {
+        "transaction_id": "txn_208",
+        "date": "2026-06-26",
+        "amount": 95.00,
+        "currency": "USD",
+        "merchant": "办公用品国际店",
+        "category": "办公",
+        "description": "文具采购（已按汇率折算为人民币）",
+        "receipt_url": "receipts/txn_208.jpg"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新增对多币种交易的强制排除（仅提交CNY），并要求跨币种相似记录不应被当作重复或合并，同时重复去重仅限CNY完全一致与退款继续影响CNY总额。",
+    "fixture_design_summary": [
+      "覆盖2026-06-01到2026-06-26的交易数据，包含CNY与USD/EUR干扰项。",
+      "加入一组CNY重复交易（txn_118 与 txn_118_DUP），保证“同商户+同日期+同金额+同币种”完全一致。",
+      "加入跨币种同商户同日同金额干扰（如CloudOffice Subscription、EuroJet Travel、数据中心托管），确保不会被当作重复合并。",
+      "加入CNY退款负数（txn_119=-120.00）以校验total_amount包含退款金额，并与同商户正数支出保持同月内自洽。",
+      "非CNY交易描述刻意包含“已按汇率折算”，但仍应被规则排除且不参与CNY汇总。"
+    ]
+  }
+}

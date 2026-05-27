@@ -1,0 +1,71 @@
+[
+  {
+    "product_id": "INV-PROD-910",
+    "name": "路由器RX-1",
+    "category": "网络设备",
+    "quantity": 200,
+    "unit": "台",
+    "unit_cost": 108.0,
+    "location": "仓库C-01",
+    "reorder_level": 20,
+    "supplier": "星联集采",
+    "locations": [
+      {
+        "location": "仓库C-01",
+        "quantity": 120,
+        "unit_cost": 108.0
+      },
+      {
+        "location": "仓库C-02",
+        "quantity": 80,
+        "unit_cost": 108.0
+      }
+    ]
+  },
+  {
+    "product_id": "INV-PROD-920",
+    "name": "交换机SW-8",
+    "category": "网络设备",
+    "quantity": 130,
+    "unit": "台",
+    "unit_cost": 40.0,
+    "location": "仓库D-01",
+    "reorder_level": 10,
+    "supplier": "宏达通讯",
+    "locations": [
+      {
+        "location": "仓库D-01",
+        "quantity": 100,
+        "unit_cost": 40.0
+      },
+      {
+        "location": "仓库D-02",
+        "quantity": 30,
+        "unit_cost": 40.0
+      }
+    ]
+  },
+  {
+    "product_id": "INV-PROD-930",
+    "name": "网线CAT6",
+    "category": "耗材",
+    "quantity": 500,
+    "unit": "卷",
+    "unit_cost": 5.0,
+    "location": "仓库E-01",
+    "reorder_level": 200,
+    "supplier": "线缆优选",
+    "locations": [
+      {
+        "location": "仓库E-01",
+        "quantity": 300,
+        "unit_cost": 5.0
+      },
+      {
+        "location": "仓库E-02",
+        "quantity": 200,
+        "unit_cost": 5.0
+      }
+    ]
+  }
+]

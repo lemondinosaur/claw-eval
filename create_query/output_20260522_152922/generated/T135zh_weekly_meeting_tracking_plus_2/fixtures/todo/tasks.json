@@ -1,0 +1,158 @@
+[
+  {
+    "task_id": "TODO-60001",
+    "title": "主数据字段字典V1",
+    "description": "梳理主数据字段字典V1并提交评审",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-04-26",
+    "assignee": "许霖",
+    "tags": [
+      "数据治理"
+    ]
+  },
+  {
+    "task_id": "TODO-60002",
+    "title": "血缘追踪脚本PoC",
+    "description": "完成血缘追踪脚本PoC并给出验证结果",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-29",
+    "assignee": "沈岚",
+    "tags": [
+      "数据治理"
+    ]
+  },
+  {
+    "task_id": "TODO-60003",
+    "title": "血缘图导出说明",
+    "description": "补全数据血缘图导出说明文档",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-02",
+    "assignee": "周凯",
+    "tags": [
+      "数据治理"
+    ]
+  },
+  {
+    "task_id": "TODO-60004",
+    "title": "安全审计清单 新版",
+    "description": "完善安全审计清单（新版）并同步到审计台账",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-28",
+    "assignee": "张澄",
+    "tags": [
+      "安全"
+    ]
+  },
+  {
+    "task_id": "TODO-60005",
+    "title": "安全审计清单 新版（已归档）",
+    "description": "完善安全审计清单（新版）并完成归档版本",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-04-27",
+    "assignee": "张澄",
+    "tags": [
+      "安全"
+    ]
+  },
+  {
+    "task_id": "TODO-60006",
+    "title": "密钥轮换策略文档",
+    "description": "补齐密钥轮换策略文档，包含触发与回滚流程",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-30",
+    "assignee": "周凯",
+    "tags": [
+      "安全"
+    ]
+  },
+  {
+    "task_id": "TODO-60007",
+    "title": "外联访问白名单策略",
+    "description": "制定外联访问白名单策略并给出适用系统范围",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-05",
+    "assignee": "沈岚",
+    "tags": [
+      "安全"
+    ]
+  },
+  {
+    "task_id": "TODO-60008",
+    "title": "发布节奏与里程碑看板",
+    "description": "梳理发布节奏并更新里程碑看板",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-05-07",
+    "assignee": "顾宁",
+    "tags": [
+      "研发计划"
+    ]
+  },
+  {
+    "task_id": "TODO-60009",
+    "title": "日志检索API对齐方案 v1",
+    "description": "完成日志检索API对齐方案（v1版本）",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-01",
+    "assignee": "许霖",
+    "tags": [
+      "研发计划"
+    ]
+  },
+  {
+    "task_id": "TODO-60010",
+    "title": "日志检索API对齐方案 v2",
+    "description": "完成日志检索API对齐方案（v2版本，已通过校验）",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-05-01",
+    "assignee": "许霖",
+    "tags": [
+      "研发计划"
+    ]
+  },
+  {
+    "task_id": "TODO-60011",
+    "title": "风控规则引擎改造评估",
+    "description": "评估风控规则引擎改造方案并输出结论",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-03",
+    "assignee": "沈岚",
+    "tags": [
+      "风控"
+    ]
+  },
+  {
+    "task_id": "TODO-60012",
+    "title": "无关任务：桌面整理",
+    "description": "仅做办公桌整理，不属于任何会议纪要行动项",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-05-06",
+    "assignee": "顾宁",
+    "tags": [
+      "日常"
+    ]
+  },
+  {
+    "task_id": "TODO-60013",
+    "title": "候选冲突：血缘图导出说明（替代稿）",
+    "description": "补全数据血缘图导出说明文档（替代稿版本）",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-05-01",
+    "assignee": "周凯",
+    "tags": [
+      "数据治理"
+    ]
+  }
+]

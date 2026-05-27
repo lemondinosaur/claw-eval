@@ -1,0 +1,262 @@
+{
+  "task_id": "T117zh_customer_followup_plus_4",
+  "task_name": "多收件人部门协调（同客户不同联系人）",
+  "prompt_text": "请帮我为CRM中超过35天未联系的活跃客户（排除churned）准备“部门协调”邮件草稿：\n- CRM里同一客户可能包含多个联系人（例如运营负责人+研发负责人），请对每个联系人分别起草一封草稿；同一客户的草稿主题保持一致，但收件人(to)、措辞重点与回应的关切需严格对应到该联系人。\n- 从Gmail中找到与“对应联系人”匹配的最后沟通邮件作为依据；如果某个联系人在Gmail中没有任何历史邮件，请明确在输出中标注“无匹配邮件，依据CRM notes中的该角色描述起草”，并且不要混用其他联系人的具体承诺/细节。\n- VIP客户与普通客户需区分风格：\n  - VIP：更正式、更强调重要性与下一步安排。\n  - 普通：友好简洁、直接询问当前进展。\n- 只需要起草并保存草稿，不发送。\n\n输出要求：\n1) 每个被跟进客户列出“联系人清单”（联系人邮箱+角色）；\n2) 每个联系人对应的“邮件依据”（邮件ID；或无邮件时说明依据来源为CRM notes角色描述）；\n3) 每封草稿的“主题要点”（要点列表即可）。\n\n今天视为2026-03-30。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-813",
+        "name": "北辰工业",
+        "tier": "vip",
+        "status": "active",
+        "last_contact_date": "2026-01-20",
+        "annual_revenue": 7600000,
+        "notes": "关键合作方（VIP）。客户内部通常由多个部门负责人共同推进：\n- 运营负责人：李晓琳（邮箱：lixiaolin@beichen-industry.cn）。角色关切：交付节奏、里程碑推进、现场协调与资源调配。\n- 研发负责人：陈宇航（邮箱：chyu@beichen-industry.cn）。角色关切：技术集成风险、接口稳定性、以及实施过程中的问题闭环机制。\n最近一次对接节奏出现等待反馈的迹象，需要推动对齐下一阶段计划。",
+        "primary_contact": "lixiaolin@beichen-industry.cn"
+      },
+      {
+        "customer_id": "CUS-814",
+        "name": "星图医疗",
+        "tier": "vip",
+        "status": "active",
+        "last_contact_date": "2026-01-30",
+        "annual_revenue": 4100000,
+        "notes": "高价值客户（VIP）。推进方式通常分为：\n- 项目经理：周彤（邮箱：zhou_tong@starmed.com）。角色关切：项目里程碑是否按期、跨部门沟通效率。\n- 采购负责人：徐可（邮箱：xu_ke@starmed.com）。角色关切：成本与合同条款确认、付款节点。\n需要部门间把控节奏并确认下一步的沟通安排。",
+        "primary_contact": "zhou_tong@starmed.com"
+      },
+      {
+        "customer_id": "CUS-815",
+        "name": "飞跃零售",
+        "tier": "standard",
+        "status": "active",
+        "last_contact_date": "2026-02-10",
+        "annual_revenue": 950000,
+        "notes": "常规合作方（standard）。涉及两位联系人：\n- 运营负责人：龚晓雯（邮箱：gongxw@feiyue-retail.com）。角色关切：运营策略落地进度、数据看板更新频率。\n- 技术负责人：邓航（邮箱：denghang@feiyue-retail.com）。角色关切：系统对接、稳定性与异常处理流程。\n希望快速确认当前推进状态。",
+        "primary_contact": "gongxw@feiyue-retail.com"
+      },
+      {
+        "customer_id": "CUS-816",
+        "name": "云桥物流",
+        "tier": "standard",
+        "status": "active",
+        "last_contact_date": "2025-12-25",
+        "annual_revenue": 620000,
+        "notes": "标准客户（standard）。联系人包括：\n- 交付经理：蒋子航（邮箱：jiangzh@yunqiao-logistics.com）。角色关切：交付进度、现场资源与排期。\n- 安全合规负责人：刘婉宁（邮箱：liuwan-ning@yunqiao-logistics.com）。角色关切：权限管理、安全合规材料与审查时间窗口。\n注：其中“安 全合规负责人”在近期可能没有邮件往来，需要按角色描述发起对齐。",
+        "primary_contact": "jiangzh@yunqiao-logistics.com"
+      },
+      {
+        "customer_id": "CUS-817",
+        "name": "和合教育",
+        "tier": "standard",
+        "status": "churned",
+        "last_contact_date": "2026-02-15",
+        "annual_revenue": 180000,
+        "notes": "已流失(churned)，不需要跟进。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "m_813_1",
+        "from": "lixiaolin@beichen-industry.cn",
+        "to": "coordinator@company.com",
+        "subject": "推进里程碑节奏需要确认",
+        "date": "2026-02-14T09:20:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "你好，我们这边对下个里程碑的时间点有些担心：现场资源需要提前协调。能否尽快给到一个更新后的交付节奏，并确认我们需要配合的事项？——李晓琳"
+      },
+      {
+        "message_id": "m_813_2",
+        "from": "chyu@beichen-industry.cn",
+        "to": "coordinator@company.com",
+        "subject": "技术集成与接口稳定性问题",
+        "date": "2026-02-16T16:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们重点关注接口稳定性和异常回滚机制。若后续集成节奏有调整，请同步风险清单与闭环路径，避免影响上线时间。——陈宇航"
+      },
+      {
+        "message_id": "m_814_1",
+        "from": "zhou_tong@starmed.com",
+        "to": "coordinator@company.com",
+        "subject": "里程碑推进与沟通节奏",
+        "date": "2026-02-02T11:30:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，项目目前推进到关键阶段，但跨部门沟通需要更顺畅。我们希望你方给出下一轮同步的时间窗口，并确认各方责任边界。——周彤"
+      },
+      {
+        "message_id": "m_814_2",
+        "from": "xu_ke@starmed.com",
+        "to": "coordinator@company.com",
+        "subject": "合同条款与付款节点确认",
+        "date": "2026-02-06T15:45:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "请协助确认合同中付款节点的细则，以及我们需要补充的合规材料。也希望对成本项做一次书面确认。谢谢。——徐可"
+      },
+      {
+        "message_id": "m_815_1",
+        "from": "gongxw@feiyue-retail.com",
+        "to": "coordinator@company.com",
+        "subject": "运营看板更新与节奏",
+        "date": "2026-02-12T08:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们这边需要把数据看板更新频率对齐到日常运营节奏。请确认你方什么时候能提供最新的统计口径和展示方式。——龚晓雯"
+      },
+      {
+        "message_id": "m_815_2",
+        "from": "denghang@feiyue-retail.com",
+        "to": "coordinator@company.com",
+        "subject": "对接稳定性与异常处理",
+        "date": "2026-02-13T14:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "系统对接方面我们希望明确稳定性目标和异常处理流程。若后续遇到数据异常，如何触发告警与回滚策略？——邓航"
+      },
+      {
+        "message_id": "m_816_1",
+        "from": "jiangzh@yunqiao-logistics.com",
+        "to": "coordinator@company.com",
+        "subject": "现场排期与交付进度",
+        "date": "2026-01-05T10:25:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们希望确认下一阶段现场排期与交付进度。能否给到一个简要的里程碑表，并说明我们需要提前准备的资源？——蒋子航"
+      },
+      {
+        "message_id": "m_816_2",
+        "from": "other.manager@yunqiao-logistics.com",
+        "to": "coordinator@company.com",
+        "subject": "关于合规材料的泛化问题咨询",
+        "date": "2026-01-07T17:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们内部在整理合规材料，想了解一般需要哪些类型的文件。——(非刘婉宁)"
+      },
+      {
+        "message_id": "m_816_3",
+        "from": "random.security@external-partner.com",
+        "to": "coordinator@company.com",
+        "subject": "安全评审时间窗口",
+        "date": "2026-01-08T09:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们那边的安全评审通常需要提前两周确认时间窗口，供参考。——安全团队"
+      },
+      {
+        "message_id": "m_noise_1",
+        "from": "dev@thirdparty-logistics.com",
+        "to": "coordinator@company.com",
+        "subject": "技术合作建议（不相关）",
+        "date": "2026-02-20T12:12:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "给你们一个技术建议：可以从数据校验环节先行优化。"
+      },
+      {
+        "message_id": "m_noise_2",
+        "from": "procurement@other-retail.com",
+        "to": "coordinator@company.com",
+        "subject": "采购流程咨询（不相关）",
+        "date": "2026-02-18T18:18:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "关于你们的采购流程我们想了解一下。"
+      },
+      {
+        "message_id": "m_noise_3",
+        "from": "marketing@beichen-partners.cn",
+        "to": "coordinator@company.com",
+        "subject": "市场活动邀请（不相关）",
+        "date": "2026-02-21T09:45:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "邀请你们参加我们的线下活动。"
+      },
+      {
+        "message_id": "m_noise_4",
+        "from": "support@starmed.com",
+        "to": "coordinator@company.com",
+        "subject": "售后问题反馈（不相关）",
+        "date": "2026-02-10T13:13:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "关于售后工单的反馈说明。"
+      },
+      {
+        "message_id": "m_noise_5",
+        "from": "finance@feiyue-retail.com",
+        "to": "coordinator@company.com",
+        "subject": "费用报销流程（不相关）",
+        "date": "2026-02-08T10:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "费用报销需要哪些材料？"
+      },
+      {
+        "message_id": "m_813_noise_3",
+        "from": "someone_else@beichen-industry.cn",
+        "to": "coordinator@company.com",
+        "subject": "内部汇总与安排（非目标联系人）",
+        "date": "2026-02-15T08:30:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们内部对安排做了一个汇总，供参考。"
+      },
+      {
+        "message_id": "m_815_noise_2",
+        "from": "operations@feiyue-retail.com",
+        "to": "coordinator@company.com",
+        "subject": "运营事项转达（不匹配邮箱）",
+        "date": "2026-02-12T12:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "关于一些运营事项的转达（该发件非龚晓雯）。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "同一客户包含多个联系人并分别基于其对应历史邮件起草不同收件人版本的部门协调邮件（含一位联系人无邮件时仅依据CRM notes角色描述）。",
+    "fixture_design_summary": [
+      "CRM包含5个客户：4个active且last_contact_date距离2026-03-30均超过35天，1个churned用于排除。",
+      "每个目标客户的notes中均明确列出至少2个联系人邮箱与角色关切（运营/研发/采购/交付/安全合规等）。",
+      "Gmail对每个目标客户提供至少两封来自不同角色联系人的邮件，并通过from邮箱与CRM notes联系人email进行可匹配设计。",
+      "其中CUS-816的安全合规负责人刘婉宁（liuwan-ning@yunqiao-logistics.com）刻意在Gmail中没有任何from匹配邮件；仅提供了非目标邮箱的干扰邮件用于防止串用。",
+      "额外加入多封噪声邮件，from与目标联系人邮箱不一致，用于验证严格的联系人级别匹配与隔离。"
+    ]
+  }
+}

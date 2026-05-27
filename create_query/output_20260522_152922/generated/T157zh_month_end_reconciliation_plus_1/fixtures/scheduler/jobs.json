@@ -1,0 +1,187 @@
+[
+  {
+    "job_id": "JOB-2111",
+    "name": "补录队列处理（回滚补录）",
+    "cron_expression": "0 6 * * *",
+    "action": "replay_backfill_queue",
+    "enabled": true,
+    "last_run": "2026-04-26T06:10:00Z",
+    "next_run": "2026-04-27T06:10:00Z",
+    "last_status": "failed",
+    "created_by": "ops_reliability",
+    "tags": [
+      "backfill",
+      "reconciliation",
+      "month_end"
+    ],
+    "created_at": "2025-10-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-26T06:10:00Z",
+        "status": "failed",
+        "duration_s": 38,
+        "error": "PartialRollbackError：支付网关冲正（订单ORD-99011/99021）二次流水未完成幂等对账"
+      },
+      {
+        "run_at": "2026-04-25T06:10:00Z",
+        "status": "failed",
+        "duration_s": 35,
+        "error": "IdempotencyMismatch：同订单重复冲正回填，导致财务补录中断"
+      },
+      {
+        "run_at": "2026-04-24T06:10:00Z",
+        "status": "failed",
+        "duration_s": 34,
+        "error": "QueueRetryLimitReached：补录重试达到上限（与配置INT-2102降级一致）"
+      },
+      {
+        "run_at": "2026-04-20T06:10:00Z",
+        "status": "success",
+        "duration_s": 140
+      },
+      {
+        "run_at": "2026-04-19T06:10:00Z",
+        "status": "success",
+        "duration_s": 125
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2112",
+    "name": "发票生成（降级模式）",
+    "cron_expression": "0 8 * * 1-5",
+    "action": "generate_invoices",
+    "enabled": true,
+    "last_run": "2026-04-25T08:05:00Z",
+    "next_run": "2026-04-27T08:05:00Z",
+    "last_status": "failed",
+    "created_by": "finance_team",
+    "tags": [
+      "invoice",
+      "degraded"
+    ],
+    "created_at": "2025-11-10T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-25T08:05:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "HTTP 429 Too Many Requests：发票系统已进入降级模式（关联INT-2103）"
+      },
+      {
+        "run_at": "2026-04-24T08:05:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "HTTP 400 BadRequest：发票API版本不兼容（需要v3 SDK回补）"
+      },
+      {
+        "run_at": "2026-04-23T08:05:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "Timeout：发票回传超时（影响订单ORD-99001/99041净实收对账窗口）"
+      },
+      {
+        "run_at": "2026-04-22T08:05:00Z",
+        "status": "success",
+        "duration_s": 52
+      },
+      {
+        "run_at": "2026-04-21T08:05:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "HTTP 429 Too Many Requests：继续降级"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2113",
+    "name": "应收-应付对账快照（人工暂停）",
+    "cron_expression": "0 10 * * *",
+    "action": "ar_ap_snapshot",
+    "enabled": true,
+    "last_run": "2026-04-26T10:00:00Z",
+    "next_run": "2026-04-27T10:00:00Z",
+    "last_status": "success",
+    "created_by": "finance_team",
+    "tags": [
+      "snapshot",
+      "arap"
+    ],
+    "created_at": "2025-12-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-26T10:00:00Z",
+        "status": "success",
+        "duration_s": 80
+      },
+      {
+        "run_at": "2026-04-25T10:00:00Z",
+        "status": "skipped",
+        "duration_s": 0,
+        "error": "ManuallyPaused：人工暂停本次执行（等待发票回传）"
+      },
+      {
+        "run_at": "2026-04-24T10:00:00Z",
+        "status": "skipped",
+        "duration_s": 0,
+        "error": "ManuallyPaused：人工暂停本次执行（补录队列未完成）"
+      },
+      {
+        "run_at": "2026-04-23T10:00:00Z",
+        "status": "success",
+        "duration_s": 76
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2114",
+    "name": "库存出入库同步",
+    "cron_expression": "0 7 * * *",
+    "action": "sync_stock_movements",
+    "enabled": true,
+    "last_run": "2026-04-26T07:00:00Z",
+    "next_run": "2026-04-27T07:00:00Z",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": [
+      "inventory",
+      "sync"
+    ],
+    "created_at": "2025-09-10T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-26T07:00:00Z",
+        "status": "success",
+        "duration_s": 62
+      },
+      {
+        "run_at": "2026-04-25T07:00:00Z",
+        "status": "success",
+        "duration_s": 58
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2115",
+    "name": "月末冻结报表生成",
+    "cron_expression": "0 9 25-31 * *",
+    "action": "month_end_freeze_report",
+    "enabled": true,
+    "last_run": "2026-04-25T09:00:00Z",
+    "next_run": "2026-04-26T09:00:00Z",
+    "last_status": "success",
+    "created_by": "finance_team",
+    "tags": [
+      "report",
+      "month_end"
+    ],
+    "created_at": "2025-07-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-25T09:00:00Z",
+        "status": "success",
+        "duration_s": 190
+      }
+    ]
+  }
+]

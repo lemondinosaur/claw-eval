@@ -1,0 +1,164 @@
+You are the Claw-Eval fixture generator. You are given:
+1. The original benchmark task's runtime task.yaml (with grader/scoring fields removed) and the original fixtures as reference.
+2. A new task description produced by Step1.
+
+Your task: generate new fixture data only for this new task, plus optional `task_name` and `prompt_text`.
+The script will automatically reuse the source task's services, tools, tool_endpoints, sandbox_files, and environment, then programmatically write task.yaml.
+
+Very important: output exactly one JSON object only. No markdown. No explanations. Do not output task.yaml. Do not output grader.py.
+
+The output JSON must be exactly:
+{
+  "task_id": "T088_pinbench_project_bootstrap_plan_plus_3",
+  "task_name": "new task name",
+  "prompt_text": "the prompt.text that will be written into task.yaml, with minor refinements allowed based on Step1 user_request",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "full text string"
+  },
+  "notes": {
+    "difference_summary": "one sentence describing how the new task differs from the source",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+Must follow these rules:
+1. Generate fixtures only. Do not generate task.yaml, grader.py, scoring, rubric, reference solution, or any other grading-related content.
+2. The file paths in `files` must match exactly the following relative paths, with no additions, omissions, or renames:
+[
+  "fixtures/todo/tasks.json"
+]
+3. `.json` fixtures must be emitted directly as JSON objects or arrays, not as strings. Only `.txt` fixtures should be strings.
+4. Fixture entities, IDs, email addresses, ticket numbers, SKUs, numbers, bodies, meeting subjects, and similar content must all be new and must not reuse specific content from the source fixtures.
+5. Cross-fixture entity references must stay consistent. For example, email addresses, contacts, customers, meeting attendees, ticket_id, and product_id must line up across files.
+6. The generated data must support the Step1 task goal and remain compatible with the source task's existing services, tools, and tool_endpoints.
+7. sandbox_files are inherited automatically from the source task. Even if the source task has an empty sandbox_files list, you must still generate the fixture files listed above because the services read them directly.
+8. If the source task is English, prefer English for `task_name`, `prompt_text`, and fixture text content.
+9. Keep the logic simple and direct. Do not introduce extra scoring traps, multi-turn clarification flows, or grader assumptions.
+10. If the task involves concrete dates, relative dates, or scheduling information, pay attention to the runtime date anchor:
+- The source task has no mock_today; if dates are involved, keep the fixtures internally consistent.
+
+The Step1-generated task description is:
+{
+  "index": 3,
+  "new_task_id": "T088_pinbench_project_bootstrap_plan_plus_3",
+  "new_task_name": "CLI App Bootstrapping (Go)",
+  "task_goal": "为一个命令行应用生成 bootstrap 计划：创建 Go 项目骨架、实现命令入口与参数解析占位、添加基础集成测试（通过命令行调用方式描述）、编写模块与构建脚本元数据、编写 README（含用法示例与常见错误处理说明）。",
+  "user_request": "Use the todo service to bootstrap a Go CLI application plan for \"logforge\". Create actionable tasks for: 1) creating the Go project structure with a main entry point, 2) adding a command/flag parsing placeholder that supports subcommands, 3) adding integration tests that run the CLI with a sample invocation, 4) writing module metadata (go.mod requirements placeholder) and a build/test script note, 5) writing a README with usage examples and a section for common failure modes. Then summarize the setup plan.",
+  "scenario": "业务触发器：当用户输入无效的子命令时，程序应返回非 0 退出码并打印可读错误。计划中需要体现对“退出码与错误输出格式”的期望作为测试/实现验收点。干扰信息：日志级别既可以通过 flag 指定，也可能来自环境变量；但当前只要求在占位任务中记录需求，不要求实际实现环境变量读取。",
+  "difference_from_source": "原题是 Python 库 scaffold；本题是 Go CLI，并加入无效子命令的退出码/错误输出验收点，以及日志级别来自 flag 与环境变量的需求记录但不实现环境变量读取。",
+  "service_and_tool_plan": "使用 todo_create_task 生成一组针对 Go CLI 的待办事项，description 中写明验收标准（退出码/错误输出）。需要时用 todo_list_tasks 确认写入状态；整体使用相同服务与工具。",
+  "fixture_generation_plan": "fixtures/todo/tasks.json：建议初始 0 条，确保输出可判定；或加入 1 条与“logforge”无关的任务作为噪声。新创建任务建议 5~6 条。不要复用原题中的任何具体项目名、文件名、工单号、SKU 或数值；标题与描述中的名称均为“logforge”、命令名等可自行生成但必须保持内部一致。",
+  "expected_behavior": "代理创建至少覆盖：main 入口与目录结构、子命令与 flag 解析占位、集成测试（通过运行 CLI 的方式）并明确测试无效子命令的退出码/错误输出、go.mod 元数据与构建脚本说明、README 用法与常见失败模式。最后总结按依赖顺序给出执行步骤。",
+  "grading_plan": "检查：1) 任务描述包含 Go CLI 结构与 main 入口；2) 子命令/flag 占位明确；3) 集成测试任务描述包含“无效子命令→非 0 退出码+可读错误输出”的验收点；4) go.mod/构建脚本元数据与 README 用法/失败模式章节是否存在；5) 输出总结是否覆盖关键依赖关系且不出现多轮澄清。"
+}
+
+The source task summary is:
+{
+  "task_id": "T088_pinbench_project_bootstrap_plan",
+  "task_name": "Pinbench Project Bootstrap Plan",
+  "task_type": "file_ops",
+  "category": "file_ops",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "en",
+  "services": [
+    "todo"
+  ],
+  "tools": [
+    "todo_create_task",
+    "todo_list_tasks"
+  ],
+  "fixture_paths": [
+    "fixtures/todo/tasks.json"
+  ],
+  "sandbox_files": [
+    "fixtures/todo/tasks.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "file_ops"
+}
+
+Below are the source task's runtime task.yaml and fixtures:
+--- FILE: task.yaml ---
+task_id: T088_pinbench_project_bootstrap_plan
+task_name: Pinbench Project Bootstrap Plan
+version: '1.0'
+category: file_ops
+difficulty: easy
+tags:
+- general
+services:
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: tasks/T088_pinbench_project_bootstrap_plan/fixtures/todo/tasks.json
+prompt:
+  text: 'Instead of creating files directly, use the todo service to bootstrap a Python
+
+    library project plan for "datautils". Create actionable tasks for:
+
+    1. creating the package structure under src/datautils
+
+    2. adding tests
+
+    3. writing pyproject metadata
+
+    4. writing a README
+
+    Then summarize the setup plan.
+
+    '
+  language: en
+tools:
+- name: todo_create_task
+  description: Create a new todo task
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      priority:
+        type: string
+      due_date:
+        type: string
+    required:
+    - title
+- name: todo_list_tasks
+  description: List todo tasks
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+    required: []
+tool_endpoints:
+- tool_name: todo_create_task
+  url: http://localhost:9102/todo/tasks/create
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+sandbox_files:
+- fixtures/todo/tasks.json
+environment:
+  timeout_seconds: 180
+  max_turns: 10
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/todo/tasks.json ---
+[]
+
+--- END FILE: fixtures/todo/tasks.json ---
+
+One last reminder: output only one JSON object.

@@ -1,0 +1,57 @@
+[
+  {
+    "product_id": "SKU-GPU-WS-2",
+    "name": "GPU工作站（双风扇）",
+    "category": "办公电脑",
+    "current_stock": 0,
+    "status": "out_of_stock",
+    "unit_price": 28999.0,
+    "restock_date": "2026-03-12",
+    "notes": "预计3月12日到货4台；入职当日需临时CPU替代"
+  },
+  {
+    "product_id": "SKU-MON-24QHD-1",
+    "name": "24英寸QHD显示器",
+    "category": "外设",
+    "current_stock": 14,
+    "status": "normal",
+    "unit_price": 1999.0,
+    "notes": ""
+  },
+  {
+    "product_id": "SKU-TABLE-SET-2",
+    "name": "办公桌椅套装（2号位）",
+    "category": "办公家具",
+    "current_stock": 6,
+    "status": "normal",
+    "unit_price": 3899.0,
+    "notes": ""
+  },
+  {
+    "product_id": "SKU-LAP-DEV-5",
+    "name": "开发笔记本（14寸）",
+    "category": "办公电脑",
+    "current_stock": 9,
+    "status": "normal",
+    "unit_price": 12999.0,
+    "notes": ""
+  },
+  {
+    "product_id": "SKU-LAP-TEST-3",
+    "name": "测试笔记本（13寸）",
+    "category": "办公电脑",
+    "current_stock": 7,
+    "status": "normal",
+    "unit_price": 10999.0,
+    "notes": ""
+  },
+  {
+    "product_id": "SKU-CPU-TEMP-1",
+    "name": "临时CPU替代工作站",
+    "category": "办公电脑",
+    "current_stock": 2,
+    "status": "low_stock",
+    "unit_price": 7499.0,
+    "notes": "仅用于GPU缺货期间的临时过渡"
+  }
+]

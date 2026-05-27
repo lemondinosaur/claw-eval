@@ -1,0 +1,191 @@
+task_id: T139zh_customer_relationship_warning_plus_2
+task_name: 多地分支续约提醒：关键联系人缺失场景
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T139zh_customer_relationship_warning_plus_2/fixtures/contacts/contacts.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T139zh_customer_relationship_warning_plus_2/fixtures/crm/customers.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T139zh_customer_relationship_warning_plus_2/fixtures/gmail/inbox.json
+prompt:
+  text: '请帮我检查所有活跃客户的合同到期情况，找出未来60天内即将到期的客户并做重点跟进分配。
+
+
+    对每个客户：
+
+    1）查看CRM客户详情（等级、合同到期日、销售负责人、是否为多地分支客户、关键联系人是否缺失标记、备用联系人字段如backup_owner）；
+
+    2）到通讯录查找销售负责人联系方式：若找不到，则使用CRM中的backup_owner作为替代联系人继续检索通讯录，并在报告中标记“主负责人缺失，使用备用联系人”；
+
+    3）检查收件箱是否有该客户来自不同分支的沟通记录（不同分支用“北区/东区/分公司简称”等关键词标注），并判断分支沟通活跃度（高/中/低）；
+
+    4）根据客户等级与“缺失程度/分支沟通活跃度”生成续约预警报告（含优先级）。
+
+
+    对VIP客户：起草续约提醒邮件草稿，邮件subject需包含“续约提醒+分支安排”，正文必须明确写出“分支维度沟通安排”（例如先北区后东区，或安排一次线上分部门会议，并给出需要对方确认的事项占位符）。
+
+
+    最后输出完整报告；但仅保存VIP客户的邮件草稿，并确保不发送邮件。'
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选
+      tier:
+        type: string
+        description: 客户等级筛选(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 30
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  mock_today: '2026-03-26'
+  timeout_seconds: 600
+  max_turns: 30

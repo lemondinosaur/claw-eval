@@ -1,0 +1,63 @@
+[
+  {
+    "event_id": "evt_701",
+    "title": "平台变更评审",
+    "organizer": "heqing@company.com",
+    "attendees": [
+      "heqing@company.com",
+      "zhouxuan@company.com"
+    ],
+    "start_time": "2026-03-07T11:00:00+08:00",
+    "end_time": "2026-03-07T12:00:00+08:00",
+    "location": "会议室A",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_702",
+    "title": "郑姓同学同步对齐",
+    "organizer": "zhenyan@company.com",
+    "attendees": [
+      "zhenyan@company.com"
+    ],
+    "start_time": "2026-03-07T10:30:00+08:00",
+    "end_time": "2026-03-07T11:30:00+08:00",
+    "location": "线上",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_703",
+    "title": "晨会 & 周计划",
+    "organizer": "heqing@company.com",
+    "attendees": [
+      "heqing@company.com"
+    ],
+    "start_time": "2026-03-07T09:30:00+08:00",
+    "end_time": "2026-03-07T10:00:00+08:00",
+    "location": "",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_704",
+    "title": "午后专注时段",
+    "organizer": "zhenyan@company.com",
+    "attendees": [
+      "zhenyan@company.com"
+    ],
+    "start_time": "2026-03-07T14:30:00+08:00",
+    "end_time": "2026-03-07T15:30:00+08:00",
+    "location": "",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_705",
+    "title": "北极星回访简报（仅对方）",
+    "organizer": "csm.polaris@polaris-soft.com",
+    "attendees": [
+      "csm.polaris@polaris-soft.com"
+    ],
+    "start_time": "2026-03-06T16:00:00+08:00",
+    "end_time": "2026-03-06T17:00:00+08:00",
+    "location": "线上",
+    "status": "confirmed"
+  }
+]

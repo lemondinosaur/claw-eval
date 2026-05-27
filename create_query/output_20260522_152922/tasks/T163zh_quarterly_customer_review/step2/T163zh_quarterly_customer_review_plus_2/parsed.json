@@ -1,0 +1,588 @@
+{
+  "task_id": "T163zh_quarterly_customer_review_plus_2",
+  "task_name": "多地区客户健康度季度体检（Q3，缺失数据版）",
+  "prompt_text": "现在是2026年10月初，请为Q3（7/1-9/30）生成“季度健康度体检报告”。CRM筛选到8个重点客户，覆盖华北与华南两个地区：其中华南地区邮件沉淀异常（Q3几乎没有往来邮件）。\n\n对每个客户：\n1) 给出健康度结论（高/中/低）。\n2) 输出证据链并说明置信度：\n   - 财务证据（基于Q3交易汇总与交易详情，若仅有极少数据需明确这是缺失/不充分的证据来源）。\n   - CRM证据（满意度、合同到期节点、负责人角色字段sales_owner等）。\n   - 邮件证据（识别是否存在与客户相关的有效沟通；忽略与客户无关的内部通知干扰，给出“邮件缺失/仅有通知”的缺失说明，并指出缺失来自gmail服务）。\n   - 行业动态证据（使用RSS文章标题摘要与tags做弱匹配；若tags与客户行业标签不完全一致但摘要仍有相邻领域关联，说明匹配强度；若匹配度低需标注“行业证据弱”并说明不确定原因）。\n3) 当某类证据缺失或出现矛盾时，必须给出“补证说明”（说明缺失来自哪个服务/为何影响置信度），并给出补采集路径。\n\n最后：\n- 列出“需要补采集信息”的客户清单（至少包含邮件缺失的客户）。\n- 对每个需要补采集的客户，写1条建议的补采集路径（例如让客户经理补一次会议记录或让财务核对账单）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-2201",
+        "name": "周怡",
+        "email": "zhouyi@company.com",
+        "phone": "13800162001",
+        "department": "销售部",
+        "title": "高级客户经理",
+        "responsibilities": [
+          "VIP客户维护",
+          "合同续约",
+          "CUS-2201辰星云服务",
+          "CUS-2206启程智慧物流"
+        ]
+      },
+      {
+        "contact_id": "CON-2202",
+        "name": "陈晨",
+        "email": "chenchen@company.com",
+        "phone": "13800162002",
+        "department": "客户成功部",
+        "title": "客户成功经理",
+        "responsibilities": [
+          "客户健康度监控",
+          "续约支持",
+          "CUS-2202北岸零售集团",
+          "CUS-2207星港教育信息化"
+        ]
+      },
+      {
+        "contact_id": "CON-2203",
+        "name": "周怡",
+        "email": "zhouyi_cs@company.com",
+        "phone": "13800162003",
+        "department": "客户成功部",
+        "title": "客户成功经理",
+        "responsibilities": [
+          "满意度跟踪",
+          "续约风险预警",
+          "CUS-2203南方电商供应链",
+          "CUS-2208华曜半导体制造"
+        ]
+      },
+      {
+        "contact_id": "CON-2204",
+        "name": "沈浩",
+        "email": "shenhao@company.com",
+        "phone": "13800162004",
+        "department": "销售部",
+        "title": "客户经理",
+        "responsibilities": [
+          "大客户拓展",
+          "行业方案宣讲",
+          "CUS-2204东方教育集团",
+          "CUS-2205澄海电力能源"
+        ]
+      },
+      {
+        "contact_id": "CON-2205",
+        "name": "郑宁",
+        "email": "zhengning@company.com",
+        "phone": "13800162005",
+        "department": "财务部",
+        "title": "应收专员",
+        "responsibilities": [
+          "对账核验",
+          "发票状态跟踪",
+          "支持预付转结类交易确认"
+        ]
+      },
+      {
+        "contact_id": "CON-2206",
+        "name": "范静",
+        "email": "fanji@company.com",
+        "phone": "13800162006",
+        "department": "客户成功部",
+        "title": "解决方案顾问",
+        "responsibilities": [
+          "行业化部署支持",
+          "续约前提条件确认",
+          "CUS-2202北岸零售集团"
+        ]
+      },
+      {
+        "contact_id": "CON-2207",
+        "name": "赵铭",
+        "email": "zhaoming@company.com",
+        "phone": "13800162007",
+        "department": "技术部",
+        "title": "解决方案工程师",
+        "responsibilities": [
+          "系统对接与排障",
+          "迁移与性能优化",
+          "CUS-2201辰星云服务"
+        ]
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2201",
+        "name": "辰星云服务",
+        "tier": "vip",
+        "status": "active",
+        "industry": "云服务",
+        "satisfaction": 4.6,
+        "contract_end": "2026-10-15",
+        "sales_owner": "周怡",
+        "notes": "Q3稳定增购，SLA按期满足，续约节奏正常。",
+        "contact_person": "周怡",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2202",
+        "name": "北岸零售集团",
+        "tier": "standard",
+        "status": "active",
+        "industry": "零售",
+        "satisfaction": 3.0,
+        "contract_end": "2026-12-20",
+        "sales_owner": "陈晨",
+        "notes": "Q3有一次对账延迟反馈，业务团队仍在推进促销场景上线。",
+        "contact_person": "陈晨",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2203",
+        "name": "南方电商供应链",
+        "tier": "vip",
+        "status": "active",
+        "industry": "电商",
+        "satisfaction": 4.1,
+        "contract_end": "2026-11-30",
+        "sales_owner": "周怡",
+        "notes": "预付转结历史较多，Q3财务口径需要核对；技术侧部署顺利。",
+        "contact_person": "周怡",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2204",
+        "name": "东方教育集团",
+        "tier": "standard",
+        "status": "active",
+        "industry": "教育信息化",
+        "satisfaction": 2.7,
+        "contract_end": "2026-09-30",
+        "notes": "合同节点临近，满意度下滑；需确认续约里程碑与验收口径。",
+        "contact_person": "沈浩",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2205",
+        "name": "澄海电力能源",
+        "tier": "standard",
+        "status": "active",
+        "industry": "能源与电力",
+        "satisfaction": 3.4,
+        "contract_end": "2026-10-31",
+        "notes": "运行稳定但增长有限，需评估后续模块需求。",
+        "contact_person": "沈浩",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2206",
+        "name": "启程智慧物流",
+        "tier": "vip",
+        "status": "active",
+        "industry": "物流",
+        "satisfaction": 4.8,
+        "contract_end": "2026-12-05",
+        "notes": "物流数字化成效显著，Q3回款正常且沟通活跃。",
+        "contact_person": "周怡",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2207",
+        "name": "星港教育信息化",
+        "tier": "standard",
+        "status": "active",
+        "industry": "教育信息化",
+        "satisfaction": 2.2,
+        "contract_end": "2026-11-10",
+        "notes": "Q3邮件基本沉寂，疑似仅收到内部通知；需补采集真实对接记录。",
+        "contact_person": "陈晨",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2208",
+        "name": "华曜半导体制造",
+        "tier": "vip",
+        "status": "active",
+        "industry": "制造（半导体）",
+        "satisfaction": 3.7,
+        "contract_end": "2026-10-05",
+        "notes": "行业tags匹配偏弱但摘要相关；Q3财务交易呈现延后结算特征。",
+        "contact_person": "周怡",
+        "annual_revenue": 0
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2201",
+        "customer_id": "CUS-2201",
+        "amount": 98000,
+        "type": "subscription",
+        "date": "2026-07-10",
+        "status": "completed",
+        "description": "Q3订阅费（含云治理模块）"
+      },
+      {
+        "transaction_id": "TXN-2202",
+        "customer_id": "CUS-2201",
+        "amount": 102000,
+        "type": "subscription",
+        "date": "2026-08-12",
+        "status": "completed",
+        "description": "Q3订阅费+扩展席位"
+      },
+      {
+        "transaction_id": "TXN-2203",
+        "customer_id": "CUS-2201",
+        "amount": 106000,
+        "type": "subscription",
+        "date": "2026-09-14",
+        "status": "completed",
+        "description": "Q3订阅费（SLA增强）"
+      },
+      {
+        "transaction_id": "TXN-2204",
+        "customer_id": "CUS-2202",
+        "amount": 52000,
+        "type": "subscription",
+        "date": "2026-07-18",
+        "status": "completed",
+        "description": "Q3订阅费（零售促销场景）"
+      },
+      {
+        "transaction_id": "TXN-2205",
+        "customer_id": "CUS-2202",
+        "amount": 0,
+        "type": "subscription",
+        "date": "2026-08-20",
+        "status": "completed",
+        "description": "补录：8月对账差异（金额暂为空）"
+      },
+      {
+        "transaction_id": "TXN-2206",
+        "customer_id": "CUS-2203",
+        "amount": 74000,
+        "type": "subscription",
+        "date": "2026-07-22",
+        "status": "completed",
+        "description": "Q3订阅费（电商订单履约）"
+      },
+      {
+        "transaction_id": "TXN-2207",
+        "customer_id": "CUS-2203",
+        "amount": 0,
+        "type": "subscription",
+        "date": "2026-08-25",
+        "status": "completed",
+        "description": "8月条目 completed=0（预付转结/结算延后）"
+      },
+      {
+        "transaction_id": "TXN-2208",
+        "customer_id": "CUS-2204",
+        "amount": 36000,
+        "type": "subscription",
+        "date": "2026-07-05",
+        "status": "completed",
+        "description": "Q3订阅费（基础教育门户）"
+      },
+      {
+        "transaction_id": "TXN-2209",
+        "customer_id": "CUS-2205",
+        "amount": 61000,
+        "type": "subscription",
+        "date": "2026-08-01",
+        "status": "completed",
+        "description": "Q3订阅费（设备运维）"
+      },
+      {
+        "transaction_id": "TXN-2210",
+        "customer_id": "CUS-2206",
+        "amount": 120000,
+        "type": "subscription",
+        "date": "2026-07-08",
+        "status": "completed",
+        "description": "Q3订阅费（物流数字化）"
+      },
+      {
+        "transaction_id": "TXN-2211",
+        "customer_id": "CUS-2206",
+        "amount": 118000,
+        "type": "subscription",
+        "date": "2026-08-09",
+        "status": "completed",
+        "description": "Q3订阅费（仓配协同）"
+      },
+      {
+        "transaction_id": "TXN-2212",
+        "customer_id": "CUS-2206",
+        "amount": 125000,
+        "type": "subscription",
+        "date": "2026-09-10",
+        "status": "completed",
+        "description": "Q3订阅费（干线调度）"
+      },
+      {
+        "transaction_id": "TXN-2213",
+        "customer_id": "CUS-2207",
+        "amount": 0,
+        "type": "subscription",
+        "date": "2026-07-29",
+        "status": "completed",
+        "description": "Q3条目仅一笔 completed=0（预付转结/结算延后）"
+      },
+      {
+        "transaction_id": "TXN-2214",
+        "customer_id": "CUS-2208",
+        "amount": 83000,
+        "type": "subscription",
+        "date": "2026-07-11",
+        "status": "completed",
+        "description": "Q3订阅费（制造运营看板）"
+      },
+      {
+        "transaction_id": "TXN-2215",
+        "customer_id": "CUS-2208",
+        "amount": 0,
+        "type": "subscription",
+        "date": "2026-08-30",
+        "status": "completed",
+        "description": "8月条目 completed=0（预付转结/结算延后）"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2201",
+        "from": "lina_chen@chenxingcloud.cn",
+        "to": "me@company.com",
+        "subject": "Q3续约节点确认与SLA回顾",
+        "date": "2026-08-28T02:10:00Z",
+        "body": "您好，辰星云服务希望按计划确认Q3续约节点与SLA回顾。我们团队在9月完成了治理模块验收，后续扩展席位的预算也已排入。请安排一次15分钟线上对齐。——李娜，辰星云服务",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2202",
+        "from": "sales@beianretail.com",
+        "to": "me@company.com",
+        "subject": "关于发票信息与对账口径的沟通",
+        "date": "2026-09-05T03:30:00Z",
+        "body": "你好，北岸零售集团这边需要核对Q3对账口径，发票抬头与税号以合同补充条款为准。请你们财务同事协助确认差异原因。——商务对接，北岸零售集团",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2203",
+        "from": "ops@qiangjinglog.com",
+        "to": "me@company.com",
+        "subject": "启程智慧物流：干线调度上线后的效果反馈",
+        "date": "2026-08-16T04:45:00Z",
+        "body": "你好，我们在8月完成干线调度上线，核心指标改善明显。想请你们协助复盘并评估下一阶段覆盖范围。——运营负责人，启程智慧物流",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2204",
+        "from": "notify@company.com",
+        "to": "me@company.com",
+        "subject": "内部：季度例会通知（请忽略客户回复）",
+        "date": "2026-09-12T06:00:00Z",
+        "body": "全体同事：季度例会将于9月下旬召开，请各团队提前准备材料。本邮件为内部通知，不需要对外客户回复。",
+        "labels": [
+          "通知",
+          "inbox"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2205",
+        "from": "internal_events@company.com",
+        "to": "me@company.com",
+        "subject": "活动通知：供应商交流会报名",
+        "date": "2026-07-24T05:20:00Z",
+        "body": "各位同事：供应商交流会报名已开放。请在截止日期前完成报名。",
+        "labels": [
+          "通知",
+          "inbox"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2206",
+        "from": "cs@ec-scm.com",
+        "to": "me@company.com",
+        "subject": "南方电商供应链：结算延后说明与后续计划",
+        "date": "2026-09-21T08:40:00Z",
+        "body": "您好，关于Q3结算我们这边存在延后安排，导致部分条目在系统中体现为预付转结。我们会在10月初补齐对账附件，并确认下一阶段订单履约改造计划。——CS对接，南方电商供应链",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2207",
+        "from": "events@starport-edu.cn",
+        "to": "me@company.com",
+        "subject": "星港教育信息化：内部活动通知",
+        "date": "2026-08-02T07:15:00Z",
+        "body": "尊敬的相关人员：本周将举行教研活动，本邮件为活动通知，与续约/财务沟通无关。",
+        "labels": [
+          "通知",
+          "inbox"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2208",
+        "from": "support@educ-east.cn",
+        "to": "me@company.com",
+        "subject": "东方教育集团：系统验收安排与迁移窗口",
+        "date": "2026-07-12T01:10:00Z",
+        "body": "你好，东方教育集团希望在9月底完成验收并安排迁移窗口。请提供验收清单及迁移时间计划。——项目经理，东方教育集团",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-2201",
+        "title": "云服务与数据治理：企业Q3继续加码预算",
+        "summary": "在云服务与数据治理趋势下，越来越多企业在Q3扩大治理项目投入，SaaS续约意愿提升；同时对安全合规与成本可控提出更高要求。",
+        "tags": [
+          "云服务",
+          "数据治理",
+          "预算"
+        ],
+        "url": "https://market-brief.example.com/2201",
+        "content": "云服务与数据治理趋势下企业在Q3扩大治理项目投入，续约意愿提升，对安全合规与成本可控提出更高要求。",
+        "category": "云服务, 数据治理, 预算",
+        "source": "市场简报周刊",
+        "published_at": "2026-09-03T00:00:00Z",
+        "word_count": 62
+      },
+      {
+        "article_id": "RSS-2202",
+        "title": "零售数字化与客户运营：利润承压下的精细化改造",
+        "summary": "零售行业在竞争加剧时更重视客户运营与数字化工具，部分企业把IT投入从“扩张”转向“精细化运营”，对促销场景和对账效率更敏感。",
+        "tags": [
+          "零售数字化",
+          "客户运营",
+          "成本控制"
+        ],
+        "url": "https://biz-insights.example.com/2202",
+        "content": "零售数字化推动精细化运营，促销场景与对账效率更受关注，企业IT投入更强调成本控制。",
+        "category": "零售, 数字化, 成本控制",
+        "source": "商业洞察",
+        "published_at": "2026-09-10T00:00:00Z",
+        "word_count": 58
+      },
+      {
+        "article_id": "RSS-2203",
+        "title": "电商履约与供应链协同：延后结算的合规关注上升",
+        "summary": "电商与供应链在旺季期间更关注履约协同与对账合规，延后结算与发票流程的管理成为热点话题，企业倾向于加强系统审计能力。",
+        "tags": [
+          "电商履约",
+          "供应链",
+          "合规"
+        ],
+        "url": "https://supply-watch.example.com/2203",
+        "content": "电商履约与供应链协同增强，对账合规与延后结算管理成为热点，企业加强系统审计能力。",
+        "category": "电商, 履约, 合规",
+        "source": "供应链观察",
+        "published_at": "2026-09-18T00:00:00Z",
+        "word_count": 61
+      },
+      {
+        "article_id": "RSS-2204",
+        "title": "教育内容平台的智能化：互动学习需求增长但支出偏谨慎",
+        "summary": "教育内容平台正在引入智能生成与互动学习工具，但预算更趋谨慎；企业更希望先验证效果再扩大采购，部分项目会推迟到Q4评估。",
+        "tags": [
+          "内容平台",
+          "智能学习",
+          "预算谨慎"
+        ],
+        "url": "https://edu-tech.example.com/2204",
+        "content": "教育内容平台引入智能生成与互动学习工具，但预算更谨慎，倾向先验证效果再扩大采购。",
+        "category": "教育科技, 内容平台, 预算谨慎",
+        "source": "教育科技前沿",
+        "published_at": "2026-08-31T00:00:00Z",
+        "word_count": 55
+      },
+      {
+        "article_id": "RSS-2205",
+        "title": "物流数字化持续推进：从仓配到干线的系统化迁移",
+        "summary": "物流企业推进数字化，从仓配到干线调度的系统化迁移加速；在运营指标改善的基础上，企业更愿意追加覆盖范围并延长合同周期。",
+        "tags": [
+          "物流数字化",
+          "干线调度",
+          "续约"
+        ],
+        "url": "https://logi-daily.example.com/2205",
+        "content": "物流数字化从仓配到干线调度迁移加速，运营指标改善基础上企业追加覆盖范围并延长合同周期。",
+        "category": "物流, 数字化, 续约",
+        "source": "物流日报",
+        "published_at": "2026-09-06T00:00:00Z",
+        "word_count": 60
+      },
+      {
+        "article_id": "RSS-2206",
+        "title": "半导体制造的资本开支分化：部分企业推迟扩产计划",
+        "summary": "半导体制造企业资本开支存在分化，有的企业推迟扩产计划，同时更重视运营数据看板与产线管理效率提升，IT优先级向“可度量收益”倾斜。",
+        "tags": [
+          "半导体",
+          "资本开支",
+          "运营看板"
+        ],
+        "url": "https://chip-capex.example.com/2206",
+        "content": "半导体资本开支分化，推迟扩产同时重视运营数据看板与产线效率，IT优先级向可度量收益倾斜。",
+        "category": "半导体, 资本开支, 运营看板",
+        "source": "芯片资本观察",
+        "published_at": "2026-09-14T00:00:00Z",
+        "word_count": 63
+      },
+      {
+        "article_id": "RSS-2207",
+        "title": "能源行业安全合规升级：信息化采购更强调审计追溯",
+        "summary": "能源与电力行业的信息化采购更强调安全合规与审计追溯能力。部分项目需要补充日志留存与权限管理，因此实施周期可能拉长。",
+        "tags": [
+          "能源",
+          "安全合规",
+          "审计追溯"
+        ],
+        "url": "https://energy-compliance.example.com/2207",
+        "content": "能源行业更强调安全合规与审计追溯能力，实施周期可能拉长，需补充日志留存与权限管理。",
+        "category": "能源, 安全合规, 审计追溯",
+        "source": "能源合规观察",
+        "published_at": "2026-09-08T00:00:00Z",
+        "word_count": 57
+      },
+      {
+        "article_id": "RSS-2208",
+        "title": "零售与教育的共同点：数据分析驱动的需求转向",
+        "summary": "在零售与教育领域，越来越多组织采用数据分析来提升运营与学习效果；尽管tags可能不同，但摘要里都会提到“分析驱动”和“效果验证”的采购倾向。",
+        "tags": [
+          "数据分析",
+          "效果验证",
+          "转向"
+        ],
+        "url": "https://cross-sector.example.com/2208",
+        "content": "零售与教育都出现数据分析驱动与效果验证倾向，采购从扩张转向先验证再扩大。",
+        "category": "跨行业, 数据分析, 效果验证",
+        "source": "跨行业观察",
+        "published_at": "2026-09-01T00:00:00Z",
+        "word_count": 44
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在Q3季度体检基础上加入“缺失数据版”：华南邮件沉淀异常、内部通知干扰需过滤、行业用tags做弱匹配并显式标注证据不足，同时要求给出补采集路径。",
+    "fixture_design_summary": [
+      "crm/customers.json：8个全新客户，行业覆盖云服务/零售/电商/物流/教育信息化/能源与电力/半导体制造，并交替sales_owner指向销售与客户成功，且含同名不同部门“周怡”。",
+      "finance/transactions.json：Q3交易约15笔；包含2个客户仅一笔或出现completed=0且description写明“预付转结/结算延后”，支持低数据/缺失解释。",
+      "gmail/inbox.json：仅包含少量客户相关邮件；同时加入两封labels包含“通知”的内部邮件干扰，且为教育客户“星港教育信息化”放入活动通知而无真实沟通邮件。",
+      "rss/feeds.json：提供多篇文章，其中教育相关文章tags与客户行业标签不完全一致，但摘要仍体现“智能化/效果验证”用于弱匹配；输出时需标注匹配强度。",
+      "contacts/contacts.json：至少7位联系人，含销售与客户成功两类负责人，并设置同姓“周怡”在不同department与不同email/title，便于验证匹配逻辑。"
+    ]
+  }
+}

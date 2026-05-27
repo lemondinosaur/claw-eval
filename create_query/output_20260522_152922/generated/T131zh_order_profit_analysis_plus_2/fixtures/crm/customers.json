@@ -1,0 +1,90 @@
+[
+  {
+    "customer_id": "CUS-901",
+    "name": "星阔科技",
+    "contact_person": "陈总",
+    "email": "chen@xingkuo-tech.cn",
+    "phone": "13900111001",
+    "industry": "硬件与IoT",
+    "tier": "vip",
+    "annual_revenue": 9200000,
+    "last_contact_date": "2026-03-26",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-901",
+        "products": [
+          "SKU-901A",
+          "SKU-901B",
+          "SKU-901S"
+        ],
+        "total_price": 210000,
+        "date": "2026-03-12"
+      }
+    ],
+    "notes": "重点战略客户"
+  },
+  {
+    "customer_id": "CUS-902",
+    "name": "海澜零售",
+    "contact_person": "周经理",
+    "email": "zhou@hailan-retail.com",
+    "phone": "13900111002",
+    "industry": "零售",
+    "tier": "vip",
+    "annual_revenue": 4100000,
+    "last_contact_date": "2026-03-18",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-902",
+        "products": [
+          "SKU-902A",
+          "SKU-902S"
+        ],
+        "total_price": 120000,
+        "date": "2026-03-20"
+      }
+    ],
+    "notes": "续航加购中"
+  },
+  {
+    "customer_id": "CUS-903",
+    "name": "北辰教育",
+    "contact_person": "李校长",
+    "email": "li@beichen-edu.org",
+    "phone": "13900111003",
+    "industry": "教育",
+    "tier": "standard",
+    "annual_revenue": 1600000,
+    "last_contact_date": "2026-03-14",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-903",
+        "products": [
+          "SKU-903A",
+          "SKU-903C",
+          "SKU-903S"
+        ],
+        "total_price": 95000,
+        "date": "2026-03-08"
+      }
+    ],
+    "notes": "按季度结算"
+  },
+  {
+    "customer_id": "CUS-904",
+    "name": "青岚咨询",
+    "contact_person": "孙总监",
+    "email": "sun@qinglan-consult.com",
+    "phone": "13900111004",
+    "industry": "咨询服务",
+    "tier": "standard",
+    "annual_revenue": 600000,
+    "last_contact_date": "2026-03-30",
+    "status": "active",
+    "recent_orders": [],
+    "notes": "近期沟通频繁但近期订单为空"
+  }
+]

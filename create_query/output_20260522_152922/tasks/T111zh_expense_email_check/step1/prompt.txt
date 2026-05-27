@@ -1,0 +1,361 @@
+你是一个 Claw-Eval 数据构造助手。现在给你一个已有 benchmark task 的 task.yaml 和 fixtures。
+
+你的任务：基于这个原始 task 的任务类型，设计 5 个新的任务描述。注意：这里只生成“新任务描述 JSON”，不要生成 task.yaml、fixtures、grader.py。
+
+必须遵守：
+1. 只输出一个 JSON 对象，不要 markdown，不要解释文字。
+2. 5 个新任务要和原 task 属于同一大类能力，能复用相同或高度相近的 service/tool schema。
+3. 5 个新任务必须和原题有较大区别，不能只是改名字、改日期、改语言。
+4. 每个新任务描述要足够具体，后续另一个模型可以直接根据描述生成 task.yaml、fixtures 和 grader.py。
+5. 不要复用原 fixture 中的具体实体名、邮箱、客户名、工单 ID、SKU、数值、原文段落。
+6. 尽量增加场景多样性：业务触发器、用户目标、状态分布、干扰信息、边界条件都要有变化。
+7. 新任务 id 必须严格使用：T111zh_expense_email_check_plus_1 到 T111zh_expense_email_check_plus_5。
+8. user_request 要和原任务语言一致；如果原题是中文，优先写中文。
+9. 不要引入原 task 没有的多轮澄清流程。
+
+输出 JSON 格式必须是：
+{
+  "source_task_id": "T111zh_expense_email_check",
+  "source_summary": {
+    "task_type": "一句话概括原任务类型",
+    "services": ["从 task.yaml 读取的服务名"],
+    "tools": ["从 task.yaml 读取的工具名"],
+    "fixture_paths": ["fixtures/..."],
+    "core_capability": "这个任务主要考察的能力"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T111zh_expense_email_check_plus_1",
+      "new_task_name": "简短英文或拼音名称",
+      "task_goal": "新任务要完成什么，写具体",
+      "user_request": "最终写入 task.yaml prompt.text 的自然语言用户请求",
+      "scenario": "新的业务/世界状态场景，必须具体",
+      "difference_from_source": "说明和原始任务的核心差异，不要空泛",
+      "service_and_tool_plan": "应该继续使用哪些服务和工具，以及为什么",
+      "fixture_generation_plan": "需要生成哪些 fixture、多少条记录、关键字段和状态分布",
+      "expected_behavior": "agent 应该如何完成任务，包括关键工具调用和最终输出要求",
+      "grading_plan": "后续生成 grader.py 时应检查什么，写成自然语言即可"
+    }
+  ]
+}
+
+原始任务元信息：
+{
+  "task_id": "T111zh_expense_email_check",
+  "task_name": "报销邮件核对",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "gmail",
+    "finance"
+  ],
+  "tools": [
+    "gmail_list_messages",
+    "gmail_get_message",
+    "finance_list_transactions",
+    "finance_get_transaction"
+  ],
+  "fixture_paths": [
+    "fixtures/finance/transactions.json",
+    "fixtures/gmail/inbox.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+原始 task 文件如下：
+--- FILE: task.yaml ---
+task_id: T111zh_expense_email_check
+task_name: 报销邮件核对
+version: "1.0"
+category: workflow
+difficulty: medium
+tags: [general, multi_service]
+
+services:
+  - name: gmail
+    command: python mock_services/gmail/server.py
+    port: 9100
+    health_check: http://localhost:9100/gmail/messages
+    health_check_method: POST
+    ready_timeout: 10
+    reset_endpoint: http://localhost:9100/gmail/reset
+    env:
+      GMAIL_FIXTURES: tasks/T111zh_expense_email_check/fixtures/gmail/inbox.json
+  - name: finance
+    command: python mock_services/finance/server.py
+    port: 9104
+    health_check: http://localhost:9104/finance/transactions
+    health_check_method: POST
+    ready_timeout: 10
+    reset_endpoint: http://localhost:9104/finance/reset
+    env:
+      FINANCE_FIXTURES: tasks/T111zh_expense_email_check/fixtures/finance/transactions.json
+
+prompt:
+  text: |
+    收件箱里有几封报销申请邮件。请帮我：
+    1. 查看所有报销相关邮件，提取每笔报销的金额和发票号
+    2. 在财务系统中查找对应的交易记录
+    3. 交叉核对每笔报销：金额是否一致、交易状态是否完成
+    4. 输出一份核对报告，列出：匹配正常的、金额不符的、状态异常的
+  language: zh
+
+tools:
+  - name: gmail_list_messages
+    description: 获取收件箱邮件列表
+    input_schema:
+      type: object
+      properties:
+        days_back:
+          type: integer
+          description: 获取最近几天的邮件
+          default: 7
+        max_results:
+          type: integer
+          description: 最大返回数量
+          default: 20
+      required: []
+
+  - name: gmail_get_message
+    description: 根据邮件ID获取邮件详情
+    input_schema:
+      type: object
+      properties:
+        message_id:
+          type: string
+          description: 邮件ID
+      required: [message_id]
+
+  - name: finance_list_transactions
+    description: 查看交易记录
+    input_schema:
+      type: object
+      properties:
+        start_date:
+          type: string
+          description: "起始日期(YYYY-MM-DD)"
+        end_date:
+          type: string
+          description: "截止日期(YYYY-MM-DD)"
+      required: []
+
+  - name: finance_get_transaction
+    description: 获取交易详情
+    input_schema:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          description: 交易ID
+      required: [transaction_id]
+
+tool_endpoints:
+  - tool_name: gmail_list_messages
+    url: http://localhost:9100/gmail/messages
+    method: POST
+  - tool_name: gmail_get_message
+    url: http://localhost:9100/gmail/messages/get
+    method: POST
+  - tool_name: finance_list_transactions
+    url: http://localhost:9104/finance/transactions
+    method: POST
+  - tool_name: finance_get_transaction
+    url: http://localhost:9104/finance/transactions/get
+    method: POST
+
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+scoring_components:
+  - name: matching_accuracy
+    weight: 0.35
+    check:
+      type: llm_judge
+      description: "4笔报销与财务记录的匹配是否准确完整"
+  - name: discrepancy_analysis
+    weight: 0.35
+    check:
+      type: llm_judge
+      description: "金额差异(702)和状态异常(703 pending)是否被准确识别和分析"
+  - name: report_quality
+    weight: 0.30
+    check:
+      type: llm_judge
+      description: "核对报告是否结构清晰、分类明确、建议可行"
+
+safety_checks: []
+
+expected_actions: []
+
+judge_rubric: |
+  评估助手的报销邮件核对报告质量。
+
+  ## 正确的核对结果
+  1. msg_701(张伟差旅费3200) ↔ TXN-701(3200 completed) → 匹配正常 ✓
+  2. msg_702(李华办公用品850) ↔ TXN-702(680 completed) → 金额不符（邮件850 vs 财务680，差170元）✗
+  3. msg_703(王明培训费5000) ↔ TXN-703(5000 pending) → 金额匹配但状态未完成 ⚠
+  4. msg_704(陈静餐费420) ↔ TXN-704(420 completed) → 匹配正常 ✓
+  5. msg_705是行政通知，非报销邮件，应被排除
+
+  ## 关键发现
+  - 李华的办公用品报销有170元差异（邮件声称850，财务记录680）
+  - 王明的培训费金额正确但交易状态为pending，尚未完成打款
+  - TXN-705(水电费)和TXN-706(工资)是非报销交易，不应混入
+
+  评分：
+  - 0.8-1.0: 4笔报销全部正确核对，准确标识2个异常，报告清晰
+  - 0.5-0.7: 至少3笔正确核对，发现至少1个异常
+  - 0.2-0.4: 部分核对但分析不准确
+  - 0.0-0.1: 核对不完整或结论错误
+
+reference_solution: |
+  1. gmail_list_messages() → 发现5封邮件，识别4封报销+1封行政通知
+  2. 逐个读取报销邮件，提取金额和发票号
+  3. finance_list_transactions() → 获取所有交易记录
+  4. 按发票号交叉匹配：
+     - INV-001: 邮件3200 vs TXN-701 3200 → 匹配 ✓
+     - INV-002: 邮件850 vs TXN-702 680 → 差170 ✗
+     - INV-003: 邮件5000 vs TXN-703 5000 → 金额对但pending ⚠
+     - INV-004: 邮件420 vs TXN-704 420 → 匹配 ✓
+  5. 输出核对报告
+
+primary_dimensions: [completion, robustness, communication]
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/finance/transactions.json ---
+[
+  {
+    "transaction_id": "TXN-701",
+    "date": "2026-03-24",
+    "amount": 3200.00,
+    "currency": "CNY",
+    "type": "差旅费报销",
+    "category": "费用报销",
+    "description": "张伟出差北京差旅费，发票号INV-001",
+    "status": "completed",
+    "approved_by": "王经理"
+  },
+  {
+    "transaction_id": "TXN-702",
+    "date": "2026-03-24",
+    "amount": 680.00,
+    "currency": "CNY",
+    "type": "办公用品报销",
+    "category": "费用报销",
+    "description": "李华办公用品采购，发票号INV-002",
+    "status": "completed",
+    "approved_by": "王经理"
+  },
+  {
+    "transaction_id": "TXN-703",
+    "date": "2026-03-24",
+    "amount": 5000.00,
+    "currency": "CNY",
+    "type": "培训费报销",
+    "category": "费用报销",
+    "description": "王明外部培训费，发票号INV-003",
+    "status": "pending",
+    "approved_by": "张总监"
+  },
+  {
+    "transaction_id": "TXN-704",
+    "date": "2026-03-24",
+    "amount": 420.00,
+    "currency": "CNY",
+    "type": "餐饮报销",
+    "category": "费用报销",
+    "description": "陈静客户招待餐费，发票号INV-004",
+    "status": "completed",
+    "approved_by": "李主管"
+  },
+  {
+    "transaction_id": "TXN-705",
+    "date": "2026-03-20",
+    "amount": 12000.00,
+    "currency": "CNY",
+    "type": "水电费",
+    "category": "运营成本",
+    "description": "3月份办公楼水电费",
+    "status": "completed",
+    "approved_by": "行政部"
+  },
+  {
+    "transaction_id": "TXN-706",
+    "date": "2026-03-25",
+    "amount": 350000.00,
+    "currency": "CNY",
+    "type": "员工工资",
+    "category": "人力成本",
+    "description": "2026年3月员工工资发放",
+    "status": "completed",
+    "approved_by": "财务总监"
+  }
+]
+
+--- END FILE: fixtures/finance/transactions.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_701",
+    "from": "zhangwei@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：差旅费 3200元",
+    "date": "2026-03-24T09:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "你好，我是张伟。本次出差北京的差旅费用共计3200元，发票号INV-001，请审核。附件含机票、酒店和交通费明细。"
+  },
+  {
+    "message_id": "msg_702",
+    "from": "lihua@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：办公用品 850元",
+    "date": "2026-03-24T10:30:00+08:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "财务部您好，我购买了一批办公用品（订书机、打印纸、文件夹等），共计850元，发票号INV-002。请核准报销。"
+  },
+  {
+    "message_id": "msg_703",
+    "from": "wangming@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：外部培训费 5000元",
+    "date": "2026-03-24T11:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "你好，我参加了3月20日的「云原生架构」外部培训课程，费用5000元，发票号INV-003。已获部门经理批准，请处理。"
+  },
+  {
+    "message_id": "msg_704",
+    "from": "chenjing@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：客户招待餐费 420元",
+    "date": "2026-03-24T14:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "你好，3月22日招待客户的餐费共420元，发票号INV-004。参与人员：陈静、客户方2人。请报销。"
+  },
+  {
+    "message_id": "msg_705",
+    "from": "hr@company.com",
+    "to": "all@company.com",
+    "subject": "行政通知：下周三下午团建活动",
+    "date": "2026-03-24T16:00:00+08:00",
+    "is_read": true,
+    "labels": ["inbox"],
+    "body": "全体同事注意，下周三下午2点在公司楼下举办团建活动，请准时参加。具体安排见附件。"
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---

@@ -1,0 +1,50 @@
+[
+  {
+    "integration_id": "INT-2401",
+    "name": "reconciliation_core",
+    "display_name": "对账核心系统",
+    "service": "reconciliation",
+    "status": "active",
+    "last_verified": "2026-04-26T09:10:00+08:00",
+    "monthly_calls": 9800,
+    "error_rate": 2.4,
+    "last_sync": "2026-04-23T16:05:00+08:00",
+    "notes": "一致性修复已启用：consistency_repair=true。回滚后 last_sync 于4月23日恢复，但发票/撤销回写存在部分延迟（预计对账口径在4月24日逐步收敛）。"
+  },
+  {
+    "integration_id": "INT-2402",
+    "name": "invoice_ledger",
+    "display_name": "发票账本系统",
+    "service": "invoice",
+    "status": "active",
+    "last_verified": "2026-04-26T09:12:00+08:00",
+    "monthly_calls": 4300,
+    "error_rate": 1.7,
+    "last_sync": "2026-04-24T02:40:00+08:00",
+    "notes": "补偿开关 enabled=true：invoice_compensation=true。回滚窗口期间发票状态回写延迟；4月24日02:40后恢复，部分撤销标记未及时切换导致短时重复计入。"
+  },
+  {
+    "integration_id": "INT-2403",
+    "name": "crm_receivables_bridge",
+    "display_name": "CRM应收桥接",
+    "service": "crm",
+    "status": "degraded",
+    "last_verified": "2026-04-25T20:20:00+08:00",
+    "monthly_calls": 7600,
+    "error_rate": 6.8,
+    "last_sync": "2026-04-24T12:15:00+08:00",
+    "notes": "回滚后桥接恢复但仍存在延迟：receivables_delay=true。4月24日12:15完成增量修复，期间部分撤销事件未抵消到CRM expected_monthly。"
+  },
+  {
+    "integration_id": "INT-2404",
+    "name": "inventory_movement_sync",
+    "display_name": "库存变动同步",
+    "service": "inventory",
+    "status": "active",
+    "last_verified": "2026-04-26T09:18:00+08:00",
+    "monthly_calls": 5200,
+    "error_rate": 0.9,
+    "last_sync": "2026-04-23T23:50:00+08:00",
+    "notes": "一致性修复周期性校验开启：movement_repair=true。回滚窗口内出库事件可能重复上报，系统在4月23日23:50完成补偿对齐，但仍可能漏出入库在月末汇总被放大。"
+  }
+]

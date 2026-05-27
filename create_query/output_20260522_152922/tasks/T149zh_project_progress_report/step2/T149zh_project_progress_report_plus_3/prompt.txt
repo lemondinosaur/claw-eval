@@ -1,0 +1,401 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T149zh_project_progress_report_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/calendar/events.json",
+  "fixtures/contacts/contacts.json",
+  "fixtures/notes/meetings.json",
+  "fixtures/todo/tasks.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务 environment.mock_today = 2026-03-24，如新任务涉及日期，请让 fixture 中的绝对日期与该日期锚点兼容。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T149zh_project_progress_report_plus_3",
+  "new_task_name": "发布前风险快照",
+  "task_goal": "为3个并行项目(Atlas/Brio/Coral)生成发布前风险快照：统计发布前关键评审会议与纪要行动项，核对待办的发布相关任务完成与阻塞情况，输出“发布是否具备条件”的结论，并列出负责人联系方式。",
+  "user_request": "请为3个并行项目(Atlas/Brio/Coral)生成发布前风险快照：\n1) 查找每个项目在“发布评审/上线准备/灰度评估”相关的会议；\n2) 阅读对应纪要行动项并汇总为风险要点；\n3) 对比待办中的发布相关任务(如包含“发布/灰度/回滚/监控/验收”关键词的task标题)的完成情况，给出是否具备发布条件；\n4) 对blocked或逾期任务给出阻塞来源与影响范围；\n5) 查找每项目发布负责人联系方式并在末尾输出。",
+  "scenario": "mock_today为2026-06-03。三项目的发布节奏不同：Atlas发布评审会已召开但待办里回滚脚本仍pending(blocked_by为“安全审批流程未通过”)；Brio发布评审会尚未有对应纪要(但待办已有多项in_progress)，需要指出“缺纪要导致风险不可验证”；Coral的发布评审纪要存在且所有行动项均完成✓，但todo里仍存在一条“监控告警规则”due_date在未来且状态in_progress，要求不要误报为不满足发布条件，而是标注“后续完成项”。日历里还有两类干扰会议(产品培训、周志同步)与项目名称无关，需避免纳入。",
+  "difference_from_source": "将任务焦点从“通用进度汇报”切换为“发布前风险快照”，并引入关键词过滤待办任务(发布相关)与“缺纪要导致不可验证”的判断；同时强调对future due_date的风险表述要有边界(不能一概判定不可发布)。",
+  "service_and_tool_plan": "calendar_list_events检索包含“发布评审/上线准备/灰度评估”等标题或描述关键词的事件；notes_get用于获取这些事件关联纪要；todo_list_tasks(all)后按task标题关键词筛选发布相关任务并对状态/逾期进行判断；contacts_search查找三项目“发布负责人”姓名并用contacts_get输出联系方式。",
+  "fixture_generation_plan": "生成对应fixture：\n- calendar/events.json：至少11条事件；Atlas相关2条(发布评审+干扰会)、Brio相关2条(发布评审但无纪要关联)、Coral相关2条(发布评审+干扰会)；外加2-3条公司级干扰。\n- notes/meetings.json：仅Atlas与Coral各1条关键发布评审纪要；Brio确保缺少纪要(或有一条与其他主题但不包含发布行动项)。每条纪要包含3-5个行动项，且Atlas有blocked风险项、Coral有完成项。\n- todo/tasks.json：每项目4-7条，合计约18条；确保Atlas含1条pending且blocked_by=外部安全审批；Brio含多条in_progress但不应出现blocked_by(或阻塞来源为空)；Coral含1条in_progress监控相关且due_date晚于mock_today。为干扰设置少量非发布相关任务(标题不含关键词)。\n- contacts/contacts.json：至少10名联系人；3名发布负责人姓名在记录中唯一可搜索，并提供邮箱与电话。",
+  "expected_behavior": "代理应：\n- 通过calendar_list_events找出每项目的发布相关会议，并概述其结论/评审重点；\n- 读取这些会议的纪要行动项(能读到的项目)，并把行动项状态转换为风险要点；\n- 从todo中只筛取发布相关任务进行统计：计算“发布关键项完成率”(completed/发布相关总数)，并判断是否满足“发布条件”(例如：若存在blocked或已逾期的关键回滚/审批类任务则判定不具备；缺纪要则标注“条件不可验证”；对due_date未来的in_progress只标注需跟进不误判)；\n- 对blocked任务给出blocked_by来源与可能影响(例如无法发布/无法回滚/监控不可用)；\n- 输出每项目“发布是否具备条件”的明确结论(具备/不具备/不可验证)与负责人联系方式(邮箱+电话)。",
+  "grading_plan": "检查：发布相关会议筛选与归属是否准确；纪要行动项是否正确汇总并与todo发布相关任务对齐；三种发布条件结论是否与状态设计一致(Atlas不具备、Brio不可验证、Coral具备但有后续跟进)；blocked/逾期识别是否准确且解释一致；联系人输出字段是否正确。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T149zh_project_progress_report",
+  "task_name": "并行项目进度汇报生成",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "hard",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "calendar",
+    "notes",
+    "todo",
+    "contacts"
+  ],
+  "tools": [
+    "calendar_list_events",
+    "calendar_get_event",
+    "notes_list",
+    "notes_get",
+    "todo_list_tasks",
+    "todo_get_task",
+    "contacts_search",
+    "contacts_get"
+  ],
+  "fixture_paths": [
+    "fixtures/calendar/events.json",
+    "fixtures/contacts/contacts.json",
+    "fixtures/notes/meetings.json",
+    "fixtures/todo/tasks.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T149zh_project_progress_report
+task_name: 并行项目进度汇报生成
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: tasks/T149zh_project_progress_report/fixtures/calendar/events.json
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: tasks/T149zh_project_progress_report/fixtures/notes/meetings.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: tasks/T149zh_project_progress_report/fixtures/todo/tasks.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: tasks/T149zh_project_progress_report/fixtures/contacts/contacts.json
+prompt:
+  text: '请帮我为3个并行项目(Alpha/Beta/Gamma)生成进度汇报：
+
+    1. 查看每个项目的相关会议
+
+    2. 阅读会议纪要中的行动项
+
+    3. 对比待办事项的完成情况
+
+    4. 查找项目负责人联系方式
+
+    5. 输出每个项目的进度报告，标注风险项
+
+    '
+  language: zh
+tools:
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: all
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+tool_endpoints:
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+environment:
+  mock_today: '2026-03-24'
+  timeout_seconds: 600
+  max_turns: 35
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/calendar/events.json ---
+[
+  {"event_id": "evt_601", "title": "Alpha项目需求评审", "start_time": "2026-03-17T10:00:00+08:00", "end_time": "2026-03-17T11:30:00+08:00", "location": "会议室A", "organizer": "王明", "attendees": ["王明","李华"], "description": "Alpha项目需求评审，讨论Q2功能规划，关联纪要NOTE-601", "status": "confirmed"},
+  {"event_id": "evt_602", "title": "Alpha项目技术方案", "start_time": "2026-03-20T14:00:00+08:00", "end_time": "2026-03-20T16:00:00+08:00", "location": "技术区", "organizer": "李华", "attendees": ["李华","马强"], "description": "Alpha项目技术架构方案讨论，关联纪要NOTE-602", "status": "confirmed"},
+  {"event_id": "evt_603", "title": "Beta项目启动会", "start_time": "2026-03-18T09:00:00+08:00", "end_time": "2026-03-18T10:30:00+08:00", "location": "会议室B", "organizer": "赵蕾", "attendees": ["赵蕾","张伟","周明"], "description": "Beta项目正式启动，任务分工和排期，关联纪要NOTE-603", "status": "confirmed"},
+  {"event_id": "evt_604", "title": "Beta项目进度检查", "start_time": "2026-03-22T10:00:00+08:00", "end_time": "2026-03-22T11:00:00+08:00", "location": "会议室B", "organizer": "赵蕾", "attendees": ["赵蕾","张伟"], "description": "Beta项目第一次进度检查，关联纪要NOTE-604", "status": "confirmed"},
+  {"event_id": "evt_605", "title": "Gamma项目客户对接", "start_time": "2026-03-19T15:00:00+08:00", "end_time": "2026-03-19T16:00:00+08:00", "location": "线上会议", "organizer": "王明", "attendees": ["赵蕾","王明"], "description": "Gamma项目客户需求确认，关联纪要NOTE-605", "status": "confirmed"},
+  {"event_id": "evt_606", "title": "Gamma项目交付评审", "start_time": "2026-03-24T14:00:00+08:00", "end_time": "2026-03-24T16:00:00+08:00", "location": "会议室A", "organizer": "王明", "attendees": ["王明","赵蕾","李华"], "description": "Gamma项目交付物评审，验收标准确认", "status": "confirmed"},
+  {"event_id": "evt_607", "title": "全员周会", "start_time": "2026-03-21T10:00:00+08:00", "end_time": "2026-03-21T11:00:00+08:00", "location": "大会议室", "organizer": "HR", "attendees": ["全员"], "description": "每周全员例会，公司动态通报", "status": "confirmed"},
+  {"event_id": "evt_608", "title": "团建活动策划", "start_time": "2026-03-23T12:00:00+08:00", "end_time": "2026-03-23T13:00:00+08:00", "location": "休息区", "organizer": "周明", "attendees": ["周明"], "description": "Q2团建活动初步策划", "status": "confirmed"}
+]
+
+--- END FILE: fixtures/calendar/events.json ---
+--- FILE: fixtures/contacts/contacts.json ---
+[
+  {"contact_id": "CON-601", "name": "王明", "email": "wangming@company.com", "phone": "13900139001", "department": "项目管理部", "title": "高级项目经理", "responsibilities": ["Alpha项目管理","Gamma项目管理","跨团队协调"]},
+  {"contact_id": "CON-602", "name": "李华", "email": "lihua@company.com", "phone": "13900139002", "department": "技术部", "title": "高级架构师", "responsibilities": ["Alpha技术架构","技术方案评审","代码审查"]},
+  {"contact_id": "CON-603", "name": "赵蕾", "email": "zhaolei@company.com", "phone": "13900139003", "department": "产品部", "title": "高级产品经理", "responsibilities": ["Beta产品规划","Gamma客户对接","需求分析"]},
+  {"contact_id": "CON-604", "name": "张伟", "email": "zhangwei@company.com", "phone": "13900139004", "department": "开发部", "title": "后端开发工程师", "responsibilities": ["Beta后端开发","数据库设计","API开发"]},
+  {"contact_id": "CON-605", "name": "马强", "email": "maqiang@company.com", "phone": "13900139005", "department": "运维部", "title": "运维工程师", "responsibilities": ["Alpha部署环境","系统运维","CI/CD管道"]},
+  {"contact_id": "CON-606", "name": "周明", "email": "zhouming@company.com", "phone": "13900139006", "department": "开发部", "title": "前端开发工程师", "responsibilities": ["Beta前端开发","UI设计实现","前端性能优化"]}
+]
+
+--- END FILE: fixtures/contacts/contacts.json ---
+--- FILE: fixtures/notes/meetings.json ---
+[
+  {
+    "note_id": "NOTE-601",
+    "title": "Alpha项目需求评审纪要 3/17",
+    "content": "## Alpha项目需求评审\n\n### 参会人员\n王明（项目经理）、李华（架构师）\n\n### 会议结论\n确认Q2三大核心功能需求，优先级排序完成。\n\n### 行动项\n1. 【王明】完成需求规格文档终稿，截止3/21 → 已完成 ✓\n2. 【李华】编写接口设计文档，截止3/22 → 已完成 ✓\n3. 【李华】评估技术可行性报告，截止3/25 → 进行中，预计按时交付",
+    "participants": [
+      "王明",
+      "李华"
+    ],
+    "tags": [
+      "Alpha",
+      "需求"
+    ],
+    "created_at": "2026-03-17T10:00:00Z",
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-602",
+    "title": "Alpha项目技术方案纪要 3/20",
+    "content": "## Alpha项目技术方案\n\n### 参会人员\n李华（架构师）、马强（运维）\n\n### 会议结论\n确定采用微服务架构，需要进一步验证部署方案。\n\n### 行动项\n1. 【马强】部署环境搭建完成，截止3/24 → 已完成 ✓\n2. 【李华】微服务拆分方案文档，截止3/28 → 待开始，依赖可行性报告结论",
+    "participants": [
+      "李华",
+      "马强"
+    ],
+    "tags": [
+      "Alpha",
+      "技术"
+    ],
+    "created_at": "2026-03-20T10:00:00Z",
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-603",
+    "title": "Beta项目启动会纪要 3/18",
+    "content": "## Beta项目启动会\n\n### 参会人员\n赵蕾（产品经理）、张伟（后端开发）、周明（前端开发）\n\n### 会议结论\n项目为期6周，分三个迭代交付。第一迭代聚焦核心功能。\n\n### 行动项\n1. 【赵蕾】完成PRD文档初稿，截止3/21 → 已完成 ✓\n2. 【张伟】完成后端数据库设计，截止3/24 → 进行中，进度约60%\n3. 【周明】完成前端原型设计，截止3/22 → blocked，等待第三方API文档（已联系供应商，预计3/28提供）",
+    "participants": [
+      "赵蕾",
+      "张伟",
+      "周明"
+    ],
+    "tags": [
+      "Beta",
+      "启动"
+    ],
+    "created_at": "2026-03-18T10:00:00Z",
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-604",
+    "title": "Beta项目进度检查纪要 3/22",
+    "content": "## Beta项目进度检查\n\n### 参会人员\n赵蕾（产品经理）、张伟（后端开发）\n\n### 会议结论\n整体进度落后约1周，需增加资源或调整排期。前端被第三方API文档阻塞。\n\n### 行动项\n1. 【张伟】完成API接口开发（high priority），截止3/25 → pending，已逾期！原定3/25但依赖数据库设计未完\n2. 【赵蕾】协调第三方API文档获取，截止3/24 → pending，仍在跟进中",
+    "participants": [
+      "赵蕾",
+      "张伟"
+    ],
+    "tags": [
+      "Beta",
+      "进度"
+    ],
+    "created_at": "2026-03-22T10:00:00Z",
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-605",
+    "title": "Gamma项目客户对接纪要 3/19",
+    "content": "## Gamma项目客户对接\n\n### 参会人员\n赵蕾（产品经理）、王明（项目经理）\n\n### 会议结论\n客户确认所有功能需求，验收标准已达成一致。项目进展顺利。\n\n### 行动项\n1. 【王明】整理客户确认的验收标准文档，截止3/21 → 已完成 ✓\n2. 【赵蕾】更新项目交付计划，截止3/22 → 已完成 ✓",
+    "participants": [
+      "赵蕾",
+      "王明"
+    ],
+    "tags": [
+      "Gamma",
+      "客户"
+    ],
+    "created_at": "2026-03-19T10:00:00Z",
+    "duration_minutes": 60
+  }
+]
+--- END FILE: fixtures/notes/meetings.json ---
+--- FILE: fixtures/todo/tasks.json ---
+[
+  {"task_id": "TODO-601", "title": "Alpha需求规格文档终稿", "description": "完成Q2三大核心功能的需求规格文档终稿", "status": "completed", "priority": "high", "due_date": "2026-03-21", "assignee": "王明", "tags": ["Alpha","需求"], "project": "Alpha"},
+  {"task_id": "TODO-602", "title": "Alpha接口设计文档", "description": "编写Alpha项目核心接口设计文档", "status": "completed", "priority": "high", "due_date": "2026-03-22", "assignee": "李华", "tags": ["Alpha","技术"], "project": "Alpha"},
+  {"task_id": "TODO-603", "title": "Alpha技术可行性报告", "description": "评估微服务架构技术可行性", "status": "in_progress", "priority": "high", "due_date": "2026-03-25", "assignee": "李华", "tags": ["Alpha","技术"], "project": "Alpha"},
+  {"task_id": "TODO-604", "title": "Alpha部署环境搭建", "description": "搭建Alpha项目微服务部署环境", "status": "completed", "priority": "medium", "due_date": "2026-03-24", "assignee": "马强", "tags": ["Alpha","运维"], "project": "Alpha"},
+  {"task_id": "TODO-605", "title": "Beta PRD文档初稿", "description": "完成Beta项目产品需求文档初稿", "status": "completed", "priority": "high", "due_date": "2026-03-21", "assignee": "赵蕾", "tags": ["Beta","产品"], "project": "Beta"},
+  {"task_id": "TODO-606", "title": "Beta后端数据库设计", "description": "设计Beta项目后端数据库表结构", "status": "in_progress", "priority": "high", "due_date": "2026-03-24", "assignee": "张伟", "tags": ["Beta","开发"], "project": "Beta"},
+  {"task_id": "TODO-607", "title": "Beta前端原型设计", "description": "完成Beta项目前端原型设计和交互稿", "status": "pending", "priority": "medium", "due_date": "2026-03-22", "assignee": "周明", "tags": ["Beta","前端"], "project": "Beta", "blocked_by": "等待第三方API文档"},
+  {"task_id": "TODO-608", "title": "Beta API接口开发", "description": "完成Beta项目核心API接口开发", "status": "pending", "priority": "high", "due_date": "2026-03-25", "assignee": "张伟", "tags": ["Beta","开发"], "project": "Beta"},
+  {"task_id": "TODO-609", "title": "Beta第三方API文档协调", "description": "协调第三方供应商提供API文档", "status": "in_progress", "priority": "high", "due_date": "2026-03-24", "assignee": "赵蕾", "tags": ["Beta","协调"], "project": "Beta"},
+  {"task_id": "TODO-610", "title": "Gamma验收标准文档", "description": "整理客户确认的验收标准文档", "status": "completed", "priority": "high", "due_date": "2026-03-21", "assignee": "王明", "tags": ["Gamma","文档"], "project": "Gamma"},
+  {"task_id": "TODO-611", "title": "Gamma交付计划更新", "description": "更新Gamma项目交付计划和排期", "status": "completed", "priority": "medium", "due_date": "2026-03-22", "assignee": "赵蕾", "tags": ["Gamma","计划"], "project": "Gamma"},
+  {"task_id": "TODO-612", "title": "Gamma最终交付物准备", "description": "准备Gamma项目最终交付物和文档", "status": "completed", "priority": "high", "due_date": "2026-03-26", "assignee": "王明", "tags": ["Gamma","交付"], "project": "Gamma"}
+]
+
+--- END FILE: fixtures/todo/tasks.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

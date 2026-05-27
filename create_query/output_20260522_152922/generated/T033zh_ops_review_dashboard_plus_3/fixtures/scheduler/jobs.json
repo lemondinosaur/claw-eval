@@ -1,0 +1,161 @@
+[
+  {
+    "job_id": "JOB-221",
+    "name": "inventory_snapshot_to_channel",
+    "description": "将库存快照同步到渠道系统（用于渠道侧出库决策）",
+    "cron_expression": "0 */20 * * *",
+    "enabled": false,
+    "last_status": "failed",
+    "last_run": "2026-03-13T10:20:00+08:00",
+    "next_run": null,
+    "average_duration_seconds": 38,
+    "tags": [
+      "inventory",
+      "channel_sync",
+      "snapshot"
+    ],
+    "disabled_by": "ops_admin",
+    "disabled_date": "2026-03-13",
+    "disabled_reason": "疑似库存到渠道同步失败后产生旧快照风险（需复核）",
+    "execution_history": [
+      {
+        "run_at": "2026-03-13T10:20:00+08:00",
+        "status": "failed",
+        "error": "渠道侧返回旧库存快照（stale snapshot）",
+        "duration_seconds": 40
+      },
+      {
+        "run_at": "2026-03-13T09:40:00+08:00",
+        "status": "failed",
+        "error": "同步窗口超时，放弃写入（timeout）",
+        "duration_seconds": 37
+      },
+      {
+        "run_at": "2026-03-13T09:20:00+08:00",
+        "status": "skipped",
+        "error": "任务被禁用（enabled=false）",
+        "duration_seconds": 0
+      },
+      {
+        "run_at": "2026-03-13T08:40:00+08:00",
+        "status": "failed",
+        "error": "inventory_to_channel_sync重试后仍失败（partial retry）",
+        "duration_seconds": 36
+      }
+    ],
+    "notes": "该任务被禁用导致渠道库存刷新停止，形成“渠道看到旧库存”与发货失败/库存不一致工单聚簇。"
+  },
+  {
+    "job_id": "JOB-222",
+    "name": "channel_stock_refresh_guard",
+    "description": "渠道库存刷新守护：若同步未完成则阻止风险订单进入出库队列",
+    "cron_expression": "*/10 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-14T10:20:00+08:00",
+    "next_run": "2026-03-14T10:30:00+08:00",
+    "average_duration_seconds": 6,
+    "tags": [
+      "guard",
+      "risk"
+    ],
+    "notes": "守护任务运行正常，但当库存刷新停止后仍会出现部分订单风控延迟放行。"
+  },
+  {
+    "job_id": "JOB-223",
+    "name": "inventory_to_search_index_sync",
+    "description": "每30分钟同步库存到搜索索引",
+    "cron_expression": "*/30 * * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-03-14T09:30:00+08:00",
+    "next_run": "2026-03-14T10:00:00+08:00",
+    "average_duration_seconds": 52,
+    "tags": [
+      "sync",
+      "inventory"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-03-14T09:30:00+08:00",
+        "status": "failed",
+        "error": "Connection timeout to inventory API after 30s",
+        "duration_seconds": 30
+      },
+      {
+        "run_at": "2026-03-14T09:00:00+08:00",
+        "status": "failed",
+        "error": "Connection timeout to inventory API after 30s",
+        "duration_seconds": 30
+      },
+      {
+        "run_at": "2026-03-14T08:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 41
+      }
+    ],
+    "notes": "为排除检索层影响：搜索索引同步也在失败，可能造成部分界面侧库存落后，但主因仍在渠道快照同步任务。"
+  },
+  {
+    "job_id": "JOB-224",
+    "name": "daily_ops_report_generation",
+    "description": "每日生成零售运营报表（只读）",
+    "cron_expression": "0 6 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-14T06:00:00+08:00",
+    "next_run": "2026-03-15T06:00:00+08:00",
+    "average_duration_seconds": 110,
+    "tags": [
+      "reporting",
+      "daily"
+    ]
+  },
+  {
+    "job_id": "JOB-225",
+    "name": "inventory_health_check",
+    "description": "库存与渠道同步健康检查（基线）",
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-14T10:25:00+08:00",
+    "next_run": "2026-03-14T10:30:00+08:00",
+    "average_duration_seconds": 7,
+    "tags": [
+      "monitoring",
+      "baseline"
+    ],
+    "notes": "健康检查通过，但无法替代具体同步任务是否enabled/是否写入渠道的验证。"
+  },
+  {
+    "job_id": "JOB-226",
+    "name": "weekly_inventory_policy_audit",
+    "description": "每周核对库存策略阈值版本是否更新",
+    "cron_expression": "0 7 * * 1",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-11T07:00:00+08:00",
+    "next_run": "2026-03-18T07:00:00+08:00",
+    "average_duration_seconds": 90,
+    "tags": [
+      "policy",
+      "audit"
+    ],
+    "notes": "本周审计成功，但知识库“安全库存与补货触发”文章仍为旧阈值版本，可能未触发更新提醒。"
+  },
+  {
+    "job_id": "JOB-227",
+    "name": "crm_vip_daily_export",
+    "description": "每日导出VIP客户履约互动数据（给分析使用）",
+    "cron_expression": "0 2 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-14T02:00:00+08:00",
+    "next_run": "2026-03-15T02:00:00+08:00",
+    "average_duration_seconds": 140,
+    "tags": [
+      "crm",
+      "vip"
+    ]
+  }
+]

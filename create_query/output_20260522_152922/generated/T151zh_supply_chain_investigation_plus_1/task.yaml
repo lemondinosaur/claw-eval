@@ -1,0 +1,213 @@
+task_id: T151zh_supply_chain_investigation_plus_1
+task_name: 冷链试剂断供追查
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T151zh_supply_chain_investigation_plus_1/fixtures/finance/transactions.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T151zh_supply_chain_investigation_plus_1/fixtures/inventory/items.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T151zh_supply_chain_investigation_plus_1/fixtures/crm/customers.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T151zh_supply_chain_investigation_plus_1/fixtures/helpdesk/tickets.json
+prompt:
+  text: '最近多家医院反馈“冷链检测试剂”配送延迟。请从客户工单出发还原完整问题链并定位根因：
+
+    1) 汇总与“配送延迟/冷链到货异常”直接相关的高优先级工单，读取每条工单提到的试剂类型、批次、期望到货时间；
+
+    2) 在库存系统中找出冷链检测试剂A/B两种关键产品的缺货/低于安全库存情况（其中一种清零），确认其供应商来源；
+
+    3) 在财务系统中按工单创建前后时间窗追溯对应采购与资金变更，核验采购交易的 cancelled（取消原因与合规暂停/重审相关）与 pending（延期原因与等待放行相关），并结合收款/回款事件评估资金风险；
+
+    4) 在CRM中定位处于 suspended（合规暂停）且原因包含“批次质检报告未通过，需要整改；暂停出货直至放行”的供应商，确认整改/放行节点；
+
+    5) 排除干扰工单（例如包装破损索赔/客户投诉如与缺货产品不匹配或缺少对应资金事件，请标注“不相关”）；
+
+    最终输出结构化分析报告：根因、影响范围、时间线、资金风险评估、受影响客户与工单列表、短期应急补货与备选供应商方案、长期合规/质检改进措施；追查阶段不要关闭工单。'
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单（优先级、标签、分类）
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 工单分类
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: inventory_list_items
+  description: 查看库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取库存品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: crm_list_customers
+  description: 列出客户和供应商
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(active/suspended)
+      tier:
+        type: string
+        description: 等级筛选(vip/standard/core)
+    required: []
+- name: crm_get_customer
+  description: 获取客户或供应商详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户/供应商ID
+    required:
+    - customer_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

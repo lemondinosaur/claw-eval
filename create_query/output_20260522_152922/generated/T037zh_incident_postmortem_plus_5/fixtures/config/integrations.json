@@ -1,0 +1,46 @@
+[
+  {
+    "integration_id": "INT-511",
+    "name": "fraud_scoring_provider",
+    "display_name": "风控评分第三方",
+    "status": "degraded",
+    "error_rate": 37.5,
+    "notes": "degraded：接收了错误分区批次，导致评分结果回填延迟；部分批次在2小时后才到达回填通道，触发下游等待超时。故障期间曾出现短暂恢复，但回填时效未达标。",
+    "service": "risk",
+    "last_verified": "2026-04-29T09:10:00+08:00",
+    "monthly_calls": 128000
+  },
+  {
+    "integration_id": "INT-512",
+    "name": "batch_result_cache",
+    "display_name": "批处理结果缓存",
+    "status": "active",
+    "error_rate": 0.2,
+    "notes": "active：缓存命中率在故障窗口下降（约从92%降至71%），与分区路由错配造成的回填延迟一致。未见缓存服务本身崩溃。",
+    "service": "risk",
+    "last_verified": "2026-04-29T09:10:00+08:00",
+    "monthly_calls": 56000
+  },
+  {
+    "integration_id": "INT-513",
+    "name": "queue_dispatcher",
+    "display_name": "任务队列派发器",
+    "status": "active",
+    "error_rate": 0.6,
+    "notes": "active：派发链路存在排队增长（队列深度持续上升），但未出现持续失败；异常主要来自批处理结果回填不及时。",
+    "service": "async",
+    "last_verified": "2026-04-29T09:10:00+08:00",
+    "monthly_calls": 220000
+  },
+  {
+    "integration_id": "INT-514",
+    "name": "risk_realtime_api",
+    "display_name": "实时风控API",
+    "status": "degraded",
+    "error_rate": 18.1,
+    "notes": "degraded：实时链路等待批处理输出（fraud_batch_recompute结果）期间发生超时；当第三方回填延迟改善时，该指标在恢复后逐步回落，但仍未完全恢复到基线。",
+    "service": "risk",
+    "last_verified": "2026-04-29T09:10:00+08:00",
+    "monthly_calls": 98000
+  }
+]

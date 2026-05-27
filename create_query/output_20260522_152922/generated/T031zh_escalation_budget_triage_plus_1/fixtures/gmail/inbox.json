@@ -1,0 +1,109 @@
+[
+  {
+    "message_id": "msg_2101",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "【季度SLA违约补偿】北辰软件-Q1 升级要求50万",
+    "date": "2026-03-01T09:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation"
+    ],
+    "body": "客户服务通道转发：\n\n客户编号：CUS-101\n客户名称：北辰软件\n联系人：沈岚\n季度：Q1\n\nSLA问题摘要：Q1关键链路响应超标。\n客户要求：\n- 补偿金额：50万元\n- 请求贵司按季度违约补偿流程处理\n\n如需澄清，请与我方法务同步。\n\n客户服务：团队A"
+  },
+  {
+    "message_id": "msg_2102",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "【季度SLA违约补偿】骏驰物流-Q2 升级：需更高补偿？",
+    "date": "2026-03-01T10:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "important"
+    ],
+    "body": "尊敬的客服团队：\n\n客户编号：CUS-102\n客户名称：骏驰物流\n联系人：袁凯\n季度：Q2\n\n在Q2期间出现多次SLA违约，且影响发货计划。\n客户要求：\n- 补偿金额：25万元\n- 如无正式答复，将转入上级审批程序\n\n此处按季度为准。\n\n袁凯"
+  },
+  {
+    "message_id": "msg_2103",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "【季度SLA违约补偿】银海银行科技-Q3 升级补偿请求 42万",
+    "date": "2026-03-01T11:45:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation"
+    ],
+    "body": "转交升级处理：\n\n客户编号：CUS-103\n客户名称：银海银行科技\n联系人：顾薇\n季度：Q3\n\n问题：Q3核心交易接口SLA超时，触发风控回滚。\n客户要求：\n- 补偿金额：42万元\n\n另外：邮件中提到“上次补偿已完成”，请核验记录。\n\n谢谢。\n顾薇"
+  },
+  {
+    "message_id": "msg_2104",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "【季度SLA违约补偿】天谱云计算-Q2 预算内吗？申请40万",
+    "date": "2026-03-01T14:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation"
+    ],
+    "body": "客户投诉升级：\n\n客户编号：CUS-104\n客户名称：天谱云计算\n联系人：郑博士\n季度：Q2\n\nSLA违约描述：Q2部分服务不可用超过约2小时。\n客户要求：\n- 补偿金额：40万元\n- 希望收到处理结果\n\n如按规则需审批，请直接说明。\n\n郑博士"
+  },
+  {
+    "message_id": "msg_2105",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "【季度SLA违约补偿】晨曦能源-Q4 需上级审批 12万",
+    "date": "2026-03-01T15:30:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "important"
+    ],
+    "body": "关于Q4 SLA违约补偿的升级邮件：\n\n客户编号：CUS-105\n客户名称：晨曦能源\n联系人：何宁\n季度：Q4\n\n客户要求：\n- 补偿金额：12万元\n- 我们希望贵司先行给出方案，但如需审批请走流程。\n\n（补充：提及此前收到过先前补偿，但我们希望核验）\n\n何宁"
+  },
+  {
+    "message_id": "msg_2106",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "【季度SLA违约补偿】缺少客户编号-Q1 升级请求 8万",
+    "date": "2026-03-01T12:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation"
+    ],
+    "body": "客户服务通道转发：\n\n（本邮件缺失客户编号）\n客户名称：不详\n联系人：未知\n季度：Q1\n\nSLA违约：Q1响应超时。\n客户要求：\n- 补偿金额：8万元\n\n无法分配到具体客户系统，请协助定位。\n\n客服部"
+  },
+  {
+    "message_id": "msg_2107",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "【季度SLA违约补偿】鼎盛医疗器械-Q2 请求 补偿金额待确认",
+    "date": "2026-03-01T16:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation"
+    ],
+    "body": "升级通知：\n\n客户编号：CUS-107\n客户名称：鼎盛医疗器械\n联系人：蒋玲\n季度：Q2\n\n关于SLA违约的补偿申请：\n- 补偿金额：待确认\n\n请先确认金额再推进。\n\n蒋玲"
+  },
+  {
+    "message_id": "msg_2108",
+    "from": "customer-service@company.com",
+    "to": "me@company.com",
+    "subject": "【季度SLA违约补偿】皓月通信-Q3 已终止合同 请求 10万",
+    "date": "2026-03-01T17:25:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "important"
+    ],
+    "body": "异常升级：\n\n客户编号：CUS-106\n客户名称：皓月通信\n联系人：傅瑶\n季度：Q3\n\n声明：贵司合同已终止，我们不再接受任何“补偿承诺”邮件。\n同时，关于遗留SLA争议，请直接走法务沟通。\n\n客户要求（仅供记录）：补偿金额10万元。\n\n傅瑶\n（已终止合同）"
+  }
+]

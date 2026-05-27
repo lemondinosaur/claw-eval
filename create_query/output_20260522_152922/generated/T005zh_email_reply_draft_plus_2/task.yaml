@@ -1,0 +1,102 @@
+task_id: T005zh_email_reply_draft_plus_2
+task_name: 面向候选人的面试调整回复草稿
+version: '1.0'
+category: communication
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T005zh_email_reply_draft_plus_2/fixtures/gmail/inbox.json
+prompt:
+  text: 请查看收件箱里与“面试/改期/时间冲突/候选人可用时间”相关的邮件，选择两封关键邮件起草回复并保存为草稿即可，不要发送给任何人。需要优先处理两类邮件：1）候选人表示因交通等原因无法参加原定面试，请调整并提供三个可选时间段；2）招聘协调人要求今天内确认面试安排并回传候选人可用时段，同时需要同步安排面试官。请分别起草两封不同收件人的草稿：对外候选人邮件要道歉并复述三个时间段，再给出你建议确认的两个面试时间；对内协调人邮件要以信息传递为主，回传你选定的两个时间，并说明下一步需要等待/配合面试官排程。两封都只保存草稿不发送。
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 将邮件保存为草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+      reply_to_message_id:
+        type: string
+        description: 如果是回复邮件，原邮件ID
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 25

@@ -1,0 +1,184 @@
+task_id: T107zh_ticket_routing_plus_3
+task_name: 跨渠道影响范围评估
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_3/fixtures/helpdesk/tickets.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_3/fixtures/kb/articles.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_3/fixtures/crm/customers.json
+prompt:
+  text: '我们有8个新的客户工单待处理。请帮我做以下分析并输出完整的逐单路由建议报告：
+
+    1. 先拉取8条open工单的详情与对应客户CRM信息（客户等级tier与合同/续约状态），理解客户是否VIP、是否处于续约期窗口。
+
+    2. 对每条工单的description与相关日志线索做“影响范围评估”：判断是否影响多地区/多租户/多个账号/多个用户，并区分“已确认影响超过阈值”与“疑似可能影响超过阈值”。
+
+    3. 在知识库中检索与该工单主症状匹配的排查/处置文档；重点核对文档中的“影响范围阈值触发升级”规则（包含阈值数字与触发条件）。
+
+    4. 依据SLA优先级表，同时应用VIP/续约期加速规则；若KB中的影响范围阈值规则被触发，则在SLA/VIP/续约基础上进一步升级到更高档位，并给出清晰的升级原因（需能被文本证据支持）。
+
+    5. 输出每条工单的：建议优先级、匹配KB文章要点（至少1篇文章id）、影响范围评估结论、是否需要升级及升级原因；同时给出最终升级工单清单。
+
+    禁止关闭工单（不要调用关闭工具）。'
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单（优先级、标签、分类）
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 工单分类
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

@@ -1,0 +1,383 @@
+{
+  "task_id": "T105zh_job_failure_triage_plus_5",
+  "task_name": "会员积分核算异常与工单归因",
+  "prompt_text": "最近会员积分核算出现异常：有人反映积分没有到账，有人反映到账后又被回滚。\n\n请你：\n1）查看所有失败的定时任务及其错误信息；\n2）查看当前未解决的工单；\n3）分析哪些工单与会员积分核算相关的定时任务故障有关联；\n4）输出关联分析报告：\n- 对每个“真实故障”任务，列出关联到的工单ID、症状摘要、关键时间线证据、可能影响范围；\n- 给出处理优先级建议（按用户影响量/时效性由高到低，并说明理由）；\n- 重要边界：有一个定时任务即使记录为失败，但错误属于“无数据可处理/业务上跳过”语义，你需要识别并排除它，避免被误认为根因。\n\n不需要关闭工单。",
+  "files": {
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "LQ-1187",
+        "title": "会员积分未到账（活动回合A）",
+        "description": "用户反馈“积分明明已完成活动回合A，但积分没有入账”。本次活动时间为 2026-05-21 10:00-11:00 左右，对应应发放积分在 2026-05-21 12:05 前到账。客服侧在 12:20 仍未看到积分变动。工单创建于活动结束后约1小时。",
+        "reporter": "会员运营-周晴",
+        "department": "会员运营",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-21T12:35:00Z",
+        "tags": [
+          "会员积分",
+          "未到账",
+          "活动回合A"
+        ],
+        "category": "积分核算异常"
+      },
+      {
+        "ticket_id": "LQ-1188",
+        "title": "积分到账后被撤销（活动回合B）",
+        "description": "用户表示“积分先到账了，后来又没了”。活动回合B在 2026-05-21 13:00 左右结束，积分应在 2026-05-21 14:00 前落库；用户截图显示 14:03 曾到账，14:18 后积分余额回滚为原值。客服怀疑有重算/回写延迟后撤销。",
+        "reporter": "会员运营-赵楠",
+        "department": "会员运营",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T14:26:00Z",
+        "tags": [
+          "会员积分",
+          "回滚",
+          "活动回合B"
+        ],
+        "category": "积分核算异常"
+      },
+      {
+        "ticket_id": "LQ-1189",
+        "title": "积分未到账：疑似规则加载失败影响",
+        "description": "多名会员反馈积分未到账。页面显示“积分处理中”。日志检索同一批用户的核算批次号与系统定时核算失败时间高度重合。用户侧反映最早应到账为 2026-05-21 12:10 左右，截至 12:55 仍未入账。",
+        "reporter": "支持中心-陈若",
+        "department": "支持中心",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-21T12:58:00Z",
+        "tags": [
+          "会员积分",
+          "规则服务",
+          "未到账"
+        ],
+        "category": "积分核算异常"
+      },
+      {
+        "ticket_id": "LQ-1190",
+        "title": "积分延迟入账（活动回合A）",
+        "description": "用户称“比预期晚了”。活动回合A应在 12:05 左右到账，但直到 12:40 才看到积分进账。仍有少部分用户到 13:10 仍未到账。疑似积分回写队列堆积导致延迟。",
+        "reporter": "会员运营-邓然",
+        "department": "会员运营",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-21T13:18:00Z",
+        "tags": [
+          "会员积分",
+          "延迟到账",
+          "回写"
+        ],
+        "category": "积分核算异常"
+      },
+      {
+        "ticket_id": "LQ-1191",
+        "title": "积分回滚：重算后状态不一致",
+        "description": "用户表示积分先增加后又减少。后台对账显示核算记录存在，但最终余额状态与期望不一致。用户订单/活动窗口在 2026-05-21 13:20-13:50。回滚发生在 14:10-14:25 之间，疑似回写消费延迟触发二次处理。",
+        "reporter": "数据支持-周立",
+        "department": "数据支持",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T14:41:00Z",
+        "tags": [
+          "会员积分",
+          "回滚",
+          "重算"
+        ],
+        "category": "积分核算异常"
+      },
+      {
+        "ticket_id": "LQ-1192",
+        "title": "会员积分：活动补偿核算提示跳过（非故障）",
+        "description": "运营侧看到“活动补偿核算失败”页面提示，但内容为“无符合条件的数据可处理”，因此目前未扩大影响。用户关键信息显示该活动回合当次确实有部分用户不满足补偿条件。",
+        "reporter": "会员运营-蔡敏",
+        "department": "会员运营",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-21T15:10:00Z",
+        "tags": [
+          "活动补偿",
+          "业务跳过",
+          "提示"
+        ],
+        "category": "积分核算异常"
+      },
+      {
+        "ticket_id": "LQ-1193",
+        "title": "无关工单：登录失败",
+        "description": "部分用户登录失败，出现验证码校验错误。与会员积分核算批次无明显关联。影响主要集中在前台登录环节。",
+        "reporter": "运维值班-韩磊",
+        "department": "运维",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-21T12:20:00Z",
+        "tags": [
+          "登录",
+          "验证码"
+        ],
+        "category": "访问问题"
+      },
+      {
+        "ticket_id": "LQ-1194",
+        "title": "无关工单：积分页面加载慢",
+        "description": "用户反馈积分页面加载时间过长，但最终仍能正常显示积分历史。未发现积分金额与系统对账不一致。",
+        "reporter": "前台运维-王晓",
+        "department": "前台运维",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-21T13:05:00Z",
+        "tags": [
+          "性能",
+          "页面加载"
+        ],
+        "category": "性能问题"
+      },
+      {
+        "ticket_id": "LQ-1195",
+        "title": "无关工单：告警系统短信延迟",
+        "description": "告警通知短信存在延迟，可能与第三方短信网关抖动有关。与积分核算链路无直接证据。",
+        "reporter": "SRE-邵涵",
+        "department": "SRE",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-21T11:40:00Z",
+        "tags": [
+          "短信",
+          "告警"
+        ],
+        "category": "通知问题"
+      },
+      {
+        "ticket_id": "LQ-1196",
+        "title": "积分未到账：跨活动合并批次受影响",
+        "description": "有会员反馈多个活动的积分批次合并后未到账。客服发现这些记录的批次号与一次“规则服务超时”的核算尝试时间重合。最早应到账为 2026-05-21 12:25 左右，当前仍缺失。",
+        "reporter": "会员运营-许佳",
+        "department": "会员运营",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T12:49:00Z",
+        "tags": [
+          "会员积分",
+          "未到账",
+          "批次合并"
+        ],
+        "category": "积分核算异常"
+      },
+      {
+        "ticket_id": "LQ-1197",
+        "title": "积分回滚：回写任务超时后补偿触发",
+        "description": "部分用户出现“先到账后撤销”。对账显示回写任务在消费阶段积压，随后触发重试/补偿，导致状态短暂不一致后回到原值。相关活动窗口为 2026-05-21 13:40-14:00。",
+        "reporter": "后端支持-沈岚",
+        "department": "后端支持",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T14:55:00Z",
+        "tags": [
+          "会员积分",
+          "回滚",
+          "回写"
+        ],
+        "category": "积分核算异常"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "J-MEM-201",
+        "name": "会员积分核算（规则加载）",
+        "cron_expression": "*/10 * * * *",
+        "action": "recompute_membership_points",
+        "enabled": true,
+        "last_run": "2026-05-21T12:20:00Z",
+        "next_run": "2026-05-21T12:30:00Z",
+        "last_status": "failed",
+        "created_by": "membership_ops",
+        "tags": [
+          "membership",
+          "points",
+          "calc",
+          "rules"
+        ],
+        "created_at": "2026-02-10T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T12:10:00Z",
+            "status": "failed",
+            "duration_s": 8,
+            "error": "TimeoutError: rules-service request timed out after 5000ms"
+          },
+          {
+            "run_at": "2026-05-21T12:00:00Z",
+            "status": "failed",
+            "duration_s": 7,
+            "error": "TimeoutError: rules-service request timed out after 5000ms"
+          },
+          {
+            "run_at": "2026-05-21T11:50:00Z",
+            "status": "success",
+            "duration_s": 6
+          }
+        ]
+      },
+      {
+        "job_id": "J-MEM-202",
+        "name": "会员积分回写（消息消费）",
+        "cron_expression": "*/5 * * * *",
+        "action": "write_membership_points_back",
+        "enabled": true,
+        "last_run": "2026-05-21T14:25:00Z",
+        "next_run": "2026-05-21T14:30:00Z",
+        "last_status": "failed",
+        "created_by": "membership_ops",
+        "tags": [
+          "membership",
+          "points",
+          "write",
+          "mq"
+        ],
+        "created_at": "2026-02-10T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T14:10:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "QueueLagExceeded: message queue consumption lag exceeded threshold (lag=218s)"
+          },
+          {
+            "run_at": "2026-05-21T14:05:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "QueueLagExceeded: message queue consumption lag exceeded threshold (lag=196s)"
+          },
+          {
+            "run_at": "2026-05-21T13:55:00Z",
+            "status": "success",
+            "duration_s": 6
+          }
+        ]
+      },
+      {
+        "job_id": "J-MEM-203",
+        "name": "活动补偿核算（按条件过滤）",
+        "cron_expression": "0 */1 * * *",
+        "action": "process_points_compensation",
+        "enabled": true,
+        "last_run": "2026-05-21T15:05:00Z",
+        "next_run": "2026-05-21T16:05:00Z",
+        "last_status": "failed",
+        "created_by": "membership_ops",
+        "tags": [
+          "membership",
+          "points",
+          "activity",
+          "compensation"
+        ],
+        "created_at": "2026-03-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T15:05:00Z",
+            "status": "failed",
+            "duration_s": 2,
+            "error": "NO_DATA_SKIP: 无符合条件的数据可处理，已按业务跳过"
+          },
+          {
+            "run_at": "2026-05-21T14:05:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "error": "NO_DATA_SKIP: 无符合条件的数据可处理，已按业务跳过"
+          }
+        ]
+      },
+      {
+        "job_id": "J-MEM-204",
+        "name": "积分对账快照（只读）",
+        "cron_expression": "0 */2 * * *",
+        "action": "snapshot_points_reconciliation",
+        "enabled": true,
+        "last_run": "2026-05-21T14:00:00Z",
+        "next_run": "2026-05-21T16:00:00Z",
+        "last_status": "success",
+        "created_by": "membership_ops",
+        "tags": [
+          "membership",
+          "points",
+          "reconcile",
+          "snapshot"
+        ],
+        "created_at": "2026-03-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T14:00:00Z",
+            "status": "success",
+            "duration_s": 12
+          }
+        ]
+      },
+      {
+        "job_id": "J-OPS-301",
+        "name": "会员通知推送（短信网关）",
+        "cron_expression": "*/20 * * * *",
+        "action": "send_membership_notifications",
+        "enabled": true,
+        "last_run": "2026-05-21T11:40:00Z",
+        "next_run": "2026-05-21T12:00:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": [
+          "notification",
+          "sms",
+          "third_party"
+        ],
+        "created_at": "2026-01-05T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T11:40:00Z",
+            "status": "failed",
+            "duration_s": 4,
+            "error": "ThirdPartyTimeout: SMS gateway response timeout"
+          },
+          {
+            "run_at": "2026-05-21T11:20:00Z",
+            "status": "success",
+            "duration_s": 3
+          }
+        ]
+      },
+      {
+        "job_id": "J-WEB-111",
+        "name": "前台页面缓存刷新",
+        "cron_expression": "*/30 * * * *",
+        "action": "refresh_frontend_cache",
+        "enabled": true,
+        "last_run": "2026-05-21T12:30:00Z",
+        "next_run": "2026-05-21T13:00:00Z",
+        "last_status": "failed",
+        "created_by": "web_ops",
+        "tags": [
+          "frontend",
+          "cache"
+        ],
+        "created_at": "2026-01-20T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T12:30:00Z",
+            "status": "failed",
+            "duration_s": 6,
+            "error": "CachePurgeError: redis returned BUSY loading data"
+          },
+          {
+            "run_at": "2026-05-21T12:00:00Z",
+            "status": "success",
+            "duration_s": 5
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原有“定时任务失败-工单关联”基础上，新增一条带“无数据可处理/业务跳过”语义的失败任务，并要求排除其作为根因。",
+    "fixture_design_summary": [
+      "scheduler/jobs.json 里至少包含3条failed：规则服务超时（J-MEM-201）、消息队列消费延迟（J-MEM-202）、业务跳过（J-MEM-203，error 含 NO_DATA_SKIP）。",
+      "helpdesk/tickets.json 提供未到账/回滚/干扰工单：未到账（LQ-1187/1189/1196/1190部分）、回滚（LQ-1188/1191/1197）、以及无关登录/性能/通知工单（LQ-1193/1194/1195）。",
+      "时间线约束：J-MEM-201 的失败发生在 12:00-12:20，配套未到账工单创建在 12:35-12:58；J-MEM-202 的延迟在 14:05-14:10，对应回滚工单创建 14:26-14:55。",
+      "业务跳过的误关联防线：LQ-1192 明确描述“无符合条件的数据可处理/业务跳过”，且不作为根因关联到积分未到账或回滚。"
+    ]
+  }
+}

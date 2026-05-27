@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/step1.py", line 296, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/step1.py", line 288, in main
+    process_one_task(args, args.task)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/step1.py", line 233, in process_one_task
+    parsed = extract_json_object(raw)
+  File "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/common.py", line 253, in extract_json_object
+    obj = json.loads(s[start : i + 1])
+  File "/root/miniconda3/lib/python3.13/json/__init__.py", line 352, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/root/miniconda3/lib/python3.13/json/decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/lib/python3.13/json/decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Invalid control character at: line 67 column 142 (char 7261)
+[WARN] failed T147zh_system_health_check_plus_4: Generated fixtures must exactly match required paths: missing=['fixtures/scheduler/jobs.json']

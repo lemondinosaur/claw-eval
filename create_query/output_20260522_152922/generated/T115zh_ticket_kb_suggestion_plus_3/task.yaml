@@ -1,0 +1,114 @@
+task_id: T115zh_ticket_kb_suggestion_plus_3
+task_name: 移动端与缓存策略
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T115zh_ticket_kb_suggestion_plus_3/fixtures/helpdesk/tickets.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T115zh_ticket_kb_suggestion_plus_3/fixtures/kb/articles.json
+prompt:
+  text: "当前有5个未解决的客户工单，场景为“客户端体验异常”（移动端资源加载/缓存失效/退出后会话残留/后台高峰搜索慢/疑似前端卡顿但实际为权限导致UI不可操作）。请帮我：\n\
+    \n1. 查看每个工单的详情\n2. 在知识库中检索并为每个工单匹配最相关的解决方案\n   - 根据现象做语义归因：白屏/图片不显示优先匹配资源加载与缓存；退出后仍可短时访问优先匹配会话/令牌失效时序与清理；高峰搜索慢优先匹配后台查询与索引/缓存策略；“按钮无响应”优先匹配权限/鉴权与UI可操作性，而非单纯前端性能\n\
+    3. 检查知识库文章的 last_updated，并对可能过时的文章做提醒（标注“文章可能过时，请结合当前版本验证”）\n4. 如果知识库中没有合适匹配，请标注为需要人工处理\n\
+    5. 输出建议回复汇总表（不关闭工单）\n\n最终请输出每条工单的：问题归纳、匹配到的KB文章（或无匹配标人工）、关键建议要点（含缓存/性能/权限等）、以及过时提醒；最后汇总成表格。"
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

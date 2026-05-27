@@ -1,0 +1,103 @@
+task_id: T119zh_inventory_cost_analysis_plus_1
+task_name: 批量采购价漂移检测
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T119zh_inventory_cost_analysis_plus_1/fixtures/inventory/items.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T119zh_inventory_cost_analysis_plus_1/fixtures/finance/transactions.json
+prompt:
+  text: '请帮我做一次库存与采购成本的核对（重点：同一品类在财务系统中存在多笔分批采购，核对库存 unit_cost 是否为正确的加权平均单价）。
+
+
+    请按以下要求输出一份成本分析报告：
+
+    1）拉取当前所有库存品的数量、单位与 unit_cost，并按品类汇总。
+
+    2）在财务系统中按日期范围拉取交易记录，并筛选出与这些品类相关的“采购”批次明细；忽略非采购交易（如 type=''服务'' 或 category=''差旅''）。
+
+    3）对每个品类：计算财务中“对应采购批次的加权平均单价”= Σ(批次单价×批次数量)/Σ(批次数量)，再与库存的 unit_cost 对比。
+
+    4）识别并处理“冲销/调整”类交易：当 finance type=''采购'' 但 description/语义指向“冲销/调整”时，需要在匹配中排除或单独标注，并说明若纳入计算会造成的偏差方向。
+
+    5）找出成本异常的品类（至少1个），说明偏差由哪些批次导致（列出参与计算的每笔批次：单价、数量、是否纳入、贡献方式）。
+
+    6）输出核对表（每品类：库存unit_cost、财务加权平均单价、差异、匹配批次列表）+ 异常列表 + 建议（如修正库存成本/复核调整交易/补录遗漏批次等）。'
+  language: zh
+tools:
+- name: inventory_list_items
+  description: 查看库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取库存品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

@@ -1,0 +1,224 @@
+{
+  "task_id": "T145zh_task_backtracking_plus_2",
+  "task_name": "工单升级催办与改期说明",
+  "prompt_text": "收件箱中有3封标注为“催办/紧急/升级”的工单升级相关邮件（其余为干扰）。请：\n1）逐封阅读3封催办邮件，理解升级/迁移/回滚预案的具体诉求与原定交付/窗口；\n2）在待办事项中查找每封邮件对应的工单升级任务，提取当前 status、progress/due_date，以及是否有 blocked_by（如有）；\n3）在会议纪要中定位对应的A/B/C讨论记录，提取与“回归测试延期/客户审批等待/内部评审未通过”相关的关键决定与时间窗口；\n4）对每封催办邮件整理：当前处理状态、是否存在待确认项（客户确认/内部评审/测试安排等）、以及更新后的预计完成/交付日期与原因；\n5）为每封催办邮件起草回复草稿（仅保存草稿，不发送），回复应包含：复述理解→当前状态→阻塞原因类型→更新后的预计日期→下一步行动与预计沟通时间。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "gm_2101",
+        "from": "upgrade-team@acmebank.com",
+        "to": "me@company.com",
+        "subject": "[催办/升级/紧急] 客户升级计划：回归测试延期，请确认新上线日期",
+        "date": "2026-04-06T08:15:00Z",
+        "body": "团队好，关于我方核心系统升级计划（工单ACME-1047），原定04/10上线。由于回归测试出现延期，请你们在今日内给出更新后的预计上线/交付日期，并说明下一轮测试安排与预计恢复时间。——ACME升级协调人",
+        "labels": [
+          "inbox",
+          "催办",
+          "升级",
+          "紧急"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "gm_2102",
+        "from": "data-migration@northwindlogistics.com",
+        "to": "me@company.com",
+        "subject": "[催办/升级] 请确认数据迁移窗口：等待客户审批结果",
+        "date": "2026-04-06T09:05:00Z",
+        "body": "您好，针对工单NW-2213的数据迁移窗口，我们需要你方确认新的迁移开始时间。当前仍在等待客户审批（数据迁移窗口需客户签字确认），请给出预计何时能收到审批结果，以及由此推导的新的预计交付日期。——Northwind实施经理",
+        "labels": [
+          "inbox",
+          "催办",
+          "升级"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "gm_2103",
+        "from": "release-ops@lumenhealth.org",
+        "to": "me@company.com",
+        "subject": "[催办/升级/紧急] 回滚预案进度说明：内部评审尚未通过",
+        "date": "2026-04-05T16:45:00Z",
+        "body": "各位好，关于工单LH-3302的版本回滚预案，我们内部评审未通过到目前为止仍卡在待评审点位列表。请你们提供：当前评审状态、预计何时补齐并通过、以及新的预计交付日期（包含回滚演练/验证时间）。请尽快回复。——Lumen Health发布负责人",
+        "labels": [
+          "inbox",
+          "催办",
+          "升级",
+          "紧急"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "gm_2104",
+        "from": "billing@acmebank.com",
+        "to": "me@company.com",
+        "subject": "对账邀请：4月服务费确认",
+        "date": "2026-04-04T10:20:00Z",
+        "body": "您好，我们邀请你们参加对账会议，确认4月服务费明细。若需要补充材料请回复邮件。谢谢。",
+        "labels": [
+          "inbox"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "gm_2105",
+        "from": "calendar@company.com",
+        "to": "me@company.com",
+        "subject": "会议邀请已更新：升级评审同步（非催办）",
+        "date": "2026-04-04T14:00:00Z",
+        "body": "系统通知：会议邀请已更新，请查看最新日程。此邮件为日历更新提醒。",
+        "labels": [
+          "inbox"
+        ],
+        "is_read": true
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "MEET-A-905",
+        "title": "ACME升级上线回归测试评审会（A）",
+        "attendees": [
+          "我",
+          "ACME升级协调人",
+          "测试负责人"
+        ],
+        "content": "针对ACME-1047的升级计划：回归测试实际完成度为78%（高风险用例仍未通过）。决定：1）将剩余用例安排在04/08晚间进行补跑；2）若04/08补跑通过，则上线窗口调整为04/11；3）若04/08仍未通过，需在04/12再次补测并同步更新客户沟通节奏。预计下午16:00前给出补跑结果。",
+        "created_at": "2026-04-06T06:50:00Z",
+        "participants": [
+          "我",
+          "ACME升级协调人",
+          "测试负责人"
+        ],
+        "duration_minutes": 45
+      },
+      {
+        "note_id": "MEET-B-906",
+        "title": "Northwind数据迁移窗口确认例会（B）",
+        "attendees": [
+          "我",
+          "Northwind实施经理",
+          "客户审批对接人"
+        ],
+        "content": "关于NW-2213：客户审批流程仍在等待，当前已提交材料，审批节点预计在04/07完成内部审核。决定：1）审批通过后迁移窗口启动为04/09上午；2）若客户在04/07晚间仍未完成签字，则顺延至04/10并在04/08上午再次确认；3）下一次同步预计于04/07 17:30收到审批状态更新。",
+        "created_at": "2026-04-06T07:10:00Z",
+        "participants": [
+          "我",
+          "Northwind实施经理",
+          "客户审批对接人"
+        ],
+        "duration_minutes": 50
+      },
+      {
+        "note_id": "MEET-C-907",
+        "title": "Lumen回滚预案评审复盘会（C）",
+        "attendees": [
+          "我",
+          "发布负责人",
+          "内部评审组"
+        ],
+        "content": "针对LH-3302版本回滚预案：内部评审未通过，原因在于回滚演练依赖的点位列表不完整且改进方向需补充。决定：1）补齐未通过点位列表并完成改进说明，截止04/08中午；2）提交二次评审，预计04/09完成通过判定；3）若二次评审通过，则回滚验证演练安排在04/10；否则需在04/11复评并相应更新交付日期。",
+        "created_at": "2026-04-05T15:20:00Z",
+        "participants": [
+          "我",
+          "发布负责人",
+          "内部评审组"
+        ],
+        "duration_minutes": 60
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TD-UP-1047",
+        "title": "ACME-1047：核心系统升级上线（回归测试补跑）",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-04-10",
+        "progress": 74,
+        "notes": "回归测试尚未完全通过，预计04/08完成补跑后确认最终上线日期；当前处于可能延期状态。",
+        "created_at": "2026-04-01"
+      },
+      {
+        "task_id": "TD-MG-2213",
+        "title": "NW-2213：数据迁移窗口确认与交付",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-04-09",
+        "progress": 25,
+        "notes": "等待客户审批完成（客户审批流程仍在等待）。审批通过后才能锁定迁移窗口与交付节奏。",
+        "blocked_by": "等待客户审批",
+        "created_at": "2026-03-28"
+      },
+      {
+        "task_id": "TD-RB-3302",
+        "title": "LH-3302：版本回滚预案二次评审与验证",
+        "status": "blocked_by",
+        "priority": "high",
+        "due_date": "2026-04-10",
+        "progress": 40,
+        "notes": "内部评审未通过点位列表需补齐并提交改进说明；评审通过前无法安排回滚验证演练。",
+        "blocked_by": "等待内部评审通过",
+        "created_at": "2026-03-30"
+      },
+      {
+        "task_id": "TD-OPS-1401",
+        "title": "升级环境健康检查脚本更新",
+        "status": "in_progress",
+        "priority": "medium",
+        "due_date": "2026-04-08",
+        "progress": 58,
+        "notes": "已完成脚本框架，正在补充异常告警与回滚前置检查项。",
+        "created_at": "2026-04-02"
+      },
+      {
+        "task_id": "TD-DOC-3007",
+        "title": "升级SOP文档整理（含回归测试章节）",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-04-11",
+        "progress": 10,
+        "notes": "等待三方对回归测试策略的文字确认后更新文档。",
+        "created_at": "2026-04-03"
+      },
+      {
+        "task_id": "TD-TRN-5112",
+        "title": "客户支持培训：变更窗口与风险沟通",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-04-12",
+        "progress": 0,
+        "notes": "培训材料草稿已准备，待确定各工单最终窗口后补充案例。",
+        "created_at": "2026-04-03"
+      },
+      {
+        "task_id": "TD-MNT-7710",
+        "title": "工单系统工时记录对账修正",
+        "status": "completed",
+        "priority": "low",
+        "due_date": "2026-04-04",
+        "progress": 100,
+        "notes": "已完成对账修正并同步到系统。",
+        "completed_at": "2026-04-04",
+        "created_at": "2026-03-31"
+      },
+      {
+        "task_id": "TD-SEC-6120",
+        "title": "升级后权限回归核查（抽样）",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-04-13",
+        "progress": 20,
+        "notes": "待关键升级分支合并后抽样执行回归核查。",
+        "created_at": "2026-04-02"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的通用催办回复改为围绕系统升级交付中的“回归测试延期/客户审批等待/内部评审未通过点位”进行工单状态回溯并给出更新后的预计日期与原因。",
+    "fixture_design_summary": [
+      "gmail/inbox.json：5封邮件，其中3封带“催办/升级/紧急”且正文包含工单关键词与目标变更诉求；2封干扰邮件不含催办升级工单关键字。",
+      "notes/meetings.json：A/B/C三条纪要分别对应回归测试延期、客户审批流程节点、内部评审未通过点位列表与二次评审安排。",
+      "todo/tasks.json：至少8条任务；3条催办任务分别在status/progress/blocked_by上体现 in_progress(可能延期)、pending(等待审批)、blocked_by(等待评审)。",
+      "跨文件实体一致性：gmail邮件主题与正文工单号分别与todo任务标题中的工单号一致（ACME-1047/NW-2213/LH-3302），并与notes标题中的A/B/C会议内容对应。"
+    ]
+  }
+}

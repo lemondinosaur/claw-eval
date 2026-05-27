@@ -1,0 +1,575 @@
+{
+  "task_id": "T161zh_automation_failure_recovery_plus_2",
+  "task_name": "价格校准链路回滚失败",
+  "prompt_text": "多个自动化任务连续失败，导致前端促销价格未生效。请你协助排查并给出非常具体、可操作的恢复步骤：\n\n1）检查失败的定时任务及其依赖关系，定位真正的根因（区分依赖链路中的上游/下游失败）。\n2）查看API集成配置，重点核对“定价/促销规则集ID/版本标识（如deprecated）”与集成状态是否匹配，并找出导致回写失败的配置侧错误。\n3）评估库存与商品价格展示的同步风险：根据库存字段（sync_status / price_sync_status / last_price_sync 等）推断哪些商品可能存在“促销展示价格不同步”。\n4）关联用户工单：从工单列表中确认哪些工单与促销未生效属于同一根因链路（3条），并排除无依赖的干扰工单（2条）。\n5）在知识库搜索并引用解决方案，至少覆盖“deprecated规则集切换/写回失败恢复/版本号未推进处理”。\n6）输出故障分析与恢复步骤：按顺序写出（配置切换→重触发写回/必要的手动全量→重触发促销应用/等待版本推进→验证清单），包含你将如何验证每一步是否成功（可用哪些字段/状态）。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-2301",
+        "name": "促销价格写回服务",
+        "service": "promotion_price_writer",
+        "status": "active",
+        "endpoint": "https://price-writer.internal.example.com/api/v1/writeback",
+        "api_key": "sk-pw-xxxx-REDACTED-2301",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-18T09:10:00Z",
+        "monthly_calls": 430000,
+        "error_rate": 0.087,
+        "notes": "当前写回使用的定价规则集ID为 PRSET-4A7C（标记为deprecated）。写回接口可调用但会在规则集版本检查阶段拒绝更新并返回HTTP 422。需切换到非deprecated规则集并核对版本推进机制。"
+      },
+      {
+        "integration_id": "INT-2302",
+        "name": "定价规则中心（可用新版本）",
+        "service": "pricing_rules_center",
+        "status": "inactive",
+        "endpoint": "https://rules-center.internal.example.com/api/ruleset/v3",
+        "api_key": "sk-rules-xxxx-REDACTED-2302",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-17T13:45:00Z",
+        "monthly_calls": 0,
+        "error_rate": 0.0,
+        "notes": "该规则集版本对应PRSET-8C12（非deprecated），已通过测试但尚未在写回链路中启用。需要将INT-2301的ruleset_id切换到PRSET-8C12。"
+      },
+      {
+        "integration_id": "INT-2303",
+        "name": "促销规则拉取服务",
+        "service": "promotion_rules_fetcher",
+        "status": "active",
+        "endpoint": "https://promo-fetch.internal.example.com/api/v2/rules/pull",
+        "api_key": "sk-prf-xxxx-REDACTED-2303",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-20T11:05:00Z",
+        "monthly_calls": 275000,
+        "error_rate": 0.004,
+        "notes": "运行正常。可持续拉取到最新促销规则集，但下游写回失败会导致last_applied无法推进。"
+      },
+      {
+        "integration_id": "INT-2304",
+        "name": "退款处理服务（噪声链路）",
+        "service": "refund_processor",
+        "status": "active",
+        "endpoint": "https://refunds.internal.example.com/api/v2/refunds",
+        "api_key": "sk-rfd-xxxx-REDACTED-2304",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-19T08:25:00Z",
+        "monthly_calls": 90000,
+        "error_rate": 0.021,
+        "notes": "退款链路偶发失败，错误原因集中在订单状态校验；与促销价格链路无依赖关系。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-23011",
+        "title": "前端促销价未生效：夏日清仓活动",
+        "description": "用户反馈“夏日清仓（活动ID: PM-AU-771）”页面显示仍是原价，未看到促销价。我们检查到促销规则已更新，但看起来价格回写/应用链路未成功推进。请排查并给出恢复方案。",
+        "reporter": "电商运营-周欣",
+        "department": "电商运营",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-20T12:10:00Z",
+        "tags": [
+          "价格",
+          "促销未生效",
+          "前端展示",
+          "自动化"
+        ],
+        "category": "价格/促销未生效"
+      },
+      {
+        "ticket_id": "TK-23012",
+        "title": "促销价格版本未推进：秋季会员购（部分商品）",
+        "description": "秋季会员购（活动ID: PM-AU-912）中部分商品促销价不生效。我们观察到促销应用任务拒绝执行（疑似last_applied版本未推进），但促销规则拉取任务本次周期成功。请定位写回失败根因（定价规则集版本/配置）。",
+        "reporter": "增长平台-林晨",
+        "department": "增长平台",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-20T13:05:00Z",
+        "tags": [
+          "促销",
+          "版本推进失败",
+          "last_applied",
+          "写回失败"
+        ],
+        "category": "价格/促销未生效"
+      },
+      {
+        "ticket_id": "TK-23013",
+        "title": "促销价回写被拒绝（HTTP 422）疑似deprecated规则集",
+        "description": "监控提示价格写回接口返回HTTP 422，并提到“定价规则集已deprecated”。由于写回被拒绝，后续促销价格应用任务检测到last_applied未更新而拒绝执行。请帮我们确认配置侧ruleset_id并执行恢复步骤。",
+        "reporter": "平台运维-何航",
+        "department": "平台运维",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-20T14:20:00Z",
+        "tags": [
+          "写回422",
+          "deprecated",
+          "促销链路"
+        ],
+        "category": "价格/促销未生效"
+      },
+      {
+        "ticket_id": "TK-23021",
+        "title": "退款处理失败：订单回滚未完成",
+        "description": "部分退款请求失败，提示订单状态不允许退款回滚。看起来是退款链路自身校验问题。请确认不会影响促销价格链路。",
+        "reporter": "客服经理-蒋怡",
+        "department": "客服",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T11:40:00Z",
+        "tags": [
+          "退款失败",
+          "回滚"
+        ],
+        "category": "退款失败/打印机无法打印"
+      },
+      {
+        "ticket_id": "TK-23022",
+        "title": "打印机无法打印：仓库出库单",
+        "description": "仓库打印机间歇性无法打印出库单，提示纸盒卡纸/离线。与促销价格系统应无直接关系，但用户同时报告希望尽快处理。",
+        "reporter": "仓储调度-唐宁",
+        "department": "仓储部",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-20T09:55:00Z",
+        "tags": [
+          "打印机",
+          "卡纸",
+          "离线"
+        ],
+        "category": "退款失败/打印机无法打印"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "ITEM-230101",
+        "name": "轻量运动鞋（白/42）",
+        "category": "鞋服",
+        "quantity": 120,
+        "unit": "双",
+        "reorder_level": 40,
+        "supplier_integration": "INT-3001",
+        "last_sync": "2026-05-20T05:00:00Z",
+        "sync_status": "ok",
+        "price_sync_status": "stale",
+        "last_price_sync": "2026-05-19T16:30:00Z",
+        "notes": "库存同步正常，但价格同步信息显示已过期；若促销应用需要last_applied推进则可能导致前端仍显示原价。"
+      },
+      {
+        "product_id": "ITEM-230102",
+        "name": "轻量运动鞋（黑/43）",
+        "category": "鞋服",
+        "quantity": 78,
+        "unit": "双",
+        "reorder_level": 25,
+        "supplier_integration": "INT-3001",
+        "last_sync": "2026-05-20T05:00:00Z",
+        "sync_status": "ok",
+        "price_sync_status": "stale",
+        "last_price_sync": "2026-05-19T16:30:00Z",
+        "notes": "价格回写链路拒绝更新后，预计促销价格不会落地到展示层。"
+      },
+      {
+        "product_id": "ITEM-230103",
+        "name": "可折叠背包 28L",
+        "category": "户外",
+        "quantity": 210,
+        "unit": "个",
+        "reorder_level": 60,
+        "supplier_integration": "INT-3002",
+        "last_sync": "2026-05-20T05:00:00Z",
+        "sync_status": "ok",
+        "price_sync_status": "stale",
+        "last_price_sync": "2026-05-19T16:30:00Z",
+        "notes": "last_price_sync未推进，属于高风险SKU：促销应用拒绝执行时可能持续不生效。"
+      },
+      {
+        "product_id": "ITEM-230104",
+        "name": "蓝牙降噪耳机 Pro（256G）",
+        "category": "数码",
+        "quantity": 35,
+        "unit": "台",
+        "reorder_level": 15,
+        "supplier_integration": "INT-3003",
+        "last_sync": "2026-05-20T05:00:00Z",
+        "sync_status": "ok",
+        "price_sync_status": "unknown",
+        "last_price_sync": null,
+        "notes": "价格字段为unknown：用于验证“库存正常但价格同步状态未知”导致的前端展示不一致风险。"
+      },
+      {
+        "product_id": "ITEM-230105",
+        "name": "保温水杯 500ml",
+        "category": "日用",
+        "quantity": 95,
+        "unit": "个",
+        "reorder_level": 30,
+        "supplier_integration": "INT-3002",
+        "last_sync": "2026-05-20T05:00:00Z",
+        "sync_status": "ok",
+        "price_sync_status": "unknown",
+        "last_price_sync": null,
+        "notes": "价格同步缺失：若促销应用基于版本推进判断，将可能继续拒绝执行。"
+      },
+      {
+        "product_id": "ITEM-230106",
+        "name": "智能手环 S2",
+        "category": "数码",
+        "quantity": 60,
+        "unit": "台",
+        "reorder_level": 20,
+        "supplier_integration": "INT-3003",
+        "last_sync": "2026-05-20T05:00:00Z",
+        "sync_status": "ok",
+        "price_sync_status": "stale",
+        "last_price_sync": "2026-05-19T15:10:00Z",
+        "notes": "价格同步过期时间比其他SKU略有差异，用于覆盖“部分商品受影响”。"
+      },
+      {
+        "product_id": "ITEM-230107",
+        "name": "棉质T恤 纯色（M）",
+        "category": "鞋服",
+        "quantity": 180,
+        "unit": "件",
+        "reorder_level": 55,
+        "supplier_integration": "INT-3004",
+        "last_sync": "2026-05-20T05:00:00Z",
+        "sync_status": "ok",
+        "price_sync_status": "ok",
+        "last_price_sync": "2026-05-20T04:40:00Z",
+        "notes": ""
+      },
+      {
+        "product_id": "ITEM-230108",
+        "name": "棉质T恤 纯色（L）",
+        "category": "鞋服",
+        "quantity": 92,
+        "unit": "件",
+        "reorder_level": 30,
+        "supplier_integration": "INT-3004",
+        "last_sync": "2026-05-20T05:00:00Z",
+        "sync_status": "ok",
+        "price_sync_status": "ok",
+        "last_price_sync": "2026-05-20T04:40:00Z",
+        "notes": ""
+      },
+      {
+        "product_id": "ITEM-230109",
+        "name": "健身阻力带 5件套",
+        "category": "运动",
+        "quantity": 150,
+        "unit": "套",
+        "reorder_level": 45,
+        "supplier_integration": "INT-3005",
+        "last_sync": "2026-05-20T05:00:00Z",
+        "sync_status": "ok",
+        "price_sync_status": "stale",
+        "last_price_sync": "2026-05-19T14:05:00Z",
+        "notes": "部分受影响：用于让排查人员结合促销应用拒绝执行推断风险范围。"
+      },
+      {
+        "product_id": "ITEM-230110",
+        "name": "厨房不锈钢砧板",
+        "category": "家居",
+        "quantity": 48,
+        "unit": "个",
+        "reorder_level": 12,
+        "supplier_integration": "INT-3006",
+        "last_sync": "2026-05-20T05:00:00Z",
+        "sync_status": "ok",
+        "price_sync_status": "ok",
+        "last_price_sync": "2026-05-20T04:55:00Z",
+        "notes": ""
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-2301",
+        "title": "deprecated 规则集切换：从规则中心回填到写回链路",
+        "category": "运维手册",
+        "tags": [
+          "deprecated",
+          "定价规则集",
+          "写回",
+          "ruleset_id",
+          "配置切换"
+        ],
+        "content": "## 目标\n当价格写回接口返回 **HTTP 422**，错误提示“定价规则集已deprecated”时，需将写回链路的 ruleset_id 切换到非deprecated版本，并验证下一次执行会触发版本推进。\n\n## 处理步骤\n1. 在配置管理系统定位写回集成（如“促销价格写回服务”）的 ruleset_id。\n2. 将 ruleset_id 从 deprecated 版本替换为可用新版本（例如：PRSET-8C12）。\n3. 确认对应的“定价规则中心（可用新版本）”集成状态已启用/为active（避免写回链路仍指向旧集合）。\n4. 重新触发一次“本地价格写回”（可按平台提供的手动触发/重跑按钮执行一次）。\n5. 验证点：\n   - 写回接口响应不再出现HTTP 422\n   - 商品侧展示/价格层的版本号或 last_applied/last_price_sync 开始向前推进（至少能观察到last_price_sync更新或版本+1）。\n\n## 回滚建议\n- 不建议仅靠重试旧 ruleset_id：会持续得到422。\n- 若新版本写回也失败，再回查规则中心与写回契约是否匹配（字段/接口版本）。",
+        "last_updated": "2026-05-10",
+        "views": 312
+      },
+      {
+        "article_id": "KB-2302",
+        "title": "价格写回失败后的促销应用恢复：版本号未推进的处理办法",
+        "category": "故障恢复",
+        "tags": [
+          "促销价格应用",
+          "last_applied",
+          "回滚",
+          "重试",
+          "版本推进"
+        ],
+        "content": "## 背景\n促销价格应用任务通常会基于 **last_applied** 或版本号判断是否允许执行：当价格写回失败导致版本未推进时，任务可能会拒绝执行。\n\n## 恢复策略（建议按顺序）\n1. 先修复写回失败的根因（见“deprecated规则集切换”），确保写回接口能够成功落库。\n2. 重新触发/重跑“本地价格写回”，直到观察到 last_price_sync 更新（或版本推进字段变化）。\n3. 触发“促销价格应用”后等待一个调度周期，再检查：\n   - 错误不再是“price version not advanced/last_applied mismatch”\n   - 受影响SKU的促销价展示来源从旧版本切换到最新版本。\n4. 如需要手动兜底：对关键商品执行全量写回/重算（平台若支持“重算促销价”或“全量回填”）。\n\n## 验证清单\n- 写回：HTTP状态为2xx；失败原因不再包含deprecated\n- 应用：last_applied更新（或内部价格版本号推进）\n- 前端：对至少3个受影响SKU抽样验证促销价是否已出现",
+        "last_updated": "2026-05-12",
+        "views": 198
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-23001",
+        "name": "促销规则拉取（PR）",
+        "cron_expression": "*/10 * * * *",
+        "action": "pull_promotion_rules",
+        "enabled": true,
+        "last_run": "2026-05-20T15:20:00Z",
+        "next_run": "2026-05-20T15:30:00Z",
+        "last_status": "success",
+        "created_by": "promo_ops",
+        "tags": [
+          "promotion",
+          "rules",
+          "fetch"
+        ],
+        "created_at": "2026-04-01T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T15:20:00Z",
+            "status": "success",
+            "duration_s": 18,
+            "details": "成功拉取规则集 PRSET-4A7C（注意：该规则集在写回链路被标记deprecated）。"
+          },
+          {
+            "run_at": "2026-05-20T15:10:00Z",
+            "status": "success",
+            "duration_s": 17,
+            "details": "成功拉取规则集 PRSET-4A7C"
+          },
+          {
+            "run_at": "2026-05-20T14:50:00Z",
+            "status": "success",
+            "duration_s": 19,
+            "details": "成功拉取规则集 PRSET-4A7C"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-23002",
+        "name": "本地价格写回（回滚失败链路）",
+        "cron_expression": "*/15 * * * *",
+        "action": "writeback_local_prices",
+        "enabled": true,
+        "last_run": "2026-05-20T15:18:00Z",
+        "next_run": "2026-05-20T15:33:00Z",
+        "last_status": "failed",
+        "created_by": "promo_ops",
+        "tags": [
+          "promotion",
+          "price",
+          "writeback"
+        ],
+        "created_at": "2026-04-05T00:00:00Z",
+        "depends_on": [
+          "JOB-23001"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T15:18:00Z",
+            "status": "failed",
+            "duration_s": 6,
+            "error": "HTTP 422 Unprocessable Entity: 定价规则集 PRSET-4A7C 已标记deprecated，拒绝写回更新（integration=INT-2301）。"
+          },
+          {
+            "run_at": "2026-05-20T15:03:00Z",
+            "status": "failed",
+            "duration_s": 7,
+            "error": "HTTP 422 Unprocessable Entity: 定价规则集 PRSET-4A7C 已标记deprecated，拒绝写回更新（integration=INT-2301）。"
+          },
+          {
+            "run_at": "2026-05-20T14:48:00Z",
+            "status": "failed",
+            "duration_s": 7,
+            "error": "HTTP 422 Unprocessable Entity: 定价规则集 PRSET-4A7C 已标记deprecated，拒绝写回更新（integration=INT-2301）。"
+          },
+          {
+            "run_at": "2026-05-20T14:33:00Z",
+            "status": "failed",
+            "duration_s": 8,
+            "error": "HTTP 422 Unprocessable Entity: 定价规则集 PRSET-4A7C 已标记deprecated，拒绝写回更新（integration=INT-2301）。"
+          },
+          {
+            "run_at": "2026-05-20T14:18:00Z",
+            "status": "success",
+            "duration_s": 9,
+            "details": "成功写回并推进版本（规则集版本当时为可用集合）。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-23003",
+        "name": "促销价格应用（版本推进失败拒绝执行）",
+        "cron_expression": "*/15 * * * *",
+        "action": "apply_promotion_prices",
+        "enabled": true,
+        "last_run": "2026-05-20T15:19:00Z",
+        "next_run": "2026-05-20T15:34:00Z",
+        "last_status": "failed",
+        "created_by": "promo_ops",
+        "tags": [
+          "promotion",
+          "apply",
+          "last_applied"
+        ],
+        "created_at": "2026-04-05T00:00:00Z",
+        "depends_on": [
+          "JOB-23002"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T15:19:00Z",
+            "status": "failed",
+            "duration_s": 2,
+            "error": "VersionGuard拒绝执行：price version not advanced / last_applied mismatch。last_applied未更新，推测写回未成功（依赖：JOB-23002 last_status=failed）。"
+          },
+          {
+            "run_at": "2026-05-20T15:04:00Z",
+            "status": "failed",
+            "duration_s": 2,
+            "error": "VersionGuard拒绝执行：price version not advanced / last_applied mismatch。last_applied未更新，推测写回未成功（依赖：JOB-23002 last_status=failed）。"
+          },
+          {
+            "run_at": "2026-05-20T14:49:00Z",
+            "status": "failed",
+            "duration_s": 2,
+            "error": "VersionGuard拒绝执行：price version not advanced / last_applied mismatch。last_applied未更新。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-23004",
+        "name": "库存价格字段同步（非真实来源/用于展示风险）",
+        "cron_expression": "*/20 * * * *",
+        "action": "sync_inventory_price_fields",
+        "enabled": true,
+        "last_run": "2026-05-20T15:20:00Z",
+        "next_run": "2026-05-20T15:40:00Z",
+        "last_status": "success",
+        "created_by": "data_ops",
+        "tags": [
+          "inventory",
+          "price-fields"
+        ],
+        "created_at": "2026-04-10T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T15:20:00Z",
+            "status": "success",
+            "duration_s": 12,
+            "details": "库存数量字段正常更新；price_sync_status/last_price_sync按展示规则回填，发现last_price_sync未随写回版本推进（与促销链路耦合）。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-23005",
+        "name": "退款处理（噪声链路）",
+        "cron_expression": "*/30 * * * *",
+        "action": "process_refund_rollback",
+        "enabled": true,
+        "last_run": "2026-05-20T15:00:00Z",
+        "next_run": "2026-05-20T15:30:00Z",
+        "last_status": "failed",
+        "created_by": "finance_ops",
+        "tags": [
+          "refund",
+          "noise"
+        ],
+        "created_at": "2026-04-08T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T15:00:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "RefundError：订单状态校验失败，无法执行退款回滚（integration=INT-2304）。"
+          },
+          {
+            "run_at": "2026-05-20T14:30:00Z",
+            "status": "success",
+            "duration_s": 10,
+            "details": "部分退款成功"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-23006",
+        "name": "打印出库单任务（噪声链路）",
+        "cron_expression": "0 */2 * * *",
+        "action": "print_outbound_docs",
+        "enabled": true,
+        "last_run": "2026-05-20T14:00:00Z",
+        "next_run": "2026-05-20T16:00:00Z",
+        "last_status": "failed",
+        "created_by": "warehouse_ops",
+        "tags": [
+          "printing",
+          "noise"
+        ],
+        "created_at": "2026-04-09T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T14:00:00Z",
+            "status": "failed",
+            "duration_s": 4,
+            "error": "PrintError：打印机离线/卡纸，无法提交任务到队列（printer=PRN-DOCK-12）。"
+          },
+          {
+            "run_at": "2026-05-20T12:00:00Z",
+            "status": "success",
+            "duration_s": 5,
+            "details": "打印成功"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-23007",
+        "name": "健康检查与告警聚合（不构成根因）",
+        "cron_expression": "*/5 * * * *",
+        "action": "aggregate_job_health",
+        "enabled": true,
+        "last_run": "2026-05-20T15:21:00Z",
+        "next_run": "2026-05-20T15:26:00Z",
+        "last_status": "success",
+        "created_by": "admin",
+        "tags": [
+          "monitoring"
+        ],
+        "created_at": "2026-03-20T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T15:21:00Z",
+            "status": "success",
+            "duration_s": 3,
+            "details": "汇总到促销链路JOB-23002/JOB-23003失败；库存字段同步JOB-23004正常。"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题根因围绕供应商API不可用导致库存/补货链路失败；本题根因转为写回接口因deprecated定价规则集返回422，导致促销价格应用因last_applied未推进拒绝执行，并加入退款/打印失败干扰。",
+    "fixture_design_summary": [
+      "config 集成中将“促销价格写回服务”与deprecated ruleset_id（PRSET-4A7C）绑定，且给出HTTP 422拒绝写回的指向性notes。",
+      "scheduler 中构造明晰依赖链：JOB-23001成功→JOB-23002连续422失败→JOB-23003因版本未推进拒绝执行；同时加入退款/打印两条无依赖噪声任务。",
+      "inventory 保持 sync_status=ok 但设置部分商品 price_sync_status=stale/unknown，覆盖“库存正常但价格展示风险”的推断依据。",
+      "helpdesk 共5条工单，其中3条明确对应促销未生效（含活动ID/last_applied/写回422线索），2条属于退款/打印噪声类别。",
+      "kb 提供两篇恢复文章：一篇讲deprecated规则集切换到可用新规则集并验证写回版本推进；另一篇讲写回失败后促销应用的版本号未推进恢复流程。"
+    ]
+  }
+}

@@ -1,0 +1,853 @@
+{
+  "task_id": "T163zh_quarterly_customer_review_plus_1",
+  "task_name": "Q2重点续约预警与机会复盘",
+  "prompt_text": "Q2已过半（当前为2026年7月中旬）。请基于最近90天（约4/1-7/15）的沟通与Q2分月财务数据，为CRM中筛选到的10个“active”重点客户生成续约预警与机会复盘报告。\n\n对每个客户，必须包含：\n1）收入与趋势（按Q2分月汇总，说明是否有失败/部分退款并结合后续补单）；\n2）CRM满意度与合同到期风险（给出满意度等级与到期节点，指出跨季/紧迫程度）；\n3）邮件沟通健康度（是否活跃；是否出现升级/投诉/响应慢/账单更正/争议；提炼关键表述关键词）；\n4）行业动态关联（结合RSS文章的行业趋势进行对应，不要泛泛而谈）；\n5）客户经理联系方式（姓名/邮箱/电话）；\n6）明确可执行的两条动作型建议：1条风险处置动作 + 1条增长推进动作。\n\n最后：根据“合同到期临近+满意度+邮件争议/沟通中断/异常交易影响+行业趋势”给出高/中/低三组清单，并说明分组依据。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-2101",
+        "name": "陈晨",
+        "email": "chenchen_sales@company.com",
+        "phone": "13900011001",
+        "department": "销售部",
+        "title": "客户经理",
+        "responsibilities": [
+          "标准客户续约推进",
+          "CRM满意度跟进",
+          "SaaS续费条款协调"
+        ]
+      },
+      {
+        "contact_id": "CON-2102",
+        "name": "陈晨",
+        "email": "chenchen_cs@company.com",
+        "phone": "13900011002",
+        "department": "客户成功部",
+        "title": "客户成功经理",
+        "responsibilities": [
+          "续约健康度监控",
+          "培训与采用度提升",
+          "升级工单闭环"
+        ]
+      },
+      {
+        "contact_id": "CON-2103",
+        "name": "周可欣",
+        "email": "zhoukexin_sales@company.com",
+        "phone": "13900011003",
+        "department": "销售部",
+        "title": "高级客户经理",
+        "responsibilities": [
+          "VIP客户经营与扩展",
+          "合同风险预警",
+          "跨季度续约谈判"
+        ]
+      },
+      {
+        "contact_id": "CON-2104",
+        "name": "赵子航",
+        "email": "zhaozihang_sales@company.com",
+        "phone": "13900011004",
+        "department": "销售部",
+        "title": "客户经理",
+        "responsibilities": [
+          "零售电商客户维护",
+          "报价与方案交付节奏管理",
+          "续约条款落实"
+        ]
+      },
+      {
+        "contact_id": "CON-2105",
+        "name": "孙雨晴",
+        "email": "sunyuqing_cs@company.com",
+        "phone": "13900011005",
+        "department": "客户成功部",
+        "title": "客户成功经理",
+        "responsibilities": [
+          "响应质量与SLA跟踪",
+          "满意度调查与行动项",
+          "争议/账单更正协同"
+        ]
+      },
+      {
+        "contact_id": "CON-2106",
+        "name": "梁浩然",
+        "email": "lianghaoran_ops@company.com",
+        "phone": "13900011006",
+        "department": "运营与支持部",
+        "title": "解决方案顾问",
+        "responsibilities": [
+          "行业方案匹配",
+          "演示与技术澄清",
+          "续约期方案加速交付"
+        ]
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2101",
+        "name": "星环SaaS平台",
+        "tier": "vip",
+        "status": "active",
+        "industry": "软件/SaaS",
+        "satisfaction": 4.6,
+        "contract_end": "2026-08-31",
+        "sales_owner": "周可欣",
+        "notes": "VIP，Q2收入稳步增长；6月无异常；对扩展模块兴趣高。",
+        "contact_person": "周可欣",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2102",
+        "name": "云栈零售电商",
+        "tier": "standard",
+        "status": "active",
+        "industry": "零售电商",
+        "satisfaction": 3.4,
+        "contract_end": "2026-09-30",
+        "sales_owner": "赵子航",
+        "notes": "Q2有失败交易并伴随补单；投诉主要集中在响应慢与对账理解。",
+        "contact_person": "赵子航",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2103",
+        "name": "北岸物流集团",
+        "tier": "vip",
+        "status": "active",
+        "industry": "物流/供应链",
+        "satisfaction": 4.1,
+        "contract_end": "2026-11-30",
+        "sales_owner": "陈晨",
+        "notes": "VIP但存在部分退款与后续补单；沟通活跃，已要求加急演示。",
+        "contact_person": "陈晨",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2104",
+        "name": "格致制造IT集成",
+        "tier": "standard",
+        "status": "active",
+        "industry": "制造IT",
+        "satisfaction": 2.7,
+        "contract_end": "2026-08-15",
+        "sales_owner": "陈晨",
+        "notes": "满意度偏低；6月出现失败交易且补单较晚；合同到期紧迫，高流失风险。",
+        "contact_person": "陈晨",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2105",
+        "name": "智港教育科技",
+        "tier": "standard",
+        "status": "active",
+        "industry": "公共部门/教育",
+        "satisfaction": 3.9,
+        "contract_end": "2026-09-20",
+        "sales_owner": "周可欣",
+        "notes": "Q2收入保持；近期有升级诉求但整体沟通不算差；需核实续约条款。",
+        "contact_person": "周可欣",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2106",
+        "name": "澜途智能制造",
+        "tier": "vip",
+        "status": "active",
+        "industry": "制造/工业软件",
+        "satisfaction": 4.3,
+        "contract_end": "2026-11-15",
+        "sales_owner": "赵子航",
+        "notes": "VIP增长稳定；邮件中多次提到扩展与培训；到期较晚，但要防预算缩减影响。",
+        "contact_person": "赵子航",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2107",
+        "name": "澄光公共治理平台",
+        "tier": "standard",
+        "status": "active",
+        "industry": "公共部门数字化",
+        "satisfaction": 2.9,
+        "contract_end": "2026-08-31",
+        "sales_owner": "孙雨晴",
+        "notes": "满意度较低且存在账单更正链路；合同到期紧迫，需要快速对齐口径并争取复购。",
+        "contact_person": "孙雨晴",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2108",
+        "name": "璀璨传媒内容引擎",
+        "tier": "vip",
+        "status": "active",
+        "industry": "传媒/内容与AI",
+        "satisfaction": 4.4,
+        "contract_end": "2026-09-05",
+        "sales_owner": "周可欣",
+        "notes": "VIP且满意度高；Q2收入持续；已提出更多席位与加急报价需求。",
+        "contact_person": "周可欣",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2109",
+        "name": "海翼航运科技",
+        "tier": "standard",
+        "status": "active",
+        "industry": "物流/航运数字化",
+        "satisfaction": 3.1,
+        "contract_end": "2026-11-30",
+        "sales_owner": "陈晨",
+        "notes": "响应慢抱怨出现；Q2收入略有回落但补单能覆盖；需加强SLA闭环。",
+        "contact_person": "陈晨",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2110",
+        "name": "新程教育平台",
+        "tier": "standard",
+        "status": "active",
+        "industry": "公共部门/教育",
+        "satisfaction": 3.7,
+        "contract_end": "2026-09-28",
+        "sales_owner": "孙雨晴",
+        "notes": "收入稳定；有一次升级请求与会议信息确认；适合推动续约并追加模块。",
+        "contact_person": "孙雨晴",
+        "annual_revenue": 0
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2101",
+        "customer_id": "CUS-2101",
+        "amount": 72000,
+        "type": "subscription",
+        "date": "2026-04-18",
+        "status": "completed",
+        "description": "4月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2102",
+        "customer_id": "CUS-2101",
+        "amount": 73500,
+        "type": "subscription",
+        "date": "2026-05-18",
+        "status": "completed",
+        "description": "5月订阅费+用量增长"
+      },
+      {
+        "transaction_id": "TXN-2103",
+        "customer_id": "CUS-2101",
+        "amount": 76000,
+        "type": "subscription",
+        "date": "2026-06-18",
+        "status": "completed",
+        "description": "6月订阅费+增值包"
+      },
+      {
+        "transaction_id": "TXN-2104",
+        "customer_id": "CUS-2102",
+        "amount": 52000,
+        "type": "subscription",
+        "date": "2026-04-07",
+        "status": "completed",
+        "description": "4月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2105",
+        "customer_id": "CUS-2102",
+        "amount": 50000,
+        "type": "subscription",
+        "date": "2026-05-07",
+        "status": "failed",
+        "description": "5月订阅费（支付失败）"
+      },
+      {
+        "transaction_id": "TXN-2106",
+        "customer_id": "CUS-2102",
+        "amount": 50000,
+        "type": "subscription",
+        "date": "2026-05-15",
+        "status": "completed",
+        "description": "5月补单（支付失败后重试）"
+      },
+      {
+        "transaction_id": "TXN-2107",
+        "customer_id": "CUS-2102",
+        "amount": 51000,
+        "type": "subscription",
+        "date": "2026-06-10",
+        "status": "partial_refund",
+        "description": "6月部分退款（折扣调整）"
+      },
+      {
+        "transaction_id": "TXN-2108",
+        "customer_id": "CUS-2102",
+        "amount": 54000,
+        "type": "subscription",
+        "date": "2026-06-20",
+        "status": "completed",
+        "description": "6月补单（差额补缴）"
+      },
+      {
+        "transaction_id": "TXN-2109",
+        "customer_id": "CUS-2103",
+        "amount": 98000,
+        "type": "subscription",
+        "date": "2026-04-22",
+        "status": "completed",
+        "description": "4月订阅费+运力模块"
+      },
+      {
+        "transaction_id": "TXN-2110",
+        "customer_id": "CUS-2103",
+        "amount": 99000,
+        "type": "subscription",
+        "date": "2026-05-22",
+        "status": "completed",
+        "description": "5月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2111",
+        "customer_id": "CUS-2103",
+        "amount": 45000,
+        "type": "subscription",
+        "date": "2026-06-22",
+        "status": "partial_refund",
+        "description": "6月部分退款（合同口径更正）"
+      },
+      {
+        "transaction_id": "TXN-2112",
+        "customer_id": "CUS-2103",
+        "amount": 52000,
+        "type": "subscription",
+        "date": "2026-06-27",
+        "status": "completed",
+        "description": "6月补单（退款后补缴）"
+      },
+      {
+        "transaction_id": "TXN-2113",
+        "customer_id": "CUS-2104",
+        "amount": 36000,
+        "type": "subscription",
+        "date": "2026-04-03",
+        "status": "completed",
+        "description": "4月订阅费（基础版）"
+      },
+      {
+        "transaction_id": "TXN-2114",
+        "customer_id": "CUS-2104",
+        "amount": 35000,
+        "type": "subscription",
+        "date": "2026-05-03",
+        "status": "completed",
+        "description": "5月订阅费（续费）"
+      },
+      {
+        "transaction_id": "TXN-2115",
+        "customer_id": "CUS-2104",
+        "amount": 33000,
+        "type": "subscription",
+        "date": "2026-06-03",
+        "status": "failed",
+        "description": "6月订阅费（扣款失败）"
+      },
+      {
+        "transaction_id": "TXN-2116",
+        "customer_id": "CUS-2104",
+        "amount": 33000,
+        "type": "subscription",
+        "date": "2026-06-17",
+        "status": "completed",
+        "description": "6月补单（失败后补缴）"
+      },
+      {
+        "transaction_id": "TXN-2117",
+        "customer_id": "CUS-2105",
+        "amount": 41000,
+        "type": "subscription",
+        "date": "2026-04-12",
+        "status": "completed",
+        "description": "4月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2118",
+        "customer_id": "CUS-2105",
+        "amount": 42500,
+        "type": "subscription",
+        "date": "2026-05-12",
+        "status": "completed",
+        "description": "5月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2119",
+        "customer_id": "CUS-2105",
+        "amount": 44000,
+        "type": "subscription",
+        "date": "2026-06-12",
+        "status": "completed",
+        "description": "6月订阅费+课程治理包"
+      },
+      {
+        "transaction_id": "TXN-2120",
+        "customer_id": "CUS-2106",
+        "amount": 88000,
+        "type": "subscription",
+        "date": "2026-04-25",
+        "status": "completed",
+        "description": "4月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2121",
+        "customer_id": "CUS-2106",
+        "amount": 90000,
+        "type": "subscription",
+        "date": "2026-05-25",
+        "status": "completed",
+        "description": "5月订阅费+工艺看板"
+      },
+      {
+        "transaction_id": "TXN-2122",
+        "customer_id": "CUS-2106",
+        "amount": 91500,
+        "type": "subscription",
+        "date": "2026-06-25",
+        "status": "completed",
+        "description": "6月订阅费+产线扩展"
+      },
+      {
+        "transaction_id": "TXN-2123",
+        "customer_id": "CUS-2107",
+        "amount": 30000,
+        "type": "subscription",
+        "date": "2026-04-16",
+        "status": "completed",
+        "description": "4月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2124",
+        "customer_id": "CUS-2107",
+        "amount": 30500,
+        "type": "subscription",
+        "date": "2026-05-16",
+        "status": "completed",
+        "description": "5月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2125",
+        "customer_id": "CUS-2107",
+        "amount": 12000,
+        "type": "subscription",
+        "date": "2026-06-16",
+        "status": "partial_refund",
+        "description": "6月部分退款（账单更正）"
+      },
+      {
+        "transaction_id": "TXN-2126",
+        "customer_id": "CUS-2107",
+        "amount": 33000,
+        "type": "subscription",
+        "date": "2026-06-26",
+        "status": "completed",
+        "description": "6月补单（更正后补缴）"
+      },
+      {
+        "transaction_id": "TXN-2127",
+        "customer_id": "CUS-2108",
+        "amount": 61000,
+        "type": "subscription",
+        "date": "2026-04-09",
+        "status": "completed",
+        "description": "4月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2128",
+        "customer_id": "CUS-2108",
+        "amount": 64000,
+        "type": "subscription",
+        "date": "2026-05-09",
+        "status": "completed",
+        "description": "5月订阅费+智能分发"
+      },
+      {
+        "transaction_id": "TXN-2129",
+        "customer_id": "CUS-2108",
+        "amount": 66500,
+        "type": "subscription",
+        "date": "2026-06-09",
+        "status": "completed",
+        "description": "6月订阅费+席位扩充"
+      },
+      {
+        "transaction_id": "TXN-2130",
+        "customer_id": "CUS-2109",
+        "amount": 45000,
+        "type": "subscription",
+        "date": "2026-04-14",
+        "status": "completed",
+        "description": "4月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2131",
+        "customer_id": "CUS-2109",
+        "amount": 43000,
+        "type": "subscription",
+        "date": "2026-05-14",
+        "status": "completed",
+        "description": "5月订阅费（小幅回落）"
+      },
+      {
+        "transaction_id": "TXN-2132",
+        "customer_id": "CUS-2109",
+        "amount": 20000,
+        "type": "subscription",
+        "date": "2026-06-14",
+        "status": "failed",
+        "description": "6月订阅费（扣款失败）"
+      },
+      {
+        "transaction_id": "TXN-2133",
+        "customer_id": "CUS-2109",
+        "amount": 20000,
+        "type": "subscription",
+        "date": "2026-06-24",
+        "status": "completed",
+        "description": "6月补单（失败后补缴）"
+      },
+      {
+        "transaction_id": "TXN-2134",
+        "customer_id": "CUS-2110",
+        "amount": 37000,
+        "type": "subscription",
+        "date": "2026-04-20",
+        "status": "completed",
+        "description": "4月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2135",
+        "customer_id": "CUS-2110",
+        "amount": 37500,
+        "type": "subscription",
+        "date": "2026-05-20",
+        "status": "completed",
+        "description": "5月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2136",
+        "customer_id": "CUS-2110",
+        "amount": 39200,
+        "type": "subscription",
+        "date": "2026-06-20",
+        "status": "completed",
+        "description": "6月订阅费+能力扩展包"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2101",
+        "from": "zhoukevin@xinghuan.com",
+        "to": "me@company.com",
+        "subject": "关于续约条款与扩展报价的讨论（紧急）",
+        "date": "2026-06-26T10:20:00Z",
+        "body": "您好，我们希望在8月底到期前完成续约，并把新增模块的报价单同步到同一份合同附件中。请尽快给出可落地的交付排期与价格方案（包含安全审查条款）。——星环SaaS平台 采购负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "续约"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2102",
+        "from": "liang_tech@yunstack.com",
+        "to": "me@company.com",
+        "subject": "响应慢/质量不稳：请确认工单SLA（5月问题）",
+        "date": "2026-06-18T08:40:00Z",
+        "body": "我们在5月提交了3个工单，但平均响应超过48小时。多次跟进后仍有质量不稳定的情况。请你们今天前给出SLA修复计划，否则我们将要求暂停部分非关键功能并升级处理。——云栈零售电商 IT负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "投诉"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2103",
+        "from": "liang_tech@yunstack.com",
+        "to": "me@company.com",
+        "subject": "Re: 响应慢/质量不稳：我们需要加急演示",
+        "date": "2026-06-25T12:05:00Z",
+        "body": "为了止损，我们需要你们在本周安排一次加急演示，重点验证：问题复现、修复时间与质量指标。请同时给出报价口径，避免后续对账更正。——云栈零售电商 IT负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "加急"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2104",
+        "from": "bai_an@northbanklogistics.com",
+        "to": "me@company.com",
+        "subject": "升级需求：供应链可视化扩展（请求面谈）",
+        "date": "2026-05-30T09:15:00Z",
+        "body": "您好，我们希望把系统从基础监控升级到可视化与预测模块，涉及额外席位与接口对接。请安排面谈并提供下一步实施方案。——北岸物流集团 数据负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "升级"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2105",
+        "from": "bai_an@northbanklogistics.com",
+        "to": "me@company.com",
+        "subject": "关于6月部分退款的说明与补单安排",
+        "date": "2026-06-29T16:10:00Z",
+        "body": "我们收到6月部分退款通知，认为与合同口径更正相关。请给出账务说明，并确认补单已完成，避免续约时出现差额。——北岸物流集团 财务对账联系人",
+        "labels": [
+          "inbox",
+          "客户",
+          "对账"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2106",
+        "from": "qijin_ops@gezhimfg.com",
+        "to": "me@company.com",
+        "subject": "关于扣款失败与后续补缴的沟通记录",
+        "date": "2026-06-20T07:55:00Z",
+        "body": "我们在6月遇到扣款失败导致服务受影响，补缴在17号后完成。请你们记录原因（支付/发票口径），并确认后续续约不会再次触发同类问题。——格致制造IT集成 运维经理",
+        "labels": [
+          "inbox",
+          "客户",
+          "账务"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2107",
+        "from": "wangli@edu-port.edu",
+        "to": "me@company.com",
+        "subject": "升级需求：课程治理能力扩展（请给报价）",
+        "date": "2026-06-05T11:30:00Z",
+        "body": "您好，我们想在现有系统上增加课程治理模块，需要你们提供报价与实施计划。我们希望在9月到期前把升级纳入续约范围。——智港教育科技 项目经理",
+        "labels": [
+          "inbox",
+          "客户",
+          "升级"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2108",
+        "from": "public_governance@chen-qi.gov.cn",
+        "to": "me@company.com",
+        "subject": "账单更正：6月款项口径调整（需确认）",
+        "date": "2026-06-10T09:05:00Z",
+        "body": "我们这边收到了账单更正通知，涉及6月款项口径。请提供更正依据、对应凭证编号，并在续约阶段避免再出现“重复开票/差额”问题。——澄光公共治理平台 财务",
+        "labels": [
+          "inbox",
+          "客户",
+          "账单更正"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2109",
+        "from": "public_governance@chen-qi.gov.cn",
+        "to": "me@company.com",
+        "subject": "Re: 账单更正：请同步更正后的发票明细",
+        "date": "2026-06-22T13:45:00Z",
+        "body": "补充：我们需要你们同步更正后的发票明细与付款确认状态。请在今天内回复，否则我们将提交升级并冻结后续审批。——澄光公共治理平台 财务",
+        "labels": [
+          "inbox",
+          "客户",
+          "账单更正",
+          "升级"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2110",
+        "from": "media_ops@cicraft-media.cn",
+        "to": "me@company.com",
+        "subject": "加急报价请求：更多席位与智能分发扩展",
+        "date": "2026-06-08T15:25:00Z",
+        "body": "我们计划在9月到期前完成续约，并把智能分发和AI内容工具的席位扩展到新部门。请加急提供报价与交付计划。——璀璨传媒内容引擎 商务负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "加急"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2111",
+        "from": "north@shipping-wing.com",
+        "to": "me@company.com",
+        "subject": "反馈：多次响应慢，需安排SLA闭环会议",
+        "date": "2026-05-18T10:10:00Z",
+        "body": "我们对近期响应慢表示不满。请安排一场SLA闭环会议，明确处理流程、升级路径和质量指标。——海翼航运科技 IT主管",
+        "labels": [
+          "inbox",
+          "客户",
+          "投诉"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2112",
+        "from": "edu_mgr@newstep.edu",
+        "to": "me@company.com",
+        "subject": "续约前确认会议：模块追加与时间安排",
+        "date": "2026-06-30T09:40:00Z",
+        "body": "您好，我们已确认续约前会议议程：模块追加、数据迁移与上线节奏。请确认参会人员并发送会议议程与预计材料清单。——新程教育平台 项目负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "会议"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2113",
+        "from": "team@internal.company.com",
+        "to": "me@company.com",
+        "subject": "会议邀请：针对北岸物流升级需求的对齐会",
+        "date": "2026-07-02T06:50:00Z",
+        "body": "邀请你参加对齐会：讨论供应链可视化升级需求与接口范围。请提前查看附件并在会前确认风险点。——内部会议协调",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-2101",
+        "title": "2026年上半年SaaS续约与扩展：合同条款变得更敏感",
+        "summary": "企业SaaS在续约阶段更关注安全审查、计费口径一致性与交付排期；条款调整频率上升，续费延期风险增加。",
+        "tags": [
+          "软件",
+          "SaaS",
+          "续约"
+        ],
+        "url": "https://industry-insight.example.com/2101",
+        "content": "2026年上半年SaaS续约与扩展：合同条款变得更敏感。企业更关注安全审查、计费口径一致性与交付排期，导致条款调整频率上升。",
+        "category": "软件, SaaS, 续约",
+        "source": "行业观察",
+        "published_at": "2026-06-20T00:00:00Z",
+        "word_count": 62
+      },
+      {
+        "article_id": "RSS-2102",
+        "title": "零售电商Q2竞争加剧：IT预算趋于保守但对“稳定交付”要求更高",
+        "summary": "零售电商对系统稳定性和响应时效更敏感，IT预算保守时会更快触发升级与投诉流程，续约更依赖服务质量数据。",
+        "tags": [
+          "零售电商",
+          "竞争",
+          "服务质量"
+        ],
+        "url": "https://industry-insight.example.com/2102",
+        "content": "零售电商在Q2竞争加剧、预算保守背景下，对稳定交付与响应时效要求提高；服务质量差会更快引发升级与争议。",
+        "category": "零售电商, 竞争, 服务质量",
+        "source": "市场周报",
+        "published_at": "2026-06-15T00:00:00Z",
+        "word_count": 58
+      },
+      {
+        "article_id": "RSS-2103",
+        "title": "物流数字化降本：可视化与预测能力成为续约增购热点",
+        "summary": "物流企业持续投入可视化与预测模块来降本增效；Q3预计仍将加大系统扩展，能形成“可衡量价值”的客户机会更高。",
+        "tags": [
+          "物流",
+          "数字化",
+          "预测"
+        ],
+        "url": "https://industry-insight.example.com/2103",
+        "content": "物流数字化降本：可视化与预测能力成为续约增购热点。企业在Q3仍倾向扩展覆盖范围，并强调可衡量价值。",
+        "category": "物流, 数字化, 增购",
+        "source": "供应链观察",
+        "published_at": "2026-06-21T00:00:00Z",
+        "word_count": 55
+      },
+      {
+        "article_id": "RSS-2104",
+        "title": "制造业IT预算收紧：基础版留存强、降级与退订上升",
+        "summary": "制造业收紧IT预算导致续约更偏向“成本可控”，若出现服务不稳或计费争议，客户更容易降级或延后续费。",
+        "tags": [
+          "制造",
+          "预算收紧",
+          "风险"
+        ],
+        "url": "https://industry-insight.example.com/2104",
+        "content": "制造业IT预算收紧：基础版留存强、降级与退订上升。服务不稳或计费争议会放大续约风险。",
+        "category": "制造, 预算收紧, 风险",
+        "source": "产业分析",
+        "published_at": "2026-06-18T00:00:00Z",
+        "word_count": 60
+      },
+      {
+        "article_id": "RSS-2105",
+        "title": "公共部门数字化：安全合规与对账一致性成为采购红线",
+        "summary": "公共部门更严格审查账务口径与合规材料；若发生账单更正或发票争议，审批链会更快触发升级与冻结风险。",
+        "tags": [
+          "公共部门",
+          "合规",
+          "对账"
+        ],
+        "url": "https://industry-insight.example.com/2105",
+        "content": "公共部门数字化：安全合规与对账一致性成为采购红线。账单更正/发票争议会影响审批进度并触发升级。",
+        "category": "公共部门, 合规, 对账",
+        "source": "政企数字化",
+        "published_at": "2026-06-14T00:00:00Z",
+        "word_count": 57
+      },
+      {
+        "article_id": "RSS-2106",
+        "title": "传媒行业AI应用加速：内容工具扩展带来更高续费倾向",
+        "summary": "AI内容生成与智能分发成熟后，客户对“可量化效果”的续费更积极；加急报价与演示需求增加。",
+        "tags": [
+          "传媒",
+          "AI",
+          "增长"
+        ],
+        "url": "https://industry-insight.example.com/2106",
+        "content": "传媒行业AI应用加速：内容工具扩展带来更高续费倾向。可量化效果与扩展席位会提升续费概率。",
+        "category": "传媒, AI, 增长",
+        "source": "内容产业研究",
+        "published_at": "2026-06-23T00:00:00Z",
+        "word_count": 50
+      },
+      {
+        "article_id": "RSS-2107",
+        "title": "物流SLA越来越“硬”：响应时效与质量数据影响续约决策",
+        "summary": "物流客户在SLA与质量数据上更严格，响应慢会直接推动升级甚至暂停部分服务；同时，预测/可视化扩展仍是增长窗口。",
+        "tags": [
+          "物流",
+          "SLA",
+          "质量数据"
+        ],
+        "url": "https://industry-insight.example.com/2107",
+        "content": "物流SLA越来越硬：响应时效与质量数据影响续约决策。响应慢会触发升级；扩展预测/可视化仍有增长窗口。",
+        "category": "物流, SLA, 质量",
+        "source": "服务运维观察",
+        "published_at": "2026-06-26T00:00:00Z",
+        "word_count": 54
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原任务的Q1固定6客户回顾改为当前Q2过半的10客户续约预警与机会复盘，并新增财务异常（失败/退款+补单）与邮件账单更正/升级投诉场景，且联系人检索存在同名干扰需用department匹配。",
+    "fixture_design_summary": [
+      "生成10条active客户，tier覆盖4个VIP与6个standard；满意度覆盖低/中/高三段，并覆盖8月底/9月底/11月底到期节点。",
+      "finance交易覆盖Q2（4/1-6/30）分月至少2笔/客户，总体包含失败或部分退款交易，并为同一客户配套后续补单（completed）以形成“异常-补单”链路；包含至少一位合同紧迫到期但收入持续的客户。",
+      "gmail收件箱在4/1-7/15附近提供：升级/扩展请求3类、响应慢/质量不稳投诉2类、账单更正链路1类（同主题2封）；并在邮件文本中加入“紧急/升级/投诉/加急/对账/更正”等关键词。",
+      "rss提供7篇行业文章（至少3个行业维度），内容包含与SaaS续约条款、零售电商服务质量、物流数字化降本、制造预算收紧、公共部门对账合规、传媒AI扩展等相关的趋势判断词，用于与客户行业标签对应。",
+      "contacts中设置同名干扰两条“陈晨”，通过department区分为销售部与客户成功部；crm内sales_owner按部门匹配到正确联系人名，以避免检索歧义。"
+    ]
+  }
+}

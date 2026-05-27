@@ -1,0 +1,328 @@
+{
+  "task_id": "T149zh_project_progress_report_plus_3",
+  "task_name": "发布前风险快照",
+  "prompt_text": "请为3个并行项目（Atlas / Brio / Coral）生成“发布前风险快照”，mock_today 为 2026-06-03。\n\n要求：\n1) 为每个项目查找与“发布评审 / 上线准备 / 灰度评估”相关的会议（忽略与项目无关的干扰会议，如产品培训、周志同步等）。\n2) 阅读这些会议对应的纪要行动项，汇总为风险要点，并标注每条行动项的状态映射（已完成/进行中/待定/阻塞等）。\n3) 从待办中筛取“发布相关”的任务：仅统计标题包含“发布/上线/灰度/回滚/监控/验收/审批”等关键词的任务；对照状态（completed/in_progress/pending）与 due_date（是否逾期）给出“发布是否具备条件”的结论。\n4) 若发现 blocked 或已逾期的关键发布类任务，说明 blocked_by（阻塞来源）与可能影响范围。\n5) 对 due_date 在未来的 in_progress 任务：不要一概判定为“不具备发布条件”，而应明确标注为“后续完成项/需跟进”，并据此给出边界结论。\n6) 查找每项目“发布负责人”的联系方式（邮箱+电话），并在每项目末尾输出。\n\n输出格式：对每个项目分别给出：\n- 关键发布评审会议摘要\n- 纪要行动项风险要点\n- 待办发布相关任务完成与阻塞情况\n- 发布是否具备条件（具备/不具备/不可验证，并说明原因）\n- 发布负责人联系方式（邮箱+电话）",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_atl_701",
+        "title": "Atlas 发布评审会（上线准备）",
+        "start_time": "2026-05-20T09:30:00+08:00",
+        "end_time": "2026-05-20T11:00:00+08:00",
+        "location": "会议室D",
+        "organizer": "周欣",
+        "attendees": [
+          "周欣",
+          "许博",
+          "王敏"
+        ],
+        "description": "Atlas 发布评审结论与灰度评估要点，关联纪要 NOTE-atl-701",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_atl_702",
+        "title": "Atlas 灰度评估会（回滚演练复盘）",
+        "start_time": "2026-05-27T14:00:00+08:00",
+        "end_time": "2026-05-27T15:30:00+08:00",
+        "location": "会议室D",
+        "organizer": "周欣",
+        "attendees": [
+          "周欣",
+          "许博"
+        ],
+        "description": "回滚脚本与审批链路复核，关联纪要 NOTE-atl-702",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_atl_900",
+        "title": "产品培训：新版本功能讲解（干扰）",
+        "start_time": "2026-05-23T10:00:00+08:00",
+        "end_time": "2026-05-23T11:00:00+08:00",
+        "location": "线上会议",
+        "organizer": "培训团队",
+        "attendees": [
+          "全体产品相关"
+        ],
+        "description": "仅产品培训，与发布评审无关",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_bri_703",
+        "title": "Brio 发布评审/上线准备（阶段复盘）",
+        "start_time": "2026-05-25T16:00:00+08:00",
+        "end_time": "2026-05-25T17:00:00+08:00",
+        "location": "会议室E",
+        "organizer": "蔡宁",
+        "attendees": [
+          "蔡宁",
+          "刘航"
+        ],
+        "description": "Brio 发布评审计划与上线准备清单（注意：暂未形成对应纪要）",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_bri_704",
+        "title": "Brio 灰度评估会（数据校验讨论）",
+        "start_time": "2026-05-31T09:00:00+08:00",
+        "end_time": "2026-05-31T10:30:00+08:00",
+        "location": "会议室E",
+        "organizer": "蔡宁",
+        "attendees": [
+          "蔡宁",
+          "刘航",
+          "沈静"
+        ],
+        "description": "灰度评估需要可验证依据（纪要缺失/待补齐）",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_bri_901",
+        "title": "周志同步会（干扰）",
+        "start_time": "2026-05-28T09:30:00+08:00",
+        "end_time": "2026-05-28T10:00:00+08:00",
+        "location": "会议室F",
+        "organizer": "运营",
+        "attendees": [
+          "各团队值班"
+        ],
+        "description": "周志同步，与发布评审无直接关联",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_cor_705",
+        "title": "Coral 发布评审会（灰度评估）",
+        "start_time": "2026-05-22T13:30:00+08:00",
+        "end_time": "2026-05-22T15:00:00+08:00",
+        "location": "会议室G",
+        "organizer": "陈澜",
+        "attendees": [
+          "陈澜",
+          "郑凯",
+          "姚珂"
+        ],
+        "description": "发布是否可进入灰度与验收边界确认，关联纪要 NOTE-cor-705",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_cor_706",
+        "title": "Coral 上线准备验收会",
+        "start_time": "2026-05-30T10:30:00+08:00",
+        "end_time": "2026-05-30T12:00:00+08:00",
+        "location": "会议室G",
+        "organizer": "陈澜",
+        "attendees": [
+          "陈澜",
+          "郑凯"
+        ],
+        "description": "验收清单与监控策略确认，关联纪要 NOTE-cor-706",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_company_902",
+        "title": "公司例会（干扰）",
+        "start_time": "2026-05-26T11:00:00+08:00",
+        "end_time": "2026-05-26T12:00:00+08:00",
+        "location": "大会议室",
+        "organizer": "CEO办公室",
+        "attendees": [
+          "全员"
+        ],
+        "description": "公司动态通报",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-ATL-801",
+        "name": "沈致远",
+        "email": "shenyuan@company.com",
+        "phone": "13911002233",
+        "department": "发布与交付部",
+        "title": "发布负责人",
+        "responsibilities": [
+          "Atlas 发布审批链路跟进",
+          "Atlas 灰度与回滚策略确认"
+        ]
+      },
+      {
+        "contact_id": "CON-BRI-802",
+        "name": "程思远",
+        "email": "chengsyi@company.com",
+        "phone": "13911004455",
+        "department": "发布与交付部",
+        "title": "发布负责人",
+        "responsibilities": [
+          "Brio 上线准备推进",
+          "Brio 评审纪要补齐对齐"
+        ]
+      },
+      {
+        "contact_id": "CON-COR-803",
+        "name": "韩若岚",
+        "email": "hanruolan@company.com",
+        "phone": "13911006677",
+        "department": "发布与交付部",
+        "title": "发布负责人",
+        "responsibilities": [
+          "Coral 验收与灰度放行",
+          "Coral 监控策略落地"
+        ]
+      },
+      {
+        "contact_id": "CON-904",
+        "name": "林琛",
+        "email": "linchen@company.com",
+        "phone": "13911009901",
+        "department": "安全合规部",
+        "title": "安全审批",
+        "responsibilities": [
+          "审批发布回滚脚本安全性"
+        ]
+      },
+      {
+        "contact_id": "CON-905",
+        "name": "郭薇",
+        "email": "guowei@company.com",
+        "phone": "13911009902",
+        "department": "SRE团队",
+        "title": "SRE",
+        "responsibilities": [
+          "监控告警规则与灰度护栏"
+        ]
+      },
+      {
+        "contact_id": "CON-906",
+        "name": "周皓",
+        "email": "zhouhao@company.com",
+        "phone": "13911009903",
+        "department": "后端团队",
+        "title": "后端负责人",
+        "responsibilities": [
+          "Atlas/Brio 部署包与回滚脚本"
+        ]
+      },
+      {
+        "contact_id": "CON-907",
+        "name": "刘静",
+        "email": "liujing@company.com",
+        "phone": "13911009904",
+        "department": "产品团队",
+        "title": "产品负责人",
+        "responsibilities": [
+          "发布评审需求与验收边界"
+        ]
+      },
+      {
+        "contact_id": "CON-908",
+        "name": "曹宁",
+        "email": "caoning@company.com",
+        "phone": "13911009905",
+        "department": "质量团队",
+        "title": "测试负责人",
+        "responsibilities": [
+          "灰度验证用例与验收"
+        ]
+      },
+      {
+        "contact_id": "CON-909",
+        "name": "邓旭",
+        "email": "dengxu@company.com",
+        "phone": "13911009906",
+        "department": "运维团队",
+        "title": "运维支持",
+        "responsibilities": [
+          "部署环境与发布窗口"
+        ]
+      },
+      {
+        "contact_id": "CON-910",
+        "name": "童霁",
+        "email": "tongji@company.com",
+        "phone": "13911009907",
+        "department": "数据平台",
+        "title": "数据对齐负责人",
+        "responsibilities": [
+          "灰度评估数据指标口径"
+        ]
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "NOTE-atl-701",
+        "title": "Atlas 发布评审纪要（5/20）",
+        "content": "## Atlas 发布评审\n\n### 参会人员\n沈致远（发布负责人）、周皓（后端负责人）、林琛（安全审批）\n\n### 会议结论\n发布评审通过“进入灰度窗口”的前置条件，但回滚演练脚本的安全审批未完成，需将其视为关键阻塞项。\n\n### 行动项\n1. 【沈致远】提交回滚脚本安全审批材料，截止2026-05-24 → 待提交（当前缺少材料清单）\n2. 【林琛】完成回滚脚本安全评估，截止2026-05-26 → 阻塞（Blocked：流程未通过预审）\n3. 【周皓】更新灰度发布参数与验证口径，截止2026-05-28 → 已完成 ✓\n4. 【沈致远】同步上线验收清单到测试侧，截止2026-05-29 → 进行中（等待最终审批）",
+        "participants": [
+          "沈致远",
+          "周皓",
+          "林琛"
+        ],
+        "tags": [
+          "Atlas",
+          "发布评审",
+          "上线准备"
+        ],
+        "created_at": "2026-05-20T01:30:00Z",
+        "duration_minutes": 90
+      },
+      {
+        "note_id": "NOTE-atl-702",
+        "title": "Atlas 灰度评估与回滚演练纪要（5/27）",
+        "content": "## Atlas 灰度评估与回滚演练\n\n### 参会人员\n沈致远（发布负责人）、周皓（后端负责人）\n\n### 会议结论\n灰度演练结果符合预期；但由于安全审批未通过，回滚脚本无法作为“可执行回退方案”放行。\n\n### 行动项\n1. 【周皓】交付回滚脚本可执行版本，截止2026-05-29 → pending（依赖安全审批）\n2. 【沈致远】确认发布窗口前置条件（回滚方案可验证性），截止2026-05-30 → 进行中（阻塞原因：安全审批）\n3. 【周皓】补齐监控指标映射（回滚后指标护栏），截止2026-05-30 → 已完成 ✓\n5. 【沈致远】将“回滚脚本审批未完成”写入风险台账并上报，截止2026-05-31 → 已完成 ✓",
+        "participants": [
+          "沈致远",
+          "周皓"
+        ],
+        "tags": [
+          "Atlas",
+          "灰度评估",
+          "回滚"
+        ],
+        "created_at": "2026-05-27T06:00:00Z",
+        "duration_minutes": 90
+      },
+      {
+        "note_id": "NOTE-cor-705",
+        "title": "Coral 发布评审纪要（5/22）",
+        "content": "## Coral 发布评审\n\n### 参会人员\n韩若岚（发布负责人）、姚珂（测试负责人）、郑凯（后端负责人）\n\n### 会议结论\n满足进入灰度条件，验收口径与监控策略已明确；后续需按计划完成后续监控告警规则调整，不影响当前放行。\n\n### 行动项\n1. 【韩若岚】完成灰度放行申请单（含验收边界），截止2026-05-24 → 已完成 ✓\n2. 【郑凯】准备发布包并完成回归检查，截止2026-05-25 → 已完成 ✓\n3. 【姚珂】灰度验证用例执行并出具结果，截止2026-05-28 → 已完成 ✓",
+        "participants": [
+          "韩若岚",
+          "姚珂",
+          "郑凯"
+        ],
+        "tags": [
+          "Coral",
+          "发布评审",
+          "灰度评估"
+        ],
+        "created_at": "2026-05-22T05:30:00Z",
+        "duration_minutes": 90
+      },
+      {
+        "note_id": "NOTE-cor-706",
+        "title": "Coral 上线准备验收纪要（5/30）",
+        "content": "## Coral 上线准备与验收\n\n### 参会人员\n韩若岚（发布负责人）、郭薇（SRE）、郑凯（后端负责人）\n\n### 会议结论\n验收清单全部满足，监控告警规则将按后续回归计划更新；该项不作为当前“发布是否具备条件”的否决项。\n\n### 行动项\n1. 【郭薇】上线监控告警规则v2（计划内更新），截止2026-06-12 → 待完成（后续项）\n2. 【郑凯】回滚演练按计划执行并记录结果，截止2026-05-31 → 已完成 ✓\n3. 【韩若岚】提交最终验收报告到变更系统，截止2026-06-01 → 已完成 ✓",
+        "participants": [
+          "韩若岚",
+          "郭薇",
+          "郑凯"
+        ],
+        "tags": [
+          "Coral",
+          "上线准备",
+          "验收"
+        ],
+        "created_at": "2026-05-30T02:30:00Z",
+        "duration_minutes": 90
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "从通用进度汇报改为发布前风险快照，并新增“发布相关关键词筛选待办/缺纪要不可验证/未来due_date边界表述/blocked阻塞影响说明”的判断重点。",
+    "fixture_design_summary": [
+      "calendar/events.json：为Atlas/Brio/Coral分别放入发布评审/上线准备/灰度评估相关事件，并加入产品培训与周志同步等干扰会议。",
+      "notes/meetings.json：仅提供Atlas与Coral的发布关键纪要；Brio相关会议不提供匹配纪要（用“无纪要”情境支撑不可验证判断）。",
+      "todo/tasks.json：Atlas包含发布/回滚/审批类pending且blocked_by为“安全审批流程未通过”；Brio包含多条in_progress但无blocked_by，且不存在“发布关键纪要可验证性”依据；Coral的关键验收/回滚均完成，同时放入未来due_date的“监控告警规则”in_progress作为后续跟进项。",
+      "contacts/contacts.json：三项目发布负责人（沈致远/程思远/韩若岚）邮箱与电话唯一可检索，并额外补充安全/SRE/后端等联系人以支撑跨服务引用。"
+    ]
+  }
+}

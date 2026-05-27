@@ -1,0 +1,384 @@
+{
+  "task_id": "T143zh_quarterly_business_insight_plus_1",
+  "task_name": "Q2续约与回款风险雷达",
+  "prompt_text": "Q1已结束，请基于财务交易回款质量、CRM合同状态与行业RSS动态，输出一份“Q2续约与回款风险雷达”。\n\n要求：\n1）从财务系统拉取Q1交易（按客户汇总），计算每个客户“成功回款金额（completed）”与“失败/退款金额（failed/refunded）”，并给出失败/退款占比，用于判断Q1回款质量趋势。\n2）查看CRM中客户的合同状态与分层信息（如续约谈判、争议处理、降级、到期时间等），识别Q2延期或流失风险客户。\n3）浏览RSS订阅源，提取与各客户行业相关、且与“监管收紧/行业需求波动/成本上升”相关的新闻点。\n4）综合输出：给出Q2最需要优先跟进的Top 3客户（包含：数据证据=回款失败/退款比例与交易异常趋势；CRM证据=合同状态/到期/争议或降级；行业证据=RSS新闻点与归因结论），并说明哪些客户更可能按计划续约。\n5）给出一份可落地的跟进清单（包含跟进频率与沟通重点），确保动作与上述证据能对应落地。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-211",
+        "name": "云栈支付",
+        "tier": "enterprise",
+        "status": "active_pending",
+        "industry": "金融科技",
+        "annual_revenue": 1320000,
+        "contract_end": "2026-06-20",
+        "notes": "续约谈判中；近期出现争议工单：对账差异与退款条款分歧，关键联系人反馈“等待监管口径”",
+        "contact_person": "li.wang@yunstack.example"
+      },
+      {
+        "customer_id": "CUS-212",
+        "name": "澄川医疗器械",
+        "tier": "vip",
+        "status": "active",
+        "industry": "医疗器械",
+        "annual_revenue": 980000,
+        "contract_end": "2026-08-05",
+        "notes": "计划续约、但扩量取决于合规审核；当前未出现争议，回款表现稳定",
+        "contact_person": "chen.yan@chengchuan.example"
+      },
+      {
+        "customer_id": "CUS-213",
+        "name": "北星物流科技",
+        "tier": "standard",
+        "status": "active",
+        "industry": "物流地产",
+        "annual_revenue": 560000,
+        "contract_end": "2026-07-15",
+        "notes": "合同正常；运营侧反馈供应链成本上升，可能延后部分批量采购，但目前无争议状态",
+        "contact_person": "zhao.qi@beixinglog.example"
+      },
+      {
+        "customer_id": "CUS-214",
+        "name": "星港制造服务",
+        "tier": "enterprise",
+        "status": "active",
+        "industry": "工业制造",
+        "annual_revenue": 1470000,
+        "contract_end": "2026-05-30",
+        "notes": "到期在即；因预算收紧出现“降级讨论”（从企业版回到标准版）但仍在推进续约",
+        "contact_person": "sun.hao@xinggangmfg.example"
+      },
+      {
+        "customer_id": "CUS-215",
+        "name": "栖谷供应链平台",
+        "tier": "standard",
+        "status": "active_pending",
+        "industry": "供应链平台",
+        "annual_revenue": 410000,
+        "contract_end": "2026-09-10",
+        "notes": "争议处理阶段：部分发票与交付里程碑对不上；承诺将在Q2完成对账后继续采购",
+        "contact_person": "wu.rui@qigu-scm.example"
+      },
+      {
+        "customer_id": "CUS-216",
+        "name": "朝露传媒代理",
+        "tier": "vip",
+        "status": "active",
+        "industry": "传媒广告",
+        "annual_revenue": 720000,
+        "contract_end": "2026-11-25",
+        "notes": "续约节奏快、无争议；但营销预算波动会影响扩量，需关注需求端节拍",
+        "contact_person": "tang.ling@chaoluads.example"
+      },
+      {
+        "customer_id": "CUS-217",
+        "name": "极光教育云",
+        "tier": "standard",
+        "status": "churned",
+        "industry": "教育科技",
+        "annual_revenue": 0,
+        "contract_end": "2026-02-10",
+        "notes": "已流失：与新财政拨付节奏冲突导致项目暂停；虽曾有交易，但后续退款为主",
+        "contact_person": "liang.qi@jiguangedu.example"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-3101",
+        "customer_id": "CUS-211",
+        "amount": 180000,
+        "type": "subscription",
+        "date": "2026-01-18",
+        "status": "completed",
+        "description": "1月订阅费+风控模块"
+      },
+      {
+        "transaction_id": "TXN-3102",
+        "customer_id": "CUS-211",
+        "amount": 165000,
+        "type": "subscription",
+        "date": "2026-02-17",
+        "status": "refunded",
+        "description": "2月订阅费退款（对账差异）"
+      },
+      {
+        "transaction_id": "TXN-3103",
+        "customer_id": "CUS-211",
+        "amount": 172000,
+        "type": "one_time",
+        "date": "2026-03-12",
+        "status": "failed",
+        "description": "合规接口一次性费失败（支付通道风控）"
+      },
+      {
+        "transaction_id": "TXN-3104",
+        "customer_id": "CUS-212",
+        "amount": 82000,
+        "type": "subscription",
+        "date": "2026-01-09",
+        "status": "completed",
+        "description": "1月订阅费"
+      },
+      {
+        "transaction_id": "TXN-3105",
+        "customer_id": "CUS-212",
+        "amount": 83000,
+        "type": "subscription",
+        "date": "2026-02-09",
+        "status": "completed",
+        "description": "2月订阅费（合规材料齐备）"
+      },
+      {
+        "transaction_id": "TXN-3106",
+        "customer_id": "CUS-212",
+        "amount": 84000,
+        "type": "one_time",
+        "date": "2026-03-08",
+        "status": "completed",
+        "description": "3月一次性校验服务"
+      },
+      {
+        "transaction_id": "TXN-3107",
+        "customer_id": "CUS-213",
+        "amount": 62000,
+        "type": "subscription",
+        "date": "2026-01-22",
+        "status": "completed",
+        "description": "1月订阅费"
+      },
+      {
+        "transaction_id": "TXN-3108",
+        "customer_id": "CUS-213",
+        "amount": 60000,
+        "type": "subscription",
+        "date": "2026-02-21",
+        "status": "failed",
+        "description": "2月订阅费失败（供应链成本上升导致付款延后）"
+      },
+      {
+        "transaction_id": "TXN-3109",
+        "customer_id": "CUS-213",
+        "amount": 60500,
+        "type": "one_time",
+        "date": "2026-03-19",
+        "status": "completed",
+        "description": "3月交付验收一次性费"
+      },
+      {
+        "transaction_id": "TXN-3110",
+        "customer_id": "CUS-214",
+        "amount": 95000,
+        "type": "subscription",
+        "date": "2026-01-14",
+        "status": "completed",
+        "description": "1月订阅费（企业版）"
+      },
+      {
+        "transaction_id": "TXN-3111",
+        "customer_id": "CUS-214",
+        "amount": 94000,
+        "type": "subscription",
+        "date": "2026-02-14",
+        "status": "refunded",
+        "description": "2月订阅费退款（预算调整/降级讨论）"
+      },
+      {
+        "transaction_id": "TXN-3112",
+        "customer_id": "CUS-214",
+        "amount": 97000,
+        "type": "one_time",
+        "date": "2026-03-16",
+        "status": "failed",
+        "description": "3月迁移项目一次性费失败（审批未通过）"
+      },
+      {
+        "transaction_id": "TXN-3113",
+        "customer_id": "CUS-215",
+        "amount": 43000,
+        "type": "subscription",
+        "date": "2026-01-30",
+        "status": "completed",
+        "description": "1月订阅费"
+      },
+      {
+        "transaction_id": "TXN-3114",
+        "customer_id": "CUS-215",
+        "amount": 45000,
+        "type": "subscription",
+        "date": "2026-02-28",
+        "status": "refunded",
+        "description": "2月订阅费退款（里程碑对不上）"
+      },
+      {
+        "transaction_id": "TXN-3115",
+        "customer_id": "CUS-215",
+        "amount": 47000,
+        "type": "one_time",
+        "date": "2026-03-26",
+        "status": "failed",
+        "description": "3月对账服务一次性费失败（争议未结）"
+      },
+      {
+        "transaction_id": "TXN-3116",
+        "customer_id": "CUS-216",
+        "amount": 68000,
+        "type": "subscription",
+        "date": "2026-01-11",
+        "status": "completed",
+        "description": "1月订阅费"
+      },
+      {
+        "transaction_id": "TXN-3117",
+        "customer_id": "CUS-216",
+        "amount": 69000,
+        "type": "subscription",
+        "date": "2026-02-11",
+        "status": "completed",
+        "description": "2月订阅费（AI素材投放增强）"
+      },
+      {
+        "transaction_id": "TXN-3118",
+        "customer_id": "CUS-216",
+        "amount": 71000,
+        "type": "one_time",
+        "date": "2026-03-14",
+        "status": "completed",
+        "description": "3月一次性增长分析服务"
+      },
+      {
+        "transaction_id": "TXN-3119",
+        "customer_id": "CUS-217",
+        "amount": 52000,
+        "type": "subscription",
+        "date": "2026-01-08",
+        "status": "completed",
+        "description": "1月订阅费"
+      },
+      {
+        "transaction_id": "TXN-3120",
+        "customer_id": "CUS-217",
+        "amount": 48000,
+        "type": "subscription",
+        "date": "2026-02-08",
+        "status": "refunded",
+        "description": "2月订阅费退款（项目暂停）"
+      },
+      {
+        "transaction_id": "TXN-3121",
+        "customer_id": "CUS-217",
+        "amount": 50000,
+        "type": "one_time",
+        "date": "2026-03-08",
+        "status": "refunded",
+        "description": "3月一次性培训费退款（拨付延迟）"
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-2101",
+        "title": "金融科技监管口径收紧：退款与对账将更严格",
+        "summary": "监管强调对账一致性与退款追溯要求提高，预计将影响支付系统的风控拦截与退款处理流程。",
+        "tags": [
+          "金融科技",
+          "监管收紧",
+          "对账"
+        ],
+        "url": "https://fin-reg.example.com/a/2101",
+        "content": "新规要求提升跨渠道对账一致性，并对退款追溯设置更严格的审核阈值。支付机构需在对账差异出现时更快完成解释与补充材料，否则交易可能被风控拦截或触发退款。",
+        "category": "金融科技, 监管, 合规",
+        "source": "合规前沿简报",
+        "published_at": "2026-03-11T00:00:00Z",
+        "word_count": 73
+      },
+      {
+        "article_id": "RSS-2102",
+        "title": "教育科技预算拨付节奏变慢：项目暂停风险上升",
+        "summary": "部分地区财政拨付延后，教育科技客户在Q1末出现项目暂停与退款集中，预计短期回款承压。",
+        "tags": [
+          "教育科技",
+          "预算波动",
+          "回款"
+        ],
+        "url": "https://edu-budget.example.com/a/2102",
+        "content": "受财政拨付节奏调整影响，教育科技客户的采购与项目启动推迟。Q1末出现退款集中现象，后续订单将更依赖新的审批与拨付节点。",
+        "category": "教育科技, 财政预算",
+        "source": "行业观察站",
+        "published_at": "2026-03-17T00:00:00Z",
+        "word_count": 61
+      },
+      {
+        "article_id": "RSS-2103",
+        "title": "制造与工业企业IT预算再缩：企业更倾向降配续约",
+        "summary": "供应链成本上升叠加需求放缓，工业制造客户倾向将续约从高配降到标准档以控制现金流。",
+        "tags": [
+          "工业制造",
+          "成本上升",
+          "预算收紧"
+        ],
+        "url": "https://industry-cost.example.com/a/2103",
+        "content": "多家工业制造企业表示为应对供应链成本上升，将对IT支出做更强的现金流约束；在续约上更倾向降配以降低当期支出，并将部分迁移项目推迟到下个预算周期。",
+        "category": "工业制造, 预算, 成本",
+        "source": "制造业财务快讯",
+        "published_at": "2026-03-13T00:00:00Z",
+        "word_count": 79
+      },
+      {
+        "article_id": "RSS-2104",
+        "title": "供应链平台需求波动：交付里程碑对齐成为关键",
+        "summary": "行业客户更加关注交付里程碑与验收口径的一致性，若对齐失败更容易引发争议并推迟付款。",
+        "tags": [
+          "供应链平台",
+          "需求波动",
+          "里程碑"
+        ],
+        "url": "https://scm-news.example.com/a/2104",
+        "content": "随着需求波动加剧，供应链平台客户在验收环节强化对里程碑交付口径的校验。对齐失败可能导致争议处理周期延长，从而推迟付款并提高退款发生概率。",
+        "category": "供应链, 交付, 需求",
+        "source": "供应链数据周刊",
+        "published_at": "2026-03-21T00:00:00Z",
+        "word_count": 70
+      },
+      {
+        "article_id": "RSS-2105",
+        "title": "医疗器械合规推进加速：虽然监管趋严，但回款相对稳定",
+        "summary": "医疗器械合规推进带来更多资料要求，但通过合规审核的项目回款周期更可预测。",
+        "tags": [
+          "医疗器械",
+          "监管收紧",
+          "合规"
+        ],
+        "url": "https://med-compliance.example.com/a/2105",
+        "content": "行业呈现监管趋严与合规加速并行：企业在完成合规审核后采购与付款更按计划执行。未通过审核的项目可能延后，但已通过的客户资金回笼更稳定。",
+        "category": "医疗器械, 合规",
+        "source": "医械政策速递",
+        "published_at": "2026-03-09T00:00:00Z",
+        "word_count": 68
+      },
+      {
+        "article_id": "RSS-2106",
+        "title": "传媒广告行业AI降本增效：需求端短期波动但未影响稳定续约",
+        "summary": "AI工具带来降本增效，但广告主预算会随市场波动调整；不过续约节奏相对稳定。",
+        "tags": [
+          "传媒广告",
+          "需求波动",
+          "AI"
+        ],
+        "url": "https://media-ai.example.com/a/2106",
+        "content": "Q1期间传媒广告客户普遍采用AI素材与投放优化来降低成本，尽管广告预算存在阶段性波动，但对既有平台的续约仍保持相对稳定，主要体现在扩量投入而非基本订阅。",
+        "category": "传媒, AI, 需求",
+        "source": "市场动态周刊",
+        "published_at": "2026-03-23T00:00:00Z",
+        "word_count": 64
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的“收入趋势与Q2预测”改为以“回款质量（失败/退款比例）+CRM合同状态（争议/降级/临近到期）+行业RSS归因”来定位Q2 Top3续约风险客户并给出跟进清单。",
+    "fixture_design_summary": [
+      "finance：覆盖Q1三个月，至少5个客户包含failed或refunded，并加入“高金额但回款质量差”的干扰（如CUS-211）。",
+      "crm：7个客户覆盖active、active_pending、churned，并通过notes提供争议/降级/续约谈判与到期信号。",
+      "rss：6篇文章覆盖金融科技、医疗器械、工业制造、供应链平台、教育科技、传媒广告，分别提供监管收紧/成本上升/需求波动等可用于归因的内容；同时确保至少一行业负面信号但回款质量好（如医疗器械CUS-212）。",
+      "跨库引用：所有customer_id与对应RSS行业归属在分析时可对齐；finance中的CUS-211/CUS-214/CUS-215等与CRM状态形成三方证据链。"
+    ]
+  }
+}

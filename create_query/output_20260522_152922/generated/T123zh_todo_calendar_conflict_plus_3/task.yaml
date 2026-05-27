@@ -1,0 +1,97 @@
+task_id: T123zh_todo_calendar_conflict_plus_3
+task_name: 候选会议可替换冲突
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T123zh_todo_calendar_conflict_plus_3/fixtures/todo/tasks.json
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: create_query/output_20260522_152922/generated/T123zh_todo_calendar_conflict_plus_3/fixtures/calendar/events.json
+prompt:
+  text: "请判断我的待办事项和日历安排是否冲突，并区分“硬冲突/软冲突”，给出两套建议并输出最终推荐方案。\n\n要求：\n1) 先列出所有 pending\
+    \ 待办及其截止日期。\n2) 再查询日历覆盖 1/19-1/21 的事件，并获取事件描述。\n3) 若事件描述明确包含“不可改期”（例如：confirmed\
+    \ 且含‘不可改期/确认后不可随意调整’等），则判为硬冲突：相关 due_date 的高优先级待办需要必须重排（前置到更早可用时段），并给出必须重排方案。\n\
+    4) 若事件描述明确包含“可改期/可联系对方调整”（例如：可联系对方调整、可能申请改期等），则判为软冲突：对相关待办给出两套方案并标注前提：\n   - 方案A：不改期的重排（把待办拆到不可占用的上午/下午可用时段）\n\
+    \   - 方案B：申请改期后的替代安排（给出更集中、更理想的完成时间）\n5) 若某个待办因 tags/描述表达“跟随型”，即使其与占用时间重叠，也不要把它作为硬冲突主线；只允许在最终推荐方案后给出次要插入/延后建议。\n\
+    6) 最终输出：对每个冲突待办写明冲突原因、冲突分类（硬/软/跟随型软处理）、并给出包含具体日期与上午/下午拆分的最终推荐方案（同时给出软冲突两套方案）。"
+  language: zh
+tools:
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: pending
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+tool_endpoints:
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+environment:
+  mock_today: '2026-03-27'
+  timeout_seconds: 300
+  max_turns: 20

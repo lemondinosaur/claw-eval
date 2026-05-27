@@ -1,0 +1,289 @@
+{
+  "task_id": "T147zh_system_health_check_plus_4",
+  "task_name": "消息队列积压与通知重试巡检",
+  "prompt_text": "请帮我做一次“消息队列积压与通知重试”系统健康巡检：\n1）检查集成配置，特别是与消息分发、通知发送相关的集成；识别error_rate上升、连接抖动、参数异常等信号。\n2）检查定时任务，重点关注消息消费、通知重试、死信（DLQ）处理类任务；提取失败次数、first_failure、错误信息（如消费游标过期）以及是否出现延迟。\n3）查看当前未解决工单，按现象筛出：通知延迟、通知重复、通知丢失（但需先判断证据是否足够）。\n4）在知识库中搜索与“消息队列积压、重试幂等、DLQ处理、消费游标恢复/重置、重试窗口与退避调整、限流/速率调整”相关的解决方案。\n5）输出系统健康报告：\n- 必须区分根因并给出不同建议：A类“积压导致延迟”与B类“重试策略导致重复”要分别对应到集成异常与任务异常/工单现象；\n- 对“丢失”若证据不足需明确写为“不足以确认链路”，同时仍给出核对DLQ、消费游标与失败重放的具体排查/止血建议；\n- 每条建议都要能对应到知识库条目，并给出验证方式；巡检阶段不要关闭工单。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-2101",
+        "name": "MQ消息分发（通知通道）",
+        "status": "active",
+        "config": {
+          "broker": "mq-nyc.internal:5672",
+          "vhost": "/notify-prod",
+          "prefetch_count": 25,
+          "heartbeat_seconds": 10
+        },
+        "error_rate": 0.19,
+        "description": "承载通知事件的异步分发与路由到通知消费器",
+        "service": "mq",
+        "last_verified": "2026-04-18",
+        "monthly_calls": 0,
+        "last_error_message": "连接抖动导致确认（ack）延迟：channel close (code=406)"
+      },
+      {
+        "integration_id": "INT-2102",
+        "name": "通知发送网关",
+        "status": "error",
+        "config": {
+          "endpoint": "https://notify-gw.internal/api/v3",
+          "timeout_ms": 3500,
+          "retry_count": 2
+        },
+        "error_rate": 0.62,
+        "description": "将通知事件转换为邮件/站内信/短信的发送请求",
+        "service": "notify",
+        "last_verified": "2026-04-17",
+        "monthly_calls": 0,
+        "last_error_message": "网关返回502，触发上游限流：upstream response 502 Bad Gateway"
+      },
+      {
+        "integration_id": "INT-2103",
+        "name": "幂等去重存储",
+        "status": "active",
+        "config": {
+          "type": "redis",
+          "host": "idempotency-cache.internal",
+          "port": 6379,
+          "key_prefix": "idem:notify:",
+          "ttl_seconds": 900
+        },
+        "error_rate": 0.04,
+        "description": "对通知批次与事件进行幂等校验，避免重复投递",
+        "service": "idempotency",
+        "last_verified": "2026-04-22",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-2104",
+        "name": "死信队列DLQ转储",
+        "status": "active",
+        "config": {
+          "broker": "mq-nyc.internal:5672",
+          "vhost": "/notify-prod",
+          "dlq_exchange": "dlx.notify",
+          "max_redeliveries": 5
+        },
+        "error_rate": 0.02,
+        "description": "将不可消费消息转入DLQ并供清理/重放任务处理",
+        "service": "mq",
+        "last_verified": "2026-04-20",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-2105",
+        "name": "归档日志上报",
+        "status": "active",
+        "config": {
+          "endpoint": "https://log-ingest.internal/collect",
+          "buffer_size": 800,
+          "flush_interval_seconds": 3
+        },
+        "error_rate": 0.008,
+        "description": "通知链路审计日志上报（用于定位丢失批次）",
+        "service": "logging",
+        "last_verified": "2026-04-21",
+        "monthly_calls": 0
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2201",
+        "subject": "通知延迟显著：审批结果到达滞后",
+        "customer_id": "CUS-2201",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-19T10:12:00",
+        "assigned_to": "周楠",
+        "category": "通知延迟",
+        "title": "通知延迟显著：审批结果到达滞后",
+        "reporter": "周楠",
+        "department": "业务协同",
+        "description": "从4月18日开始，审批通过/驳回通知平均延迟从30秒上升到8-12分钟；同一批次多次提交后仍集中延迟。"
+      },
+      {
+        "ticket_id": "TK-2202",
+        "subject": "通知延迟：短信触达时间漂移",
+        "customer_id": "CUS-2202",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-20T08:40:00",
+        "assigned_to": "程涵",
+        "category": "通知延迟",
+        "title": "通知延迟：短信触达时间漂移",
+        "reporter": "程涵",
+        "department": "客户运营",
+        "description": "部分短信通知在队列消费后延迟2-5分钟才到达终端；高峰期更明显。未观察到重复发送。"
+      },
+      {
+        "ticket_id": "TK-2203",
+        "subject": "通知延迟：站内信批量堆积",
+        "customer_id": "CUS-2203",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-21T14:05:00",
+        "assigned_to": "邓敏",
+        "category": "通知延迟",
+        "title": "通知延迟：站内信批量堆积",
+        "reporter": "邓敏",
+        "department": "产品体验",
+        "description": "站内信在多个租户间出现批量延迟，表现为同一时间段产生的消息在不同分钟段陆续到达。系统未做手工重试操作。"
+      },
+      {
+        "ticket_id": "TK-2204",
+        "subject": "通知延迟：邮件投递时间拉长",
+        "customer_id": "CUS-2204",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-22T09:20:00",
+        "assigned_to": "高扬",
+        "category": "通知延迟",
+        "title": "通知延迟：邮件投递时间拉长",
+        "reporter": "高扬",
+        "department": "财务共享",
+        "description": "邮件通知从以往的1分钟内送达变为3-7分钟不等；查看发送网关日志有间歇性5xx。"
+      },
+      {
+        "ticket_id": "TK-2205",
+        "subject": "部分通知重复发送（站内信）",
+        "customer_id": "CUS-2205",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-20T18:15:00",
+        "assigned_to": "宋可",
+        "category": "通知重复",
+        "title": "部分通知重复发送（站内信）",
+        "reporter": "宋可",
+        "department": "业务协同",
+        "description": "同一工单事件触发的站内信出现重复，重复次数多为2次；疑似重试窗口导致。"
+      },
+      {
+        "ticket_id": "TK-2206",
+        "subject": "通知重复：短信触达同事件多次",
+        "customer_id": "CUS-2206",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-21T11:30:00",
+        "assigned_to": "刘岚",
+        "category": "通知重复",
+        "title": "通知重复：短信触达同事件多次",
+        "reporter": "刘岚",
+        "department": "客户运营",
+        "description": "高峰期个别手机号收到同一通知短信两次，时间间隔约为1-3分钟；确认未被人工重复触发。"
+      },
+      {
+        "ticket_id": "TK-2207",
+        "subject": "极少数通知丢失：无法定位具体批次",
+        "customer_id": "CUS-2207",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-22T16:55:00",
+        "assigned_to": "王彬",
+        "category": "通知丢失",
+        "title": "极少数通知丢失：无法定位具体批次",
+        "reporter": "王彬",
+        "department": "平台运维",
+        "description": "少量事件产生的通知在用户侧未收到；目前日志/审计链路只能看到部分事件进入队列，无法对齐消费批次或DLQ痕迹。"
+      },
+      {
+        "ticket_id": "TK-2208",
+        "subject": "登录慢（干扰工单）",
+        "customer_id": "CUS-2208",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-19T07:05:00",
+        "assigned_to": "陈祎",
+        "category": "性能",
+        "title": "登录慢（干扰工单）",
+        "reporter": "陈祎",
+        "department": "安全与身份",
+        "description": "用户反馈登录响应偶发延迟，与通知链路无直接关联。"
+      },
+      {
+        "ticket_id": "TK-2209",
+        "subject": "配置变更请求：调整通知模板",
+        "customer_id": "CUS-2209",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-21T20:10:00",
+        "assigned_to": "赵静",
+        "category": "配置",
+        "title": "配置变更请求：调整通知模板",
+        "reporter": "赵静",
+        "department": "内容运营",
+        "description": "模板样式调整，不涉及队列消费与重试逻辑。"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-2101",
+        "title": "消息队列积压处置：限流与速率调整验证手册",
+        "category": "运维文档",
+        "tags": [
+          "消息队列",
+          "积压",
+          "限流",
+          "速率调整",
+          "通知消费"
+        ],
+        "content": "## 消息队列积压处置：限流与速率调整验证手册\n\n### 适用场景\n- 通知消费任务延迟增长\n- 队列堆积导致端到端时延变长\n\n### 操作要点（建议顺序）\n1. 先评估积压规模：确认是否为消费速率不足（consumer throughput < producer rate）。\n2. 临时限流生产端或降低通知分发批量大小，避免继续放大积压。\n3. 调整消费者并发/分片（如提高工作进程数或增加分区消费能力），同时监控CPU与下游发送网关的饱和度。\n4. 若下游网关出现间歇5xx，优先修复网关错误或降低并发，防止重试雪上加霜。\n\n### 验证指标\n- 积压深度曲线回落\n- 通知端到端延迟恢复到目标阈值（例如<60s）\n- 消费游标追上到最新offset（或DLQ增长放缓）",
+        "last_updated": "2026-04-10",
+        "views": 512
+      },
+      {
+        "article_id": "KB-2102",
+        "title": "通知重试幂等设计：避免重复发送的校验粒度与去重窗口",
+        "category": "技术文档",
+        "tags": [
+          "重试",
+          "幂等",
+          "重复发送",
+          "去重",
+          "幂等key"
+        ],
+        "content": "## 通知重试幂等设计：避免重复发送的校验粒度与去重窗口\n\n### 常见原因\n- 重试任务在“消费成功但发送失败/确认丢失”时重复投递\n- 幂等key粒度过粗（导致同一事件被认为不同batch而被重复发送）\n\n### 推荐方案\n1. 统一幂等key：建议使用“事件ID + 通知类型 + 目标接收方”组合，而不是仅使用批次ID。\n2. 去重窗口与TTL：确保TTL覆盖典型重试窗口（包含退避时间、最大重试次数），避免重试结束后仍可重复发送。\n3. 在发送前做幂等校验并在发送成功后提交状态（而非仅在入队时打标）。\n\n### 验证\n- 同一事件ID在可见的重试周期内不应产生重复成功记录\n- 监控维度：幂等命中率、重复成功计数、DLQ进入率",
+        "last_updated": "2026-04-12",
+        "views": 980
+      },
+      {
+        "article_id": "KB-2103",
+        "title": "DLQ处理与证据核对：从丢失现象反查消费与重放",
+        "category": "运维文档",
+        "tags": [
+          "DLQ",
+          "死信",
+          "丢失",
+          "重放",
+          "审计链路"
+        ],
+        "content": "## DLQ处理与证据核对：从丢失现象反查消费与重放\n\n### 核对思路（不建议盲目归因）\n1. 先确认该时间段是否有DLQ积累或异常转储。\n2. 对比“事件产生时间/批次号/事件ID”与DLQ中的记录是否能对上。\n3. 若找不到DLQ证据：检查消费游标是否回滚/过期导致跳过，或审计上报链路是否缺失。\n4. 对于确认为DLQ的消息，可走“受控重放”（限制速率、先在小流量验证幂等）。\n\n### 止血建议\n- 暂停相关重放/通知重试以减少放大\n- 用幂等校验验证后再逐步恢复消费\n\n### 验证指标\n- DLQ深度是否稳定或下降\n- 被重放事件的投递成功率提升且重复率不升高",
+        "last_updated": "2026-04-05",
+        "views": 743
+      },
+      {
+        "article_id": "KB-2104",
+        "title": "消费游标过期：恢复策略与重试窗口调整（含退避与恢复顺序）",
+        "category": "技术文档",
+        "tags": [
+          "消费游标",
+          "游标过期",
+          "重试窗口",
+          "退避",
+          "恢复"
+        ],
+        "content": "## 消费游标过期：恢复策略与重试窗口调整（含退避与恢复顺序）\n\n### 触发信号\n- 通知重试任务失败信息包含“消费游标过期”\n- 消费延迟增长或重试失败次数快速上升\n\n### 恢复顺序建议\n1. 先停止通知重试任务或将其降为低频，避免在错误游标上不断重试。\n2. 检查消费器的last_committed/ack策略：确认是否因ack延迟或连接抖动导致游标推进异常。\n3. 调整重试窗口：增大或重新计算退避，使重试发生在幂等TTL仍有效的区间。\n4. 若需要修复游标：优先回放到最近稳定offset（或重新初始化消费组），并在小批量模式验证。\n\n### 验证\n- 重试任务失败次数不再增长\n- 新产生事件端到端延迟下降\n- 重复发送计数与幂等命中率回归正常",
+        "last_updated": "2026-04-15",
+        "views": 1210
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "相比原题聚焦统一故障链，本题通过新增工单现象标签与知识库覆盖，要求将“积压导致延迟”和“重试导致重复”拆分成不同根因与不同止血建议，并对“丢失”强调证据不足时的核对流程。",
+    "fixture_design_summary": [
+      "集成：INT-2101/INT-2102/INT-2104覆盖消息分发异常、通知网关错误、DLQ相关基座；其中INT-2101为active但error_rate上升且含连接抖动线索。",
+      "工单：新增未解决工单TK-2201~TK-2204（延迟≥4）、TK-2205~TK-2206（重复=2）、TK-2207（丢失=1），并加入TK-2208~TK-2209为干扰。",
+      "知识库：至少覆盖DLQ处理（KB-2103）、重试幂等（KB-2102）、积压处置（KB-2101）、消费游标过期恢复与重试窗口调整（KB-2104），用于支撑分类型建议与验证口径。",
+      "跨文件一致性：通知/消息/重试/DLQ的主题命名在集成描述与工单category保持同一语义，便于报告将集成异常与任务/工单现象正确关联。"
+    ]
+  }
+}

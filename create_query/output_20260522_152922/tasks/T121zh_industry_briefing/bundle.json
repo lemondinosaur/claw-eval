@@ -1,0 +1,183 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:35:39",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T121zh_industry_briefing",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:32:48",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:32:48",
+      "source_task_id": "T121zh_industry_briefing",
+      "source_summary": {
+        "task_id": "T121zh_industry_briefing",
+        "task_name": "行业简报整理",
+        "task_type": "从RSS与邮件中汇总信息，筛选行业相关内容并按主题分类，生成邮件草稿",
+        "category": "workflow",
+        "difficulty": "medium",
+        "tags": [
+          "general",
+          "multi_service"
+        ],
+        "language": "zh",
+        "services": [
+          "rss",
+          "gmail"
+        ],
+        "tools": [
+          "rss_list_articles",
+          "rss_get_article",
+          "gmail_list_messages",
+          "gmail_get_message",
+          "gmail_save_draft",
+          "gmail_send_message"
+        ],
+        "fixture_paths": [
+          "fixtures/gmail/inbox.json",
+          "fixtures/rss/feeds.json"
+        ],
+        "sandbox_files": [],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "workflow"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T121zh_industry_briefing_plus_1",
+          "new_task_name": "AIGC安全雷达简报",
+          "task_goal": "从RSS中筛选“AIGC内容安全/合规治理/水印溯源/模型对齐”相关的近期文章，按“政策合规/技术防护/落地案例”三类整理为结构化简报，并据此写一封邮件草稿发给指定团队（仅保存草稿不发送）。",
+          "user_request": "老板要我做下周AIGC内容安全与合规治理简报：1）从RSS源里筛选出与AIGC安全、合规、溯源、对齐相关的文章；2）按政策合规/技术防护/落地案例分类；3）每类给出2-3条要点摘要与一句话结论；4）把简报整理成邮件草稿（不要求发送）。",
+          "scenario": "当前公司正在准备法务与产品的联合评审，老板希望在简报中把监管口径和可落地的技术方案分开呈现。邮件收件箱里有一条来自法务负责人但语气较模糊：要求“尽量少提营销，多提治理”。RSS列表中混有大量与AIGC生成能力提升无关的内容（例如通用多模态发布、A/B测试、文生视频新模型），并且有少量“数据合规/隐私保护”但不一定是AIGC安全范畴的干扰项。需要同时处理边界：遇到“通用隐私合规”是否纳入时，要优先选择明确提及AIGC水印、内容审核、对齐、安全评估的文章。",
+          "difference_from_source": "原题聚焦“AI/大模型行业简报”并按模型发布/应用落地/AI芯片三类；本题改为“AIGC内容安全与合规治理”，分类维度与筛选关键词体系完全不同，且包含更强的边界干扰（隐私合规但非AIGC安全、通用多模态能力发布等）。",
+          "service_and_tool_plan": "使用rss_list_articles先获取候选文章集合，再对筛选通过的文章逐条调用rss_get_article获取详情用于摘要；使用gmail_list_messages与gmail_get_message读取老板/法务邮件要求（收件人和语气偏好），最后用gmail_save_draft保存邮件草稿，且不调用gmail_send_message以满足安全约束。",
+          "fixture_generation_plan": "生成fixtures时：1）gmail/inbox.json新增1封“法务负责人”来信，包含团队收件人邮箱（不可与原题复用），并强调“治理优先、少营销、需要一句话结论”；信件体内含明确截止时间但不要与原题日期一致。2）rss/feeds.json准备约12-16条文章：其中至少8条为AIGC安全/合规治理相关（涵盖政策合规、技术防护、落地案例），其余为干扰项（通用多模态发布、营销活动、与合规仅弱相关的隐私合规、非AIGC内容审核）。为每条文章设置不同category/标签与published_at窗口，确保存在“边界类”文章可考验是否纳入。关键字段包括article_id、title、category、summary、published_at、tags、content与word_count；状态分布主要体现在RSS文章相关性差异与gmail消息仅1条。",
+          "expected_behavior": "代理应：先从gmail读取需求并提取收件人/主题偏好；调用rss_list_articles获取候选后，基于标题、summary与tags筛出与“AIGC内容安全/合规/水印溯源/对齐/安全评估/内容审核”强相关的文章（数量不少于7-8篇，具体在fixture中设定）；再按三类进行分组，确保每类包含2-3条摘要要点并给一句话结论；最后用gmail_save_draft生成包含“简报标题+分栏结构+要点摘要+结论”的草稿。不得直接发送邮件，工具调用中禁止gmail_send_message。",
+          "grading_plan": "grader应检查：1）是否正确筛选出fixture中指定数量范围内的AIGC安全相关文章，并排除通用多模态/营销/非AIGC安全干扰；2）分类是否符合“政策合规/技术防护/落地案例”三类且每类要点数量满足要求；3）草稿结构是否清晰、语言是否遵循法务偏好（治理优先、少营销），且包含每类的一句话结论；4）是否仅调用gmail_save_draft且不调用gmail_send_message；5）邮件subject与body是否围绕简报而非闲聊。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T121zh_industry_briefing_plus_2",
+          "new_task_name": "企业AI采购预算情报 Brief",
+          "task_goal": "从RSS筛选“企业AI采购/算力成本/推理费用/国产化替代/供应商竞争/招标动态”相关文章，按“预算与成本/采购策略/国产化与替代”分类整理为简报草稿；同时根据邮箱中采购经理的偏好把信息浓缩成可用于周会的要点清单（不发送，只保存草稿）。",
+          "user_request": "采购经理让你整理一份“企业AI采购预算情报”用于周会：1）从RSS筛选本周关于企业买AI的成本、算力、推理计费、供应商与国产化替代的文章；2）按预算与成本/采购策略/国产化与替代分类；3）每类输出3个会议可用要点（包含数字口径或关键指标的解释，若文章不含数字则写可操作的评估方法）；4）生成邮件草稿，不要直接发送。",
+          "scenario": "公司准备更新年度AI采购预算，采购经理强调“需要可量化口径+谈判要点”。RSS源里同时存在大量“模型发布/学术论文/通用应用新闻”，这些属于强干扰；还有少量“云厂商价格调整”但与推理计费无关。邮箱中要求：如果无法从文章提取明确费用口径，就必须给出“如何向供应商索取报价/计费字段”的检查清单。无需任何多轮澄清，直接按描述生成。",
+          "difference_from_source": "原题是AI/大模型行业简报按“模型发布/应用落地/芯片”分类；本题转为“企业AI采购预算情报”，分类与输出形式更偏会议要点与可执行的采购/谈判策略，并引入“数字缺失时给评估方法”的要求。",
+          "service_and_tool_plan": "用gmail_list_messages与gmail_get_message读取采购经理指令（提取收件人、会议用途与“可量化口径/索取报价字段”偏好）；用rss_list_articles检索候选后调用rss_get_article获取详情以支撑要点；最后用gmail_save_draft保存草稿。",
+          "fixture_generation_plan": "1）gmail/inbox.json：提供1封“采购经理”邮件，含团队收件人邮箱（不复用原题），主题要求以“预算情报”开头，并在正文给出偏好：数字口径或索取字段清单。2）rss/feeds.json：设置15条左右文章，其中：预算与成本相关4-5条、采购策略相关3-4条、国产化与替代相关3-4条；其余5-7条干扰（学术论文、模型能力升级、非推理计费的云服务更新、纯媒体报道）。包含至少2条“部分相关但缺数字”的文章用于测试：草稿应给出评估方法而不是硬编数字。",
+          "expected_behavior": "代理应筛选出强相关采购预算/成本/计费/供应商动态文章并排除学术或纯模型发布干扰；按三类组织要点，每类严格输出3条；每条要点要么提炼文章中的关键指标/报价口径（如推理单价、吞吐/延迟、成本结构），要么在文章缺数字时改写为“向供应商索取哪些字段/如何评估”的方法建议；最终生成邮件草稿（标题包含预算情报、正文包含三栏要点清单），只调用gmail_save_draft且不发送。",
+          "grading_plan": "grader应检查：1）筛选结果与fixture中的相关性标注是否一致；2）三类分类是否正确，且每类恰好3个要点；3）对“数字缺失”的处理是否给出评估/索取字段方法而非编造；4）草稿是否体现采购会议用途（可量化/可谈判要点）；5）安全检查：不调用gmail_send_message。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T121zh_industry_briefing_plus_3",
+          "new_task_name": "医疗AI转化合规周报",
+          "task_goal": "从RSS筛选与“医疗AI临床应用/监管审评/数据合规/模型验证/医院落地”相关的文章，按“监管与审评/临床验证/数据与隐私/落地进展”四类整理结构化简报，并根据医生助理的邮件要求生成邮件草稿（不发送）。",
+          "user_request": "老板的医务助理要你写“医疗AI转化合规周报”：1）从RSS中筛选医疗AI相关信息（必须涉及临床验证、监管审评或医疗数据合规，而不是泛泛的医学科普）；2）按监管与审评/临床验证/数据与隐私/落地进展四类归纳；3）为每类列出2条“风险点+应对建议”；4）把内容整理成邮件草稿给团队，不要发送。",
+          "scenario": "医院正在推进AI辅助诊疗试点，但担心合规与验证不足。RSS中存在大量与“医疗健康科普、可穿戴健康管理”相关内容，这些为干扰项；也有一些“模型开源/多模态能力发布”但未提医疗场景或验证方法，应排除。邮件要求的输出是“每类两条：风险点+应对建议”，并且语气需要更谨慎，避免夸大结论。无需多轮澄清，直接按指令输出。",
+          "difference_from_source": "原题按AI方向三类并生成普通行业简报；本题聚焦医疗AI转化合规，且输出粒度为“四类，每类2条风险点+应对建议”，筛选标准强调“监管/临床验证/医疗数据合规”而非一般大模型趋势。",
+          "service_and_tool_plan": "使用gmail_list_messages与gmail_get_message读取医务助理要求；使用rss_list_articles获取候选并结合rss_get_article提取验证、监管或数据合规细节；最后用gmail_save_draft保存草稿，确保不调用gmail_send_message。",
+          "fixture_generation_plan": "1）gmail/inbox.json：1封来自“医务助理”的邮件，指定团队收件人（新邮箱名，不复用原题），并强调“每类两条风险点+应对建议，语气谨慎”。2）rss/feeds.json：约16条文章，其中：四类合规医疗AI相关分别准备4条左右（至少每类2条可选）；干扰项包括健康科普、可穿戴设备营销、一般多模态模型发布、非医疗领域的AI政策。部分相关但信息不足的文章应通过分类与风险描述测试代理是否能拒绝纳入或给出不确定性的风险表述。",
+          "expected_behavior": "代理应筛选出满足医疗AI合规/验证要素的RSS文章，确保四类都至少包含2条；对每条提炼“风险点”（例如验证不足、数据来源合规风险、审评路径不明确、泛化能力问题等）并给出“应对建议”（例如补充哪些材料、如何做验证设计、如何建立数据治理流程）；输出组织为四个分区，每区恰好两条风险+建议；形成邮件草稿并保存，不发送。",
+          "grading_plan": "grader应检查：1）是否正确排除非医疗AI/非合规验证干扰；2）四类覆盖是否达标且每类2条；3）每条是否包含“风险点+应对建议”结构，且语气谨慎不夸大；4）草稿是否符合邮件草稿要求（主题/正文结构清晰）；5）安全：不允许gmail_send_message。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T121zh_industry_briefing_plus_4",
+          "new_task_name": "金融风控AI监测简报",
+          "task_goal": "从RSS筛选“金融风控/反欺诈/合规审计/模型治理/数据漂移监测/监管科技RegTech”相关文章，按“反欺诈算法/模型治理与审计/数据与漂移/监管与合规”分类整理简报，并以邮件草稿形式呈现给风险管理团队（不发送）。",
+          "user_request": "风控负责人让你做“金融风控AI监测简报”：1）从RSS筛选涉及风控、反欺诈、模型治理或监管科技的文章；2）按反欺诈算法/模型治理与审计/数据与漂移/监管与合规分类；3）每类给出一段总结+3条可执行监测动作（例如监控哪些指标、触发什么告警、需要什么证据）；4）整理成结构化邮件草稿，不要直接发送。",
+          "scenario": "银行准备上线新的欺诈检测模型，要求周会关注可落地的监测与治理，而不是仅讨论模型效果。RSS中夹杂大量“金融大模型聊天机器人、投顾营销、宏观经济预测”干扰；同时也有少数文章谈“模型解释性”但未连接到风控监测流程，需判断是否纳入“模型治理与审计”。要求输出的监测动作要具体到指标/告警/证据，不需要引用原文段落。",
+          "difference_from_source": "原题是AI/大模型行业简报，按发布/应用/芯片分类；本题改成金融风控AI监测，分类与输出从“文章摘要”升级为“总结+可执行监测动作（指标/告警/证据）”，且干扰主要来自金融非风控内容。",
+          "service_and_tool_plan": "读取gmail邮件以确定收件人、风控偏好与监测动作格式；通过rss_list_articles与rss_get_article获取文章详情；最后用gmail_save_draft保存草稿（不调用发送工具）。",
+          "fixture_generation_plan": "1）gmail/inbox.json：1封“风险管理负责人”邮件，包含团队收件人邮箱与要求“监测动作必须具体到指标/告警/证据”，并说明这是周会材料。2）rss/feeds.json：准备约14-18条文章，强相关至少10条，覆盖四类；干扰项至少5条（投顾营销、宏观预测、聊天机器人上线、纯金融新闻）；确保至少2条文章属于“边界：解释性但未提审计/监测流程”，用于测试能否将其纳入或在总结中仅作为补充。为每条设置不同published_at与tags。",
+          "expected_behavior": "代理应筛选出与风控监测直接相关的文章，按四类分组；每类输出“简段总结”并给出3条监测动作（每条包含：要监控的指标/数据、触发告警条件或阈值口径（可用定性阈值描述）、以及需要留存的证据或日志）；生成结构化邮件草稿并保存，确保不直接发送。",
+          "grading_plan": "grader应检查：1）筛选是否覆盖关键风控/治理/漂移/监管科技文章并排除金融非风控干扰；2）四类都必须出现，且每类监测动作数量为3；3）每条动作是否包含“指标/告警触发/证据”要素；4）整体是否形成可用于周会的结构化材料；5）安全检查：禁止gmail_send_message。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T121zh_industry_briefing_plus_5",
+          "new_task_name": "开源模型工程落地周报",
+          "task_goal": "从RSS筛选“开源模型工程化/评测基准/推理加速/部署运维/安全基线/集成框架”相关文章，按“评测与基准/推理加速/部署运维/安全基线”四类整理简报草稿；依据邮件中工程负责人要求，输出“选型建议表述”并生成邮件草稿（不发送）。",
+          "user_request": "工程负责人要求整理“开源模型工程落地周报”：1）从RSS中筛选开源模型在工程落地方面的文章（包括评测、推理加速、部署运维或安全基线）；2）按评测与基准/推理加速/部署运维/安全基线分类；3）每类输出2条“技术要点+适用团队画像”（例如需要哪些条件、适合什么规模团队）；4）最后给出一个简短的“本周选型倾向”（不需要外部事实，仅基于筛选文章归纳）；生成邮件草稿，不发送。",
+          "scenario": "研发团队准备把原型切换到更稳定的开源方案，重点在工程可运营性而非研究突破。RSS中干扰包括大量“开源社区发布新闻”但缺少工程细节、以及“模型能力综述”但不涉及部署/评测/加速。邮件中明确说不需要多轮澄清、也不要引入文章之外的外部数据；如果文章只讲理论，就应写为“不适合直接用于生产选型”的理由。",
+          "difference_from_source": "原题是AI/大模型行业简报按三类；本题聚焦开源模型工程落地，且分类为“四类工程维度”，输出包含“适用团队画像”与最后的“选型倾向”总结，强调生产可运营性并对“缺工程细节的文章”给出不适用理由。",
+          "service_and_tool_plan": "先从gmail读取工程负责人格式要求与“不要外部事实”的约束；再用rss_list_articles筛选候选并对入选文章调用rss_get_article提取工程细节；最后用gmail_save_draft保存草稿。",
+          "fixture_generation_plan": "1）gmail/inbox.json：1封来自“工程负责人”的邮件，含团队收件人邮箱与对格式约束：每类2条“技术要点+适用团队画像”，以及“本周选型倾向”必须基于文章归纳。2）rss/feeds.json：约16条文章，其中：四类相关各至少3条可选，最终需筛出足够覆盖但不必全部入选；干扰项包括开源新闻但无工程方法、纯能力综述、或不涉及部署/评测/加速/安全基线。至少准备2条“边界：工程化描述不充分”的文章，让代理明确写“不适合生产选型”。",
+          "expected_behavior": "代理应筛选出开源模型工程落地强相关文章并按四类分区；每类输出2条，每条包含技术要点与适用团队画像（用定性条件：团队规模、是否有MLOps、是否需要GPU/量化、是否要求审计等）；最后给出简短“本周选型倾向”段落，基于已筛选文章的共性给出取向（例如更偏推理加速/更偏安全基线优先），不得添加文章之外的事实；保存为邮件草稿，不发送。",
+          "grading_plan": "grader应检查：1）筛选是否围绕工程落地关键要素（评测/加速/运维/安全基线）并排除纯社区新闻或能力综述干扰；2）四类覆盖与每类2条是否满足；3）每条是否同时包含“技术要点+适用团队画像”，且画像合理且不引入外部事实；4）“本周选型倾向”是否明确、是否基于归纳且内容不胡编；5）安全：不调用gmail_send_message。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:35:39",
+    "items": [
+      {
+        "task_id": "T121zh_industry_briefing_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:33:27",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T121zh_industry_briefing_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T121zh_industry_briefing_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:34:08",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T121zh_industry_briefing_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T121zh_industry_briefing_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:34:39",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T121zh_industry_briefing_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T121zh_industry_briefing_plus_4",
+        "index": 4,
+        "status": "failed",
+        "generated_at": "2026-05-22 15:35:07",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_4/raw.txt",
+        "parsed": "",
+        "task_dir": "",
+        "error": "Could not extract complete JSON object."
+      },
+      {
+        "task_id": "T121zh_industry_briefing_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:35:39",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/T121zh_industry_briefing_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T121zh_industry_briefing_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T121zh_industry_briefing/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T121zh_industry_briefing",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

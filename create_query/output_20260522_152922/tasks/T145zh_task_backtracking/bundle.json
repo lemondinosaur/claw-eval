@@ -1,0 +1,187 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:48:09",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T145zh_task_backtracking",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:45:51",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:45:51",
+      "source_task_id": "T145zh_task_backtracking",
+      "source_summary": {
+        "task_id": "T145zh_task_backtracking",
+        "task_name": "催办邮件关联回溯与进展回复",
+        "task_type": "基于催办邮件-待办任务-会议纪要的跨服务回溯与进展回复草稿生成流程",
+        "category": "workflow",
+        "difficulty": "medium",
+        "tags": [
+          "general",
+          "multi_service"
+        ],
+        "language": "zh",
+        "services": [
+          "gmail",
+          "todo",
+          "notes"
+        ],
+        "tools": [
+          "gmail_list_messages",
+          "gmail_get_message",
+          "gmail_save_draft",
+          "gmail_send_message",
+          "todo_list_tasks",
+          "todo_get_task",
+          "notes_list",
+          "notes_get"
+        ],
+        "fixture_paths": [
+          "fixtures/gmail/inbox.json",
+          "fixtures/notes/meetings.json",
+          "fixtures/todo/tasks.json"
+        ],
+        "sandbox_files": [],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "工作流：邮件筛选与关联回溯，提取任务状态/阻塞原因/预计完成时间并撰写对应回复草稿"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T145zh_task_backtracking_plus_1",
+          "new_task_name": "月度账单催办回溯",
+          "task_goal": "读取收件箱中若干封“需要处理/催办”邮件，识别其中的3封催办邮件；为每封催办邮件找到对应待办任务与最近相关会议纪要，整理任务的状态、阻塞原因（如有）与预计完成时间，并为每封催办邮件生成回复邮件草稿（仅保存草稿，不发送）。",
+          "user_request": "请帮我处理收件箱里的催办邮件：阅读每封催办邮件，回溯对应的待办事项和会议纪要，补齐上下文；并为每个催办事项起草回复草稿，说明当前进展、是否被阻塞及预计完成时间。",
+          "scenario": "业务发生在财务月结周期。收件箱包含3封带“催办/紧急处理”标签的邮件，分别指向：A）月度账单核对报告（预计需补充审计口径数据）；B）客户对账差异的复核流程（因系统导数接口异常被阻塞）；C）供应商付款审批（已完成内部签核但需等待财务同事上传附件）。另外还有2封干扰邮件：一封是新闻订阅（非催办），一封是系统自动提醒（非催办）。会议纪要中分别记录了与A/B/C相关的讨论，但B的纪要包含“预计修复窗口”而A的纪要包含“口径调整已获批准”的信息；待办任务的状态分布为进行中、被阻塞/待定、已完成但等待附件提交。",
+          "difference_from_source": "原题的3个催办对应的是报告/定制方案/绩效表；本题改为账单核对、对账差异复核、付款审批，并引入“系统接口异常导致阻塞”与“已完成签核但等待附件”的不同状态叙述；同时干扰邮件类型改为订阅与财务系统提醒，预计完成时间与阻塞来源也完全不同。",
+          "service_and_tool_plan": "继续使用 gmail 列出并逐封获取邮件内容，todo 列出并按邮件线索定位对应任务（必要时再获取任务详情），notes 列出会议纪要并按关联字段获取关键纪要细节，然后对每封催办邮件使用 gmail_save_draft 生成回复草稿。之所以这样，是因为任务要求跨邮件-任务-会议三方回溯与草稿产出，和原工作流一致。",
+          "fixture_generation_plan": "生成新的 fixtures：1）gmail/inbox.json：共5条邮件，其中3条为催办且有区分性标题/标签/关键字，用于关联待办任务；另外2条为干扰（非催办）。确保邮件ID、发件人域名、主题关键词、正文中的触发信息彼此不同，且与待办/纪要中的关联字段能匹配。2）notes/meetings.json：共3条纪要，分别对应A/B/C，内容要包含足够细节以支持上下文补齐（如口径调整批准、接口修复窗口、签核完成等待附件等）。3）todo/tasks.json：至少8条待办，包含与A/B/C对应的3条（状态分布：in_progress、pending或blocked_by、completed），其余5条作为干扰但不应被催办邮件指向。关键字段需包含status、priority、due_date、progress、notes；其中至少1条包含blocked_by字段，且completed_at用于已完成任务。不要复用原题任何邮件主题、任务标题、纪要标题、ID、数值或实体名。",
+          "expected_behavior": "代理应先用 gmail_list_messages 获取邮件列表，再对每个候选催办邮件使用 gmail_get_message 读取正文，识别出3封催办并提取用于关联的关键信息（例如业务名称+截止时间/差异类型）。随后调用 todo_list_tasks 获取所有待办并匹配到3个目标任务（必要时使用 todo_get_task 获取更细状态）。再用 notes_list 查找最近纪要并对每个目标任务关联到对应的纪要ID，必要时用 notes_get 获取全文内容。最后对3封催办分别调用 gmail_save_draft 保存草稿：草稿需包含“当前状态（对应到待办status与progress）+阻塞原因（如blocked_by存在则说明）+预计完成/交付时间（由due_date或纪要中的修复/上传窗口推断）+对催办诉求的直接回应”。不得调用 gmail_send_message；只保存草稿。",
+          "grading_plan": "grader生成时应检查：1）是否准确筛选出3封催办邮件并忽略2封干扰邮件；2）每个催办邮件对应的待办任务状态与progress、blocked_by/阻塞原因是否与fixture一致；3）回复草稿是否融合对应纪要中的关键上下文（至少提到纪要中的一个具体决策/时间窗口/限制条件）；4）预计完成时间是否合理且与due_date或纪要窗口一致；5）只保存草稿且为每封催办正好保存3份草稿。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T145zh_task_backtracking_plus_2",
+          "new_task_name": "工单升级催办与改期说明",
+          "task_goal": "处理收件箱里与“客户工单升级/改期”相关的催办邮件：识别其中3封催办；对每封催办邮件回溯对应的待办任务与会议纪要，归纳当前处理状态、是否存在待确认项、以及新的预计完成/交付日期；为每封催办邮件起草回复草稿（保存草稿，不发送）。",
+          "user_request": "请帮我回溯并回复催办邮件：我需要你为每个催办工单整理当前状态、是否卡在待客户确认/待内部评审，并给出更新后的预计完成或交付日期；最后为每封催办邮件生成回复草稿。",
+          "scenario": "客户支持团队在进行系统升级交付。收件箱中有3封催办邮件，分别来自不同客户团队：A）要求升级计划按期上线（遇到回归测试延期）；B）要求确认数据迁移窗口（待客户审批）；C）要求说明版本回滚预案进度（内部评审未完成）。此外有2封干扰邮件：一封是对账邀请（不是催办），一封是内部“会议邀请已更新”（不是催办标签）。会议纪要覆盖A/B/C：A的纪要明确“回归测试完成度与下次测试安排”，B的纪要包含“客户审批流程仍在等待”，C的纪要包含“评审未通过点位列表与改进方向”。待办任务状态分布要体现差异：in_progress（但预计可能延期）、pending（因待确认审批阻塞）、blocked_by（有明确阻塞字段）或completed（但需强调已提交给对方）。",
+          "difference_from_source": "原题侧重内容补充与按期提交；本题强调“升级/迁移窗口调整、待审批/待确认、回归测试与评审未通过点位”，并要求在回复中给出“更新后的预计日期与原因”。同时待办任务与会议纪要的关键字段结构需体现“审批/评审”阻塞而非原有“客户需求未确认/技术数据补齐”。",
+          "service_and_tool_plan": "仍使用 gmail 的列表/获取接口来确定催办邮件并读取工单升级诉求；用 todo 的列表/详情接口将邮件指向具体待办；用 notes 的列表/详情获取每个工单在会议中的决策与风险点；最后用 gmail_save_draft 为每封催办生成回复草稿。该工具链与原任务一致，能最大化复用现有schema。",
+          "fixture_generation_plan": "生成新的 fixtures：1）gmail/inbox.json：5条。3条催办邮件需带清晰标签（如“催办/升级/紧急”）并在正文中包含可关联的工单主题关键词与目标日期。2条干扰邮件需不含催办标签或不包含升级/工单关键字。2）notes/meetings.json：3条，分别对应A/B/C，content需包含：A的测试进度与下一轮时间；B的审批/确认流程节点与预计收到时间；C的评审状态与未通过点位、下一次评审安排。3）todo/tasks.json：至少8条。包含与催办对应的3条任务：一个status=in_progress且progress非整（如65-80区间）、一个status=pending并带blocked_by或notes中明确“等待审批”、一个status=blocked_by或pending并在notes中明确“待评审”。剩余5条为其他无关维护/培训任务。所有ID、邮件主题、任务标题、纪要标题、日期、数值必须与原题不相同。",
+          "expected_behavior": "代理流程：gmail_list_messages → gmail_get_message（逐封）筛出3封催办，并为每封提取“目标变更/升级项+原定交付/窗口+催办原因”。然后 todo_list_tasks/待匹配 todo_get_task 获取任务status、progress、due_date、blocked_by或notes中的卡点。再 notes_list → notes_get 获取对应纪要，提取会议中关于测试/审批/评审的关键时间点或决定。最后对每封催办调用 gmail_save_draft，草稿需：a）先复述理解的升级/工单诉求；b）给出当前处理状态（映射到待办status与进度）；c）若有阻塞，明确阻塞原因是“等待审批/评审/测试延期”之一；d）给出“更新后的预计完成/交付日期”（基于due_date与纪要窗口推断）；e）语气专业并给出下一步行动与预计沟通时间。不得发送邮件，只保存草稿。",
+          "grading_plan": "grader应检查：1）能否正确识别3封催办而过滤2封干扰邮件；2）每封催办对应的待办任务匹配是否正确（避免把A/B/C弄混）；3）回复草稿中“阻塞原因类型”是否与纪要与待办字段一致（审批/评审/测试延期要对应）；4）预计日期是否与fixture信息一致且解释原因；5）仅调用 gmail_save_draft 三次（每封催办一份），不调用 gmail_send_message。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T145zh_task_backtracking_plus_3",
+          "new_task_name": "合规审查催办与缺口补齐",
+          "task_goal": "对包含“合规审查/材料补交”催办标签的邮件进行回溯：识别3封催办邮件；对每封邮件定位对应待办任务与合规会议纪要，整理合规状态（通过/待补充/已提交但待审核）、缺口内容与预计补齐时间；为每封邮件起草回复草稿并保存。",
+          "user_request": "请处理收件箱中的合规催办邮件：逐封理解邮件要求，回溯对应待办事项与会议纪要，输出每项的合规状态、目前缺口与预计补齐/更新的时间；并为每封催办邮件生成回复草稿（只保存不发送）。",
+          "scenario": "公司法务与合规团队进行季度材料审查。收件箱里3封催办邮件：A）要求补交“隐私影响评估”材料（当前缺口为数据范围说明未完成）；B）要求确认“安全培训记录”是否齐全（因负责人尚未上传，待审核）；C）要求说明“供应商准入条款”更新进度（已形成草案，但尚需合规审批签字）。另外2封干扰邮件：一封是“休假通知”，一封是“群发营销邮件”。会议纪要中A有明确的缺口项清单与补交截止，B有“等待负责人上传并预计在某日期完成”的记录，C有“草案已完成、审批排期”的记录。待办任务需覆盖：pending（待补交缺口）、in_progress（材料草案进行中但有明确节点）、completed但status需体现“已提交待审核”（用notes/字段描述而非真实发送）。",
+          "difference_from_source": "原题是项目/报告/绩效；本题是合规材料缺口补齐，且任务目标从“进度回复”升级为“合规状态与缺口清单说明”。阻塞原因不再是客户需求确认，而是材料缺口、负责人上传、合规审批签字排期。",
+          "service_and_tool_plan": "使用 gmail_list_messages 和 gmail_get_message 读取邮件并识别合规催办；用 todo_list_tasks 与 todo_get_task 获取材料/流程对应待办的status、progress、due_date、notes或blocked_by；用 notes_list 与 notes_get 获取合规会议中的缺口项与补交/审批时间安排；最后用 gmail_save_draft 为每个催办邮件生成专业的材料补交与时间承诺草稿。",
+          "fixture_generation_plan": "创建新的 fixtures：1）gmail/inbox.json：5条，3条催办邮件带合规相关标签（例如“合规/催办/材料”），正文包含材料名称、缺口描述或要求日期；2条干扰邮件不带这些标签且不包含材料缺口关键词。2）notes/meetings.json：3条纪要，分别对应A/B/C，content需包含缺口清单、责任人动作（上传/补写/审批签字）、以及明确的预计完成或排期日期。3）todo/tasks.json：至少9条待办，其中包含A/B/C对应的3条；状态分布至少覆盖pending、in_progress、completed（completed的notes应说明“已提交待审核/等待合规确认”）。确保所有ID（message_id、note_id、task_id）、姓名/部门、日期、进度数字与原题完全不同。",
+          "expected_behavior": "流程与原任务一致：先列出邮件并获取详情，筛出3封合规催办；对每封将邮件中的材料名称与要求时间映射到待办任务。然后通过todo_get_task拿到当前合规状态（依据status与progress/notes推断是待补充/已提交待审核/草案进行中）。再用notes_get获取对应合规纪要，提取缺口项与会议中约定的补齐/提交/审批排期时间。最后对每个催办邮件调用 gmail_save_draft：草稿中应包含缺口项摘要、已完成/在做内容、下一步动作、预计补齐或更新的具体日期，并在语气上向法务/合规对口部门表达确认与承诺。",
+          "grading_plan": "grader应验证：1）3封催办识别准确且忽略2封干扰邮件；2）每封草稿的“合规状态类型”（待补充/待上传/已提交待审核/审批中）与待办字段一致；3）草稿中缺口项是否能对应纪要中列出的缺口清单（至少1-2项具体缺口）；4）预计补齐/审批时间是否与纪要或due_date一致；5）仅保存草稿三次且不发送。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T145zh_task_backtracking_plus_4",
+          "new_task_name": "安全告警跟进催办与事件复盘",
+          "task_goal": "处理与安全告警“事件处置/复盘报告”相关的催办邮件：识别3封催办，回溯对应待办任务与会议纪要，整理事件处置状态、已完成的处置项、仍在进行的风险点（若有）、预计完成时间；对每封催办邮件起草并保存回复草稿。",
+          "user_request": "请帮我处理安全告警催办邮件：逐封读取后，把对应的待办进度和会议纪要中的处置与复盘信息整合到回复里，输出当前处置状态、剩余风险点（如有）和预计完成时间，并为每封催办邮件生成回复草稿（只保存不发送）。",
+          "scenario": "运维安全团队进行某次异常访问事件复盘。收件箱中有3封催办邮件，均带“安全/复盘/紧急”标签：A）要求提交初步处置报告（当前待补充日志取证结果）；B）要求给出根因分析与缓解措施（阻塞在法务合规审阅某表述）；C）要求更新整改闭环清单（部分整改项已完成但需要安全负责人最终确认）。另有2封干扰邮件：一封是工单系统自动生成的“状态变更通知”（非催办标签），一封是同事分享的排班信息（非催办）。会议纪要中A记录了取证时间线，B记录了合规审阅要点与下一轮会议时间，C记录了哪些整改项已完成与待确认。待办任务状态要体现：in_progress（报告中）、pending（合规审阅阻塞）、completed（已完成但待最终确认，需在notes体现）。",
+          "difference_from_source": "原题为常规项目/客户/绩效回溯，本题聚焦安全事件处置与复盘，回复需要覆盖“处置项/风险点/缓解措施”而不是报告框架或客户需求。阻塞原因改为“法务合规审阅表述”和“安全负责人最终确认”，且干扰邮件来自运维系统通知与排班信息。",
+          "service_and_tool_plan": "使用 gmail 读取并筛出催办邮件；用 todo 定位相应事件复盘待办（任务状态、progress、due_date与blocked_by/notes）；用 notes 获取复盘会议中处置进展与下一步安排；最后用 gmail_save_draft 为每封邮件生成进展与时间承诺回复草稿。保持同一服务/工具schema以复用能力。",
+          "fixture_generation_plan": "生成新 fixtures：1）gmail/inbox.json：5条，其中3条催办邮件含安全与复盘关键词并可映射到待办任务；2条干扰邮件不含“催办/安全紧急”类标签且正文不包含事件编号/复盘关键字段。2）notes/meetings.json：3条纪要，分别对应A/B/C，content需包含：取证/复盘时间线（A）、合规审阅要点与排期（B）、整改项完成与待确认清单（C）。3）todo/tasks.json：至少8-10条。包含A/B/C对应3条：一个in_progress，含progress并在notes里写“待补充日志取证”；一个pending或blocked_by，含blocked_by指向“合规审阅/表述确认”；一个completed但notes说明“已提交但待最终安全负责人确认”。所有message_id/note_id/task_id、事件名称、日期、数字均不能复用原题。",
+          "expected_behavior": "代理应完成：邮件列表→读取→识别3封催办；任务匹配（todo_list_tasks + 必要的 todo_get_task）；纪要关联（notes_list + notes_get）；对每封催办使用 gmail_save_draft 保存草稿。草稿内容需明确：当前处置/复盘阶段（映射待办status）、已完成的关键处置项（来自纪要或任务notes）、剩余风险点/未完成项（若待补充则说明）、以及预计完成时间（来自due_date或纪要下一轮安排）。输出为中文回复草稿文本，且不触发发送。",
+          "grading_plan": "grader检查：1）能否准确识别3条安全催办并过滤2条干扰通知/排班；2）每封草稿覆盖“处置状态+剩余风险点/未完成项+预计完成时间”三要素；3）草稿中的风险点或缓解/审阅点是否与纪要内容一致；4）已完成/待确认的表达与待办status和notes一致；5）只保存草稿三次，且不调用发送工具。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T145zh_task_backtracking_plus_5",
+          "new_task_name": "跨部门采购催办与合同签署进度",
+          "task_goal": "处理关于跨部门采购流程的催办邮件：识别3封催办；为每封邮件回溯到对应采购相关待办任务与合同/采购会议纪要，整理当前进展状态、是否卡在审批/预算或供应商回签，并给出预计完成/签署日期；生成回复草稿并保存。",
+          "user_request": "请帮我跟进并回复采购催办邮件：对每封催办邮件回溯到待办与会议纪要，说明当前采购/合同签署进展、卡点原因（如有）与预计签署完成时间；最后为每封催办邮件起草回复草稿（只保存不发送）。",
+          "scenario": "在一次跨部门采购中，法务、采购与业务三方需要同步推进合同签署。收件箱包含3封催办邮件，分别指向：A）采购合同条款确认（待法务校对最后一版）；B）预算审批（已提交但尚未得到财务批准）；C）供应商回签（供应商已收到但未回签）。另外2条干扰邮件：一封是对内部论坛帖子的点赞提醒（非催办），一封是“差旅政策更新”通知（非催办标签）。会议纪要中A记录了法务校对要点与下一次校对安排；B记录了预算审批缺少的附件清单与补交时间；C记录了供应商回签的预计响应窗口与风险处理。待办任务状态分布要多样：A为in_progress，B为pending带blocked_by，C为completed但notes表明“已催促供应商回签，待对方回传”。",
+          "difference_from_source": "原题任务类型为常规项目进度与客户/绩效；本题变为跨部门采购与合同签署的流程性跟进，回复重点是“审批附件缺口、法务校对要点、供应商回签窗口”。阻塞来源与原题完全不同，且状态叙述强调“等待回传/审批附件补齐”。",
+          "service_and_tool_plan": "使用 gmail_list_messages 与 gmail_get_message 获取并筛出采购催办邮件；使用 todo_list_tasks 与 todo_get_task 定位到对应采购待办并读取status/progress/due_date/blocked_by；使用 notes_list 与 notes_get 读取采购与合同会议纪要中关于校对、预算附件、供应商回签窗口的具体信息；对每封催办调用 gmail_save_draft 生成回复草稿。与原工作流保持一致以便复用服务/工具。",
+          "fixture_generation_plan": "生成新 fixtures：1）gmail/inbox.json：5条，3条催办采购相关邮件（带采购/合同/催办标签，正文含合同事项、对方要求日期与催促点）；2条干扰邮件完全无采购/合同关键词且不含催办标签。2）notes/meetings.json：3条，分别对应A/B/C；content应包含：法务校对最后条款要点与预计校对时间（A）、预算审批附件缺口清单与补交/审批窗口（B）、供应商回签预计响应窗口与风险应对（C）。3）todo/tasks.json：至少9条，包含与A/B/C对应的3条待办：A status=in_progress，B status=pending或blocked_by（blocked_by说明等待财务批准/附件），C status=completed但notes写明“待供应商回签回传”。确保所有ID/名称/数值/日期均不与原题重复。",
+          "expected_behavior": "代理执行：先用 gmail_list_messages 找到邮件列表，再用 gmail_get_message 读取每封邮件，筛出3封采购催办邮件并提取关键字（合同条款/预算审批/回签）。然后通过 todo_list_tasks 定位到对应待办，再视情况用 todo_get_task 获取细节。再用 notes_list 查找相关会议并用 notes_get 提取A/B/C对应纪要关键节点。最后对3封催办分别调用 gmail_save_draft：草稿应包含（1）当前进展与状态（来自待办status与progress或notes）；（2）卡点原因（如blocked_by或notes中的审批/校对/回签原因）；（3）预计完成/签署日期（由due_date或纪要窗口推断）；（4）下一步行动与对方需要配合的事项（如预算附件补交、供应商回传）。不得发送邮件，仅保存草稿。",
+          "grading_plan": "grader生成时应检查：1）3封催办识别准确且过滤2封干扰邮件；2）每封草稿的卡点原因与纪要/待办一致（法务校对、预算审批附件、供应商回签窗口三类要对得上）；3）预计签署完成时间是否与due_date或纪要时间点一致且表述清晰；4）草稿内容是否体现对流程的具体承诺（下一步行动/需要配合项）；5）仅保存3份草稿且不调用发送工具。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:48:09",
+    "items": [
+      {
+        "task_id": "T145zh_task_backtracking_plus_1",
+        "index": 1,
+        "status": "failed",
+        "generated_at": "2026-05-22 15:46:12",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_1/parsed.json",
+        "task_dir": "",
+        "error": "Generated fixtures must exactly match required paths: missing=['fixtures/todo/tasks.json']"
+      },
+      {
+        "task_id": "T145zh_task_backtracking_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:46:37",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T145zh_task_backtracking_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T145zh_task_backtracking_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:47:04",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T145zh_task_backtracking_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T145zh_task_backtracking_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:47:39",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T145zh_task_backtracking_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T145zh_task_backtracking_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:48:09",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/T145zh_task_backtracking_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T145zh_task_backtracking_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T145zh_task_backtracking/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T145zh_task_backtracking",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

@@ -1,0 +1,218 @@
+task_id: T157zh_month_end_reconciliation_plus_5
+task_name: 回滚后补偿与一致性验证
+version: '1.0'
+category: ops
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T157zh_month_end_reconciliation_plus_5/fixtures/finance/transactions.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T157zh_month_end_reconciliation_plus_5/fixtures/crm/customers.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: create_query/output_20260522_152922/generated/T157zh_month_end_reconciliation_plus_5/fixtures/config/integrations.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T157zh_month_end_reconciliation_plus_5/fixtures/inventory/items.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: create_query/output_20260522_152922/generated/T157zh_month_end_reconciliation_plus_5/fixtures/scheduler/jobs.json
+prompt:
+  text: "月底请做回滚补偿一致性验证（回滚窗口前后分段对比）：\n\n1）检查调度任务与回滚窗口：找出哪些 job 在回滚窗口期间运行 failed/cancelled，并结合\
+    \ job_history 给出发生时间窗与可能的补偿触发记录。\n2）检查集成配置：定位对账系统与发票系统是否处于一致性修复/补偿开关模式（如 consistency_repair=true），并读取\
+    \ last_sync/恢复时间。\n3）对账核心（按回滚窗口切分 pre/post）：\n   - CRM 应收期望 vs 财务实际收款：判断是否出现“重复计入或漏计入”；若发现重复交易，基于\
+    \ transaction.description 中的 reversed/compensated 标记判断应否抵消。\n   - 采购支出 vs 库存出入库：判断是否出现“重复出入库或漏出入库”，并尽量与采购交易相关线索对应。\n\
+    4）输出一致性验证报告：对每个异常给出\n   - 发生时间窗（回滚前/回滚后明确区间）\n   - 影响链路（job → integration → 数据表/字段）\n\
+    \   - 补偿成功/失败判定依据\n   - 建议重算策略（例如重跑对账批次/重新生成发票与重新回写CRM等）。\n\n要求：报告至少包含“客户应收重复/漏算”与“采购-库存重复/漏算”两类异常，并覆盖补偿成功/失败状态。"
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 查看财务交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: crm_list_customers
+  description: 查看客户列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(active/inactive/churned)
+      tier:
+        type: string
+        description: 按等级筛选(VIP/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: config_list_integrations
+  description: 查看所有系统集成配置
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(active/error/degraded)
+    required: []
+- name: config_get_integration
+  description: 获取集成配置详情
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: inventory_list_products
+  description: 查看库存产品列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_product
+  description: 获取库存产品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: scheduler_list_jobs
+  description: 列出所有定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按最近运行状态筛选(success/failed)
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情（含执行历史）
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_job_history
+  description: 查看定时任务执行历史
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      limit:
+        type: integer
+        description: 返回条数
+        default: 10
+    required:
+    - job_id
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: scheduler_job_history
+  url: http://localhost:9112/scheduler/jobs/history
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

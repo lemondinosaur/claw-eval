@@ -1,0 +1,314 @@
+{
+  "task_id": "T035zh_vendor_procurement_plus_2",
+  "task_name": "灾备采购的供应商取舍",
+  "prompt_text": "我们正在做灾备体系的服务器紧急采购评估。请不要下单或联系供应商，只输出评估结论。要求：\n1）从库存找出哪些机型会在“两周内”无法满足最低配置（在报告中标明机型、供应商与缺口原因）。\n2）从RSS提取供应商的交付与售后风险线索，重点对照“快速响应/快速发运承诺”与“工单积压/响应延迟”等矛盾信息。\n3）从CRM读取供应商最近一次合作状态，尤其关注“退货/维保相关备注”（至少覆盖一家供应商的退款或工单积压）。\n4）从知识库抓取评估权重与审批门槛，并说明在紧急采购场景下哪些规则仍必须遵守（如单一供应商集中度上限、审批阈值等）。\n5）结合财务预算与既往采购记录，解释“预算冻结/拨付延后”两种口径对可用额度的影响，并给出：在更保守口径下哪些采购金额将触发更高等级审批。\n6）输出“两阶段采购建议”和“先买谁、后买谁”的推荐顺序：阶段一优先采购能在窗口期内交付、风险可控的机型/供应商；阶段二在预算口径明确并/或审批完成后再补齐。\n\n输出中必须包含：阶段一/阶段二的采购顺序与理由、评分卡对比/权重解释、矛盾线索解释、以及审批与预算结论。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "SUP-101",
+        "name": "北域科技",
+        "contact_person": "赵工",
+        "email": "zhao@beiyuanch.com",
+        "phone": "13901010011",
+        "industry": "IT集成",
+        "tier": "vip",
+        "annual_revenue": 12000000,
+        "last_contact_date": "2026-02-12",
+        "status": "active",
+        "notes": "合作状态正常。维保升级后出现首单退款个案：客户反馈更换配件后不满足原性能承诺，已记录为争议单并完成部分整改；建议后续采购要求提供性能验收证明。"
+      },
+      {
+        "customer_id": "SUP-102",
+        "name": "海澜数通",
+        "contact_person": "周经理",
+        "email": "zhou@hlnet.com",
+        "phone": "13701020022",
+        "industry": "IT分销",
+        "tier": "standard",
+        "annual_revenue": 6500000,
+        "last_contact_date": "2026-01-28",
+        "status": "active",
+        "notes": "历史合作稳定。近期出现过工单积压：维保响应曾延迟2-3个工作日；目前积压工单已缩减，但仍需关注旺季峰值响应能力。"
+      },
+      {
+        "customer_id": "SUP-103",
+        "name": "天秤云联",
+        "contact_person": "孙总",
+        "email": "sun@tianchengcloud.com",
+        "phone": "13601030033",
+        "industry": "IT服务",
+        "tier": "standard",
+        "annual_revenue": 4200000,
+        "last_contact_date": "2026-02-18",
+        "status": "inactive",
+        "notes": "处于暂停合作状态，原因是上次交付窗口期内未能按时完成验收并触发服务重排。"
+      },
+      {
+        "customer_id": "SUP-104",
+        "name": "星港分销",
+        "contact_person": "郑女士",
+        "email": "zheng@xgdist.com",
+        "phone": "13501040044",
+        "industry": "IT硬件分销",
+        "tier": "standard",
+        "annual_revenue": 5100000,
+        "last_contact_date": "2026-02-05",
+        "status": "active",
+        "notes": "首次合作评估阶段。过往退货记录较少，但对紧急需求的承诺细节需二次确认；建议在下单前要求书面交期与备件保障条款。"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-901",
+        "type": "预算拨付",
+        "description": "2026年灾备专项预算拨付（拟）",
+        "amount": 1800000,
+        "currency": "CNY",
+        "date": "2026-02-02",
+        "category": "预算",
+        "department": "IT灾备办",
+        "approved_by": "CFO",
+        "notes": "计划用于灾备服务器补齐与应急扩容。"
+      },
+      {
+        "transaction_id": "TXN-902",
+        "type": "预算冻结",
+        "description": "灾备专项预算冻结（拨付延后口径）",
+        "amount": 600000,
+        "currency": "CNY",
+        "date": "2026-02-10",
+        "category": "预算冻结",
+        "department": "IT灾备办",
+        "approved_by": "FinanceOps",
+        "notes": "财务口径：部分额度冻结，需通过审批后才可视为可用。乐观口径可用额度=180万；保守口径可用额度=120万。"
+      },
+      {
+        "transaction_id": "TXN-903",
+        "type": "采购支出",
+        "description": "Q1前置服务器预采购（已到货）",
+        "amount": 720000,
+        "currency": "CNY",
+        "date": "2026-01-20",
+        "category": "设备采购",
+        "department": "IT灾备办",
+        "supplier": "北域科技",
+        "notes": "用于灾备冷备环境。"
+      },
+      {
+        "transaction_id": "TXN-904",
+        "type": "退货退款",
+        "description": "北域科技维保争议退款",
+        "amount": 54000,
+        "currency": "CNY",
+        "date": "2026-02-14",
+        "category": "退款",
+        "department": "IT灾备办",
+        "supplier": "北域科技",
+        "notes": "维保升级后首单退款（争议单）。涉及2台设备性能验收不达标，已退回部分款项；财务留档显示可追溯整改记录。"
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "INV-701",
+        "name": "Dell PowerEdge R760x（灾备节点）",
+        "category": "服务器",
+        "current_stock": 6,
+        "min_stock_threshold": 18,
+        "reorder_quantity": 24,
+        "status": "critical",
+        "unit_price": 89000,
+        "supplier": "北域科技",
+        "lead_time_days": 17,
+        "last_reorder_date": "2026-01-08",
+        "notes": "最低配置要求高，需满足灾备写入与冗余策略。"
+      },
+      {
+        "product_id": "INV-702",
+        "name": "HP ProLiant DL385 Gen11（应急承载）",
+        "category": "服务器",
+        "current_stock": 9,
+        "min_stock_threshold": 16,
+        "reorder_quantity": 20,
+        "status": "low_stock",
+        "unit_price": 81000,
+        "supplier": "海澜数通",
+        "lead_time_days": 12,
+        "last_reorder_date": "2026-01-25",
+        "notes": "承载业务轻量化，作为阶段一优先备选。"
+      },
+      {
+        "product_id": "INV-703",
+        "name": "Huawei FusionServer 2488H V3（信创替代）",
+        "category": "服务器",
+        "current_stock": 4,
+        "min_stock_threshold": 12,
+        "reorder_quantity": 18,
+        "status": "critical",
+        "unit_price": 76000,
+        "supplier": "星港分销",
+        "lead_time_days": 28,
+        "last_reorder_date": "2025-12-18",
+        "notes": "信创合规指定机型，必须满足国产化部件清单。"
+      },
+      {
+        "product_id": "INV-704",
+        "name": "Lenovo ThinkSystem SR650 V2（通用冷备）",
+        "category": "服务器",
+        "current_stock": 13,
+        "min_stock_threshold": 14,
+        "reorder_quantity": 12,
+        "status": "low_stock",
+        "unit_price": 83000,
+        "supplier": "天秤云联",
+        "lead_time_days": 9,
+        "last_reorder_date": "2026-02-01",
+        "notes": "质量稳定，适合补齐最低配置的尾差。"
+      },
+      {
+        "product_id": "INV-705",
+        "name": "Dell PowerEdge R760x（干扰：快交但库存不足）",
+        "category": "服务器",
+        "current_stock": 8,
+        "min_stock_threshold": 10,
+        "reorder_quantity": 10,
+        "status": "low_stock",
+        "unit_price": 87000,
+        "supplier": "海澜数通",
+        "lead_time_days": 14,
+        "last_reorder_date": "2026-02-03",
+        "notes": "表面满足窗口，但最低配置配套清单需同步到货，否则不可用。"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-501",
+        "title": "紧急采购评分卡与审批门槛（灾备适用）",
+        "category": "采购",
+        "tags": [
+          "灾备",
+          "评分卡",
+          "审批门槛",
+          "集中度"
+        ],
+        "content": "# 紧急采购仍需合规\n\n## 评分权重（总分100）\n- 交付期限与应急可达性：30%\n- 售后响应与工单处理能力：25%\n- 历史退货/退款风险：20%\n- 产品质量与一致性：15%\n- 合作与沟通可靠性：10%\n\n## 供应商集中度要求\n- 同一供应商采购金额不得超过本次总采购金额的60%\n- 首次采购供应商的单次评估通过后限额：100万以内\n\n## 审批门槛（按金额口径取“保守可用额度对应的采购计划金额”）\n- 50万以下：部门经理\n- 50万-120万：总监\n- 120万以上：CEO审批\n\n## 紧急例外\n- 紧急采购允许先安排“阶段一”试供与验收，但不免除上述审批门槛与集中度限制。\n- 若财务存在预算冻结/拨付延后，应在报告中同时给出保守与乐观两种可用额度口径，并说明触发审批的差异。\n",
+        "last_updated": "2026-02-16",
+        "views": 410
+      },
+      {
+        "article_id": "KB-502",
+        "title": "灾备服务器到货验收与可用判定要点",
+        "category": "运维",
+        "tags": [
+          "到货验收",
+          "可用性",
+          "灾备"
+        ],
+        "content": "# 到货验收与可用判定\n\n## 可用性必须同时满足\n1. 服务器主机与关键配件（如冗余电源/控制器）到货并匹配配置清单\n2. 到货后在48小时内完成基础自检与日志回读\n3. 若供应商仅承诺“发货快”，但关键配件/固件未到，则计为“不可用库存”，应在阶段二补齐\n\n## 建议的采购节奏\n- 阶段一：仅采购在两周内可完成“主机+关键配件+基础固件”到货的组合\n- 阶段二：对信创/长交期机型或配套补件执行审批后再补齐\n",
+        "last_updated": "2026-02-04",
+        "views": 155
+      }
+    ],
+    "fixtures/rss/articles.json": [
+      {
+        "article_id": "RSS-701",
+        "title": "北域科技：48小时响应与加急发运承诺声明",
+        "source": "企业采购情报",
+        "category": "industry",
+        "published_at": "2026-02-19T06:20:00Z",
+        "summary": "北域科技在官网发布加急服务承诺：48小时内完成远程诊断并支持快速发运。",
+        "content": "北域科技在公开声明中表示：对灾备与紧急采购场景，将提供48小时内响应与优先发运机制。公司强调拥有专门的应急仓与技术支撑小组，可在订单确认后优先安排出库。\n\n同时公告要求客户按清单提供验收场景，确保售后与交付协同。声明中将此机制标为“快速响应通道”。",
+        "relevance_tags": [
+          "北域科技",
+          "快速响应",
+          "发运承诺"
+        ],
+        "word_count": 210
+      },
+      {
+        "article_id": "RSS-702",
+        "title": "北域科技：售后工单积压导致响应延迟的客户反馈",
+        "source": "运维观察",
+        "category": "service",
+        "published_at": "2026-02-22T09:10:00Z",
+        "summary": "有客户反映北域科技近期出现售后工单积压，导致响应时间拉长。",
+        "content": "据多家企业用户反馈，北域科技在近期高峰期出现售后工单积压，部分事件响应从承诺的48小时延长到3-5个工作日。客户普遍担心在灾备窗口期内无法完成快速定位与补件协调。\n\n北域方面解释为组织调整与维保升级带来的流程磨合，但仍建议客户在关键节点提前确认备件可用性与交付节奏。",
+        "relevance_tags": [
+          "北域科技",
+          "工单积压",
+          "响应延迟"
+        ],
+        "word_count": 235
+      },
+      {
+        "article_id": "RSS-703",
+        "title": "海澜数通：两周内完成应急补货的渠道协作公告",
+        "source": "供应链速递",
+        "category": "supply_chain",
+        "published_at": "2026-02-17T13:30:00Z",
+        "summary": "海澜数通发布协作计划，强调对常见服务器型号可在两周内完成补货。",
+        "content": "海澜数通与多家主流厂商渠道共同推出应急补货协作计划：对指定的HP平台产品，承诺在订单确认后在两周窗口内完成发运并安排到货对接。\n\n公告同时提醒：若涉及额外配套清单（如特定RAID/控制器固件），交付时间可能随配件到货进度波动。",
+        "relevance_tags": [
+          "海澜数通",
+          "应急补货",
+          "两周窗口"
+        ],
+        "word_count": 200
+      },
+      {
+        "article_id": "RSS-704",
+        "title": "海澜数通：旺季售后响应波动与维保排队问题",
+        "source": "IT运维简报",
+        "category": "service",
+        "published_at": "2026-02-24T08:45:00Z",
+        "summary": "报道指出海澜数通旺季期间维保响应存在排队延迟。",
+        "content": "有运维团队指出，海澜数通在旺季期间出现维保工单排队现象。虽然多数问题可在短时间完成初诊，但对于需要现场更换部件的工单，现场协调可能出现延后。\n\n文章建议采购方提前准备备件与验收计划，并在紧急项目中将“可用判定”与关键配件到货绑定。",
+        "relevance_tags": [
+          "海澜数通",
+          "响应延迟",
+          "维保排队"
+        ],
+        "word_count": 220
+      },
+      {
+        "article_id": "RSS-705",
+        "title": "星港分销：信创机型加价与长交期风险提示",
+        "source": "行业快讯",
+        "category": "supply_chain",
+        "published_at": "2026-02-16T07:55:00Z",
+        "summary": "星港分销涉及的信创机型近期出现长交期与价格波动。",
+        "content": "星港分销相关报道显示，部分信创服务器因供应链紧张出现交付周期延长。渠道方提示客户在采购前评估交付窗口，并对关键组件到货时间进行复核。\n\n文章同时提到，当前报价可能存在随供应链变动的浮动机制，建议以书面交期与到货验收条款降低不确定性。",
+        "relevance_tags": [
+          "星港分销",
+          "长交期",
+          "信创"
+        ],
+        "word_count": 240
+      },
+      {
+        "article_id": "RSS-706",
+        "title": "天秤云联：到货稳定但紧急排产不保证",
+        "source": "项目管理观察",
+        "category": "industry",
+        "published_at": "2026-02-21T11:05:00Z",
+        "summary": "天秤云联在项目复盘中表示交付稳定，但紧急排产仍受资源约束。",
+        "content": "天秤云联在一次项目复盘中强调其交付过程的可控性，认为整体质量与准时率较高。然而文章也指出，在极端紧急排产场景下仍存在资源与排队限制，可能影响到货组合的完整性。\n\n该文建议采购方在灾备窗口中优先选择“主机+关键配件可同时到货”的组合方案，避免只满足主机到货却导致配件缺失不可用。",
+        "relevance_tags": [
+          "天秤云联",
+          "紧急排产",
+          "可用性"
+        ],
+        "word_count": 205
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题把评估重点从常规批次采购转为“两周灾备窗口+快速响应承诺 vs 工单积压/维保退款矛盾+预算冻结口径差异”，并要求输出阶段一/阶段二的采购取舍顺序。",
+    "fixture_design_summary": [
+      "inventory：设置3个服务器机型在两周内无法满足最低配置（critical/low_stock且lead_time_days>14或关键配件不可用逻辑），并加入一台“14天但配套缺失不可用”的干扰机型以促使阶段一/二取舍。",
+      "rss：为北域科技与海澜数通各放入“快速响应/发运承诺”正面新闻及“工单积压/响应延迟”负面新闻，外加星港分销长交期与天秤云联紧急排产约束，用于矛盾映射售后/交付维度。",
+      "crm：北域科技 notes 含“维保升级后首单退款/争议单”与海澜数通 notes 含“历史工单积压/响应延迟”，覆盖退货/维保与服务持续性。",
+      "kb：提供明确评分权重、单一供应商集中度60%与审批阈值（120万触发CEO），并要求在预算冻结口径下解释审批差异。",
+      "finance：通过“预算冻结/拨付延后”制造保守(120万)与乐观(180万)可用额度差异，并含一笔北域科技退款交易，支撑保守口径触发更高审批与两阶段采购建议。"
+    ]
+  }
+}

@@ -1,0 +1,404 @@
+{
+  "task_id": "T031zh_escalation_budget_triage_plus_2",
+  "task_name": "多供应商争议退款升级",
+  "prompt_text": "收件箱中有若干封关于“多供应商争议退款升级”的邮件。请帮我处理：\n1. 阅读并读取所有升级邮件（共6封）。\n2. 对每封邮件，解析并提取：项目代码（用于工单匹配）、争议赔付金额、争议发生方（供应商A/供应商B/我方）、以及是否出现“外部法务接管”字样。\n3. 对于能解析出“客户编号+争议赔付金额”的有效邮件：\n   3.1 在CRM中查找该客户的tier、annual_revenue与status。\n   3.2 在helpdesk中，依据“项目代码 + 争议发生方”从同项目代码的多条工单中选取最匹配的一条工单；然后更新该工单的priority与tags。\n4. 分流与动作规则：\n   - 异常法务分支：若邮件声称“外部法务接管”或CRM状态为churned，则将选中工单标记为“异常-法务接管”，并通知法务联络人；禁止向客户服务联络人发送任何涉及“已批准/承诺退款/赔付”的话术。\n   - 预算内/外分支：否则计算 争议赔付金额 ÷ annual_revenue 的比例。\n       * 比例 <= 5%：发送通知邮件给客户服务联络人（主题注明“预算内处理”），正文仅做流程通知，不作“已批准赔付/保证赔付”的承诺。\n       * 比例 > 5%：仅保存草稿给客户服务联络人（主题注明“需上级审批-预算外”），正文避免任何承诺性赔付表述。\n   - 跳过规则：若赔付金额为0或缺失客户编号（即无法在CRM中定位客户），则不调用后续CRM/工单/发信流程，动作记为skip，并在摘要中说明原因。\n5. 最终输出一份摘要：每条邮件包含项目代码、所选工单（或skip原因）、分流理由（预算内/预算外/异常-法务接管/skip）与采取的动作（sent/draft/legal/skip）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-301",
+        "name": "陈思敏",
+        "department": "客户服务部",
+        "title": "客户服务负责人",
+        "email": "cs_lead.chen@company.com",
+        "phone": "13900303001",
+        "location": "上海"
+      },
+      {
+        "contact_id": "CT-302",
+        "name": "周凯",
+        "department": "法务部",
+        "title": "法务合规专员",
+        "email": "legal_compliance.zhou@company.com",
+        "phone": "13900303002",
+        "location": "上海"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUST-201",
+        "name": "北辰航运有限公司",
+        "contact_person": "沈岚",
+        "email": "shenlan@beichen-shipping.com",
+        "phone": "13810002001",
+        "industry": "航运",
+        "tier": "standard",
+        "annual_revenue": 5200000,
+        "last_contact_date": "2026-03-01",
+        "status": "active",
+        "notes": "历史上有过小额账务争议，沟通要求清晰"
+      },
+      {
+        "customer_id": "CUST-202",
+        "name": "星瀚云计算股份",
+        "contact_person": "高然",
+        "email": "gaoran@xinghancloud.com",
+        "phone": "13810002002",
+        "industry": "云计算",
+        "tier": "vip",
+        "annual_revenue": 12500000,
+        "last_contact_date": "2026-03-02",
+        "status": "active",
+        "notes": "VIP客户，投诉升级响应需更快"
+      },
+      {
+        "customer_id": "CUST-203",
+        "name": "金桥制造集团",
+        "contact_person": "袁成",
+        "email": "yuancheng@jinqiao-manufacturing.cn",
+        "phone": "13810002003",
+        "industry": "制造",
+        "tier": "standard",
+        "annual_revenue": 2100000,
+        "last_contact_date": "2026-02-20",
+        "status": "active",
+        "notes": "对合同条款解释敏感"
+      },
+      {
+        "customer_id": "CUST-204",
+        "name": "旭日金融科技",
+        "contact_person": "蒋薇",
+        "email": "jiangwei@sunrise-fintech.com",
+        "phone": "13810002004",
+        "industry": "金融科技",
+        "tier": "vip",
+        "annual_revenue": 6400000,
+        "last_contact_date": "2026-03-03",
+        "status": "active",
+        "notes": "近期发生多供应商交付争议"
+      },
+      {
+        "customer_id": "CUST-205",
+        "name": "青岚教育科技",
+        "contact_person": "周晓",
+        "email": "zhouxiao@qinglan-edu.com",
+        "phone": "13810002005",
+        "industry": "教育科技",
+        "tier": "standard",
+        "annual_revenue": 3300000,
+        "last_contact_date": "2026-02-27",
+        "status": "active",
+        "notes": "支持期限内的赔付说明要求较严格"
+      },
+      {
+        "customer_id": "CUST-206",
+        "name": "恒岳物流服务",
+        "contact_person": "邱磊",
+        "email": "qiulei@hengyue-logistics.com",
+        "phone": "13810002006",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 950000,
+        "last_contact_date": "2026-01-18",
+        "status": "churned",
+        "churn_date": "2026-01-18",
+        "churn_reason": "合同到期未续约",
+        "notes": "已流失客户；对法律措辞较敏感"
+      },
+      {
+        "customer_id": "CUST-207",
+        "name": "蔚蓝医疗器械",
+        "contact_person": "王静",
+        "email": "wangjing@weilan-med.com",
+        "phone": "13810002007",
+        "industry": "医疗器械",
+        "tier": "vip",
+        "annual_revenue": 4300000,
+        "last_contact_date": "2026-03-04",
+        "status": "active",
+        "notes": "合同条款复杂，易出现“是否包含在合同内”的争议"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2301",
+        "date": "2026-02-10",
+        "amount": 118000.00,
+        "currency": "CNY",
+        "customer_id": "CUST-205",
+        "customer_name": "青岚教育科技",
+        "type": "客户退款/补偿",
+        "category": "争议处理-部分退款",
+        "description": "青岚教育科技：多供应商争议退款的历史部分处理记录（非最终结算）",
+        "approved_by": "cs_lead.chen@company.com",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-2302",
+        "date": "2026-02-18",
+        "amount": 42000.00,
+        "currency": "CNY",
+        "customer_id": "CUST-201",
+        "customer_name": "北辰航运有限公司",
+        "type": "客户退款/补偿",
+        "category": "争议处理-部分退款",
+        "description": "北辰航运有限公司：争议发生前的早期工单补偿支出记录",
+        "approved_by": "cs_lead.chen@company.com",
+        "status": "completed"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "gmsg_3011",
+        "from": "disputes@vendor-claims.com",
+        "to": "me@company.com",
+        "subject": "多供应商争议退款升级【PRJ-77A】——是否包含合同内请立即确认",
+        "date": "2026-03-04T09:05:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "refund-dispute"],
+        "body": "您好，\n\n我们就项目 PRJ-77A 发起争议退款升级。相关客户要求书面说明“该赔付是否包含在合同内”。\n\n客户编号：CUST-201\n争议赔付金额：260,000\n争议发生方：供应商A\n\n客户诉求：\n- 认为部分费用不应由合同覆盖，要求贵司进行退款/赔付升级处理。\n- 请不要拖延响应。\n\n（注：未要求外部法务接管，但明确要求退款/赔付口径一致。）\n\n供应商A对接人"
+      },
+      {
+        "message_id": "gmsg_3012",
+        "from": "accounts@partner-claims.net",
+        "to": "me@company.com",
+        "subject": "退款升级【PRJ-88B】外部法务接管通知（含供应商B争议）",
+        "date": "2026-03-04T10:20:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "legal-hold"],
+        "body": "您好，\n\n针对项目 PRJ-88B 提交退款升级，并声明：外部法务接管（External Legal Takeover）。\n\n客户编号：CUST-202\n争议赔付金额：410,000\n争议发生方：供应商B\n\n邮件要点：\n1) 请贵司停止对客户做任何“已批准退款/赔付”的承诺性答复。\n2) 争议金额与合同覆盖边界仍在法务阶段确认。\n\n我们要求同步告知贵司法务。\n\n供应商B法务协作"
+      },
+      {
+        "message_id": "gmsg_3013",
+        "from": "support@internal-ops.com",
+        "to": "me@company.com",
+        "subject": "多供应商争议退款升级【PRJ-91C】——预算外需上级",
+        "date": "2026-03-04T11:35:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation"],
+        "body": "你好，\n\n关于项目 PRJ-91C 的争议退款升级，具体如下：\n\n客户编号：CUST-204\n争议赔付金额：420,000\n争议发生方：我方\n\n客户在邮件中提到：若不在约定周期内处理，将升级至管理层审批。\n\n同时请确认“赔付是否包含在合同内”的解释口径。\n\n内部运营"
+      },
+      {
+        "message_id": "gmsg_3014",
+        "from": "claims@vendor-portal.org",
+        "to": "me@company.com",
+        "subject": "退款升级【PRJ-77A】金额=0但要求升级处理",
+        "date": "2026-03-04T12:50:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "noise"],
+        "body": "您好，\n\n关于项目 PRJ-77A 我们要求“退款升级”，但系统显示争议赔付金额为0。\n\n客户编号：CUST-203\n争议赔付金额：0\n争议发生方：供应商A\n\n尽管金额为0，客户仍要求贵司走升级流程并出具书面说明。\n\n供应商A代表"
+      },
+      {
+        "message_id": "gmsg_3015",
+        "from": "customer-replies@client-mail.com",
+        "to": "me@company.com",
+        "subject": "争议退款升级【PRJ-99D】仅提供项目代码（无客户编号）",
+        "date": "2026-03-04T14:10:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "missing-fields"],
+        "body": "你好，\n\n我们对项目 PRJ-99D 提交争议退款升级。\n\n（问题）：邮件中不便提供客户编号。\n争议赔付金额：55,000\n争议发生方：供应商B\n\n请根据项目代码尽快处理。\n\n匿名来信"
+      },
+      {
+        "message_id": "gmsg_3016",
+        "from": "legal-notice@outside-counsel.biz",
+        "to": "me@company.com",
+        "subject": "多供应商争议退款升级【PRJ-88B】——churned客户，外部法务接管字样",
+        "date": "2026-03-04T15:25:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "legal"],
+        "body": "您好，\n\n这是针对项目 PRJ-88B 的争议退款升级通知。\n\n客户编号：CUST-206\n争议赔付金额：30,000\n争议发生方：供应商B\n\n声明：外部法务接管（外部法务接管）。\n同时该客户已流失（churned），请在法务流程中处理。\n\n外部法务代表"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "HD-4101",
+        "title": "PRJ-77A 供应商A争议退款沟通",
+        "description": "项目 PRJ-77A：供应商A对争议退款提出升级，涉及“是否包含合同内”的口径。客户口径要求书面确认赔付边界。",
+        "customer_id": "CUST-201",
+        "reporter": "客服分派",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-04T08:40:00Z",
+        "tags": ["PRJ-77A", "争议退款", "供应商A"]
+      },
+      {
+        "ticket_id": "HD-4102",
+        "title": "PRJ-77A 供应商B争议退款协同",
+        "description": "项目 PRJ-77A：供应商B提出的退款升级与合同覆盖争议，需要与法务共同核对条款。",
+        "customer_id": "CUST-201",
+        "reporter": "协同台",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-04T08:55:00Z",
+        "tags": ["PRJ-77A", "供应商B"]
+      },
+      {
+        "ticket_id": "HD-4103",
+        "title": "PRJ-77A 我方内部争议退款复盘",
+        "description": "项目 PRJ-77A：我方内部流程引发的争议退款，需要复盘责任归属与沟通记录。",
+        "customer_id": "CUST-201",
+        "reporter": "内部运营",
+        "department": "内部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-04T09:10:00Z",
+        "tags": ["PRJ-77A", "我方"]
+      },
+      {
+        "ticket_id": "HD-4201",
+        "title": "PRJ-88B 供应商B 争议退款（法务协同）",
+        "description": "项目 PRJ-88B：争议发生方为供应商B，客户要求退款/赔付升级并涉及外部法务接管情形的沟通准备。",
+        "customer_id": "CUST-202",
+        "reporter": "客服分派",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-04T09:30:00Z",
+        "tags": ["PRJ-88B", "供应商B", "争议退款"]
+      },
+      {
+        "ticket_id": "HD-4202",
+        "title": "PRJ-88B 供应商A 争议退款协查",
+        "description": "项目 PRJ-88B：争议发生方为供应商A，合同边界需核对，暂未涉及法务接管。",
+        "customer_id": "CUST-202",
+        "reporter": "协同台",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-04T09:45:00Z",
+        "tags": ["PRJ-88B", "供应商A"]
+      },
+      {
+        "ticket_id": "HD-4203",
+        "title": "PRJ-88B 我方 争议退款内部处理",
+        "description": "项目 PRJ-88B：争议发生方为我方，要求内部处理与客户沟通同步。",
+        "customer_id": "CUST-202",
+        "reporter": "内部运营",
+        "department": "内部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-04T10:00:00Z",
+        "tags": ["PRJ-88B", "我方"]
+      },
+      {
+        "ticket_id": "HD-4301",
+        "title": "PRJ-91C 我方争议退款升级-预算评估",
+        "description": "项目 PRJ-91C：争议发生方为我方。客户要求退款升级，需评估预算边界并推动上级审批（如超预算）。",
+        "customer_id": "CUST-204",
+        "reporter": "客服分派",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-04T10:15:00Z",
+        "tags": ["PRJ-91C", "我方", "争议退款"]
+      },
+      {
+        "ticket_id": "HD-4302",
+        "title": "PRJ-91C 供应商A争议退款对账",
+        "description": "项目 PRJ-91C：供应商A提出退款升级，重点对账与合同条款边界。",
+        "customer_id": "CUST-204",
+        "reporter": "协同台",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-04T10:30:00Z",
+        "tags": ["PRJ-91C", "供应商A"]
+      },
+      {
+        "ticket_id": "HD-4303",
+        "title": "PRJ-91C 供应商B争议退款核验",
+        "description": "项目 PRJ-91C：供应商B争议退款升级，需核验证据与历史处理记录。",
+        "customer_id": "CUST-204",
+        "reporter": "客服分派",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-04T10:45:00Z",
+        "tags": ["PRJ-91C", "供应商B"]
+      },
+      {
+        "ticket_id": "HD-4401",
+        "title": "PRJ-99D 供应商B争议退款（临时）",
+        "description": "项目 PRJ-99D：仅根据项目代码记录的临时工单；争议发生方为供应商B。客户编号待补齐。",
+        "customer_id": "CUST-207",
+        "reporter": "客服分派",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-04T11:10:00Z",
+        "tags": ["PRJ-99D", "供应商B"]
+      },
+      {
+        "ticket_id": "HD-4402",
+        "title": "PRJ-99D 供应商A争议退款（临时）",
+        "description": "项目 PRJ-99D：临时工单，争议发生方为供应商A，待客户编号校验。",
+        "customer_id": "CUST-207",
+        "reporter": "协同台",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-04T11:25:00Z",
+        "tags": ["PRJ-99D", "供应商A"]
+      },
+      {
+        "ticket_id": "HD-4403",
+        "title": "PRJ-99D 我方争议退款（临时）",
+        "description": "项目 PRJ-99D：临时工单，争议发生方为我方，待补充客户信息。",
+        "customer_id": "CUST-207",
+        "reporter": "内部运营",
+        "department": "内部",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-04T11:40:00Z",
+        "tags": ["PRJ-99D", "我方"]
+      },
+      {
+        "ticket_id": "HD-4501",
+        "title": "PRJ-88B 供应商B 争议退款-流失客户补遗",
+        "description": "项目 PRJ-88B：为churned客户补遗而创建的工单，争议发生方为供应商B，预计涉及法务处理。",
+        "customer_id": "CUST-206",
+        "reporter": "客服分派",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-04T12:00:00Z",
+        "tags": ["PRJ-88B", "供应商B", "争议退款", "补遗"]
+      },
+      {
+        "ticket_id": "HD-4502",
+        "title": "PRJ-88B 供应商A 争议退款-流失客户补遗",
+        "description": "项目 PRJ-88B：流失客户补遗工单，争议发生方为供应商A。",
+        "customer_id": "CUST-206",
+        "reporter": "协同台",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-04T12:15:00Z",
+        "tags": ["PRJ-88B", "供应商A", "补遗"]
+      },
+      {
+        "ticket_id": "HD-4503",
+        "title": "PRJ-88B 我方 争议退款-流失客户补遗",
+        "description": "项目 PRJ-88B：流失客户补遗工单，争议发生方为我方。",
+        "customer_id": "CUST-206",
+        "reporter": "内部运营",
+        "department": "内部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-04T12:30:00Z",
+        "tags": ["PRJ-88B", "我方", "补遗"]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原预算分流基础上新增“外部法务接管”强制异常分支，并加入“金额为0但仍升级/缺失客户编号”的skip干扰邮件，同时改用“项目代码+争议发生方”匹配工单。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 共6封：4封有效解析，2封用于skip（金额=0与缺失客户编号）。",
+      "有效邮件覆盖：预算内(sent)、预算外(draft)、法务异常(legal)；其中包含“外部法务接管”与CRM churned两类触发。",
+      "helpdesk/tickets.json 按每个项目代码至少提供3条工单，并将“争议发生方”写入description/tags以便匹配。",
+      "contacts.json 提供全新客户服务与法务联系人邮箱，确保通知目标一致。",
+      "finance/transactions.json 为其中一封预算判断相关客户提供历史记录用于一致性核验（不影响分流阈值）。"
+    ]
+  }
+}

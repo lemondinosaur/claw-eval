@@ -1,0 +1,158 @@
+{
+  "task_id": "T019zh_inventory_check_plus_1",
+  "task_name": "Reorder for Multi-Store Promotion",
+  "prompt_text": "促销活动即将开始（未来3天销量预计比常规提升50%）。请查看全站哪些商品库存不足需要补货，并直接为最紧急的商品下补货单：\n1）优先处理缺货且无在途补货的商品（current_stock=0，使用 days_out_of_stock 判断紧急度）；\n2）其次处理低于 min_stock_threshold 的商品（current_stock > 0 但偏低）；\n3）如有延迟到货/已在途但仍短缺（status=backordered 且 backorder_eta 在促销开始前后），需要根据 ETA 相对促销窗口的位置调整优先级；\n4）计算“天数覆盖/补货数量”时使用 daily_avg_sales，并在促销假设下将未来3天的日销量按“+50%”调整（至少用于排序或补货量）；\n5）库龄异常字段 last_count_days_since 仅作为干扰信息，不能作为下单依据；\n6）不要为库存充足或无需补货的商品创建订单。\n最后请按紧急度从高到低列出补货清单与排序原因摘要，并给出每个下单商品的数量与供应商。",
+  "files": {
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "INV-1001",
+        "name": "旗舰折叠蓝牙音箱 X1",
+        "category": "音频设备",
+        "current_stock": 0,
+        "min_stock_threshold": 18,
+        "unit_price": 499.0,
+        "daily_avg_sales": 7,
+        "supplier": "宁波声创科技",
+        "lead_time_days": 9,
+        "days_out_of_stock": 6,
+        "last_count_days_since": 28
+      },
+      {
+        "product_id": "INV-1002",
+        "name": "太阳能随身风扇 S2",
+        "category": "家居小电",
+        "current_stock": 0,
+        "min_stock_threshold": 25,
+        "unit_price": 129.0,
+        "daily_avg_sales": 11,
+        "supplier": "台州绿能制造",
+        "lead_time_days": 6,
+        "days_out_of_stock": 10,
+        "last_count_days_since": 41
+      },
+      {
+        "product_id": "INV-1003",
+        "name": "高保真挂脖式耳机 M3",
+        "category": "音频设备",
+        "current_stock": 0,
+        "min_stock_threshold": 12,
+        "unit_price": 219.0,
+        "daily_avg_sales": 5,
+        "supplier": "绍兴新声电子",
+        "lead_time_days": 8,
+        "days_out_of_stock": 3,
+        "last_count_days_since": 9
+      },
+      {
+        "product_id": "INV-2001",
+        "name": "耐用快充数据线 2米",
+        "category": "配件",
+        "current_stock": 38,
+        "min_stock_threshold": 60,
+        "unit_price": 39.9,
+        "daily_avg_sales": 16,
+        "supplier": "东莞迅联线缆",
+        "lead_time_days": 4,
+        "last_count_days_since": 3
+      },
+      {
+        "product_id": "INV-2002",
+        "name": "防尘手机支架 A7",
+        "category": "配件",
+        "current_stock": 19,
+        "min_stock_threshold": 30,
+        "unit_price": 59.0,
+        "daily_avg_sales": 9,
+        "supplier": "深圳智稳工贸",
+        "lead_time_days": 5,
+        "last_count_days_since": 6
+      },
+      {
+        "product_id": "INV-2003",
+        "name": "双层保温杯 500ml",
+        "category": "日用器具",
+        "current_stock": 27,
+        "min_stock_threshold": 50,
+        "unit_price": 79.0,
+        "daily_avg_sales": 10,
+        "supplier": "金华云杯制造",
+        "lead_time_days": 7,
+        "last_count_days_since": 2
+      },
+      {
+        "product_id": "INV-2004",
+        "name": "车载香氛补充装 12片",
+        "category": "个护清洁",
+        "current_stock": 41,
+        "min_stock_threshold": 70,
+        "unit_price": 22.0,
+        "daily_avg_sales": 20,
+        "supplier": "义乌香氛工坊",
+        "lead_time_days": 3,
+        "last_count_days_since": 12
+      },
+      {
+        "product_id": "INV-3001",
+        "name": "AR 导航墨镜 N9",
+        "category": "可穿戴设备",
+        "current_stock": 14,
+        "min_stock_threshold": 20,
+        "unit_price": 899.0,
+        "daily_avg_sales": 3,
+        "supplier": "苏州视界科技",
+        "lead_time_days": 11,
+        "status": "backordered",
+        "backorder_eta": "2026-05-23",
+        "last_count_days_since": 17
+      },
+      {
+        "product_id": "INV-3002",
+        "name": "智能折叠蓝牙手环 H6",
+        "category": "可穿戴设备",
+        "current_stock": 6,
+        "min_stock_threshold": 15,
+        "unit_price": 239.0,
+        "daily_avg_sales": 8,
+        "supplier": "杭州云动数码",
+        "lead_time_days": 7,
+        "status": "backordered",
+        "backorder_eta": "2026-05-30",
+        "last_count_days_since": 21
+      },
+      {
+        "product_id": "INV-9991",
+        "name": "库龄异常但库存充足的桌面收纳盒 C2",
+        "category": "日用器具",
+        "current_stock": 500,
+        "min_stock_threshold": 5,
+        "unit_price": 16.9,
+        "daily_avg_sales": 2,
+        "supplier": "广州盛捷生活用品",
+        "lead_time_days": 2,
+        "last_count_days_since": 120
+      },
+      {
+        "product_id": "INV-9992",
+        "name": "阈值极低但库存不缺的旅行雨伞 R1",
+        "category": "出行用品",
+        "current_stock": 320,
+        "min_stock_threshold": 1,
+        "unit_price": 28.0,
+        "daily_avg_sales": 4,
+        "supplier": "泉州晴雨工贸",
+        "lead_time_days": 3,
+        "last_count_days_since": 60
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在“闪购7天促销”+未来3天日销量提升50%的假设下，需重新按缺货天数/覆盖天数与 backorder_eta 跨促销窗口调整补货优先级，并避免把库龄异常字段当作下单依据。",
+    "fixture_design_summary": [
+      "构造3个断货商品（current_stock=0）并给出 days_out_of_stock，以确保最高优先级排序。",
+      "构造4个低于 min_stock_threshold 但库存非0的商品，作为次级补货候选。",
+      "构造2个 backordered 商品：ETA 分别落在促销开始前后附近（用于改变相对优先级）。",
+      "加入2条干扰商品：一条 last_count_days_since 极大但库存充足；一条 min_stock_threshold 极低且库存充足，确保不被误下单。",
+      "确保至少5个需要下单的商品（断货3个 + 低库存≥2个），并使 daily_avg_sales 与 lead_time_days 在促销+50%假设下能推导合理补货数量。"
+    ]
+  }
+}

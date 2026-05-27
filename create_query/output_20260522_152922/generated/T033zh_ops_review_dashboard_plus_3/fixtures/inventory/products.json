@@ -1,0 +1,71 @@
+[
+  {
+    "product_id": "PRD-301",
+    "name": "北极星手环XR-12",
+    "category": "可穿戴",
+    "current_stock": 18,
+    "min_stock": 60,
+    "status": "low_stock",
+    "return_rate": 3.6,
+    "return_count": 7,
+    "units_sold_this_month": 132,
+    "supplier": "极光制造",
+    "last_restock_date": "2026-02-18",
+    "notes": "current_stock连续触底：自3/6起多次低于min_stock。触发阈值后仍发生出库请求，推测库存到渠道同步滞后导致渠道看到旧库存。"
+  },
+  {
+    "product_id": "PRD-302",
+    "name": "晨雾耳机AE-7",
+    "category": "音频设备",
+    "current_stock": 41,
+    "min_stock": 70,
+    "status": "low_stock",
+    "return_rate": 2.2,
+    "return_count": 9,
+    "units_sold_this_month": 210,
+    "supplier": "云端声学",
+    "last_restock_date": "2026-03-01",
+    "notes": "库存低于安全线：触发补货触发阈值后未被及时传递给渠道出库决策。与工单“发货延迟超时/库存不一致”时间窗口一致。"
+  },
+  {
+    "product_id": "PRD-303",
+    "name": "智能体重秤WT-3",
+    "category": "健康设备",
+    "current_stock": 22,
+    "min_stock": 25,
+    "status": "low_stock",
+    "return_rate": 1.1,
+    "return_count": 2,
+    "units_sold_this_month": 95,
+    "supplier": "鼎衡科技",
+    "last_restock_date": "2026-02-27",
+    "notes": "刚性临界低库存：在同步窗口内易出现渠道出库失败，尤其在任务被禁用时更明显。"
+  },
+  {
+    "product_id": "PRD-304",
+    "name": "星港充电器CH-9",
+    "category": "配件",
+    "current_stock": 310,
+    "min_stock": 80,
+    "status": "normal",
+    "return_rate": 0.4,
+    "return_count": 1,
+    "units_sold_this_month": 480,
+    "supplier": "星港供应链",
+    "last_restock_date": "2026-03-10"
+  },
+  {
+    "product_id": "PRD-305",
+    "name": "北风路由适配器RA-2",
+    "category": "网络设备",
+    "current_stock": 12,
+    "min_stock": 20,
+    "status": "low_stock",
+    "return_rate": 0.9,
+    "return_count": 1,
+    "units_sold_this_month": 64,
+    "supplier": "北风通讯",
+    "last_restock_date": "2026-02-05",
+    "notes": "门店侧出库请求偶发失败；建议在本周内对“安全库存与补货触发”阈值做复核。"
+  }
+]

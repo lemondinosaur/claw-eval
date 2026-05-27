@@ -1,0 +1,41 @@
+[
+  {
+    "message_id": "msg_5101",
+    "from": "oncall_ops@company.com",
+    "to": "incident_channel@company.com",
+    "subject": "P0：API网关超时 + CDN回源飙升 定位线索汇总",
+    "body": "各位好，\n\n当前从日志与边缘指标交叉确认到的关键线索：\n\n- 20:41左右CDN回源流量显著上升，缓存命中率从高位快速下滑\n- 同时间API网关P99超时明显抬升（>6s），同时客服反馈“下单确认慢”\n- 风险规则引擎在故障窗口进入degraded（error_rate飙升），notes里直接提到“缓存失效重建导致规则评估洪峰”\n\n最关键的技术证据：\n- 定时任务“全站缓存预热/失效重建”在高峰期错误触发\n- 该任务写入的cache_version发生回滚/回写到旧值，边缘出现版本不匹配\n- 版本不匹配导致边缘无法命中缓存，触发穿透式回源，回源拥塞进一步放大API超时与回调延迟\n\n处置动作（仅信息记录，不涉及额外变更）：\n1) 20:53开始收集“缓存版本号变更轨迹”和CDN回源请求头样本\n2) 21:02确认回滚版本号与预热触发批次一致\n3) 21:15后观察到回源曲线回落，错误率逐步下降\n\n— 运维值班",
+    "date": "2026-02-28T21:20:00+08:00",
+    "labels": [
+      "INBOX",
+      "IMPORTANT",
+      "URGENT"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_5102",
+    "from": "release_eng@company.com",
+    "to": "incident_channel@company.com",
+    "subject": "变更提醒：缓存策略评审与定时任务参数校验",
+    "body": "大家好，\n\n关于最近一次缓存策略相关变更提醒两点：\n1) 缓存版本号（cache_version）在预热任务参数中必须通过“版本一致性校验”（与上一次稳定版本对齐）\n2) 若参数包含回滚路径，必须额外经过“灰度与增量键集验证”（避免全站失效重建）\n\n目前注意：你们的复盘里如果看到任何“版本号回滚+失效重建触发”，请重点检查评审流程是否跳过了关键验证步骤。\n\n— 发布工程",
+    "date": "2026-02-27T16:35:00+08:00",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_5103",
+    "from": "arch_cache@company.com",
+    "to": "incident_channel@company.com",
+    "subject": "Re: 缓存风暴推断：增量键集TODO被忽略？",
+    "body": "回复下大家的排查方向。\n\n我在历史方案里看到一个反复出现的TODO：\n- “只更新增量键集（incremental key set）而不是全站失效重建”\n\n如果预热任务在高峰期触发，并且cache_version被错误回写为旧值，就会出现：\n1) 边缘缓存键空间版本不一致\n2) 大面积回源（穿透式）\n3) 网关超时与回调延迟连锁\n\n因此建议复盘时把：任务触发链条（scheduler -> 失效重建 -> 版本回滚 -> 回源）写成一条时间线，并对照历史TODO是否仍未完成。\n\n— 架构师",
+    "date": "2026-03-01T09:05:00+08:00",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": false
+  }
+]

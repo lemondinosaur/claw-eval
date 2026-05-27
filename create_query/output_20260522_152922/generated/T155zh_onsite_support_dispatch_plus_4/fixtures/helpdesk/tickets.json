@@ -1,0 +1,150 @@
+[
+  {
+    "ticket_id": "TK-3101",
+    "title": "蓝桥通信：核心链路中断（演练应急已结束）",
+    "description": "蓝桥通信反馈核心链路出现中断迹象。最初被当作紧急现场工单处理，但随后确认属于演练/非真实故障流程触发。现已关闭并完成验证流程。\n\n需要确保不会因“表面紧急”而错误派遣。",
+    "customer_id": "CUS-2105",
+    "reporter": "董总",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "closed",
+    "created_at": "2026-04-15T06:10:00+08:00",
+    "tags": [
+      "演练",
+      "非真实故障",
+      "现场支持"
+    ],
+    "category": "网络中断",
+    "requires_onsite": true,
+    "closed_at": "2026-04-15T09:05:00+08:00",
+    "sla_deadline": "2026-04-15T10:10:00+08:00"
+  },
+  {
+    "ticket_id": "TK-3102",
+    "title": "蓝桥通信：链路抖动（超SLA且为演练）",
+    "description": "蓝桥通信上报链路抖动并要求现场支持。然而该问题最终被确认与演练场景相关，已通过应急远程处理完成恢复验证。\n\n当前SLA_deadline已过期10分钟，且标签为演练，按政策不补派。",
+    "customer_id": "CUS-2105",
+    "reporter": "客户经理",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-15T06:30:00+08:00",
+    "tags": [
+      "演练",
+      "非真实故障",
+      "应急远程已处理"
+    ],
+    "category": "链路稳定性",
+    "requires_onsite": true,
+    "sla_deadline": "2026-04-15T09:10:00+08:00"
+  },
+  {
+    "ticket_id": "TK-3103",
+    "title": "蓝桥通信：日志分析与报表导出咨询",
+    "description": "请求协助检查报表导出超时问题，当前可通过远程方式处理，无需现场。",
+    "customer_id": "CUS-2105",
+    "reporter": "董总助理",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-15T07:50:00+08:00",
+    "tags": [
+      "远程支持",
+      "日志分析"
+    ],
+    "category": "功能故障",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-16T07:30:00+08:00"
+  },
+  {
+    "ticket_id": "TK-3104",
+    "title": "星云制造：VPN连接失败排查",
+    "description": "VPN连接偶发失败，需要网络侧定位。该工单非VIP客户。",
+    "customer_id": "CUS-2106",
+    "reporter": "周经理",
+    "department": "技术支持",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-14T16:20:00+08:00",
+    "tags": [
+      "VPN",
+      "网络"
+    ],
+    "category": "连接故障",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-15T18:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-3105",
+    "title": "云帆零售：数据库慢查询",
+    "description": "慢查询明显增加，需要评估索引与查询计划。可远程完成，非现场要求。",
+    "customer_id": "CUS-2107",
+    "reporter": "赵总",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-13T10:05:00+08:00",
+    "tags": [
+      "数据库",
+      "性能"
+    ],
+    "category": "性能问题",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-16T10:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-3106",
+    "title": "蓝桥通信：应急远程处理回顾报告（内部）",
+    "description": "内部留档：记录应急远程处理动作与结果，用于归档。",
+    "customer_id": "CUS-2105",
+    "reporter": "技术值班",
+    "department": "技术支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-15T09:30:00+08:00",
+    "tags": [
+      "归档",
+      "远程已恢复"
+    ],
+    "category": "运维记录",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-20T09:30:00+08:00"
+  },
+  {
+    "ticket_id": "TK-3107",
+    "title": "星云制造：服务器磁盘告警（临时处理）",
+    "description": "磁盘告警已通过远程清理与容量扩展处理，现场不需要。",
+    "customer_id": "CUS-2106",
+    "reporter": "值班工程师",
+    "department": "技术支持",
+    "priority": "high",
+    "status": "closed",
+    "created_at": "2026-04-14T11:15:00+08:00",
+    "tags": [
+      "磁盘告警",
+      "远程处理"
+    ],
+    "category": "容量告警",
+    "requires_onsite": false,
+    "closed_at": "2026-04-14T18:40:00+08:00",
+    "sla_deadline": "2026-04-15T11:15:00+08:00"
+  },
+  {
+    "ticket_id": "TK-3108",
+    "title": "云帆零售：权限重置请求",
+    "description": "客户提交权限重置申请，属于操作支持，非现场。",
+    "customer_id": "CUS-2107",
+    "reporter": "赵总",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-15T10:25:00+08:00",
+    "tags": [
+      "权限",
+      "账号"
+    ],
+    "category": "账号权限",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-18T10:25:00+08:00"
+  }
+]

@@ -1,0 +1,239 @@
+[
+  {
+    "job_id": "JOB-R1",
+    "name": "事件消费者A：写入库存变更流水",
+    "cron_expression": "*/3 * * * *",
+    "action": "consume_inventory_delta_events_and_write_ledger",
+    "enabled": true,
+    "last_run": "2026-05-21T12:18:00Z",
+    "next_run": "2026-05-21T12:21:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "mq",
+      "inventory-ledger",
+      "idempotency"
+    ],
+    "created_at": "2026-04-10T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T12:18:00Z",
+        "status": "failed",
+        "duration_s": 4,
+        "error": "Idempotency mismatch: 幂等键不稳定导致幂等锁无法命中；触发重复写入保护（duplicate protection）"
+      },
+      {
+        "run_at": "2026-05-21T12:15:00Z",
+        "status": "failed",
+        "duration_s": 4,
+        "error": "Idempotency mismatch: 幂等键字段使用了重放会变化的字段（例如 event_payload_hash/sort_token）"
+      },
+      {
+        "run_at": "2026-05-21T12:12:00Z",
+        "status": "failed",
+        "duration_s": 5,
+        "error": "Idempotency mismatch: duplicate protection triggered; ledger write aborted"
+      },
+      {
+        "run_at": "2026-05-21T11:45:00Z",
+        "status": "success",
+        "duration_s": 28
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-R2",
+    "name": "事件消费者B：库存汇总（依赖流水）",
+    "cron_expression": "*/6 * * * *",
+    "action": "aggregate_inventory_from_ledger",
+    "enabled": true,
+    "last_run": "2026-05-21T12:18:00Z",
+    "next_run": "2026-05-21T12:24:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "mq",
+      "inventory-aggregation"
+    ],
+    "created_at": "2026-04-18T00:00:00Z",
+    "depends_on": [
+      "JOB-R1"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T12:18:00Z",
+        "status": "failed",
+        "duration_s": 6,
+        "error": "DependencyError: Ledger missing/不完整；库存汇总标记为不可信，已中止聚合"
+      },
+      {
+        "run_at": "2026-05-21T12:12:00Z",
+        "status": "failed",
+        "duration_s": 5,
+        "error": "DependencyError: 上游流水写入失败导致汇总输入缺失（ledger watermark未推进）"
+      },
+      {
+        "run_at": "2026-05-21T11:48:00Z",
+        "status": "success",
+        "duration_s": 24
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-R3",
+    "name": "对账/结算同步（不可信停止）",
+    "cron_expression": "*/10 * * * *",
+    "action": "sync_reconciliation_and_settlement",
+    "enabled": true,
+    "last_run": "2026-05-21T12:20:00Z",
+    "next_run": "2026-05-21T12:30:00Z",
+    "last_status": "stopped",
+    "created_by": "ops_team",
+    "tags": [
+      "reconciliation",
+      "settlement",
+      "trust"
+    ],
+    "created_at": "2026-04-25T00:00:00Z",
+    "depends_on": [
+      "JOB-R2"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T12:20:00Z",
+        "status": "stopped",
+        "duration_s": 2,
+        "error": "UntrustedDataError: 库存汇总不可信（missing ledger/aggregation incomplete），已拒绝同步"
+      },
+      {
+        "run_at": "2026-05-21T12:10:00Z",
+        "status": "stopped",
+        "duration_s": 2,
+        "error": "UntrustedDataError: 不可信标记仍存在，等待汇总恢复后再同步"
+      },
+      {
+        "run_at": "2026-05-21T11:50:00Z",
+        "status": "success",
+        "duration_s": 37
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-R4",
+    "name": "日志归档任务（干扰项：仍成功）",
+    "cron_expression": "0 */1 * * *",
+    "action": "archive_mq_logs",
+    "enabled": true,
+    "last_run": "2026-05-21T12:00:00Z",
+    "next_run": "2026-05-21T13:00:00Z",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": [
+      "archive",
+      "logs"
+    ],
+    "created_at": "2026-03-30T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T12:00:00Z",
+        "status": "success",
+        "duration_s": 120,
+        "error": null
+      },
+      {
+        "run_at": "2026-05-21T11:00:00Z",
+        "status": "success",
+        "duration_s": 115,
+        "error": null
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-R5",
+    "name": "其他消费者：订单事件落库（与主链无强依赖）",
+    "cron_expression": "*/5 * * * *",
+    "action": "consume_order_events_and_persist",
+    "enabled": true,
+    "last_run": "2026-05-21T12:18:00Z",
+    "next_run": "2026-05-21T12:23:00Z",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": [
+      "orders",
+      "events"
+    ],
+    "created_at": "2026-04-12T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T12:18:00Z",
+        "status": "success",
+        "duration_s": 9
+      },
+      {
+        "run_at": "2026-05-21T12:13:00Z",
+        "status": "success",
+        "duration_s": 10
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-R6",
+    "name": "数据质量检查：汇总一致性探测",
+    "cron_expression": "*/12 * * * *",
+    "action": "check_ledger_aggregation_consistency",
+    "enabled": true,
+    "last_run": "2026-05-21T12:16:00Z",
+    "next_run": "2026-05-21T12:28:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "dq",
+      "trust"
+    ],
+    "created_at": "2026-04-20T00:00:00Z",
+    "depends_on": [
+      "JOB-R2"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T12:16:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "error": "TrustScoreError: 汇总一致性校验未通过（ledger缺口/重复保护触发导致不完整）"
+      },
+      {
+        "run_at": "2026-05-21T12:04:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "error": "TrustScoreError: 一致性校验未通过；等待JOB-R2恢复"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-R7",
+    "name": "消息重放控制：重放窗口冻结（运维）",
+    "cron_expression": "0 */2 * * *",
+    "action": "freeze_replay_window_if_needed",
+    "enabled": true,
+    "last_run": "2026-05-21T12:00:00Z",
+    "next_run": "2026-05-21T14:00:00Z",
+    "last_status": "success",
+    "created_by": "automation_bot",
+    "tags": [
+      "mq",
+      "replay-control"
+    ],
+    "created_at": "2026-05-01T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T12:00:00Z",
+        "status": "success",
+        "duration_s": 2
+      }
+    ]
+  }
+]

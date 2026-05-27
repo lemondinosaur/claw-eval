@@ -1,0 +1,18 @@
+{
+  "tasks": 126,
+  "trials_per_task": 1,
+  "grading_enabled": true,
+  "errored": 9,
+  "total_model_input_tokens": 7104451,
+  "total_model_output_tokens": 201698,
+  "total_input_tokens": 7104451,
+  "total_output_tokens": 201698,
+  "total_tokens": 7306149,
+  "total_model_time_s": 4382.47,
+  "total_tool_time_s": 3.73,
+  "total_other_time_s": 21.98,
+  "total_wall_time_s": 4408.21,
+  "pass_hat_1": 54,
+  "pass_at_1": 54,
+  "avg_score": 0.5727904761904765
+}

@@ -1,0 +1,39 @@
+[
+  {
+    "message_id": "msg_AH_601",
+    "from": "procurement@aurora-holdings.com",
+    "to": "me@acme.com",
+    "subject": "联合尽调会议邀请：Q1协同计划",
+    "date": "2026-02-26T10:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important"
+    ],
+    "body": "你好，\n\n我们希望邀请你方参加一场“联合尽调会议”，用于对Q1协同计划进行对齐与确认。\n\n会议关键信息：\n- 会议主题：联合尽调会议（Q1协同计划）\n- 预计时长：2小时\n- 主选日期：2026-03-05（周四）下午\n- 时段偏好：14:00-18:00（会议开始时间落在此范围内）\n- 备选日期：2026-03-06（周五）上午\n- 备选时段偏好：09:00-12:00\n- 会议地点要求：线上会议（Zoom）\n- 参会人（以姓名为准）：周航、赵敏、马经理\n\n如果主选日期无法满足共同连续2小时，请直接切换到备选日期并安排最早可行时间。\n\n请在发送前确认所有人可参会。\n\n谢谢！\nAurora Holdings"
+  },
+  {
+    "message_id": "msg_AH_602",
+    "from": "newsletter@shipping-updates.example",
+    "to": "me@acme.com",
+    "subject": "物流状态更新（无需回复）",
+    "date": "2026-02-26T16:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "本邮件为自动通知：物流状态已更新。无需回复。"
+  },
+  {
+    "message_id": "msg_AH_603",
+    "from": "hr-automation@acme.com",
+    "to": "me@acme.com",
+    "subject": "通知：年度培训报名开启",
+    "date": "2026-02-27T09:40:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "年度培训报名已开启，请前往内网完成报名。"
+  }
+]

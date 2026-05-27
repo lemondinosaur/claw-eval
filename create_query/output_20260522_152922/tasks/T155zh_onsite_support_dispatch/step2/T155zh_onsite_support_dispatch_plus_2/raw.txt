@@ -1,0 +1,400 @@
+{
+  "task_id": "T155zh_onsite_support_dispatch_plus_2",
+  "task_name": "边界SLA-时区换算派遣",
+  "prompt_text": "请为VIP客户的紧急现场支持安排工程师派遣。需要重点核对SLA截止时间是否涉及时区换算，并选择能在真正截止前到达的工程师。\n\n请：\n1) 查看相关工单详情与客户CRM信息，确认哪个工单必须现场（requires_onsite=true）且为正确目标；\n2) 在收件箱中找到客户邮件里对“截止时间”的混写表述，先进行时区换算到统一口径，再与工单的SLA_deadline字段口径对齐判断真正截止点与边界风险；\n3) 查询工程师技能与今天日程可用窗口，结合站点“青岛市区”与故障类型（跨境专线BGP异常导致风控网段不可用）选择最合适的首选工程师，并给出备选与风险说明（需要覆盖：网络故障定位BGP/路由 + 专线切换/安全加固排障技能）；\n4) 起草邮件草稿（不发送），分别写给工程师与客户经理，抄送技术总监；邮件中必须呈现：统一时区口径的换算结论、真正截止时间、到达计划（用“在截止前X分钟/小时”表达）、排障要点与风险点。\n\n不要发送邮件，仅保存草稿。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_qd_1401",
+        "title": "与客户的网络链路评审会（长会）",
+        "start_time": "2026-04-05T13:00:00+08:00",
+        "end_time": "2026-04-05T18:00:00+08:00",
+        "location": "青岛-总部会议室3F",
+        "organizer": "陆清",
+        "attendees": [
+          "王琦"
+        ],
+        "description": "讨论跨境专线BGP现网健康度与变更窗口，会议期间无法出发或现场全程接管。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_qd_1402",
+        "title": "安全加固培训（16:00后）",
+        "start_time": "2026-04-05T16:15:00+08:00",
+        "end_time": "2026-04-05T19:00:00+08:00",
+        "location": "培训中心-101",
+        "organizer": "安全学院",
+        "attendees": [
+          "陈昊"
+        ],
+        "description": "参加安全加固与策略下发流程培训，培训期间无法确保在培训结束前完成初始排障。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_qd_1403",
+        "title": "全天值班空闲可出勤（桌面更新）",
+        "start_time": "2026-04-05T09:30:00+08:00",
+        "end_time": "2026-04-05T11:00:00+08:00",
+        "location": "工位A-7",
+        "organizer": "运维排班",
+        "attendees": [
+          "周澄"
+        ],
+        "description": "桌面维护与例行更新，不影响出发时间。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_qd_1404",
+        "title": "午餐",
+        "start_time": "2026-04-05T12:00:00+08:00",
+        "end_time": "2026-04-05T12:45:00+08:00",
+        "location": "",
+        "organizer": "",
+        "attendees": [],
+        "description": "午休时间",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-2101",
+        "name": "王琦",
+        "department": "运维部",
+        "title": "网络可靠性工程师",
+        "email": "wangqi.network@company.com",
+        "phone": "13901002101",
+        "location": "上海总部",
+        "skills": [
+          "网络故障定位",
+          "BGP/路由诊断",
+          "跨境专线排障",
+          "链路切换回滚"
+        ],
+        "notes": "擅长BGP/路由定位与抓包分析。今天13:00-18:00有长会议且通勤受限，预计从上海出发到青岛需要约2.5小时；18:00后到达风险较高。对安全加固经验偏弱。"
+      },
+      {
+        "contact_id": "CT-2102",
+        "name": "周澄",
+        "department": "运维部",
+        "title": "专线与网络工程师",
+        "email": "zhouqing.line@company.com",
+        "phone": "13901002102",
+        "location": "上海总部",
+        "skills": [
+          "专线切换",
+          "策略路由验证",
+          "BGP会话检查",
+          "故障联动脚本"
+        ],
+        "notes": "全天日程可出勤。缺少系统化安全加固经验（例如ACL/策略下发与加固验证流程需补位支持）。更适合在现场先做链路与路由恢复的初始处置。"
+      },
+      {
+        "contact_id": "CT-2103",
+        "name": "陈昊",
+        "department": "安全部",
+        "title": "安全加固专家",
+        "email": "chenhao.sec@company.com",
+        "phone": "13901002103",
+        "location": "上海总部",
+        "skills": [
+          "安全加固排障",
+          "访问控制策略验证",
+          "风控网段隔离与恢复",
+          "专线安全联动检查"
+        ],
+        "notes": "安全加固强项，能快速验证风控网段不可用的安全策略影响并给出加固方案。今天16:15后有培训，无法确保在培训结束前完成初始排障；对纯BGP路由定位需要配合网络工程师。"
+      },
+      {
+        "contact_id": "CT-2104",
+        "name": "吴晓岚",
+        "department": "客户成功部",
+        "title": "客户经理",
+        "email": "wuxiaolan.csm@company.com",
+        "phone": "13901002104",
+        "location": "上海总部",
+        "skills": [
+          "SLA管理",
+          "客户沟通",
+          "现场协调"
+        ],
+        "notes": "对“北辰金融”VIP现场SLA沟通负责。需要在邮件中同步换算后的截止口径与派遣风险点。"
+      },
+      {
+        "contact_id": "CT-2105",
+        "name": "蒋承志",
+        "department": "技术部",
+        "title": "技术总监",
+        "email": "jiangchengzhi.tec@company.com",
+        "phone": "13901002105",
+        "location": "上海总部",
+        "skills": [
+          "技术管理",
+          "升级评审",
+          "VIP工单应急响应"
+        ],
+        "notes": "作为升级通知抄送联系人。收到派遣与风险要点后进行技术决策把关。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2201",
+        "name": "北辰金融",
+        "contact_person": "周总",
+        "email": "zhou@beichen-fin.com",
+        "phone": "18621002201",
+        "industry": "金融",
+        "tier": "vip",
+        "annual_revenue": 9800000,
+        "last_contact_date": "2026-03-28",
+        "status": "active",
+        "location": "青岛市区",
+        "sla_level": "platinum",
+        "sla_response": "2小时现场响应（真正截止含时区口径）",
+        "notes": "VIP现场SLA：对跨境专线与风控网段不可用类critical工单要求“真正截止点”到达。客户邮件可能混用“北京时间+客户本地时区”表述，内部需统一换算口径后再评估边界风险。对接客户经理：吴晓岚。"
+      },
+      {
+        "customer_id": "CUS-2202",
+        "name": "星港保险",
+        "contact_person": "李总",
+        "email": "li@xingang-ins.com",
+        "phone": "18621002202",
+        "industry": "保险",
+        "tier": "standard",
+        "annual_revenue": 2200000,
+        "last_contact_date": "2026-03-20",
+        "status": "active",
+        "location": "天津市南开区",
+        "sla_level": "gold",
+        "sla_response": "4小时远程响应",
+        "notes": "非VIP站点；一般不要求现场到达。"
+      },
+      {
+        "customer_id": "CUS-2203",
+        "name": "和合云计算",
+        "contact_person": "陈经理",
+        "email": "chen@hehecloud.cn",
+        "phone": "18621002203",
+        "industry": "云计算",
+        "tier": "standard",
+        "annual_revenue": 1500000,
+        "last_contact_date": "2026-03-30",
+        "status": "active",
+        "location": "南京建邺区",
+        "sla_level": "gold",
+        "sla_response": "次日远程支持",
+        "notes": "一般性支持请求，优先级不高。"
+      },
+      {
+        "customer_id": "CUS-2204",
+        "name": "盛维零售",
+        "contact_person": "赵总监",
+        "email": "zhaoj@shengwei-retail.com",
+        "phone": "18621002204",
+        "industry": "零售",
+        "tier": "vip",
+        "annual_revenue": 3600000,
+        "last_contact_date": "2026-03-18",
+        "status": "active",
+        "location": "深圳福田",
+        "sla_level": "silver",
+        "sla_response": "6小时响应",
+        "notes": "VIP但本次用于干扰：本任务需以北辰金融站点SLA为主。"
+      },
+      {
+        "customer_id": "CUS-2205",
+        "name": "天翼教育",
+        "contact_person": "孙老师",
+        "email": "sun@tianyiedu.cn",
+        "phone": "18621002205",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 900000,
+        "last_contact_date": "2026-03-22",
+        "status": "active",
+        "location": "北京朝阳",
+        "sla_level": "standard",
+        "sla_response": "远程排查为主",
+        "notes": "用于补充工单候选信息。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2201",
+        "from": "zhou@beichen-fin.com",
+        "to": "support@company.com",
+        "subject": "关于风控网段不可用的紧急截止确认（含时区口径）",
+        "date": "2026-04-05T09:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important",
+          "urgent"
+        ],
+        "body": "团队你好，\n\n关于“跨境专线BGP异常导致风控网段不可用”的紧急支持，请务必在我们的真正截止前到达。\n\n客户口径说明（请注意时区换算）：\n- 我们这里本地时间（CET/UTC+1）写作：今天 17:00 必须现场完成初始排障。\n- 但系统工单里可能以北京时间展示；请你们统一换算后以同一口径判断。\n\n为避免误判，请在邮件中确认：你们将17:00（本地时区）换算到北京时间后的“真正截止时间”，以及预计工程师到达时间是否在截止前。\n\n站点：青岛市区。\n\n北辰金融 周总"
+      },
+      {
+        "message_id": "msg_2202",
+        "from": "automation@beichen-fin.com",
+        "to": "support@company.com",
+        "subject": "自动告警：风控网段探测失败（非工单）",
+        "date": "2026-04-05T08:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox",
+          "alert"
+        ],
+        "body": "探测结果：风控网段 10.66.0.0/16 连续失败，可能与跨境专线路由异常或策略阻断有关。\n\n建议：先检查BGP会话与策略路由，再进行安全加固验证。"
+      },
+      {
+        "message_id": "msg_2203",
+        "from": "noreply@service-provider.com",
+        "to": "support@company.com",
+        "subject": "工单状态更新提醒",
+        "date": "2026-04-04T18:30:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，您关注的工单状态已更新。请登录系统查看详情。"
+      },
+      {
+        "message_id": "msg_2204",
+        "from": "ops@beichen-fin.com",
+        "to": "support@company.com",
+        "subject": "排障材料补充：BGP日志片段与策略摘要",
+        "date": "2026-04-05T10:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "补充材料：\n1) BGP session flaps detected\n2) 可能存在风控网段策略变更或ACL阻断\n3) 建议进行跨境专线切换验证与安全加固回归测试\n\n如需更多信息请联系客户经理。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2101",
+        "title": "风控网段不可用（critical，可远程）",
+        "description": "北辰金融（CUS-2201）报告：跨境专线BGP异常疑似导致风控网段不可用。当前问题可通过远程执行路由重置与脚本切换进行初步缓解，但仍需现场最终确认策略影响。\n\n误导点：requires_onsite=false（远程可处理），但本任务需要忽略该工单作为干扰目标，仅派遣真正需要现场SLA的工单。",
+        "customer_id": "CUS-2201",
+        "reporter": "周总",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-05T08:55:00+08:00",
+        "tags": [
+          "风控网段",
+          "BGP异常",
+          "远程缓解",
+          "VIP干扰"
+        ],
+        "category": "网络故障",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-05T10:55:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2102",
+        "title": "风控网段不可用（critical，需现场SLA）",
+        "description": "北辰金融（CUS-2201）报告：跨境专线BGP异常导致风控网段不可用。需要现场完成：\n- BGP/路由定位（会话/路径/策略路由）\n- 专线切换与安全加固排障（隔离与恢复验证）\n\n注意：SLA_deadline字段使用统一口径（北京时间）。客户邮件中截止时间以“本地时区+北京时间混写”，需先换算再判断边界。",
+        "customer_id": "CUS-2201",
+        "reporter": "周总",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-05T09:05:00+08:00",
+        "tags": [
+          "VIP",
+          "现场SLA",
+          "BGP",
+          "专线切换",
+          "安全加固"
+        ],
+        "category": "网络故障+安全加固",
+        "requires_onsite": true,
+        "sla_deadline": "2026-04-05T16:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2103",
+        "title": "交换机端口偶发抖动（open）",
+        "description": "星港保险（CUS-2202）反馈：核心交换机部分端口偶发Link flap，业务无完全中断，但连接稳定性下降。希望进行现场巡检或远程配置核对。",
+        "customer_id": "CUS-2202",
+        "reporter": "李总",
+        "department": "技术支持",
+        "priority": "open",
+        "status": "open",
+        "created_at": "2026-04-04T15:20:00+08:00",
+        "tags": [
+          "交换机",
+          "端口抖动"
+        ],
+        "category": "网络稳定性",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-06T12:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2104",
+        "title": "API限流策略建议（medium）",
+        "description": "和合云计算（CUS-2203）请求：对某批API在高峰期限流策略进行建议，提供参数建议与压测建议即可，无需现场。",
+        "customer_id": "CUS-2203",
+        "reporter": "陈经理",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-03T11:10:00+08:00",
+        "tags": [
+          "API",
+          "限流",
+          "性能优化"
+        ],
+        "category": "性能建议",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-06T18:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2105",
+        "title": "数据库备份验证（low）",
+        "description": "天翼教育（CUS-2205）希望安排一次备份集成校验说明，偏文档支持，远程即可。",
+        "customer_id": "CUS-2205",
+        "reporter": "孙老师",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-04T10:00:00+08:00",
+        "tags": [
+          "备份",
+          "验证"
+        ],
+        "category": "运维服务请求",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-10T10:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2106",
+        "title": "策略回归测试支持（medium，非现场）",
+        "description": "盛维零售（CUS-2204）反馈：上次变更后的安全策略需要回归测试支持，预计1-2天可在远程进行。",
+        "customer_id": "CUS-2204",
+        "reporter": "赵总监",
+        "department": "安全支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-05T07:25:00+08:00",
+        "tags": [
+          "策略回归",
+          "安全"
+        ],
+        "category": "安全支持",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-07T11:30:00+08:00"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题将故障类型改为“跨境专线BGP异常+风控网段安全加固”，并加入客户邮件对截止时间的时区混写场景，要求按换算后的真正截止边界进行派遣选择。",
+    "fixture_design_summary": [
+      "helpdesk/tickets.json：包含两张critical VIP工单，其中TK-2101为强干扰requires_onsite=false，TK-2102为正确目标requires_onsite=true且SLA_deadline设置在边界附近。",
+      "gmail/inbox.json：加入来自北辰金融的紧急邮件，明确“17:00（本地CET）需换算到北京时间后判断真正截止”。",
+      "crm/customers.json：确保北辰金融为vip且location=青岛市区，并在notes提示“邮件口径可能混用时区”。",
+      "contacts/contacts.json：提供3名工程师（网络定位/专线切换/安全加固）与客户经理、技术总监；notes体现各自日程冲突与技能缺口。",
+      "calendar/events.json：按mock_today=2026-04-05设置工程师A长会(13:00-18:00)、工程师C培训(16:15后)、工程师B近似可出勤，以支撑可到达窗口判断。"
+    ]
+  }
+}

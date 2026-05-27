@@ -1,0 +1,73 @@
+[
+  {
+    "integration_id": "INT-1101",
+    "name": "SLA规则配置（升级阈值版）",
+    "status": "active",
+    "config": {
+      "critical": {
+        "response_time_minutes": 45,
+        "resolution_time_hours": 3,
+        "escalation_after_minutes": 15
+      },
+      "high": {
+        "response_time_minutes": 180,
+        "resolution_time_hours": 10,
+        "escalation_after_minutes": 60
+      },
+      "medium": {
+        "response_time_minutes": 480,
+        "resolution_time_hours": 24,
+        "escalation_after_minutes": 25
+      },
+      "low": {
+        "response_time_minutes": 1440,
+        "resolution_time_hours": 72,
+        "escalation_after_minutes": 300
+      }
+    },
+    "service": "sla_policy",
+    "last_verified": "2026-05-01",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  },
+  {
+    "integration_id": "INT-1102",
+    "name": "邮件通知集成",
+    "status": "active",
+    "config": {
+      "host": "smtp.ops-example.com",
+      "port": 587,
+      "auth": "oauth2"
+    },
+    "service": "smtp",
+    "last_verified": "2026-05-10",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  },
+  {
+    "integration_id": "INT-1103",
+    "name": "即时消息集成",
+    "status": "active",
+    "config": {
+      "url": "https://im.ops-example.com/webhook/alerts",
+      "channel": "#sre-sla-alerts"
+    },
+    "service": "webhook",
+    "last_verified": "2026-04-18",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  },
+  {
+    "integration_id": "INT-1104",
+    "name": "每日巡检集成",
+    "status": "error",
+    "config": {
+      "endpoint": "https://healthcheck.ops-example.com/api/v2/daily"
+    },
+    "service": "api",
+    "last_verified": "2026-05-12",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "error_message": "鉴权失败: token expired"
+  }
+]

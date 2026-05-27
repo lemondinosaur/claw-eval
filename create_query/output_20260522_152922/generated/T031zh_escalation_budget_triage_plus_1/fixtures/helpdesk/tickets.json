@@ -1,0 +1,206 @@
+[
+  {
+    "ticket_id": "TK-2101",
+    "title": "北辰软件 Q1 SLA违约响应超标升级",
+    "description": "北辰软件（CUS-101）Q1期间关键链路响应超标，客户要求按季度违约补偿处理。邮件提及Q1。",
+    "customer_id": "CUS-101",
+    "reporter": "客户服务-客服专员A",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-01T08:40:00Z",
+    "tags": [
+      "VIP",
+      "Q1",
+      "SLA升级"
+    ]
+  },
+  {
+    "ticket_id": "TK-2102",
+    "title": "北辰软件 Q2 交付风险复盘（非本次）",
+    "description": "北辰软件（CUS-101）Q2阶段交付风险复盘，非Q1升级。",
+    "customer_id": "CUS-101",
+    "reporter": "客户服务-运营",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-01T09:40:00Z",
+    "tags": [
+      "VIP",
+      "Q2",
+      "复盘"
+    ]
+  },
+  {
+    "ticket_id": "TK-2103",
+    "title": "骏驰物流 Q2 SLA违约影响发货计划",
+    "description": "骏驰物流（CUS-102）Q2多次SLA违约导致发货计划受影响，需升级处理。邮件提及Q2。",
+    "customer_id": "CUS-102",
+    "reporter": "客户服务-专员B",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-01T10:00:00Z",
+    "tags": [
+      "Q2",
+      "SLA违约",
+      "发货影响"
+    ]
+  },
+  {
+    "ticket_id": "TK-2104",
+    "title": "骏驰物流 Q1 客诉汇总（干扰）",
+    "description": "骏驰物流（CUS-102）Q1客服体验问题汇总，非Q2 SLA违约。",
+    "customer_id": "CUS-102",
+    "reporter": "客户服务-专员C",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-01T09:55:00Z",
+    "tags": [
+      "Q1",
+      "客服体验"
+    ]
+  },
+  {
+    "ticket_id": "TK-2105",
+    "title": "银海银行科技 Q3 接口SLA超时升级（需核验）",
+    "description": "银海银行科技（CUS-103）Q3接口SLA超时引发回滚，客户提到“上次补偿已完成”，需核验与升级。",
+    "customer_id": "CUS-103",
+    "reporter": "客户服务-专员D",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-01T11:10:00Z",
+    "tags": [
+      "VIP",
+      "Q3",
+      "接口SLA",
+      "需核验"
+    ]
+  },
+  {
+    "ticket_id": "TK-2106",
+    "title": "银海银行科技 Q4 数据治理异常（干扰）",
+    "description": "银海银行科技（CUS-103）Q4数据治理异常，非Q3 SLA违约。",
+    "customer_id": "CUS-103",
+    "reporter": "客户服务-专员E",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-01T12:00:00Z",
+    "tags": [
+      "VIP",
+      "Q4",
+      "数据治理"
+    ]
+  },
+  {
+    "ticket_id": "TK-2107",
+    "title": "天谱云计算 Q2 服务不可用升级",
+    "description": "天谱云计算（CUS-104）Q2部分服务不可用超过约2小时，需按季度违约补偿规则处理。",
+    "customer_id": "CUS-104",
+    "reporter": "客户服务-专员F",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-01T13:20:00Z",
+    "tags": [
+      "Q2",
+      "不可用",
+      "SLA违约"
+    ]
+  },
+  {
+    "ticket_id": "TK-2108",
+    "title": "天谱云计算 Q3 计费异常（干扰）",
+    "description": "天谱云计算（CUS-104）Q3计费异常，非Q2违约补偿。",
+    "customer_id": "CUS-104",
+    "reporter": "客户服务-专员G",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-01T13:50:00Z",
+    "tags": [
+      "Q3",
+      "计费异常"
+    ]
+  },
+  {
+    "ticket_id": "TK-2109",
+    "title": "晨曦能源 Q4 SLA违约导致链路中断",
+    "description": "晨曦能源（CUS-105）Q4链路中断并触发SLA违约，客户申请12万补偿，可能需上级审批。",
+    "customer_id": "CUS-105",
+    "reporter": "客户服务-专员H",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-01T15:00:00Z",
+    "tags": [
+      "Q4",
+      "链路中断"
+    ]
+  },
+  {
+    "ticket_id": "TK-2110",
+    "title": "晨曦能源 Q3 早期整改跟进（干扰）",
+    "description": "晨曦能源（CUS-105）Q3整改跟进，不对应Q4升级。",
+    "customer_id": "CUS-105",
+    "reporter": "客户服务-专员I",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-01T14:55:00Z",
+    "tags": [
+      "Q3",
+      "整改跟进"
+    ]
+  },
+  {
+    "ticket_id": "TK-2111",
+    "title": "皓月通信 Q3 已终止合同法务协同（候选）",
+    "description": "皓月通信（CUS-106）Q3争议升级，客户声明已终止合同，需法务协同处理。",
+    "customer_id": "CUS-106",
+    "reporter": "客户服务-专员J",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-01T16:40:00Z",
+    "tags": [
+      "Q3",
+      "异常",
+      "需法务"
+    ]
+  },
+  {
+    "ticket_id": "TK-2112",
+    "title": "鼎盛医疗器械 Q2 金额待确认（干扰候选）",
+    "description": "鼎盛医疗器械（CUS-107）Q2补偿申请待确认，金额未确定。",
+    "customer_id": "CUS-107",
+    "reporter": "客户服务-专员K",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-01T16:10:00Z",
+    "tags": [
+      "Q2",
+      "待确认",
+      "干扰"
+    ]
+  },
+  {
+    "ticket_id": "TK-2113",
+    "title": "星桥教育科技 Q2 预算外升级（干扰客户）",
+    "description": "星桥教育科技（CUS-108）Q2相关问题的历史工单，用于干扰工单匹配。",
+    "customer_id": "CUS-108",
+    "reporter": "客户服务-专员L",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-01T17:00:00Z",
+    "tags": [
+      "Q2",
+      "干扰"
+    ]
+  }
+]

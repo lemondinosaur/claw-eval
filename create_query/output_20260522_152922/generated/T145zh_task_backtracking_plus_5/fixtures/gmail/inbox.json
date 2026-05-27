@@ -1,0 +1,70 @@
+[
+  {
+    "message_id": "msg_2101",
+    "from": "legal_ops@partnerco.com",
+    "to": "me@company.com",
+    "subject": "催办：采购合同条款最终确认（请于本周五前回执）",
+    "date": "2026-04-18T08:40:00Z",
+    "body": "你好，我们需要你们法务对“最终条款版（第3次修订）”完成校对确认，以便推进后续签署。请在 2026-04-24（周五）前回复：1）是否已完成条款确认；2）如有待修改点请直接指出条款编号。\n\n——法务对接：周璐",
+    "labels": [
+      "inbox",
+      "催办",
+      "采购合同"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2102",
+    "from": "finance_sync@partnerco.com",
+    "to": "me@company.com",
+    "subject": "催办：预算审批仍在等待（附件补齐时间确认）",
+    "date": "2026-04-18T09:10:00Z",
+    "body": "团队你好，关于跨部门采购项目预算审批已提交，但目前财务仍未批准。我们这边缺少你们提供的《采购需求附件清单》和《成本拆分说明》两项材料。\n\n请确认：1）补交时间点；2）预计在补交后多久可获得财务批准，从而进入合同签署。\n\n请尽快回复以免影响签署窗口。——财务协同：陈昊",
+    "labels": [
+      "inbox",
+      "催办",
+      "预算审批"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2103",
+    "from": "supplier_billing@suppliera.com",
+    "to": "me@company.com",
+    "subject": "催办：供应商回签状态未更新（合同预计何时回传？）",
+    "date": "2026-04-17T15:20:00Z",
+    "body": "您好，合同签署文件我们已于 2026-04-12 收到并安排法务盖章，但到目前尚未回签回传。\n\n请你们确认预计签署完成/回传时间：\n- 我们希望在 2026-04-26 前收到对方回传的签署件；\n- 若有风险或需额外补充材料，请尽早告知，以便调整盖章排期。\n\n——供应商对接：蔡敏",
+    "labels": [
+      "inbox",
+      "催办",
+      "供应商回签"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2104",
+    "from": "forum_notify@company.com",
+    "to": "me@company.com",
+    "subject": "你收到了一条新的点赞提醒",
+    "date": "2026-04-17T10:05:00Z",
+    "body": "你的同事在内部论坛发布的“采购流程最佳实践”帖文上进行了点赞提醒。你可以查看详情并参与讨论。",
+    "labels": [
+      "inbox",
+      "提醒"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2105",
+    "from": "travel_policy@company.com",
+    "to": "me@company.com",
+    "subject": "差旅政策更新通知（无需回复）",
+    "date": "2026-04-16T18:30:00Z",
+    "body": "差旅政策自下周一开始生效：酒店报销标准调整与预订审批流程变更。此邮件为通知，不需要回复。",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  }
+]

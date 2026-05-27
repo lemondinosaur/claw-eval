@@ -1,0 +1,178 @@
+task_id: T107zh_ticket_routing_plus_4
+task_name: 低优先级咨询的边界处理
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_4/fixtures/helpdesk/tickets.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_4/fixtures/kb/articles.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_4/fixtures/crm/customers.json
+prompt:
+  text: "我们有9个新的客户工单待处理。请逐条查看每个工单详情，并结合客户CRM信息判断是否为VIP或处于合同到期前60天内；同时在知识库中检索是否存在与该工单对应的排查/处置方案，并依据SLA标准、VIP加速与续约期加速规则重算优先级。\n\
+    \n重点（务必遵守）：\n1) 绝大多数为使用咨询或影响较小的问题时，不要因为描述中的“类似故障关键词”（如“超时”“500”等）就错误升级；只有在KB明确允许升级/且工单确属核心功能受影响或满足SLA定义的情况下，才上调优先级并需要升级。\n\
+    2) 只有当满足以下触发条件之一时，才对该工单上调优先级并列为“需要升级”：\n   - 客户为VIP，且工单性质符合“核心功能受影响/关键阻塞”（以KB或SLA可推断）；或\n\
+    \   - 客户处于续约期窗口（合同到期前60天内），且工单性质符合可升级的业务定义；或\n   - KB对该问题给出明确的“升级条件/升级指引”。\n3)\
+    \ 对于“疑似故障但描述不完整”的工单，要基于现有信息做谨慎判断：若无法确认满足升级条件，则按咨询/低优先级处理，并说明无法确认升级的依据。\n\n输出格式（逐条工单）：\n\
+    - 建议优先级（P0/P1/P2/P3）\n- 是否需要升级（是/否）\n- 匹配的KB方案（给出KB标题与要点；若无直接匹配或不满足升级条件，说明“无直接KB匹配/不触发升级”的原因，需提到检索结果不支撑或条件不满足）\n\
+    - 原因说明（结合：客户VIP/续约期状态 + 工单性质 + SLA/KB升级边界 + 关键词干扰的排除理由）\n\n最后再汇总：\n- 需要升级处理的工单清单（ticket_id列表）与简要原因"
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单（优先级、标签、分类）
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 工单分类
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

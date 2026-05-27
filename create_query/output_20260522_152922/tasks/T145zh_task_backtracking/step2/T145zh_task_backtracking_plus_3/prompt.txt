@@ -1,0 +1,423 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T145zh_task_backtracking_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/gmail/inbox.json",
+  "fixtures/notes/meetings.json",
+  "fixtures/todo/tasks.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T145zh_task_backtracking_plus_3",
+  "new_task_name": "合规审查催办与缺口补齐",
+  "task_goal": "对包含“合规审查/材料补交”催办标签的邮件进行回溯：识别3封催办邮件；对每封邮件定位对应待办任务与合规会议纪要，整理合规状态（通过/待补充/已提交但待审核）、缺口内容与预计补齐时间；为每封邮件起草回复草稿并保存。",
+  "user_request": "请处理收件箱中的合规催办邮件：逐封理解邮件要求，回溯对应待办事项与会议纪要，输出每项的合规状态、目前缺口与预计补齐/更新的时间；并为每封催办邮件生成回复草稿（只保存不发送）。",
+  "scenario": "公司法务与合规团队进行季度材料审查。收件箱里3封催办邮件：A）要求补交“隐私影响评估”材料（当前缺口为数据范围说明未完成）；B）要求确认“安全培训记录”是否齐全（因负责人尚未上传，待审核）；C）要求说明“供应商准入条款”更新进度（已形成草案，但尚需合规审批签字）。另外2封干扰邮件：一封是“休假通知”，一封是“群发营销邮件”。会议纪要中A有明确的缺口项清单与补交截止，B有“等待负责人上传并预计在某日期完成”的记录，C有“草案已完成、审批排期”的记录。待办任务需覆盖：pending（待补交缺口）、in_progress（材料草案进行中但有明确节点）、completed但status需体现“已提交待审核”（用notes/字段描述而非真实发送）。",
+  "difference_from_source": "原题是项目/报告/绩效；本题是合规材料缺口补齐，且任务目标从“进度回复”升级为“合规状态与缺口清单说明”。阻塞原因不再是客户需求确认，而是材料缺口、负责人上传、合规审批签字排期。",
+  "service_and_tool_plan": "使用 gmail_list_messages 和 gmail_get_message 读取邮件并识别合规催办；用 todo_list_tasks 与 todo_get_task 获取材料/流程对应待办的status、progress、due_date、notes或blocked_by；用 notes_list 与 notes_get 获取合规会议中的缺口项与补交/审批时间安排；最后用 gmail_save_draft 为每个催办邮件生成专业的材料补交与时间承诺草稿。",
+  "fixture_generation_plan": "创建新的 fixtures：1）gmail/inbox.json：5条，3条催办邮件带合规相关标签（例如“合规/催办/材料”），正文包含材料名称、缺口描述或要求日期；2条干扰邮件不带这些标签且不包含材料缺口关键词。2）notes/meetings.json：3条纪要，分别对应A/B/C，content需包含缺口清单、责任人动作（上传/补写/审批签字）、以及明确的预计完成或排期日期。3）todo/tasks.json：至少9条待办，其中包含A/B/C对应的3条；状态分布至少覆盖pending、in_progress、completed（completed的notes应说明“已提交待审核/等待合规确认”）。确保所有ID（message_id、note_id、task_id）、姓名/部门、日期、进度数字与原题完全不同。",
+  "expected_behavior": "流程与原任务一致：先列出邮件并获取详情，筛出3封合规催办；对每封将邮件中的材料名称与要求时间映射到待办任务。然后通过todo_get_task拿到当前合规状态（依据status与progress/notes推断是待补充/已提交待审核/草案进行中）。再用notes_get获取对应合规纪要，提取缺口项与会议中约定的补齐/提交/审批排期时间。最后对每个催办邮件调用 gmail_save_draft：草稿中应包含缺口项摘要、已完成/在做内容、下一步动作、预计补齐或更新的具体日期，并在语气上向法务/合规对口部门表达确认与承诺。",
+  "grading_plan": "grader应验证：1）3封催办识别准确且忽略2封干扰邮件；2）每封草稿的“合规状态类型”（待补充/待上传/已提交待审核/审批中）与待办字段一致；3）草稿中缺口项是否能对应纪要中列出的缺口清单（至少1-2项具体缺口）；4）预计补齐/审批时间是否与纪要或due_date一致；5）仅保存草稿三次且不发送。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T145zh_task_backtracking",
+  "task_name": "催办邮件关联回溯与进展回复",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "gmail",
+    "todo",
+    "notes"
+  ],
+  "tools": [
+    "gmail_list_messages",
+    "gmail_get_message",
+    "gmail_save_draft",
+    "gmail_send_message",
+    "todo_list_tasks",
+    "todo_get_task",
+    "notes_list",
+    "notes_get"
+  ],
+  "fixture_paths": [
+    "fixtures/gmail/inbox.json",
+    "fixtures/notes/meetings.json",
+    "fixtures/todo/tasks.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T145zh_task_backtracking
+task_name: 催办邮件关联回溯与进展回复
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T145zh_task_backtracking/fixtures/gmail/inbox.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: tasks/T145zh_task_backtracking/fixtures/todo/tasks.json
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: tasks/T145zh_task_backtracking/fixtures/notes/meetings.json
+prompt:
+  text: '收件箱里有几封催办邮件，请帮我：
+
+    1. 阅读每封催办邮件，理解催办内容
+
+    2. 在待办事项中查找对应的任务，了解当前进展
+
+    3. 在会议纪要中查找相关讨论记录，补充上下文
+
+    4. 对每个催办事项，整理出：当前状态、阻塞原因（如有）、预计完成时间
+
+    5. 为每封催办邮件起草回复草稿，说明进展
+
+    '
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+      reply_to_message_id:
+        type: string
+        description: 回复的原邮件ID
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: todo_list_tasks
+  description: 列出待办事项
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(all/pending/in_progress/completed)
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 最近几天
+        default: 30
+    required: []
+- name: notes_get
+  description: 获取会议纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_1001",
+    "from": "boss@company.com",
+    "to": "me@company.com",
+    "subject": "Q1总结报告进度如何？",
+    "date": "2026-03-25T09:00:00Z",
+    "body": "这个报告下周一要用，请尽快给我一个进度更新。——王总",
+    "labels": [
+      "inbox",
+      "催办"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1002",
+    "from": "client_zhangming@dingxin.com",
+    "to": "me@company.com",
+    "subject": "定制方案什么时候能交付？",
+    "date": "2026-03-25T09:00:00Z",
+    "body": "您好，我们上次会议讨论的定制方案，原定3月20日交付，但到现在还没收到。请尽快确认交付时间。——张明，鼎新软件",
+    "labels": [
+      "inbox",
+      "客户",
+      "催办"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1003",
+    "from": "hr_liwei@company.com",
+    "to": "me@company.com",
+    "subject": "绩效评估表还没提交",
+    "date": "2026-03-24T09:00:00Z",
+    "body": "请注意，本季度绩效评估表的截止日期是3月25日，你的还没有提交。请尽快完成。——李维，HR部",
+    "labels": [
+      "inbox",
+      "催办"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1004",
+    "from": "colleague@company.com",
+    "to": "me@company.com",
+    "subject": "分享一篇好文章",
+    "date": "2026-03-24T09:00:00Z",
+    "body": "推荐你看看这个关于AI趋势的文章，很有意思。",
+    "labels": [
+      "inbox"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1005",
+    "from": "system@company.com",
+    "to": "me@company.com",
+    "subject": "系统维护通知",
+    "date": "2026-03-23T09:00:00Z",
+    "body": "本周日凌晨2:00-6:00进行系统维护。",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+--- FILE: fixtures/notes/meetings.json ---
+[
+  {
+    "note_id": "NOTE-801",
+    "title": "Q1总结报告讨论会",
+    "attendees": [
+      "王总",
+      "我",
+      "李华"
+    ],
+    "content": "讨论了Q1总结报告框架。王总要求：1)补充3月最新数据 2)加入与去年Q1的同比分析 3)增加Q2展望部分。报告截止3月28日。李华负责提供技术部分数据。",
+    "created_at": "2026-03-20T10:00:00Z",
+    "participants": [
+      "王总",
+      "我",
+      "李华"
+    ],
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-802",
+    "title": "鼎新软件定制方案讨论",
+    "attendees": [
+      "我",
+      "赵蕾",
+      "客户张明",
+      "客户王经理"
+    ],
+    "content": "客户提出了3个定制需求：1)用户权限模块 2)数据导出定制 3)仪表盘定制。我们评估后可在2周内完成前两项。客户表示第3项需求还需内部讨论再确认，确认后再开始全部开发。",
+    "created_at": "2026-03-15T10:00:00Z",
+    "participants": [
+      "我",
+      "赵蕾",
+      "客户张明",
+      "客户王经理"
+    ],
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-803",
+    "title": "绩效评估讨论会",
+    "attendees": [
+      "我",
+      "HR李维",
+      "部门经理"
+    ],
+    "content": "讨论了本季度绩效评估标准和流程。绩效表需在3月25日前提交。会上已确认了各项考核指标，我当场填写了大部分内容，剩余项目回去补充完成。",
+    "created_at": "2026-03-20T10:00:00Z",
+    "participants": [
+      "我",
+      "HR李维",
+      "部门经理"
+    ],
+    "duration_minutes": 60
+  }
+]
+--- END FILE: fixtures/notes/meetings.json ---
+--- FILE: fixtures/todo/tasks.json ---
+[
+  {"task_id":"TODO-801","title":"撰写Q1总结报告","status":"in_progress","priority":"high","due_date":"2026-03-28","progress":60,"notes":"已完成数据收集和初步分析，还需补充3月数据和撰写总结部分","created_at":"2026-03-10"},
+  {"task_id":"TODO-802","title":"鼎新软件定制方案","status":"pending","priority":"high","due_date":"2026-03-20","progress":30,"notes":"等待客户确认最终需求，3月15日会议后客户说要内部再讨论","blocked_by":"等客户确认需求","created_at":"2026-03-01"},
+  {"task_id":"TODO-803","title":"提交绩效评估表","status":"completed","priority":"medium","due_date":"2026-03-25","progress":100,"notes":"已于3月23日完成并提交到系统","completed_at":"2026-03-23","created_at":"2026-03-15"},
+  {"task_id":"TODO-804","title":"更新产品文档","status":"in_progress","priority":"medium","due_date":"2026-03-31","progress":40,"created_at":"2026-03-12"},
+  {"task_id":"TODO-805","title":"团队周报汇总","status":"pending","priority":"low","due_date":"2026-03-28","created_at":"2026-03-20"},
+  {"task_id":"TODO-806","title":"准备季度团建活动","status":"pending","priority":"low","due_date":"2026-04-10","created_at":"2026-03-18"},
+  {"task_id":"TODO-807","title":"整理会议室预约流程","status":"completed","priority":"low","due_date":"2026-03-20","completed_at":"2026-03-19","created_at":"2026-03-10"},
+  {"task_id":"TODO-808","title":"学习新版API文档","status":"pending","priority":"medium","due_date":"2026-04-05","created_at":"2026-03-22"}
+]
+
+--- END FILE: fixtures/todo/tasks.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

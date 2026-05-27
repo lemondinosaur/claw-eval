@@ -1,0 +1,65 @@
+task_id: T093_pinbench_email_triage_report_plus_4
+task_name: Legal Notice & Data Leak Rumor
+version: '1.0'
+category: organization
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T093_pinbench_email_triage_report_plus_4/fixtures/gmail/inbox.json
+prompt:
+  text: '请帮我做邮件分诊报告：读取所有收件箱邮件，按 P0-P4 分配优先级、填写类别和推荐动作。对与法律/数据安全相关的邮件要特别区分：
+
+    - 真实紧急/需要证据保全的法律通知（优先级更高，推荐立即行动）
+
+    - 未经证实的“网传/截图/谣言”（优先级更低，推荐先验证来源与影响，避免扩散）
+
+    - 安全监控告警但仅说明扫描活动增加、未证实数据外泄（不要与证据保全同级，建议进一步核查指标）
+
+    同时：销售续费跟进若有明确截止日期应提高优先级并给出联系与跟进动作；订阅/新闻通讯/促销应降优先级或建议归档。
+
+
+    在顶部给出最紧急事项摘要（说明为什么是最高优先级）并列出今天的处理计划。不要发送任何邮件。'
+  language: en
+tools:
+- name: gmail_list_messages
+  description: List inbox messages
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        default: 30
+      max_results:
+        type: integer
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: Get one message
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+    required:
+    - message_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 18

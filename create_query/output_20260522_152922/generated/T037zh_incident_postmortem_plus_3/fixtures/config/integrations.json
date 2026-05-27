@@ -1,0 +1,46 @@
+[
+  {
+    "integration_id": "INT-451",
+    "name": "mail_relay_smtp",
+    "display_name": "邮件中继SMTP",
+    "status": "degraded",
+    "error_rate": 100,
+    "notes": "观察到退避窗口配置与重试间隔冲突：退避策略被误配置为固定退避，退避上限=0；在失败后触发重试风暴，导致同一告警的多次投递出现乱序与重复。故障窗口已观察到恢复但仍有少量乱序包。",
+    "service": "messaging",
+    "last_verified": "2026-03-01T09:10:00+08:00",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-452",
+    "name": "slack_webhook",
+    "display_name": "Slack告警Webhook",
+    "status": "active",
+    "error_rate": 0.2,
+    "notes": "故障期间偶发429已自动恢复；未发现与退避策略相关的配置异常。",
+    "service": "messaging",
+    "last_verified": "2026-03-01T09:10:00+08:00",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-453",
+    "name": "ticket_notification_provider",
+    "display_name": "工单通知聚合器",
+    "status": "degraded",
+    "error_rate": 38,
+    "notes": "队列积压导致告警摘要生成延迟，但不直接参与SMTP重试；与投递风暴并行，可能放大告警到达延迟。",
+    "service": "helpdesk",
+    "last_verified": "2026-03-01T09:10:00+08:00",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-454",
+    "name": "event_bus_dispatch",
+    "display_name": "事件总线投递",
+    "status": "active",
+    "error_rate": 0.4,
+    "notes": "事件发布正常；故障主要发生在下游SMTP投递阶段。仍存在部分消息因重试风暴而被重复派发。",
+    "service": "messaging",
+    "last_verified": "2026-03-01T09:10:00+08:00",
+    "monthly_calls": 0
+  }
+]

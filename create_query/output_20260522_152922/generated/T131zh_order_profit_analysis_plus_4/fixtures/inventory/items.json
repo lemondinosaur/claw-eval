@@ -1,0 +1,122 @@
+[
+  {
+    "product_id": "SKU-101",
+    "name": "企业协同许可",
+    "category": "软件许可",
+    "quantity": 1200,
+    "unit": "个",
+    "unit_cost": 8200.0,
+    "selling_price": 32000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研平台"
+  },
+  {
+    "product_id": "SKU-102",
+    "name": "数据治理模块",
+    "category": "增值模块",
+    "quantity": 800,
+    "unit": "个",
+    "unit_cost": 16000.0,
+    "selling_price": 54000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研平台"
+  },
+  {
+    "product_id": "SKU-103",
+    "name": "全渠道零售许可",
+    "category": "软件许可",
+    "quantity": 650,
+    "unit": "个",
+    "unit_cost": 11000.0,
+    "selling_price": 46000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研平台"
+  },
+  {
+    "product_id": "SKU-104",
+    "name": "API网关套件",
+    "category": "增值模块",
+    "quantity": 500,
+    "unit": "个",
+    "unit_cost": 12500.0,
+    "selling_price": 42000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研平台"
+  },
+  {
+    "product_id": "SKU-105",
+    "name": "实施服务(快启)",
+    "category": "服务",
+    "quantity": 140,
+    "unit": "人天",
+    "unit_cost": 5200.0,
+    "selling_price": 18000.0,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "交付团队"
+  },
+  {
+    "product_id": "SKU-106",
+    "name": "年度技术支持",
+    "category": "服务",
+    "quantity": 300,
+    "unit": "个",
+    "unit_cost": 9800.0,
+    "selling_price": 26000.0,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "交付团队"
+  },
+  {
+    "product_id": "SKU-107",
+    "name": "性能优化包",
+    "category": "增值模块",
+    "quantity": 420,
+    "unit": "个",
+    "unit_cost": 7200.0,
+    "selling_price": 24000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研平台"
+  },
+  {
+    "product_id": "SKU-108",
+    "name": "风控策略中心",
+    "category": "增值模块",
+    "quantity": 360,
+    "unit": "个",
+    "unit_cost": 13000.0,
+    "selling_price": 50000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研平台"
+  },
+  {
+    "product_id": "SKU-109",
+    "name": "迁移实施服务",
+    "category": "服务",
+    "quantity": 160,
+    "unit": "人天",
+    "unit_cost": 6100.0,
+    "selling_price": 24000.0,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "交付团队"
+  },
+  {
+    "product_id": "SKU-110",
+    "name": "备份与恢复套件",
+    "category": "增值模块",
+    "quantity": 290,
+    "unit": "个",
+    "unit_cost": 8700.0,
+    "selling_price": 30000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研平台"
+  }
+]

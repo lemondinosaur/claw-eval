@@ -1,0 +1,401 @@
+{
+  "task_id": "T107zh_ticket_routing_plus_1",
+  "task_name": "分域故障优先级重算",
+  "prompt_text": "目前有10个新打开的open客户工单需要做智能路由与升级建议。请逐一完成以下工作：\n1）读取工单详情，并关联到对应客户的CRM信息（客户等级：VIP/standard、合同状态/续约期窗口等）。\n2）针对每条工单的“主症状”在知识库中进行精确检索，拉取最匹配的KB文章全文（不要被工单描述中的干扰信息误导，仍以主症状为准）。\n3）依据流程SLA标准以及“VIP加速、续约期加速”规则，对每个工单重新评估建议优先级；如知识库“升级条件”提示更高等级触发，也需按KB升级条件执行。\n4）输出一份完整路由建议报告：\n- 每个工单：建议优先级、匹配到的KB文章（article_id或标题）、关键排查/处置步骤摘要、是否需要升级、升级原因。\n- 最后汇总：所有需要升级处理的工单清单，并说明每条工单应通知的内部团队（如技术负责人/成功经理/销售团队/风控等，按KB升级条件与本次规则确定）。\n\n注意：所有工单仅进行路由/优先级调整建议，不要求关闭工单。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-701",
+        "name": "北极星通信",
+        "contact_person": "陈工",
+        "email": "chen.gong@polarcomm.cn",
+        "phone": "13911001101",
+        "industry": "通信",
+        "tier": "vip",
+        "annual_revenue": 9600000,
+        "last_contact_date": "2026-03-29",
+        "status": "active",
+        "notes": "VIP；关键链路依赖强，需满足快速响应窗口"
+      },
+      {
+        "customer_id": "CUS-702",
+        "name": "云桥金融",
+        "contact_person": "周经理",
+        "email": "zhou.manager@yunqiaofin.com",
+        "phone": "13911001102",
+        "industry": "金融",
+        "tier": "vip",
+        "annual_revenue": 12400000,
+        "last_contact_date": "2026-03-10",
+        "status": "active",
+        "notes": "VIP；近期资金类业务高峰，升级需同步风控"
+      },
+      {
+        "customer_id": "CUS-703",
+        "name": "海鸥物流",
+        "contact_person": "孙总",
+        "email": "sun.general@seagull-logistics.com",
+        "phone": "13911001103",
+        "industry": "物流",
+        "tier": "vip",
+        "annual_revenue": 4100000,
+        "last_contact_date": "2026-03-18",
+        "status": "active",
+        "notes": "VIP；希望同一工作日内给出修复路径与回滚方案"
+      },
+      {
+        "customer_id": "CUS-704",
+        "name": "天成零售",
+        "contact_person": "李总监",
+        "email": "li.director@tianc-retail.cn",
+        "phone": "13911001104",
+        "industry": "零售",
+        "tier": "vip",
+        "annual_revenue": 5300000,
+        "last_contact_date": "2026-03-21",
+        "status": "active",
+        "notes": "VIP；合同稳定，主要关注体验与关键报表正确性"
+      },
+      {
+        "customer_id": "CUS-705",
+        "name": "星河制造",
+        "contact_person": "王部长",
+        "email": "wang.department@xinghe-mfg.com",
+        "phone": "13911001105",
+        "industry": "制造",
+        "tier": "vip",
+        "annual_revenue": 8700000,
+        "last_contact_date": "2026-03-24",
+        "status": "active",
+        "notes": "VIP；跨区域数据同步要求高，延迟会影响结算"
+      },
+      {
+        "customer_id": "CUS-706",
+        "name": "长风教育",
+        "contact_person": "赵老师",
+        "email": "zhao.teacher@changfeng.edu",
+        "phone": "13911001106",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 260000,
+        "last_contact_date": "2026-02-20",
+        "status": "active",
+        "notes": "续约在即（合同到期不足60天）；需按续约期加速优先处理"
+      },
+      {
+        "customer_id": "CUS-707",
+        "name": "晨曦医疗",
+        "contact_person": "刘主任",
+        "email": "liu.chief@morningcare.cn",
+        "phone": "13911001107",
+        "industry": "医疗",
+        "tier": "standard",
+        "annual_revenue": 520000,
+        "last_contact_date": "2026-01-30",
+        "status": "active",
+        "notes": "续约在即（合同到期不足60天）；涉及患者数据链路"
+      },
+      {
+        "customer_id": "CUS-708",
+        "name": "银橡能源",
+        "contact_person": "郑工程师",
+        "email": "zheng.engineer@yinfox-energy.com",
+        "phone": "13911001108",
+        "industry": "能源",
+        "tier": "standard",
+        "annual_revenue": 980000,
+        "last_contact_date": "2026-03-02",
+        "status": "active",
+        "notes": "续约期窗口内（合同到期不足60天）；对稳定性有明确SLA"
+      },
+      {
+        "customer_id": "CUS-709",
+        "name": "林港地产",
+        "contact_person": "郭总",
+        "email": "guo.manager@lingang-realestate.com",
+        "phone": "13911001109",
+        "industry": "地产",
+        "tier": "standard",
+        "annual_revenue": 310000,
+        "last_contact_date": "2026-03-12",
+        "status": "active",
+        "notes": "不在续约窗口；日常使用问题为主"
+      },
+      {
+        "customer_id": "CUS-710",
+        "name": "彩虹餐饮",
+        "contact_person": "何老板",
+        "email": "he.owner@rainbowdining.cn",
+        "phone": "13911001110",
+        "industry": "餐饮",
+        "tier": "standard",
+        "annual_revenue": 180000,
+        "last_contact_date": "2026-03-05",
+        "status": "active",
+        "notes": "不在续约窗口；关注页面显示与导出体验"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-701",
+        "title": "登录认证失败（Token校验报错）",
+        "description": "北极星通信（CUS-701）反馈部分员工登录失败，提示“Invalid token signature”。高峰期更明显，重试后偶尔恢复。用户描述曾提到“VPN导致”，但主症状为认证签名校验失败。",
+        "customer_id": "CUS-701",
+        "reporter": "陈工",
+        "department": "技术支持",
+        "priority": "P2",
+        "status": "open",
+        "created_at": "2026-03-25T09:10:00Z",
+        "tags": [
+          "认证",
+          "登录",
+          "Token",
+          "VIP"
+        ],
+        "category": "认证失败"
+      },
+      {
+        "ticket_id": "TK-702",
+        "title": "消息推送延迟导致告警丢失",
+        "description": "云桥金融（CUS-702）称告警通知推送延迟约20-30分钟，且在部分场景出现“队列积压后补发”。工单涉及资金类业务链路，需严格按升级条件处理。描述中提到“客户端网络弱”，但主症状是推送链路延迟。",
+        "customer_id": "CUS-702",
+        "reporter": "周经理",
+        "department": "技术支持",
+        "priority": "P1",
+        "status": "open",
+        "created_at": "2026-03-25T10:20:00Z",
+        "tags": [
+          "推送",
+          "延迟",
+          "告警",
+          "资金类",
+          "VIP"
+        ],
+        "category": "消息推送延迟"
+      },
+      {
+        "ticket_id": "TK-703",
+        "title": "批量导出超时（离线导出任务卡住）",
+        "description": "海鸥物流（CUS-703）在导出近6个月运单报表时超时，界面显示持续转圈并最终失败，后台日志提示“export job timeout”。该问题看似导出功能故障，但关键是下游依赖超时（如任务队列/依赖服务响应慢）。",
+        "customer_id": "CUS-703",
+        "reporter": "孙总",
+        "department": "技术支持",
+        "priority": "P3",
+        "status": "open",
+        "created_at": "2026-03-25T08:45:00Z",
+        "tags": [
+          "导出",
+          "超时",
+          "离线任务",
+          "VIP"
+        ],
+        "category": "批量导出超时"
+      },
+      {
+        "ticket_id": "TK-704",
+        "title": "前端渲染异常：报表表头错位",
+        "description": "天成零售（CUS-704）反馈报表页面表头与数据列错位，刷新后短暂恢复。浏览器控制台无明显致命错误。该工单描述中提到“硬件性能差”，但主症状为前端渲染布局异常。",
+        "customer_id": "CUS-704",
+        "reporter": "李总监",
+        "department": "技术支持",
+        "priority": "P3",
+        "status": "open",
+        "created_at": "2026-03-25T11:35:00Z",
+        "tags": [
+          "前端",
+          "报表",
+          "UI"
+        ],
+        "category": "前端渲染异常"
+      },
+      {
+        "ticket_id": "TK-705",
+        "title": "数据同步延迟引发结算失败",
+        "description": "星河制造（CUS-705）称跨区域数据同步延迟超过45分钟，导致结算对账失败。主症状为同步延迟；用户未提供其他明确干扰线索。",
+        "customer_id": "CUS-705",
+        "reporter": "王部长",
+        "department": "技术支持",
+        "priority": "P2",
+        "status": "open",
+        "created_at": "2026-03-25T07:55:00Z",
+        "tags": [
+          "同步",
+          "延迟",
+          "结算",
+          "VIP"
+        ],
+        "category": "数据同步延迟"
+      },
+      {
+        "ticket_id": "TK-706",
+        "title": "登录认证失败：SSO回调报400",
+        "description": "长风教育（CUS-706）学生SSO回调出现400错误。用户怀疑“浏览器插件拦截”，但主症状是SSO回调接口返回400并导致登录失败。需要按认证失败主线排查。",
+        "customer_id": "CUS-706",
+        "reporter": "赵老师",
+        "department": "技术支持",
+        "priority": "P2",
+        "status": "open",
+        "created_at": "2026-03-25T12:05:00Z",
+        "tags": [
+          "认证",
+          "SSO",
+          "续约加速"
+        ],
+        "category": "认证失败"
+      },
+      {
+        "ticket_id": "TK-707",
+        "title": "消息推送延迟：批量事件未及时触达",
+        "description": "晨曦医疗（CUS-707）反馈患者通知事件未及时触达，延迟在10-20分钟；随后批量补发。用户提到“服务器CPU飙升”，但主症状为推送延迟与补发节奏异常。",
+        "customer_id": "CUS-707",
+        "reporter": "刘主任",
+        "department": "技术支持",
+        "priority": "P1",
+        "status": "open",
+        "created_at": "2026-03-25T09:40:00Z",
+        "tags": [
+          "推送",
+          "延迟",
+          "续约加速"
+        ],
+        "category": "消息推送延迟"
+      },
+      {
+        "ticket_id": "TK-708",
+        "title": "批量导出超时：时间范围过大",
+        "description": "银橡能源（CUS-708）导出报表时超时，提示“temporary table creation failed”。虽由用户描述为“数据库容量不足”，但主症状为导出超时/导出失败。该客户为续约期窗口内。",
+        "customer_id": "CUS-708",
+        "reporter": "郑工程师",
+        "department": "技术支持",
+        "priority": "P2",
+        "status": "open",
+        "created_at": "2026-03-25T10:55:00Z",
+        "tags": [
+          "导出",
+          "超时",
+          "临时表",
+          "续约加速"
+        ],
+        "category": "批量导出超时"
+      },
+      {
+        "ticket_id": "TK-709",
+        "title": "前端渲染异常：列表分页显示错乱",
+        "description": "林港地产（CUS-709）页面分页与页码状态错乱，切换页后数据重复。工单提到“网络波动导致”，但主症状是前端渲染状态管理异常。",
+        "customer_id": "CUS-709",
+        "reporter": "郭总",
+        "department": "技术支持",
+        "priority": "P3",
+        "status": "open",
+        "created_at": "2026-03-25T13:15:00Z",
+        "tags": [
+          "前端",
+          "分页",
+          "UI"
+        ],
+        "category": "前端渲染异常"
+      },
+      {
+        "ticket_id": "TK-710",
+        "title": "登录认证失败：验证码校验不一致",
+        "description": "彩虹餐饮（CUS-710）称偶发验证码校验不一致导致无法登录。用户将原因归结为“Chrome扩展”。但主症状是认证流程失败并伴随验证码校验问题。",
+        "customer_id": "CUS-710",
+        "reporter": "何老板",
+        "department": "技术支持",
+        "priority": "P3",
+        "status": "open",
+        "created_at": "2026-03-25T14:30:00Z",
+        "tags": [
+          "认证",
+          "验证码",
+          "干扰信息"
+        ],
+        "category": "认证失败"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-301",
+        "title": "认证失败排查：Token签名校验与SSO回调处理",
+        "category": "技术文档",
+        "tags": [
+          "认证",
+          "Token",
+          "SSO",
+          "回调",
+          "签名校验"
+        ],
+        "content": "## 认证失败排查\n\n### 典型症状\n- 登录提示 Invalid token signature\n- SSO回调返回400/401导致无法完成登录\n\n### 排查步骤（按顺序）\n1. 校验JWT签名密钥是否与发布版本一致\n2. 检查回调接口是否收到完整参数（issuer/audience/nonce）\n3. 核对时钟偏差：服务端时间同步（NTP）\n4. 检查网关路由规则：是否将认证请求错误转发\n\n### 临时建议\n- 对VIP客户：在不降级安全策略的前提下，先确认签名密钥与版本号映射\n- 对回调400：优先抓取回调请求体与日志链路ID\n\n### 升级条件\n- 如果是VIP客户且认证失败影响核心登录链路：升级至P1并通知技术总监\n- 若认证失败持续>30分钟：启动故障响应流程",
+        "last_updated": "2026-03-12",
+        "views": 620
+      },
+      {
+        "article_id": "KB-302",
+        "title": "消息推送延迟排查：队列积压与补发节奏",
+        "category": "技术文档",
+        "tags": [
+          "推送",
+          "延迟",
+          "消息队列",
+          "补发",
+          "告警"
+        ],
+        "content": "## 消息推送延迟排查\n\n### 常见原因\n1. 消息队列积压（consumer lag增大）\n2. 下游通知服务处理超时\n3. 重试策略导致补发拥塞\n\n### 排查步骤\n1. 查询consumer lag与分区积压情况\n2. 检查通知服务平均耗时与错误率\n3. 核对重试与死信队列（DLQ）配置\n4. 若延迟>15分钟，验证是否存在批量补发导致的瞬时峰值\n\n### 升级条件\n- VIP客户：工单优先级提升一级，并通知客户成功经理\n- 若涉及资金类数据/交易告警：升级至P0并通知风控团队\n- 若延迟超过30分钟：升级至P1",
+        "last_updated": "2026-03-08",
+        "views": 1430
+      },
+      {
+        "article_id": "KB-303",
+        "title": "批量导出超时排查：任务队列与依赖超时处理",
+        "category": "技术文档",
+        "tags": [
+          "导出",
+          "超时",
+          "离线任务",
+          "依赖",
+          "队列积压"
+        ],
+        "content": "## 批量导出超时排查\n\n### 问题定位要点\n- 导出超时可能来自：队列积压、临时表空间不足、或下游依赖服务响应超时\n- 如果现象为“导出看似功能故障但日志显示依赖超时”，应优先走依赖超时路径\n\n### 排查步骤\n1. 核对导出任务规模（时间范围/行数），必要时建议分批\n2. 检查导出队列积压与任务状态（是否卡在依赖拉取）\n3. 检查临时表空间/磁盘空间与创建耗时\n4. 检查下游依赖服务响应时间与超时配置（export依赖）\n\n### 临时解决方案\n- 缩小时间范围分批导出\n- 后台触发离线导出任务并观察队列清算情况\n\n### 升级条件\n- 付费功能报错或关键报表导出失败：24小时内需修复\n- VIP客户：工单优先级提升一级\n- 若依赖超时导致大范围失败：升级至P1并通知技术负责人",
+        "last_updated": "2026-02-28",
+        "views": 980
+      },
+      {
+        "article_id": "KB-304",
+        "title": "前端渲染异常排查：表格/分页状态一致性",
+        "category": "技术文档",
+        "tags": [
+          "前端",
+          "渲染",
+          "报表",
+          "分页",
+          "UI一致性"
+        ],
+        "content": "## 前端渲染异常排查\n\n### 常见症状\n- 表头与列错位\n- 切换分页后出现数据重复/页码错乱\n\n### 排查步骤\n1. 检查组件渲染依赖的宽度/字体加载是否延迟\n2. 对照接口返回数据与前端状态管理是否保持一致（分页参数是否被覆盖）\n3. 检查是否存在重复渲染/Key不稳定导致的DOM复用问题\n4. 在不同浏览器环境验证（重点对比缓存差异）\n\n### 升级建议\n- 若为VIP且影响核心报表体验：提升优先级并通知前端负责人\n\n### 升级条件\n- 客户为VIP：VIP工单优先级提升一级\n- 若影响范围扩大（多用户、多页面）：升级至P1",
+        "last_updated": "2026-03-03",
+        "views": 770
+      },
+      {
+        "article_id": "KB-305",
+        "title": "工单优先级与VIP/续约期加速规则（用于路由重算）",
+        "category": "流程规范",
+        "tags": [
+          "SLA",
+          "优先级",
+          "VIP",
+          "续约期加速"
+        ],
+        "content": "## 工单优先级定义\n| 级别 | 响应时间 | 解决时间 | 适用场景 |\n|------|-----------|-----------|----------|\n| P0-Critical | 15分钟 | 2小时 | 系统完全不可用或资金类关键告警受影响 |\n| P1-High | 1小时 | 8小时 | 核心功能受影响 |\n| P2-Medium | 4小时 | 24小时 | 非核心功能异常 |\n| P3-Low | 24小时 | 72小时 | 使用咨询/小问题 |\n\n## 加速规则\n- VIP客户：工单优先级自动提升一级\n- 合同到期前60天内客户：工单优先级自动提升一级（续约期加速）\n\n## 通知要求\n- VIP且提升至P1及以上：需同步通知客户成功经理\n- 若KB升级条件触发“资金类”：需通知风控团队\n",
+        "last_updated": "2026-03-15",
+        "views": 2105
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "工单数量从5条扩展到10条并新增更丰富问题域，同时加入“干扰信息误导但仍需按主症状匹配KB”的场景，且强调升级时需要明确通知团队。",
+    "fixture_design_summary": [
+      "helpdesk/tickets.json 新增10条全新ticket_id与描述，覆盖认证失败、消息推送延迟、批量导出超时、前端渲染异常四类，并包含2条“依赖超时关键”的导出/外部依赖情形与1条“明显干扰信息”情形。",
+      "crm/customers.json 新增10条客户（其中5个VIP、3个续约期窗口内standard、2个非续约窗口standard），customer_id与工单customer_id严格对应。",
+      "kb/articles.json 以全新KB文章集合覆盖认证/推送/导出/前端/优先级规则，文章内包含可被LLM引用的排查步骤与升级条件（含VIP与资金类通知要求）。"
+    ]
+  }
+}

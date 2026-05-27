@@ -1,0 +1,183 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:40:32",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T105zh_job_failure_triage",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:37:25",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:37:25",
+      "source_task_id": "T105zh_job_failure_triage",
+      "source_summary": {
+        "task_id": "T105zh_job_failure_triage",
+        "task_name": "定时任务故障与工单关联分析",
+        "task_type": "多服务场景下，将调度系统失败的定时任务与工单系统的未解决工单进行关联分析并给出优先级建议。",
+        "category": "ops",
+        "difficulty": "medium",
+        "tags": [
+          "general",
+          "multi_service"
+        ],
+        "language": "zh",
+        "services": [
+          "scheduler",
+          "helpdesk"
+        ],
+        "tools": [
+          "scheduler_list_jobs",
+          "scheduler_get_job",
+          "helpdesk_list_tickets",
+          "helpdesk_get_ticket",
+          "helpdesk_update_ticket",
+          "helpdesk_close_ticket"
+        ],
+        "fixture_paths": [
+          "fixtures/helpdesk/tickets.json",
+          "fixtures/scheduler/jobs.json"
+        ],
+        "sandbox_files": [],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "基于时间线、错误信息和业务标签进行故障根因归因，并输出结构化的任务-工单关联报告与处理优先级"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T105zh_job_failure_triage_plus_1",
+          "new_task_name": "告警转发失败关联排查",
+          "task_goal": "找出所有失败的告警相关定时任务，提取关键错误与最近一次失败时间；列出未解决工单并获取详情；判断哪些工单与告警转发失败存在时间线与错误类型上的直接关联；输出每个失败定时任务对应的关联工单、影响范围与建议优先级（含理由）。",
+          "user_request": "近期多位值班同事反馈告警没有被正确转发到值班台。请你：1）查看所有失败的定时任务及其错误信息；2）查看当前未解决的工单；3）分析哪些工单与“告警转发类”定时任务故障有关；4）输出一份关联分析报告，说明每个故障任务对应了哪些工单、可能影响哪些团队/功能、以及建议处理优先级与依据。",
+          "scenario": "调度平台存在多个告警转发任务：其中一个因“Kafka broker不可达”反复失败，另一个因“Webhook签名密钥轮换未同步”失败。工单系统中有：值班台告警缺失工单、告警详情面板显示为空、以及若干与告警无关的网络打印问题工单。要求通过任务失败时间（例如 02:10-02:30Z）与工单创建/报告时间（例如 02:18Z之后）建立关联，并排除硬件类干扰。",
+          "difference_from_source": "原任务聚焦ERP/邮件/归档与工单的关联；本任务聚焦“告警转发链路”两类不同失败模式（消息队列不可达 vs Webhook签名过期/未同步），并要求识别“告警缺失”和“告警详情为空”两种工单表现对应不同定时任务。",
+          "service_and_tool_plan": "使用 scheduler_list_jobs 先筛出失败状态与相关tag（告警/转发）；对命中的任务用 scheduler_get_job 获取执行历史中的错误类型与失败时间窗口；使用 helpdesk_list_tickets 拉取open工单清单；对候选工单逐一 helpdesk_get_ticket 读取描述中的时间线与症状；必要时可用 helpdesk_update_ticket 仅用于标注标签/优先级（但最终输出以报告为准，不要关闭工单）。",
+          "fixture_generation_plan": "生成2份fixture（scheduler/jobs.json与helpdesk/tickets.json），各包含约：scheduler约6条job，其中至少3条last_status为failed且属于告警/转发相关（两种错误类型各1-2条）；helpdesk约8条open工单，其中至少4条与告警转发相关（两类表现各2条），另外至少2条为干扰（如打印/账号登录慢但与告警链路无明显时间重合）。关键字段：job_id、name、enabled、last_status、execution_history(run_at,status,error)；工单字段保持：ticket_id/title/description/reporter/department/priority/status/created_at/tags/category。确保：告警相关工单created_at集中落在告警任务失败窗口之后；干扰工单 created_at 与失败窗口错位或错误类型不匹配。",
+          "expected_behavior": "先列出失败定时任务及其最新失败错误；再列出所有open工单并逐条查看描述中“缺失/空白/签名错误/队列连接失败”等线索与时间点；完成关联：同一类错误类型的任务应对应同一表现类工单，给出时间线吻合证据（至少说明“任务开始失败的时刻”与“工单首次上报的时刻”先后关系）。输出报告需包含：每个失败job的概要（错误与时间窗口）、关联工单列表（ticket_id与症状摘要）、影响范围（具体团队/功能，如值班台/运维告警看板）、建议优先级（critical/high/medium/low）及简要理由。不得在分析阶段直接调用 helpdesk_close_ticket。",
+          "grading_plan": "grader.py检查：1）失败任务识别完整性（至少覆盖所有failed且属于告警转发类job）；2）关联准确性（两类错误模式各自关联到正确的工单子集，且至少给出时间线论证）；3）干扰排除（告警无关工单不得被错误归因）；4）优先级合理（Kafka不可达与签名问题的紧急程度有区分，且理由与影响范围一致）；5）报告结构清晰（按“job→关联工单→影响→优先级→依据”组织）。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T105zh_job_failure_triage_plus_2",
+          "new_task_name": "支付对账延迟故障与工单关联",
+          "task_goal": "识别所有失败的支付对账/结算相关定时任务并提取错误；列出未解决工单并获取详情；分析哪些工单与对账延迟或结算失败有关联；输出任务-工单关联报告，包含影响范围（财务/风控/商户侧）与处理优先级。",
+          "user_request": "我们发现支付对账一直延迟，部分结算单没有按时入账。请你：1）查看所有失败的定时任务及其错误信息；2）查看当前未解决的工单；3）分析哪些工单与支付对账/结算定时任务故障有关；4）输出关联分析报告，说明每个故障任务对应哪些工单、影响范围和建议处理优先级。",
+          "scenario": "调度平台有三个相关任务：A为“日终资金对账”因“DB死锁/超时”失败，B为“结算单状态回写”因“对象存储下载依赖失败”失败，C为“商户通知生成”因“模板渲染异常”失败。工单系统中包含：商户侧“对账单未生成”、内部“结算单待处理超时”、以及风控团队“通知内容空白”的工单；同时还有几个与支付无关的工单（如人事系统权限变更失败）。要求通过错误信息类别与任务失败的时间点（例如 23:50Z开始到次日00:20Z）映射到工单描述中的症状和上报时间。",
+          "difference_from_source": "原题是集成ERP、邮件与日志归档；本任务换成支付对账/结算回写链路，错误类型从连接类故障变为“DB死锁超时、对象存储依赖失败、模板渲染异常”，并要求关联到“对账未生成/结算待处理/通知空白”三类不同工单症状。",
+          "service_and_tool_plan": "scheduler_list_jobs 用于筛选失败job（优先按tag如payment/accounting/report）；对每个候选失败任务调用 scheduler_get_job 获取错误与执行历史；helpdesk_list_tickets 拉取open工单；对候选工单用 helpdesk_get_ticket 读取描述中的“对账单/结算/通知”关键词与时间；若发现工单优先级与根因不一致，可用 helpdesk_update_ticket调整标签/优先级但不关闭工单；最终输出结构化报告。",
+          "fixture_generation_plan": "scheduler/jobs.json：约7条job，至少3条failed且tag覆盖payment/accounting/settlement，其中至少一条enabled=false但仍产生failed历史（用于边界：任务未启用但历史失败不应影响当前关联判断）；helpdesk/tickets.json：约9条open工单，至少5条与支付对账/结算相关（对账未生成2条、结算待处理2条、通知空白1条），至少2条干扰（人事权限、人为导入失败等），另外2条半相关但症状模糊（例如“入账延迟”描述不足），用于检验模型是否依赖错误信息与时间线而非凭感觉。避免复用原fixture中的实体名/邮箱/工单ID/SKU/具体数值与原文段落。",
+          "expected_behavior": "完成任务：列出所有failed的支付相关job与错误；再列出open工单并解析描述中的关键线索；关联规则需体现：DB死锁/超时→对账未生成/结算单待处理；对象存储依赖失败→回写失败导致结算待处理加剧；模板渲染异常→通知内容空白。时间线要明确至少两处证据（任务失败窗口起点 vs 工单创建时间）。输出报告每个job包含：根因归纳、关联ticket列表、影响范围（财务入账/商户通知/风控流程）、优先级与下一步建议（例如“先恢复对账链路再处理回写/通知”）。不直接关闭工单。",
+          "grading_plan": "grader.py检查：1）只关联到支付链路相关工单，干扰工单不被纳入；2）三类错误模式各自对应到正确工单子集（至少识别到3组关联）；3）对边界情况处理正确（enabled=false但历史失败的job不应被当作当前主根因，除非工单时间线确实指向历史窗口）；4）优先级排序符合业务影响（结算回写/对账通常高于通知模板）；5）报告结构与依据充分。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T105zh_job_failure_triage_plus_3",
+          "new_task_name": "文件同步失败与工单影响面分析",
+          "task_goal": "从调度系统识别所有失败的文件同步/内容分发类任务；从工单系统获取open工单详情；判断哪些工单由文件同步失败引起（依据失败错误类型、失败时段与工单描述中的数据缺失特征）；输出关联报告与处理优先级，说明影响的下游系统。",
+          "user_request": "近期多个部门反映资料库的文件没有及时同步或下载失败。请你：1）查看所有失败的定时任务及其错误信息；2）查看当前未解决的工单；3）分析哪些工单与文件同步/内容分发定时任务故障有关；4）输出关联分析报告，说明每个故障任务对应的工单、影响范围、以及建议处理优先级。",
+          "scenario": "调度平台存在：文件上传到CDN任务因“TLS证书已过期”失败；S3到中心仓任务因“权限拒绝(AccessDenied)”失败并持续重试；还有一个“清理过期索引”任务因“索引服务不可用”失败但不直接导致文件缺失。工单系统中：内容团队收到“下载404/文件不存在”、平台运维收到“同步任务失败报警”、以及索引查询团队收到“搜索结果缺少但可下载”。要求正确区分：下载404类工单应关联到证书过期与AccessDenied；索引缺少类工单应关联到索引服务失败或可解释为次要影响；并排除无关如“会议室预定失败”。",
+          "difference_from_source": "原任务是定时任务与工单关联的三组根因（ERP/SMTP/磁盘）；本任务强调多条同步链路、不同故障导致不同表现（下载404 vs 同步报警 vs 搜索缺少），并要求做“主要影响面 vs 次要影响面”的优先级与解释。",
+          "service_and_tool_plan": "scheduler_list_jobs 用于获取失败任务列表并结合tag如file_sync/cdn/index；scheduler_get_job用于提取TLS证书错误、AccessDenied错误与失败窗口；helpdesk_list_tickets获取open工单；helpdesk_get_ticket读取描述中的“404/不存在/无法下载/AccessDenied/索引空”等；如需要可用 helpdesk_update_ticket给出标签建议（但不调用close）。",
+          "fixture_generation_plan": "scheduler/jobs.json：约6-8条job，其中至少3条failed（两个与文件可用性直接相关、一个与索引相关），包含不同enabled状态（例如索引清理任务仍enabled但失败；证书任务enabled但已在后续重试失败）；helpdesk/tickets.json：约10条open工单，至少6条与文件/索引表现相关（下载404 2-3条，同步报警1-2条，搜索缺少1-2条），至少2-3条干扰（会议室/工资发放/门禁等）；确保工单created_at与对应失败run_at有清晰时间先后关系（例如下载404在TLS失败后10-20分钟集中出现）。",
+          "expected_behavior": "列出所有失败的文件相关定时任务及错误；获取所有open工单详情并归类症状；进行关联：TLS证书过期→CDN分发失败→下载404/文件不存在；AccessDenied→同步失败→同步报警与中心仓缺失导致下载失败；索引服务不可用→搜索结果缺少但下载可用（若工单描述出现“可下载但找不到”则归到索引任务）。输出报告：每个job下列出对应工单、归因要点、影响范围（例如“外部用户下载、内部内容索引、搜索体验”）、优先级与处理建议（先恢复同步与分发证书/权限，再处理索引）。不得在分析阶段关闭工单。",
+          "grading_plan": "grader.py检查：1）症状到故障类型映射是否正确（下载404 vs 同步缺失 vs 搜索缺少）；2）时间线一致性（每组关联至少1条明确的先后论证）；3）不把次要影响任务的工单过度归因到主要根因；4）优先级解释体现“用户可用性优先于搜索体验”；5）输出结构清晰可读。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T105zh_job_failure_triage_plus_4",
+          "new_task_name": "多环境回滚触发失败与工单匹配",
+          "task_goal": "找出失败的发布/回滚触发定时任务，并提取触发条件与错误；列出未解决工单并分析其发生环境、变更类型与时间线；识别哪些工单与“特定环境的回滚触发失败”有关；输出关联报告与优先级建议，区分生产与非生产影响。",
+          "user_request": "我们有一批变更后出现回滚未能按预期触发，导致相关环境处于不稳定状态。请你：1）查看所有失败的定时任务及其错误信息（特别是回滚触发类）；2）查看当前未解决的工单；3）分析哪些工单与回滚触发失败有关，并区分影响的是生产还是测试/预发；4）输出关联分析报告，说明每个故障任务对应哪些工单、影响范围和建议处理优先级。",
+          "scenario": "调度平台有两个触发类任务：一个在生产环境监听“变更健康检查失败”后应调用回滚API，但失败原因是“回滚API 500错误”；另一个在预发环境的回滚触发任务失败原因是“任务参数校验失败(字段缺失)”导致未触发。工单系统中：生产环境“回滚按钮不可用/回滚未执行”工单、预发环境“变更回滚未触发但健康检查正常”等工单，以及干扰工单如“观测平台通知延迟”。要求基于任务执行历史中带有环境字段（例如 env=prod/stage）与工单描述中环境标识建立关联。",
+          "difference_from_source": "原题没有环境/变更触发语义；本任务强调“回滚触发”与“变更健康检查失败”的触发条件匹配，且要求按生产/预发做影响面分层与优先级差异。",
+          "service_and_tool_plan": "scheduler_list_jobs 先筛出回滚触发类任务（tag如release/rollback）；scheduler_get_job获取每个任务执行历史中错误与触发环境信息；helpdesk_list_tickets取open工单；helpdesk_get_ticket解析工单中的环境字段与变更描述；必要时helpdesk_update_ticket可用于给回滚相关工单标注更高优先级（不关闭）。",
+          "fixture_generation_plan": "scheduler/jobs.json：约7条job，其中至少2条failed属于rollback_trigger（分别prod与stage，错误分别为回滚API 500与参数校验失败），另有1-2条与变更通知相关但成功（用于干扰对比）。helpdesk/tickets.json：约10条open工单，其中生产相关至少3条（回滚未执行/生产不稳定），预发相关至少2条（参数缺失导致未触发或触发失败但现象不同），再加入至少3条干扰（通知延迟/审计日志缺失/权限变更）。关键字段：工单description需要包含环境词与变更类型词以便关联。避免任何原fixture的实体名、工单ID、数值与原文片段。",
+          "expected_behavior": "报告需体现：先总结失败回滚触发任务及错误；再识别工单并按环境与症状分组；关联逻辑：prod回滚API 500→生产回滚未执行/回滚按钮不可用；stage参数校验失败→预发回滚未触发但健康检查描述与触发链路不一致。优先级：生产最高（critical），预发次之（high），干扰工单需被排除。最终输出按“任务→环境→关联工单→触发链路证据→优先级建议”组织。",
+          "grading_plan": "grader.py检查：1）是否正确识别两个回滚触发任务并提取各自错误；2）是否按prod/stage准确关联到对应工单子集；3）是否排除非回滚触发链路的干扰工单；4）优先级是否体现生产优先于预发并给出理由；5）报告结构与依据是否清晰。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T105zh_job_failure_triage_plus_5",
+          "new_task_name": "会员积分核算异常与工单归因",
+          "task_goal": "对失败的会员积分核算/派奖相关定时任务进行排查与提取；获取未解决工单详情；分析哪些工单与积分核算失败（如规则加载失败、队列延迟等）有关；输出关联分析报告，并给出按影响用户量/时效性的优先级建议。",
+          "user_request": "最近会员积分核算出现异常：有人反映积分没有到账，有人反映到账后又被回滚。请你：1）查看所有失败的定时任务及其错误信息；2）查看当前未解决的工单；3）分析哪些工单与会员积分核算相关的定时任务故障有关；4）输出关联分析报告，说明每个故障任务对应哪些工单、可能影响的范围、以及建议处理优先级。",
+          "scenario": "调度平台包含：积分核算任务因“规则服务超时”失败；积分回写任务因“消息队列消费延迟超过阈值”失败；以及一个“活动补偿核算”任务失败但错误是“无数据可处理(业务上跳过)”——它不应被当作根因。工单系统中：积分未到账（描述订单/活动时间点与积分应发放时间错位）、积分回滚（描述有到账后撤销）、以及无关的账号登录失败工单。要求模型识别并排除“无数据可处理”这类非故障语义任务，避免误关联。",
+          "difference_from_source": "原题主要依赖明显错误与系统故障；本任务加入“看似失败但属于业务跳过”的边界情况，要求区分真实故障失败与非关键失败语义，并将其与工单表现进行匹配（未到账/回滚）。",
+          "service_and_tool_plan": "scheduler_list_jobs 用于找出failed任务；scheduler_get_job提取error并判断是否为业务跳过语义（如无数据可处理）；helpdesk_list_tickets获取open工单；helpdesk_get_ticket逐条读取描述中的“积分未到账/回滚/活动时间”与时间线；根据关联结果在报告中给出优先级建议；不调用 helpdesk_close_ticket。",
+          "fixture_generation_plan": "scheduler/jobs.json：约8条job，至少3条failed，其中2条为真实故障（规则服务超时、队列消费延迟），1条为业务跳过但status标为failed或包含error为“NO_DATA_SKIP”类关键词；helpdesk/tickets.json：约11条open工单，其中与积分未到账相关4-5条、与积分回滚相关2-3条、干扰工单3条以上（登录失败/页面加载慢/运维告警但非积分）。确保：积分未到账工单的created_at集中在核算任务失败窗口之后；积分回滚工单的描述包含“先到账后撤销/重算”等，并与队列延迟与回写失败时间吻合。",
+          "expected_behavior": "输出中必须包含对业务跳过任务的解释：虽然任务记录显示失败，但根据error语义不作为主要根因；关联到工单时只使用真实故障任务。关联逻辑：规则服务超时→核算失败→积分未到账；队列消费延迟→回写/状态处理延迟或触发重算→积分回滚/延迟到账。优先级：未到账影响更广且时效性强→更高优先级；回滚通常也要紧急但可分层说明原因。报告需给出每个job关联的ticket_id、症状摘要、时间线证据、影响范围与下一步建议（例如恢复规则服务、清理队列堆积后重跑回写）。",
+          "grading_plan": "grader.py检查：1）是否识别并排除“业务跳过语义”的失败任务（不与工单强行关联）；2）未到账与回滚两类工单是否分别关联到正确故障任务；3）时间线匹配是否充分（至少两处明确的任务失败到工单上报/表现的先后关系）；4）优先级依据与用户影响/时效性一致；5）输出结构覆盖“根因判断+关联+优先级+理由”。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:40:32",
+    "items": [
+      {
+        "task_id": "T105zh_job_failure_triage_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:37:54",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T105zh_job_failure_triage_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T105zh_job_failure_triage_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:38:39",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T105zh_job_failure_triage_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T105zh_job_failure_triage_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:39:15",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T105zh_job_failure_triage_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T105zh_job_failure_triage_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:39:53",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T105zh_job_failure_triage_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T105zh_job_failure_triage_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:40:32",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/T105zh_job_failure_triage_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T105zh_job_failure_triage_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T105zh_job_failure_triage/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T105zh_job_failure_triage",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

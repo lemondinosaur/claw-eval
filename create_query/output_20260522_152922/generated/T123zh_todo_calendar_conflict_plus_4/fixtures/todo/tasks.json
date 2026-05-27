@@ -1,0 +1,143 @@
+[
+  {
+    "task_id": "TODO-401",
+    "title": "产出演示脚本（4小时）",
+    "description": "高优待办：需要在 2026-06-07 当天完成演示脚本整理。注意：该任务是后续“生成演示素材包”的前置项；需要A完成后才能开始B。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-06-07",
+    "assignee": "我",
+    "tags": [
+      "演示",
+      "脚本",
+      "前置A"
+    ],
+    "estimated_hours": 4
+  },
+  {
+    "task_id": "TODO-402",
+    "title": "生成演示素材包（3小时）",
+    "description": "中优待办：在脚本定稿后制作素材包。依赖关系：需要A完成后才能开始B；B完成后才能安排“做复盘文档（C）”的内容提取。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-06-08",
+    "assignee": "我",
+    "tags": [
+      "演示",
+      "素材",
+      "依赖B"
+    ],
+    "estimated_hours": 3
+  },
+  {
+    "task_id": "TODO-403",
+    "title": "做复盘文档（2小时）",
+    "description": "低优待办：将素材包产出结果固化为复盘文档。依赖关系：需要B完成后才能开始C，并在 2026-06-10 前完成初稿。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-06-10",
+    "assignee": "我",
+    "tags": [
+      "复盘",
+      "文档",
+      "依赖C"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TODO-404",
+    "title": "独立审批单（1小时）",
+    "description": "高优但不参与依赖链：独立审批处理，不包含“需要A/B完成后才能开始”的依赖关键词。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-06-08",
+    "assignee": "我",
+    "tags": [
+      "审批",
+      "独立"
+    ],
+    "estimated_hours": 1
+  },
+  {
+    "task_id": "TODO-405",
+    "title": "准备背景数据（2小时）",
+    "description": "pending 干扰项：用于演示前背景准备。该任务不写任何A/B/C依赖关键词，但会与 2026-06-07 任务时段冲突。",
+    "status": "pending",
+    "priority": "pending",
+    "due_date": "2026-06-07",
+    "assignee": "我",
+    "tags": [
+      "数据",
+      "干扰"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TODO-406",
+    "title": "与张敏同步演示需求（1小时）",
+    "description": "干扰项：不依赖A/B/C；仅需在 2026-06-08 可工作时段内完成简要同步。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-06-08",
+    "assignee": "我",
+    "tags": [
+      "同步",
+      "干扰"
+    ],
+    "estimated_hours": 1
+  },
+  {
+    "task_id": "TODO-407",
+    "title": "已完成：采购对账（无需重排）",
+    "description": "completed 历史任务，不参与冲突分析与依赖传导（状态已完成）。",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-06-07",
+    "assignee": "我",
+    "tags": [
+      "采购",
+      "历史"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TODO-408",
+    "title": "检查演示清单（1小时）",
+    "description": "辅助任务：不依赖A/B/C；建议放在演示预约前后的零碎可用时间完成。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-06-07",
+    "assignee": "我",
+    "tags": [
+      "演示",
+      "清单"
+    ],
+    "estimated_hours": 1
+  },
+  {
+    "task_id": "TODO-409",
+    "title": "准备材料归档（1小时）",
+    "description": "辅助任务：不含任何“需要A完成后才能开始B”或“需要B完成后才能开始C”等依赖关键词，仅做归档。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-06-10",
+    "assignee": "我",
+    "tags": [
+      "归档"
+    ],
+    "estimated_hours": 1
+  },
+  {
+    "task_id": "TODO-410",
+    "title": "确认参会名单（1小时）",
+    "description": "辅助任务：与依赖链无关，不参与A/B/C的连锁重排；只需避开日历占用时间即可。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-06-08",
+    "assignee": "我",
+    "tags": [
+      "参会名单"
+    ],
+    "estimated_hours": 1
+  }
+]

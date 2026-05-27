@@ -1,0 +1,207 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:39:40",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T039zh_onboarding_coordinator",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:37:00",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:37:00",
+      "source_task_id": "T039zh_onboarding_coordinator",
+      "source_summary": {
+        "task_id": "T039zh_onboarding_coordinator",
+        "task_name": "Onboarding Coordinator",
+        "task_type": "跨服务工作流编排：读取入职邮件与知识库，查联系人与设备库存，检查/创建培训日历，并创建待办与发送/保存通知草稿",
+        "category": "workflow",
+        "difficulty": "hard",
+        "tags": [
+          "general"
+        ],
+        "language": "zh",
+        "services": [
+          "gmail",
+          "calendar",
+          "todo",
+          "contacts",
+          "kb",
+          "inventory"
+        ],
+        "tools": [
+          "gmail_list_messages",
+          "gmail_get_message",
+          "gmail_send_message",
+          "gmail_save_draft",
+          "calendar_list_events",
+          "calendar_get_user_events",
+          "calendar_create_event",
+          "todo_list_tasks",
+          "todo_create_task",
+          "todo_update_task",
+          "contacts_search",
+          "contacts_get",
+          "kb_search",
+          "kb_get_article",
+          "inventory_list_products",
+          "inventory_get_product"
+        ],
+        "fixture_paths": [
+          "fixtures/calendar/events.json",
+          "fixtures/contacts/contacts.json",
+          "fixtures/gmail/inbox.json",
+          "fixtures/inventory/products.json",
+          "fixtures/kb/articles.json",
+          "fixtures/todo/tasks.json"
+        ],
+        "sandbox_files": [
+          "fixtures/contacts/contacts.json",
+          "fixtures/gmail/inbox.json",
+          "fixtures/calendar/events.json",
+          "fixtures/todo/tasks.json",
+          "fixtures/kb/articles.json",
+          "fixtures/inventory/products.json"
+        ],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "多服务信息汇总与编排执行：正确处理经理缺失时的草稿/发送分流、排程冲突调整、联系人歧义消解、以及设备/安全依赖的标记"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T039zh_onboarding_coordinator_plus_1",
+          "new_task_name": "入职冲突与设备补录协调",
+          "task_goal": "为下周三入职的4位新员工协调入职通知、培训排程、IT设备与系统准备；若某部门无经理则仅保存草稿不发送；若培训时间与已有会议冲突则自动改到不冲突时段；同时为缺货设备创建跟进待办。",
+          "user_request": "请你为“下周三”（按系统当前日期计算为具体YYYY-MM-DD）准备4位新员工的入职协调：阅读HR收件箱入职邮件与IT库存邮件，查知识库的入职流程与设备申请规则，检索各部门经理联系方式，检查库存并确认是否缺货，查看并处理日历冲突（如培训时间段与已有会议冲突则调整），发送给有经理的部门经理入职通知；对于没有部门经理的部门只保存邮件草稿；最后创建入职跟进待办并输出一份完整入职安排总结。",
+          "scenario": "当前系统日期为2026-03-05。HR邮件包含4名员工：1) 研发A部门的“林峰”需要笔记本与账号且培训必须参加；2) 运营部门“周晴”需要专用外设且其经理在通讯录中存在同名干扰；3) 法务部门“赵敏”没有部门经理记录；4) 数据分析岗位“钱宁”需要访问某内部数据集，需满足知识库中“安全审查需额外等待”的条件但不要求额外二次澄清。日历现有事件在下周三的上午与下午各有一段会议，其中培训建议时段落在冲突区间，需改到附近空闲时间并保证至少包含建议中的核心模块时间段。库存中仅有部分设备可用：缺货的是某款“无线键盘套装”，并给出预计到货日期。另：某位“同名联系人”在通讯录中出现两条（不同部门/不同邮箱），需要用部门上下文选择正确经理。",
+          "difference_from_source": "原题为3位员工且固定日期与特定缺货/安全触发点；本题变为4位员工、采用不同部门组合与不同冲突窗口（上午+下午双区域干扰），并引入“缺货外设套装”跟进待办与“同名联系人但干扰发生在运营/法务以外的部门”两类变化；同时还有“法务无经理仅草稿”的分支逻辑但不复用原来的部门/人员具体名称。",
+          "service_and_tool_plan": "使用gmail读取HR入职邮件与IT库存邮件（gmail_list_messages + gmail_get_message）；用kb搜索并获取入职流程与设备申请/安全要求（kb_search + kb_get_article）；用contacts搜索各部门经理并进行歧义消解（contacts_search + contacts_get），必要时contacts_get获取明细；用inventory_list_products与inventory_get_product确认设备与缺货/到货日期；用calendar_list_events与calendar_get_user_events检查培训时间冲突并用calendar_create_event创建调整后的培训事件；用todo_create_task为缺货设备与安全审查/账号准备创建待办；用gmail_send_message或gmail_save_draft根据是否存在经理决定发送或仅草稿。",
+          "fixture_generation_plan": "生成6类fixture（与源schema一致但不复用原实体名/ID/邮箱/数值/原文段落）。(1) fixtures/gmail/inbox.json：至少2封邮件（1封HR入职4人需求，1封IT库存更新说明无线键盘套装缺货与到货日期；可额外加入1封无关邮件作为干扰）；(2) fixtures/kb/articles.json：至少2篇文章：入职流程清单与设备申请流程/安全审查说明，内容需包含培训建议时段与安全审查等待规则、缺货登记与临时备用策略；(3) fixtures/contacts/contacts.json：包含至少6条联系人，其中包含1组同名（同名来自两个不同部门/不同邮箱/头衔不同），以及至少1个部门无经理（保证搜索“法务”得到结果为空或得到非经理角色）；(4) fixtures/calendar/events.json：下周三包含至少2个与培训时间相关的事件（一个落在建议培训开始附近、另一个覆盖建议结束附近），用于触发冲突调整；(5) fixtures/inventory/products.json：包含至少5种产品，其中“无线键盘套装”current_stock=0并带restock_date，其它设备（如笔记本、桌椅、显示器）库存正常；(6) fixtures/todo/tasks.json：提供2条已有任务，确保agent仍需额外创建新待办且不应直接复用既有task内容。关键字段：所有新ID（如evt_、msg_、CT-、KB-、EQ-、TODO-）与源保持相同格式但值不同。",
+          "expected_behavior": "代理应：1) 先通过gmail_list_messages聚合到下周三相关的HR入职邮件与IT库存更新，并分别读取正文；2) 从KB获取培训建议时段、冲突处理原则（如可调整到不冲突时间）以及安全审查等待规则与缺货登记/临时备用策略；3) 对每位员工提取部门与经理名称/岗位需求，使用contacts_search按部门与姓名歧义消解同名联系人，若某部门无经理则对该部门经理通知执行gmail_save_draft而非gmail_send_message；4) 用inventory_get_product核对每位员工所需设备是否缺货；缺货设备（无线键盘套装）需在总结中明确并创建todo_create_task跟进（due_date设为到货日期或到货后第1天，具体由描述决定）；5) 用calendar_list_events与calendar_get_user_events检查冲突并创建一条calendar_create_event（培训事件标题可不同于源）到不冲突时段；6) 为账号/安全审查/设备申请等创建至少2条todo_create_task（与缺货、安全依赖相关）；7) 输出最终总结：覆盖4位员工的培训时间、设备状态（可用/缺货/临时方案）、通知发送或草稿原因、安全审查是否阻塞、以及待办列表摘要；7) Gmail发送次数应等于“有经理的部门”数量（不发送给无经理部门）。",
+          "grading_plan": "grader应检查：是否调用了gmail_get_message读取HR与库存邮件；是否对同名联系人使用了部门上下文选择正确邮箱（可通过最终邮件收件人与摘要关键词核验）；是否在冲突场景下调用calendar_create_event且输出总结包含“调整/冲突”相关关键信息；是否对无经理部门使用gmail_save_draft且不出现gmail_send_message给该部门收件人；是否对缺货产品在摘要中出现“缺货/到货日期/跟进”；是否创建todo_create_task至少覆盖缺货跟进与至少一个安全/账号相关任务；是否最终总结长度与要点覆盖达标。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T039zh_onboarding_coordinator_plus_2",
+          "new_task_name": "分阶段入职：先发草稿后补发通知",
+          "task_goal": "为3位下周二入职员工协调“分阶段”沟通：当IT设备库存不足或安全审查未完成时，对相关部门经理先保存草稿；待条件满足后（本任务内由规则推定，不引入额外澄清流程）在同一批任务中补发最终通知；同时为每位员工创建跟进待办并输出总结。",
+          "user_request": "请你为“下周二”（按系统当前日期计算出具体YYYY-MM-DD）的3位新员工做分阶段入职协调：先读取HR入职邮件和IT库存邮件，查知识库确定哪些情况需要先草稿后补发（如缺货或安全审查未通过），查通讯录获取部门经理并处理同名歧义，检查日历培训时间并选择无冲突时段创建培训事件，针对每位员工向部门经理发送通知（满足条件则发送，否则先保存草稿，并在本次流程中按规则补发），最后创建入职跟进待办并给出入职安排总结。",
+          "scenario": "系统当前日期为2026-03-05。HR邮件列出3名员工：1) 移动端“沈澜”归属产品体验部门，要求在入职当天领取设备并参加培训；2) 客服“韩旭”归属支持中心，经理通讯录里出现“同名两条记录”（名字相同但部门不同），需用部门匹配选择正确邮箱；3) 合规岗“孟洁”归属合规与风险部门，但该部门没有部门经理记录（只能走草稿策略）；同时HR邮件里说明：若涉及“合规审查”需等待1-2个工作日，且设备“触控板”可能缺货。日历中下周二上午有“合规例会”覆盖培训建议时段起点，导致需要选择下午更后的位置；知识库要求：设备缺货时可先登记并安排临时备用，但通知仍需说明预计到货与临时替代。",
+          "difference_from_source": "原题是一次性发送/草稿决策；本题要求“分阶段：先草稿后补发”的规则化处理，并把冲突窗口设在入职培训建议的起点处，强调下午调整；同时加入“无经理部门（合规）”与“同名歧义（支持中心）”的组合干扰，并引入触控板缺货与合规审查等待的联动。",
+          "service_and_tool_plan": "gmail用于读取HR邮件与库存邮件；kb用于获取“先草稿后补发”的触发条件（从知识库内容推导，不需多轮澄清）以及合规审查等待与设备临时备用策略；contacts用于按部门搜寻经理并处理同名歧义；inventory用于确认触控板是否缺货并核对预计到货；calendar用于检测培训冲突并创建调整后的培训事件；todo用于创建跟进任务（缺货到货跟进、合规审查进度、账号准备）；gmail_send_message与gmail_save_draft用于分阶段通信。",
+          "fixture_generation_plan": "生成同样的6个fixture路径： (1) gmail/inbox.json：2封关键邮件（HR入职3人+IT库存更新关于触控板缺货/临时备用策略），可加1封噪声邮件；(2) kb/articles.json：2篇以上文章：入职流程清单需写清“培训建议时段”和冲突调整；设备申请流程需包含“缺货登记、临时备用、以及合规审查需要等待”的规则；(3) contacts/contacts.json：至少7条联系人，其中包含一个同名二选一（同名字段相同但department不同、邮箱不同）；还要包含“支持中心经理存在”而“合规与风险部门经理缺失”；(4) calendar/events.json：下周二至少2个事件，覆盖培训建议时段起点前后用于触发调整（一个与合规例会相关）；(5) inventory/products.json：包含至少5个产品，其中“触控板”out_of_stock=0且restock_date在入职后；(6) todo/tasks.json：至少2条已有待办用于干扰，确保新增任务数量与类型与规则一致。所有字段数值与ID需与源不同。",
+          "expected_behavior": "代理应：1) 从HR邮件提取3位员工的部门、岗位需求与是否涉及合规审查/设备缺货；2) 通过KB判断通信分阶段规则：在缺货或审查未通过时，给对应有经理的部门先保存草稿（gmail_save_draft），并在本次流程中依据“规则推定条件已满足/可补发”的要求补发最终通知（即：同一部门经理最终应收到gmail_send_message）；对无经理部门则只能保存草稿并说明“无部门经理”；3) 通过contacts搜索经理时处理同名歧义：例如“韩旭所属支持中心”只选支持中心对应邮箱；4) 检查日历：找到培训建议时段与合规例会冲突，选择不冲突的替代时间创建calendar_create_event；5) 库存核对：对触控板缺货在总结中标记缺货与临时备用方案（如KB说明），并创建todo_create_task用于跟进到货与安排临时设备；6) 创建至少3条待办：每位员工至少一条跟进（账号/培训/设备或审查），其中缺货与审查相关的任务需更高优先级；7) 最终总结要按员工逐条列出：通知发送/草稿状态、培训安排、设备可用/缺货、合规审查等待影响、以及待办清单摘要。",
+          "grading_plan": "grader应检查：是否根据KB触发分阶段逻辑（同一部门经理既有draft又有send，或无经理仅draft）；是否对同名联系人使用了正确部门邮箱（可通过send/draft收件人关键词校验）；是否处理了日历冲突并在总结中出现“冲突/调整”的关键字，同时调用calendar_create_event；是否对触控板缺货生成跟进待办并在总结提及缺货与到货日期；是否最终总结包含每位员工的状态分布与优先级要点，且包含培训与设备/审查的关联说明。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T039zh_onboarding_coordinator_plus_3",
+          "new_task_name": "跨时段培训：按员工可参加性分组安排",
+          "task_goal": "为5位员工安排入职培训与通知：根据HR邮件给出的可参加时段（部分员工可在上午、部分只能下午），在同一入职日期创建一个或多个不冲突的培训事件，并向各部门经理发送对应分组通知；若某位员工所属部门无经理只保存草稿；同时创建设备与系统账号的待办任务。",
+          "user_request": "请你对“下周五”（按系统当前日期计算出具体YYYY-MM-DD）的5位新员工完成分组培训与入职协调：读取HR入职邮件与IT设备库存更新，查知识库确认入职培训组织方式与设备申请/账号准备步骤，检索通讯录获取各部门经理并处理可能的同名干扰，检查日历中当天已有会议冲突，按员工可参加性把培训分成上午组/下午组（各组时间不得与冲突事件重叠），创建相应日历事件；对有经理的部门发送通知，对无经理部门只保存草稿；最后创建待办事项并输出总结。",
+          "scenario": "系统当前日期为2026-03-05。HR邮件包含5位员工，来自4个部门：A部门“顾晨”需要开发设备并上午可参加；B部门“曹薇”下午可参加且设备需申请额外外设；C部门“邱卓”与“林雯”同属市场与内容部门但经理在通讯录中存在同名两条（需用部门字段区分），两人可参加性不同（一个只能上午另一个只能下午）；D部门“白航”属于供应链/仓配协同，但该部门没有部门经理记录。库存更新显示：仅有一部分“人体工学椅”库存紧张（low_stock），并给出“低库存后续可能需要替换为备用型号”的规则。日历当天存在多个会议碎片时段，导致上午与下午都可能出现冲突，需要灵活选择培训窗口（例如上午选择09:30-11:00，下午选择13:30-15:00，以不与既有事件重叠为准）。",
+          "difference_from_source": "原题只有单一培训场景（并且冲突是固定一段）；本题要求按员工可参加性将培训分成上午/下午两组并可能创建多个calendar_create_event；同时引入low_stock但不一定 out_of_stock 的“紧张库存替换”规则，并加入“5人/4部门/含无经理部门”组合。",
+          "service_and_tool_plan": "gmail用于读取入职与库存邮件；kb用于获取培训组织与设备申请、低库存替代策略；contacts用于经理检索与同名消解；inventory用于确认人体工学椅是否low_stock并获取替代策略依据；calendar用于冲突检查并创建两个分组培训事件（上午组与下午组）；todo用于创建分组培训与设备/账号准备待办；gmail_send_message与gmail_save_draft用于分组通知与无经理草稿策略。",
+          "fixture_generation_plan": "创建新的fixtures： (1) gmail/inbox.json：HR邮件包含5位员工与各自可参加性（上午/下午/均可）及部门；库存邮件说明人体工学椅low_stock与备用型号信息；加入1封与主题无关的营销邮件作为干扰；(2) kb/articles.json：至少2篇文章：入职培训清单需要明确“培训可分组按可参加性安排”的原则；设备申请/库存策略需要包含low_stock替换与登记说明；(3) contacts/contacts.json：至少8条联系人，包含1组同名跨两个部门（邮箱不同、title不同）；并确保供应链部门经理缺失；(4) calendar/events.json：下周五至少4个事件，分别覆盖上午与下午候选区间以迫使调整；(5) inventory/products.json：至少6个产品，包含“人体工学椅”low_stock（非0）并提供备用替代信息（在notes或字段）；(6) todo/tasks.json：至少2条已有任务用于干扰。所有姓名/ID/邮箱/日期/数值均需替换为全新且不复用源数据。",
+          "expected_behavior": "代理应：1) 从HR邮件提取5位员工的部门与可参加性，确定每个部门经理通知的覆盖范围（哪些员工在上午组/下午组参加）；2) 用contacts_search并结合部门字段处理同名联系人，保证发送给正确经理邮箱；对供应链部门无经理只创建草稿；3) 用calendar_list_events获取当日所有已事件并判断候选培训时段是否冲突，再用calendar_create_event创建上午组与下午组培训事件（至少2个事件）；4) 库存核对人体工学椅为low_stock：在总结中标记“紧张”并提出替代/临时方案，且创建todo_create_task用于跟进椅子分配与替代确认；5) 对每位员工创建待办：账号准备、工位安排（若需要）、培训签到提醒、设备申请进度；6) 通知：向有经理的部门发送一封或两封按组别内容的通知（可在subject/body体现“上午组/下午组”）；无经理部门仅保存草稿；7) 输出总结：按部门与组别列出培训安排、冲突处理结果、设备状态（可用/低库存/替代）、以及待办清单摘要。",
+          "grading_plan": "grader应检查：是否创建了至少2个calendar_create_event用于上午与下午分组且时间不与fixture中的会议重叠；是否在总结中出现“上午组/下午组/可参加性”相关信息；是否同名联系人选择正确邮箱并反映在发送/草稿收件人上；是否对low_stock产品在总结中出现“紧张/替代/跟进”并创建todo_create_task；是否无经理部门仅有gmail_save_draft且无gmail_send_message；最终总结需覆盖5位员工与待办/设备/培训状态。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T039zh_onboarding_coordinator_plus_4",
+          "new_task_name": "失败重试预案：培训事件创建前先校验参会人",
+          "task_goal": "为4位不同岗位新员工协调入职安排，确保培训日历事件创建前参会人名单完整且无空值；若发现参会人联系方式缺失或联系人查询不到，改为先创建日历“占位事件”并创建待办用于补齐信息；最终完成经理通知与总结。",
+          "user_request": "请为“下周一”（按系统当前日期计算出具体YYYY-MM-DD）的4位新员工协调入职：读取HR入职邮件与知识库获取入职培训与通知规则；查通讯录获取各部门经理和培训参会人邮箱；检查IT库存并为缺货设备创建待办；查看日历冲突并准备创建培训事件；但在创建事件前必须先核验参会人邮箱是否可用；如果某位参会人的联系人无法找到或邮箱缺失，改为创建不包含该参会人的“占位培训事件”，并创建待办提醒补齐参会人信息。随后向有经理的部门发送通知/无经理保存草稿，并输出入职安排总结。",
+          "scenario": "系统当前日期为2026-03-05。HR邮件包含4位员工：1) 设计岗位“余澜”需显示器与账号，经理存在；2) 后端岗位“吕哲”需要GPU工作站且培训参会人包含其部门经理与IT支持主管；3) 测试岗位“顾霖”需要访问测试环境但不涉及安全审查；4) BI岗位“唐芷”所在部门没有部门经理记录；同时HR邮件指定：培训事件参会人需至少包含IT支持主管与对应部门经理（若有）；但在通讯录中IT支持主管记录存在，但其邮箱字段在fixture中可能缺失（模拟数据质量问题）。库存更新显示某款“GPU工作站”库存为0需要到货，并给到预计日期。日历中培训建议时段与“研发周报评审”冲突，需要调整到冲突外。",
+          "difference_from_source": "原题要求直接创建培训并处理冲突；本题加入“创建前参会人校验”与“缺失则创建占位事件+待办补齐”的失败预案流程，且同时包含“无经理部门草稿”和“GPU工作站缺货+到货跟进”。联系人数据质量（邮箱缺失）是核心变化。",
+          "service_and_tool_plan": "gmail用于读取HR邮件与库存邮件；kb用于获取培训参会人规则与设备/缺货策略；contacts用于查经理与IT支持主管（contacts_search + contacts_get）；inventory用于确认GPU工作站缺货并触发待办；calendar用于检查冲突并创建“占位培训事件”（calendar_create_event）与必要的调整；todo用于创建缺货跟进和“补齐参会人信息”待办；gmail_send_message与gmail_save_draft用于经理通知发送或草稿。",
+          "fixture_generation_plan": "生成全新fixtures： (1) gmail/inbox.json：1封HR入职4人邮件（含参会人规则、部门无经理信息、培训建议时段与岗位需求），1封IT库存邮件（说明GPU工作站缺货与到货日期），可加1封与无关邮件；(2) kb/articles.json：至少2篇文章：入职培训与通知规则（含参会人要求与占位事件原则）+ IT设备申请与缺货处理规则（含缺货登记与临时方案）；(3) contacts/contacts.json：至少6条联系人，其中IT支持主管邮箱字段在其中一条记录里设置为空或缺失（用于触发校验失败）；包含1组同名干扰可选但非必须；BI部门经理缺失；其余部门经理存在；(4) calendar/events.json：下周一至少1-2个事件覆盖培训建议时段，需要调整；(5) inventory/products.json：包含GPU工作站 current_stock=0 out_of_stock并restock_date；另有显示器/办公桌椅正常；至少5个产品；(6) todo/tasks.json：2条已有任务干扰。所有ID、名称、邮箱均需不复用源数据。",
+          "expected_behavior": "代理应：1) 读取HR邮件并提取每位员工部门与参会人要求；2) 用contacts获取部门经理与IT支持主管；3) 在calendar_create_event前检查参会人邮箱可用性：若IT支持主管邮箱缺失，则不把该人员加入参会人列表，改为创建“占位培训事件”（参会人仅包含已知且有效邮箱），并创建todo_create_task用于补齐参会人信息（due_date可设为入职前1天）；4) 若培训建议时段与日历冲突则调整时间并创建事件；5) 库存核对GPU工作站缺货：创建待办“跟进到货与设备分配”，并在总结中标记缺货与预计到货；6) 通知：有经理的部门用gmail_send_message，BI部门无经理用gmail_save_draft（且不发送）；4) 最终总结需包含：占位事件创建原因、参会人校验结果、GPU缺货与待办、每位员工设备/账号准备状态、以及待办列表摘要。",
+          "grading_plan": "grader应检查：是否在calendar_create_event前根据联系人信息做了参会人邮箱有效性校验（可通过最终创建事件的attendees不包含缺失邮箱对应关键词或字段校验）；是否在参会人缺失时创建了占位事件且创建了补齐参会人的todo_create_task；是否处理了日历冲突并在总结出现“调整/冲突”；是否对GPU工作站缺货创建跟进待办并在总结提及到货日期；是否对无经理部门仅保存草稿；最终总结需覆盖4位员工并包含占位/缺货/待办要点。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T039zh_onboarding_coordinator_plus_5",
+          "new_task_name": "紧急入职：当天培训+补救工单通知（邮件草稿合规）",
+          "task_goal": "为3位今天宣布的“紧急入职”员工协调当天培训、设备与账号准备；若需要安全审查或设备缺货，则通知经理时必须先起草并标注风险与预计完成时间；同时创建待办并输出总结。要求处理日历冲突与异常邮件干扰。",
+          "user_request": "请你为“今天宣布的紧急入职”（以系统mock_today为准）安排3位新员工：从HR入职邮件获取需求，从知识库确认当天培训与风险标注要求，从通讯录找部门经理；检查当天日历是否与培训冲突并调整；查询IT库存；对涉及安全审查或缺货的部门经理通知必须先保存为草稿（不要直接发送）；当条件在本次任务中被知识库规则判定可继续推进时，再在同一流程中发送补充说明邮件。最后创建待办并输出总结。",
+          "scenario": "mock_today设为2026-03-05（即今天）。HR邮件属于紧急通知：3位员工分别来自：平台工程“韩澈”（需要安全审查以获取受控权限）、市场内容“蒋岚”（设备为缺货但可提供临时替代）、以及运营支持“沈澄”（部门有经理且无需安全审查）。知识库包含当天培训的“最短流程”和“风险标注”要求：当存在安全审查未完成或缺货时，邮件需以草稿形式提交并标注预计完成时间；若规则允许临时推进（例如提供临时设备或限制权限），则必须补发一封“已允许推进范围”的说明邮件。日历当天已有多场会议碎片，培训需选择合适不冲突窗口。库存更新显示某型号“无线耳机”缺货但有替代型号。还会在Gmail Inbox里混入一封与入职无关的群发公告干扰，agent需忽略。",
+          "difference_from_source": "原题是下周固定日期与常规流程；本题改为“今天紧急入职”、强调草稿合规（涉及安全审查/缺货先草稿后补充发送）、并引入“通知第二封补充说明”要求；同时增加Gmail干扰邮件识别与忽略逻辑，以及临时推进范围的输出约束。",
+          "service_and_tool_plan": "gmail_list_messages聚合并过滤与紧急入职相关邮件；gmail_get_message读取关键HR邮件与库存邮件；kb_search并kb_get_article获取紧急当天培训与风险标注、草稿/补发规则；contacts_search获取部门经理并处理潜在同名（如出现）；inventory_list_products与inventory_get_product确认无线耳机缺货与替代；calendar_list_events检查今天的冲突并创建当天培训事件；todo_create_task创建当天培训/权限审查/设备替代跟进待办；gmail_save_draft用于风险场景起草，符合规则时使用gmail_send_message发送补充说明。",
+          "fixture_generation_plan": "生成新fixtures： (1) gmail/inbox.json：至少3封：1封HR紧急入职3人邮件（含安全审查、缺货与临时推进范围描述）、1封IT库存更新（无线耳机缺货+替代型号可用）、1封无关公告邮件作为干扰；(2) kb/articles.json：至少2篇文章：紧急入职当天培训与风险标注规则（明确“先草稿后补发”条件与预计时间表达方式）+ 设备申请缺货与临时替代流程；(3) contacts/contacts.json：至少5条联系人，包含3位员工各自部门经理（其中一位经理缺失则仍可处理草稿，但本题主要是草稿合规而非无经理分支，可让全部部门都有经理以减少分支）；如引入同名干扰需保证不会复用原题姓名/邮箱；(4) calendar/events.json：今天至少3个事件覆盖紧急培训候选区间，需要调整时间；(5) inventory/products.json：包含无线耳机缺货0库存并提供替代型号库存正常；至少5个产品；(6) todo/tasks.json：2条既有待办干扰，确保agent新增任务覆盖权限审查与设备替代跟进。所有ID/名称/邮箱/日期/数值替换为全新。",
+          "expected_behavior": "代理应：1) 过滤Gmail并只处理与“紧急入职”相关的HR邮件与库存更新；2) 从KB提取草稿合规规则：若岗位涉及安全审查或设备缺货，则对相应部门经理必须先gmail_save_draft并在正文中标注风险与预计完成时间；3) 对于可临时推进的情况（如临时设备替代、权限限制下可推进），在同一流程中再gmail_send_message发送补充说明邮件（subject/body需明确“已允许推进范围/仍待完成事项”）；4) 用calendar_list_events检查今天冲突并创建calendar_create_event用于当天培训（必要时调整时间）；5) 通过inventory核对缺货并在总结标注无线耳机缺货与替代方案；6) 为每位员工创建todo_create_task：权限审查跟进、临时设备替代确认、当天培训签到与入职资料整理等；7) 最终总结：包含每位员工的风险状态（草稿/补发发送）、培训时间、设备状态、待办列表以及对预计完成时间的引用（来自KB规则）。",
+          "grading_plan": "grader应检查：是否正确忽略无关公告邮件（最终发送/草稿与总结不应提及无关内容）；是否在安全审查与缺货场景使用gmail_save_draft且至少有一部分在规则允许时触发gmail_send_message补充说明；是否创建当天培训calendar_create_event且时间不与fixture冲突；是否对无线耳机缺货在总结与待办中体现替代方案与跟进；是否为3位员工都创建了相关todo_create_task且包含权限审查/设备替代/培训类要点；最终总结长度与覆盖度达标。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:39:40",
+    "items": [
+      {
+        "task_id": "T039zh_onboarding_coordinator_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:37:32",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T039zh_onboarding_coordinator_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T039zh_onboarding_coordinator_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:37:58",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T039zh_onboarding_coordinator_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T039zh_onboarding_coordinator_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:38:32",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T039zh_onboarding_coordinator_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T039zh_onboarding_coordinator_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:39:03",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T039zh_onboarding_coordinator_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T039zh_onboarding_coordinator_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:39:40",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/T039zh_onboarding_coordinator_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T039zh_onboarding_coordinator_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T039zh_onboarding_coordinator/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T039zh_onboarding_coordinator",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

@@ -1,0 +1,68 @@
+[
+  {
+    "transaction_id": "TXC-301",
+    "date": "2026-03-24",
+    "amount": 2480.0,
+    "currency": "CNY",
+    "type": "差旅费报销",
+    "category": "费用报销",
+    "description": "差旅费核对：发票号INV-C401，金额含交通住宿",
+    "status": "completed",
+    "approved_by": "周总"
+  },
+  {
+    "transaction_id": "TXC-302",
+    "date": "2026-03-24",
+    "amount": 3300.0,
+    "currency": "CNY",
+    "type": "会议餐费",
+    "category": "费用报销",
+    "description": "会议餐费报销：发票号INV-C402（含税）",
+    "status": "pending",
+    "approved_by": "财务审核"
+  },
+  {
+    "transaction_id": "TXC-303",
+    "date": "2026-03-24",
+    "amount": 1199.0,
+    "currency": "CNY",
+    "type": "办公杂项",
+    "category": "费用报销",
+    "description": "办公杂项费用：发票号INV-C403",
+    "status": "completed",
+    "approved_by": "李主管"
+  },
+  {
+    "transaction_id": "TXC-304",
+    "date": "2026-03-24",
+    "amount": 1950.5,
+    "currency": "CNY",
+    "type": "软件订阅费",
+    "category": "费用报销",
+    "description": "订阅费报销：发票号INV-C404",
+    "status": "completed",
+    "approved_by": "王经理"
+  },
+  {
+    "transaction_id": "TXC-305",
+    "date": "2026-03-21",
+    "amount": 860.0,
+    "currency": "CNY",
+    "type": "其他行政支出",
+    "category": "运营成本",
+    "description": "非报销：办公区日常物资采购（无对应发票号）",
+    "status": "completed",
+    "approved_by": "行政部"
+  },
+  {
+    "transaction_id": "TXC-306",
+    "date": "2026-03-22",
+    "amount": 250.0,
+    "currency": "CNY",
+    "type": "交通补贴",
+    "category": "人力成本",
+    "description": "通勤交通补贴发放（不含报销发票号INV-C4xx）",
+    "status": "completed",
+    "approved_by": "HR"
+  }
+]

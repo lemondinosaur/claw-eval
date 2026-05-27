@@ -1,0 +1,139 @@
+task_id: T143zh_quarterly_business_insight_plus_4
+task_name: 停用与重启：复购恢复路径评估
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_4/fixtures/finance/transactions.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_4/fixtures/crm/customers.json
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_4/fixtures/rss/feeds.json
+prompt:
+  text: "Q2复购机会评估（停用与重启：复购恢复路径评估）\n\n请为“Q2可能复购”的客户输出一份评估报告，重点识别Q1中发生停用/订阅中断后，在Q2可能恢复购买（复购/续费/重新激活）的客户，并给出可执行的复购路径建议：\n\
+    \n1）从财务系统拉取Q1交易，找出客户存在“中断-恢复”模式：例如连续月份无收入（或无交易/金额为0），随后在Q1内或Q1末出现恢复交易；将恢复阶段分为早期恢复/稳定恢复/仍中断，并给出证据。\n\
+    2）查看CRM中这些客户的状态（如stopped/churned/试用结束后重新激活/续签进度等字段信息），对合同续签进度给出解读。\n3）浏览RSS行业动态，提取与“预算恢复/需求修复/行业景气回暖/采购节奏恢复”相关内容，并解释：为什么会在停用后出现复购恢复。\n\
+    4）输出：\n   - 复购恢复优先级Top4客户（按证据强度排序）。\n   - 每个客户的“复购路径图”：包含下一步动作+目标达成标准（用具体可验证的标准描述）。\n\
+    \   - 至少指出一个“有恢复交易但CRM仍标记为停用（或待更新）”的风险点，并给出处理建议（如何验证、如何推进状态同步与后续动作）。\n\n要求：你的排序理由必须综合体现“恢复连续性（恢复是否持续）+CRM状态一致性+行业修复信号强度”。"
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选
+      tier:
+        type: string
+        description: 客户等级筛选
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: rss_list_feeds
+  description: 列出RSS订阅源
+  input_schema:
+    type: object
+    properties: {}
+    required: []
+- name: rss_get_feed
+  description: 获取RSS源文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_id:
+        type: string
+        description: 订阅源ID
+    required:
+    - feed_id
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_get_feed
+  url: http://localhost:9109/rss/feeds/get
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

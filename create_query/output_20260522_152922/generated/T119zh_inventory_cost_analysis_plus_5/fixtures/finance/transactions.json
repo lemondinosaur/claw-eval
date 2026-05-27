@@ -1,0 +1,68 @@
+[
+  {
+    "transaction_id": "FTX-910",
+    "date": "2026-03-06",
+    "amount": 12960.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "网络设备",
+    "description": "路由器RX-1 批次A 120台 × 108元/台",
+    "status": "completed",
+    "reference": "INV-PROD-910-A"
+  },
+  {
+    "transaction_id": "FTX-911",
+    "date": "2026-03-16",
+    "amount": 8640.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "网络设备",
+    "description": "路由器RX-1 批次B 80台 × 108元/台",
+    "status": "completed",
+    "reference": "INV-PROD-910-B"
+  },
+  {
+    "transaction_id": "FTX-920",
+    "date": "2026-03-07",
+    "amount": 4000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "网络设备",
+    "description": "交换机SW-8 批次A 100台 × 40元/台",
+    "status": "completed",
+    "reference": "INV-PROD-920-A"
+  },
+  {
+    "transaction_id": "FTX-921",
+    "date": "2026-03-19",
+    "amount": 3900.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "网络设备",
+    "description": "交换机SW-8 批次B 30台 × 130元/台",
+    "status": "completed",
+    "reference": "INV-PROD-920-B"
+  },
+  {
+    "transaction_id": "FTX-930",
+    "date": "2026-03-09",
+    "amount": 2500.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "耗材",
+    "description": "网线CAT6 500卷 × 5元/卷",
+    "status": "completed",
+    "reference": "INV-PROD-930"
+  },
+  {
+    "transaction_id": "FTX-940",
+    "date": "2026-03-11",
+    "amount": 2700.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "耗材",
+    "description": "网线CAT6（同名干扰）900卷 × 3元/卷（不应被匹配）",
+    "status": "completed",
+    "reference": "INV-PROD-930-D1"
+  }
+]

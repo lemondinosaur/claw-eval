@@ -1,0 +1,59 @@
+task_id: T093_pinbench_email_triage_report_plus_5
+task_name: Release Gate & Supply Status
+version: '1.0'
+category: organization
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T093_pinbench_email_triage_report_plus_5/fixtures/gmail/inbox.json
+prompt:
+  text: "请使用 Gmail 服务读取收件箱中所有邮件，并生成“发布前夜”的收件箱分诊报告。输出内容必须包含：\n1) 顶部简短摘要（明确指出最紧急的发布闸门/阻塞问题是什么，以及今天第一步要做什么）；\n\
+    2) 按优先级从高到低列出每封相关邮件：P0-P4、Category、Recommended action；\n3) Category 与 Recommended\
+    \ action 必须区分并正确处理：\n   - “发布闸门/阻塞问题”（例如无法部署、构建失败、关键环境宕机/不可用）\n   - “供应商状态更新/交付延迟”（可能影响物料，但需要核对与软件发布依赖关系）\n\
+    4) 邮件分诊中必须识别干扰项：\n   - 标题含 blocker 但正文说明只是建议升级、并非真正阻塞\n   - 容易误判与发布无关的培训报名通知（若正文表明可忽略则需低优先级）\n\
+    5) 不要发送任何邮件。\n\n优先级定义（用于你的输出）：\n- P0：真实发布阻塞（需立即确认环境/回滚方案/协调发布与测试负责人）\n- P1：紧急且时间很近（例如产品经理客户反馈需中午前提交，或关键阻塞性较低但仍接近截止）\n\
+    - P2：可能影响发布但需进一步确认依赖（例如供应商交付延迟、需补充回归记录）\n- P3/P4：新闻通讯/促销/培训报名/非阻塞更新或低影响事项"
+  language: en
+tools:
+- name: gmail_list_messages
+  description: List inbox messages
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        default: 30
+      max_results:
+        type: integer
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: Get one message
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+    required:
+    - message_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 18

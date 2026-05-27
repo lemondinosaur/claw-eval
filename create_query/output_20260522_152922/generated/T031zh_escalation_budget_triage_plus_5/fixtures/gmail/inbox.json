@@ -1,0 +1,140 @@
+[
+  {
+    "message_id": "msg_24001",
+    "from": "escalation@beichen-cloud.com",
+    "to": "me@company.com",
+    "subject": "【华东升级】北辰云联 要求 40万补偿（影响交付SLA）",
+    "date": "2026-02-28T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "east"
+    ],
+    "body": "客户升级通知：\n\n客户编号：CUS-101\n客户名称：北辰云联\n区域：华东\n\n我们由于交付节奏与SLA偏差，要求书面补偿金额：补偿金额=400000。\n\n诉求：\n- 立即安排处理与书面回复\n- 指定对接负责人\n\n请尽快。\n\n华东运营负责人 张先生"
+  },
+  {
+    "message_id": "msg_24002",
+    "from": "escalation@beichen-cloud.com",
+    "to": "me@company.com",
+    "subject": "【华南升级】北辰云联 要求 52万补偿（升级二次）",
+    "date": "2026-02-28T10:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "south"
+    ],
+    "body": "你好，\n\n再次升级：\n客户编号：CUS-101\n客户名称：北辰云联\n区域：华南\n\n由于前次承诺未完全兑现，我们提出更高补偿：补偿金额=520000。\n\n要求：\n- 书面道歉与处理通知\n\n谢谢。\n\n华南客户经理 马女士"
+  },
+  {
+    "message_id": "msg_24003",
+    "from": "alerts@qingcheng-data.com",
+    "to": "me@company.com",
+    "subject": "【海外升级】青橙数据 要求 48万补偿（待审批后再次催促）",
+    "date": "2026-02-28T11:25:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "overseas"
+    ],
+    "body": "客户升级：\n\n客户编号：CUS-103\n客户名称：青橙数据\n区域：海外\n\n我们要求补偿金额：补偿金额=480000。\n同时提醒：如无法尽快推进，我们将启动后续法务流程。\n\n联系人：孙雅\n\n请尽快处理。\n"
+  },
+  {
+    "message_id": "msg_24004",
+    "from": "alerts@qingcheng-data.com",
+    "to": "me@company.com",
+    "subject": "Re: 【海外升级】青橙数据 要求 35万补偿（来自不同区域的重复升级）",
+    "date": "2026-02-28T12:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "overseas"
+    ],
+    "body": "补充通知：\n\n客户编号：CUS-103\n区域：海外\n\n基于阶段性沟通，我们要求补偿金额：补偿金额=350000。\n（此邮件为之前升级的补充版本）\n\n孙雅"
+  },
+  {
+    "message_id": "msg_24005",
+    "from": "support@chenghai-ind.com",
+    "to": "me@company.com",
+    "subject": "【华东升级】澄海工业 申请 -5万补偿（无效金额测试）",
+    "date": "2026-02-28T13:15:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "east"
+    ],
+    "body": "客户升级通知：\n\n客户编号：CUS-102\n客户名称：澄海工业\n区域：华东\n\n我们提出补偿金额：补偿金额=-50000（请注意：金额为负数，可能是误填）。\n\n联系人：赵彬"
+  },
+  {
+    "message_id": "msg_24006",
+    "from": "support@chenghai-ind.com",
+    "to": "me@company.com",
+    "subject": "【华南升级】澄海工业 要求 20万补偿（交付延迟）",
+    "date": "2026-02-28T14:00:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "south"
+    ],
+    "body": "客户投诉升级：\n\n客户编号：CUS-102\n客户名称：澄海工业\n区域：华南\n\n交付延迟导致额外成本，我们要求补偿金额：补偿金额=200000。\n\n诉求：\n- 处理通知\n- 给出补救计划\n\n赵彬"
+  },
+  {
+    "message_id": "msg_24007",
+    "from": "escalation@unknown.example",
+    "to": "me@company.com",
+    "subject": "【干扰】没有客户编号的升级邮件（请忽略）",
+    "date": "2026-02-28T15:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "这是一封干扰邮件：\n\n我们没有提供客户编号，但声称要求补偿金额=123000。\n\n请不要按客户维度执行发送动作。"
+  },
+  {
+    "message_id": "msg_24008",
+    "from": "legal@jinsui-retail.cn",
+    "to": "me@company.com",
+    "subject": "【华东升级】金穗零售 已停用账户 - 要求 18万补偿",
+    "date": "2026-02-28T16:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "east"
+    ],
+    "body": "紧急通知：\n\n客户编号：CUS-104\n客户名称：金穗零售\n区域：华东\n\n由于我们的账户已停用（已停用账户），现提出补偿要求：补偿金额=180000。\n\n请法务介入。\n\n李婉"
+  },
+  {
+    "message_id": "msg_24009",
+    "from": "alerts@lanqiao-health.cn",
+    "to": "me@company.com",
+    "subject": "【海外升级】蓝桥健康 要求 6.5万补偿（SLA超时）",
+    "date": "2026-02-28T17:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "overseas"
+    ],
+    "body": "客户升级通知：\n\n客户编号：CUS-105\n客户名称：蓝桥健康\n区域：海外\n\n我们要求补偿金额：补偿金额=65000。\n原因：多次SLA超时。\n\n联系人：林然"
+  },
+  {
+    "message_id": "msg_24010",
+    "from": "alerts@xinggang-comm.com",
+    "to": "me@company.com",
+    "subject": "【华南升级】星港通信 要求 2.8万补偿（重复区域同客户）",
+    "date": "2026-02-28T18:00:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "south"
+    ],
+    "body": "升级邮件：\n\n客户编号：CUS-106\n客户名称：星港通信\n区域：华南\n\n我们提出补偿金额：补偿金额=28000。\n诉求：处理通知。\n\n陈瑜"
+  }
+]

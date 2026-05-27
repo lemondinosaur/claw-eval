@@ -1,0 +1,357 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T119zh_inventory_cost_analysis_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/finance/transactions.json",
+  "fixtures/inventory/items.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T119zh_inventory_cost_analysis_plus_5",
+  "new_task_name": "按仓位成本分层一致性",
+  "task_goal": "在同一 product_id 可能存在多个仓位成本口径差异的情况下（库存工具返回可能包含不同 location 或历史成本线索），对每个仓位/批次口径做一致性核对；识别仓位层面的成本记录与采购交易的偏差，并给出应该合并或重算的建议。",
+  "user_request": "请帮我做一次库存与采购成本的交叉核对（按仓位分层一致性）。\n1）列出库存品并关注其 location（仓位）与 unit_cost\n2）对每个库存品按仓位口径核对其 unit_cost 与财务采购交易单价\n3）若同一品类在不同仓位的 unit_cost 不一致，分析它们是否分别对应不同批次采购（多批价格）\n4）找出成本异常（仓位间不一致但财务只能解释为单一采购口径、或缺少某批采购映射）\n5）输出成本分析报告（包含：按仓位的核对表、异常解释、建议）",
+  "scenario": "库存数据返回 3 个 product_id，但每个 product_id 在 inventory_get_item 的详情中会包含多个 location 成本条目（或同一 product_id 多条记录映射到不同 location；fixtures 可用 location 字段来体现）。财务中存在两笔采购批次：批次A对应仓位X与Y，批次B对应仓位Z。设计一个异常：对其中一个 product_id，某仓位的 unit_cost 被错误写成另一批次的价格，导致仓位间不一致；但从财务角度应能明确映射到正确批次。另加入干扰：财务中有同名但 description reference 指向不同批次，需基于数量/金额与仓位数量一致性做判断。",
+  "difference_from_source": "原题是全局一对一或按品类分批的简单核对；新题要求“按仓位分层一致性”和“仓位间的成本差异是否可由采购批次映射解释”。异常不仅是数值不等，还要能论证映射关系错误。",
+  "service_and_tool_plan": "使用 inventory_list_items 获取产品列表与基础 quantity/unit_cost，并标记需要深入的 product_id；对这些 product_id 使用 inventory_get_item 获取其 location 与仓位口径（由 fixtures 定义）。财务端通过 finance_list_transactions 拉取交易，随后 finance_get_transaction 获取每笔采购批次的数量与单价信息。核对时将“仓位数量”映射到批次数量占比（若多批）以判定正确批次对应关系。",
+  "fixture_generation_plan": "生成 inventory/items.json：3条基础库存记录（每条包含 product_id、name、category、总 quantity、unit_cost、location、supplier、reorder_level），并确保 inventory_get_item 在 fixture 或服务返回中能体现该 product_id 对应多个 location 成本口径（可通过 items.json 中增补字段或让服务按 product_id 返回明细；生成时需在 items.json 里预置足够信息，如 location 组合/仓位明细字段）。生成 finance/transactions.json：至少 6 笔交易：每个相关 product_id 至少对应 2 笔采购批次（A/B），另加入 1 笔干扰采购（reference 指向不同批次或 description 不清晰）。确保：2个 product_id 能实现仓位与批次正确映射（单位成本一致或按正确批次变化），1个 product_id 在某个仓位 unit_cost 故意写错，导致仓位间出现无法被财务批次合理解释的偏差。",
+  "expected_behavior": "1）调用 inventory_list_items；2）对需要的 product_id 调用 inventory_get_item 获取按 location 的成本与数量；3）用 finance_list_transactions 获取交易，针对每个 product_id 调用 finance_get_transaction 找到批次A/B的采购单价与数量；4）将每个仓位的数量映射到对应批次（通过数量一致性或金额一致性），计算仓位应有的 unit_cost；5）若某仓位的 unit_cost 与其映射批次不一致，标记为“仓位成本异常”，解释它无法与财务映射匹配（例如被错误套用了另一批次价格）；6）输出报告：按产品与仓位的核对表、批次映射关系图式描述、异常列表与修正建议。",
+  "grading_plan": "grader 应检查：是否使用 inventory_get_item 获取仓位层面的成本/数量信息；是否能建立并描述仓位到采购批次的映射；对“注入的仓位错误”是否能识别并给出正确异常归因；对其他产品是否避免误报（仓位与批次能解释时不应判为异常）；报告表格结构是否清晰且包含足够的对应字段以复核。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T119zh_inventory_cost_analysis",
+  "task_name": "库存成本分析",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "inventory",
+    "finance"
+  ],
+  "tools": [
+    "inventory_list_items",
+    "inventory_get_item",
+    "finance_list_transactions",
+    "finance_get_transaction"
+  ],
+  "fixture_paths": [
+    "fixtures/finance/transactions.json",
+    "fixtures/inventory/items.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T119zh_inventory_cost_analysis
+task_name: 库存成本分析
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: tasks/T119zh_inventory_cost_analysis/fixtures/inventory/items.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: tasks/T119zh_inventory_cost_analysis/fixtures/finance/transactions.json
+prompt:
+  text: '请帮我做一次库存与采购成本的交叉核对：
+
+    1. 查看当前所有库存品的数量和单位成本
+
+    2. 查看财务系统中对应的采购交易记录
+
+    3. 比对：库存记录的单价是否与实际采购价一致
+
+    4. 找出成本异常的品类（单价差异、分批采购价格不同等）
+
+    5. 输出成本分析报告
+
+    '
+  language: zh
+tools:
+- name: inventory_list_items
+  description: 查看库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取库存品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/finance/transactions.json ---
+[
+  {
+    "transaction_id": "TXN-801",
+    "date": "2026-03-10",
+    "amount": 3750.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公用品",
+    "description": "A4打印纸 150箱 × 25元/箱",
+    "status": "completed",
+    "reference": "ITEM-801"
+  },
+  {
+    "transaction_id": "TXN-802",
+    "date": "2026-03-12",
+    "amount": 3600.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "耗材",
+    "description": "墨盒HP-12A 20个 × 180元/个",
+    "status": "completed",
+    "reference": "ITEM-802"
+  },
+  {
+    "transaction_id": "TXN-803",
+    "date": "2026-03-15",
+    "amount": 15750.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "IT设备",
+    "description": "机械键盘 45个 × 350元/个",
+    "status": "completed",
+    "reference": "ITEM-803"
+  },
+  {
+    "transaction_id": "TXN-804",
+    "date": "2026-03-18",
+    "amount": 26400.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "IT设备",
+    "description": "显示器24寸 12台 × 2200元/台",
+    "status": "completed",
+    "reference": "ITEM-804"
+  },
+  {
+    "transaction_id": "TXN-805",
+    "date": "2026-03-08",
+    "amount": 3000.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "耗材",
+    "description": "USB数据线 200根 × 15元/根",
+    "status": "completed",
+    "reference": "ITEM-805"
+  },
+  {
+    "transaction_id": "TXN-806a",
+    "date": "2026-03-05",
+    "amount": 480.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公用品",
+    "description": "鼠标垫第一批 60个 × 8元/个",
+    "status": "completed",
+    "reference": "ITEM-806"
+  },
+  {
+    "transaction_id": "TXN-806b",
+    "date": "2026-03-20",
+    "amount": 480.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公用品",
+    "description": "鼠标垫第二批 40个 × 12元/个",
+    "status": "completed",
+    "reference": "ITEM-806"
+  },
+  {
+    "transaction_id": "TXN-807",
+    "date": "2026-03-01",
+    "amount": 85000.00,
+    "currency": "CNY",
+    "type": "运营",
+    "category": "租金",
+    "description": "办公室3月份租金",
+    "status": "completed"
+  }
+]
+
+--- END FILE: fixtures/finance/transactions.json ---
+--- FILE: fixtures/inventory/items.json ---
+[
+  {
+    "product_id": "ITEM-801",
+    "name": "A4打印纸",
+    "category": "文具",
+    "quantity": 150,
+    "unit": "箱",
+    "unit_cost": 25.00,
+    "location": "仓库A-01",
+    "reorder_level": 50,
+    "supplier": "办公易"
+  },
+  {
+    "product_id": "ITEM-802",
+    "name": "墨盒HP-12A",
+    "category": "耗材",
+    "quantity": 20,
+    "unit": "个",
+    "unit_cost": 180.00,
+    "location": "仓库A-02",
+    "reorder_level": 10,
+    "supplier": "惠普授权"
+  },
+  {
+    "product_id": "ITEM-803",
+    "name": "机械键盘",
+    "category": "IT设备",
+    "quantity": 45,
+    "unit": "个",
+    "unit_cost": 350.00,
+    "location": "仓库B-01",
+    "reorder_level": 15,
+    "supplier": "京东企业购"
+  },
+  {
+    "product_id": "ITEM-804",
+    "name": "显示器24寸",
+    "category": "IT设备",
+    "quantity": 12,
+    "unit": "台",
+    "unit_cost": 1500.00,
+    "location": "仓库B-02",
+    "reorder_level": 5,
+    "supplier": "戴尔直销"
+  },
+  {
+    "product_id": "ITEM-805",
+    "name": "USB数据线",
+    "category": "耗材",
+    "quantity": 200,
+    "unit": "根",
+    "unit_cost": 15.00,
+    "location": "仓库A-03",
+    "reorder_level": 50,
+    "supplier": "办公易"
+  },
+  {
+    "product_id": "ITEM-806",
+    "name": "鼠标垫",
+    "category": "文具",
+    "quantity": 100,
+    "unit": "个",
+    "unit_cost": 8.00,
+    "location": "仓库A-01",
+    "reorder_level": 30,
+    "supplier": "办公易"
+  }
+]
+
+--- END FILE: fixtures/inventory/items.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

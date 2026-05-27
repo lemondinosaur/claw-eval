@@ -1,0 +1,168 @@
+{
+  "task_id": "T019zh_inventory_check_plus_3",
+  "task_name": "Batch Category Compliance Restock",
+  "prompt_text": "请只关注“耗材”类别。找出其中库存（只以主销售仓位 primary_stock 为准）低于阈值，或基于“天数覆盖”判断即将触底的商品，并在遵守合规批次规则的前提下为需补货的商品下单：同一供应商在同一批次订单中最多包含3种不同商品；如果某供应商需要补的耗材种类超过3种，请拆分成多个批次订单。注意：存在干扰字段 secondary_stock，但不参与销售计算。对“min_stock_threshold 很高但 daily_avg_sales 极低”的情况，不要只看阈值，必须用天数覆盖判断是否真的需要下单。请给出补货订单及说明原因（体现为何仅耗材、为何用 primary_stock、以及天数覆盖/缺口计算逻辑）。",
+  "files": {
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "MAT-AD-1101",
+        "name": "医用无纺布垫 30x30",
+        "category": "耗材",
+        "current_stock": 22,
+        "primary_stock": 22,
+        "secondary_stock": 120,
+        "min_stock_threshold": 40,
+        "daily_avg_sales": 2,
+        "lead_time_days": 5,
+        "supplier": "上海恒康材料"
+      },
+      {
+        "product_id": "MAT-GL-1202",
+        "name": "一次性丁腈检查手套 M",
+        "category": "耗材",
+        "current_stock": 18,
+        "primary_stock": 18,
+        "secondary_stock": 300,
+        "min_stock_threshold": 25,
+        "daily_avg_sales": 0.2,
+        "lead_time_days": 6,
+        "supplier": "上海恒康材料",
+        "batch_policy_tag": "销量极低干扰：需按天数覆盖判断"
+      },
+      {
+        "product_id": "MAT-SN-1303",
+        "name": "酒精棉片 50片装",
+        "category": "耗材",
+        "current_stock": 9,
+        "primary_stock": 9,
+        "secondary_stock": 60,
+        "min_stock_threshold": 20,
+        "daily_avg_sales": 1.2,
+        "lead_time_days": 4,
+        "supplier": "上海恒康材料",
+        "batch_policy_tag": "需补货：覆盖天数短"
+      },
+      {
+        "product_id": "MAT-DS-1404",
+        "name": "医用纱布卷 2m",
+        "category": "耗材",
+        "current_stock": 6,
+        "primary_stock": 6,
+        "secondary_stock": 90,
+        "min_stock_threshold": 15,
+        "daily_avg_sales": 0.8,
+        "lead_time_days": 7,
+        "supplier": "上海恒康材料",
+        "batch_policy_tag": "覆盖天数不足：需补"
+      },
+      {
+        "product_id": "MAT-MK-1505",
+        "name": "口罩滤芯模块",
+        "category": "耗材",
+        "current_stock": 28,
+        "primary_stock": 28,
+        "secondary_stock": 500,
+        "min_stock_threshold": 120,
+        "daily_avg_sales": 0.05,
+        "lead_time_days": 10,
+        "supplier": "上海恒康材料",
+        "batch_policy_tag": "阈值高但销量极低：不应下单"
+      },
+      {
+        "product_id": "MAT-VT-2101",
+        "name": "医用PVC导管 5mm",
+        "category": "耗材",
+        "current_stock": 3,
+        "primary_stock": 3,
+        "secondary_stock": 40,
+        "min_stock_threshold": 10,
+        "daily_avg_sales": 0.6,
+        "lead_time_days": 8,
+        "supplier": "苏州泽达医疗"
+      },
+      {
+        "product_id": "MAT-SP-2202",
+        "name": "无菌注射器 5ml",
+        "category": "耗材",
+        "current_stock": 14,
+        "primary_stock": 14,
+        "secondary_stock": 200,
+        "min_stock_threshold": 30,
+        "daily_avg_sales": 1.5,
+        "lead_time_days": 5,
+        "supplier": "苏州泽达医疗",
+        "batch_policy_tag": "需按供应商批次拆分"
+      },
+      {
+        "product_id": "MAT-CP-2303",
+        "name": "压力传感贴片",
+        "category": "耗材",
+        "current_stock": 7,
+        "primary_stock": 7,
+        "secondary_stock": 160,
+        "min_stock_threshold": 18,
+        "daily_avg_sales": 0.9,
+        "lead_time_days": 6,
+        "supplier": "苏州泽达医疗"
+      },
+      {
+        "product_id": "MAT-RS-2404",
+        "name": "采血管 采血针套装",
+        "category": "耗材",
+        "current_stock": 26,
+        "primary_stock": 26,
+        "secondary_stock": 80,
+        "min_stock_threshold": 60,
+        "daily_avg_sales": 0.3,
+        "lead_time_days": 9,
+        "supplier": "苏州泽达医疗",
+        "batch_policy_tag": "阈值高但覆盖天数可能够：需判断不下单"
+      },
+      {
+        "product_id": "MAT-TB-2505",
+        "name": "治疗贴 贴片型",
+        "category": "耗材",
+        "current_stock": 2,
+        "primary_stock": 2,
+        "secondary_stock": 25,
+        "min_stock_threshold": 8,
+        "daily_avg_sales": 0.4,
+        "lead_time_days": 4,
+        "supplier": "苏州泽达医疗",
+        "batch_policy_tag": "覆盖天数短：需补"
+      },
+      {
+        "product_id": "EL-CB-3101",
+        "name": "温度探头线缆",
+        "category": "电子配件",
+        "current_stock": 55,
+        "min_stock_threshold": 30,
+        "daily_avg_sales": 4,
+        "lead_time_days": 3,
+        "supplier": "宁波科达电子"
+      },
+      {
+        "product_id": "EL-LD-3202",
+        "name": "指示灯模块 24V",
+        "category": "电子配件",
+        "current_stock": 0,
+        "min_stock_threshold": 10,
+        "daily_avg_sales": 0.2,
+        "lead_time_days": 12,
+        "supplier": "宁波科达电子",
+        "status": "backordered",
+        "backorder_eta": "2026-06-12"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题限定仅“耗材”类别，并加入按供应商合规批次（每批最多3种）拆单，以及用 primary_stock 的天数覆盖处理“阈值高但销量低”不下单边界。",
+    "fixture_design_summary": [
+      "产品覆盖至少10条，其中耗材≥5条且包含至少2个供应商（上海恒康材料、苏州泽达医疗）。",
+      "同一供应商内耗材种类足够触发拆批（例如苏州泽达医疗可出现超过3种需补/需下单的耗材候选）。",
+      "设置干扰字段 secondary_stock：多条耗材 primary_stock 明显更低/更高但不影响计算口径。",
+      "设置两类边界：销量极低但 min_stock_threshold 很高的耗材设计为天数覆盖足够（应不下单），以及 primary_stock 明显不足且覆盖天数短的耗材设计为需要下单。",
+      "提供 lead_time_days 供紧急度/补货量与覆盖量级形成自洽。"
+    ]
+  }
+}

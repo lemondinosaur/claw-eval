@@ -1,0 +1,41 @@
+[
+  {
+    "transaction_id": "FNC-2301",
+    "date": "2026-03-05",
+    "amount": 45000.0,
+    "currency": "CNY",
+    "customer_id": "CUST-212",
+    "customer_name": "北辰环保",
+    "type": "客户优惠",
+    "category": "续约优惠支出",
+    "description": "北辰环保2026年Q1续约优惠（已完成）",
+    "approved_by": "孙佳维",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "FNC-2302",
+    "date": "2026-03-12",
+    "amount": 32000.0,
+    "currency": "CNY",
+    "customer_id": "CUST-214",
+    "customer_name": "金桥制造",
+    "type": "客户补偿",
+    "category": "服务补偿支出",
+    "description": "金桥制造2026年Q1服务补偿（已完成）",
+    "approved_by": "陈晓岚",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "FNC-2303",
+    "date": "2026-02-18",
+    "amount": 25000.0,
+    "currency": "CNY",
+    "customer_id": "CUST-211",
+    "customer_name": "星河软件",
+    "type": "客户优惠",
+    "category": "续约优惠支出",
+    "description": "星河软件2025年Q4续约优惠（已完成）",
+    "approved_by": "陈晓岚",
+    "status": "completed"
+  }
+]

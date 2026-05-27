@@ -1,0 +1,86 @@
+[
+  {
+    "task_id": "TODO-M1-01",
+    "title": "告警阈值调参",
+    "description": "完成告警阈值调参",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-06-05",
+    "assignee": "林凯",
+    "tags": [
+      "稳定性"
+    ]
+  },
+  {
+    "task_id": "TODO-M1-02",
+    "title": "灰度发布回滚流程梳理",
+    "description": "梳理灰度发布回滚流程",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-06-02",
+    "assignee": "朱敏",
+    "tags": [
+      "发布"
+    ]
+  },
+  {
+    "task_id": "TODO-M1-03",
+    "title": "更新SLO指标口径",
+    "description": "更新SLO指标口径",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-06-10",
+    "assignee": "陈妍",
+    "tags": [
+      "SLO"
+    ]
+  },
+  {
+    "task_id": "TODO-M2-01",
+    "title": "缺陷复盘模板与示例",
+    "description": "编写缺陷复盘模板与示例",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-06-01",
+    "assignee": "赵志",
+    "tags": [
+      "质量"
+    ]
+  },
+  {
+    "task_id": "TODO-M2-02",
+    "title": "回归测试用例覆盖清单",
+    "description": "梳理回归测试用例覆盖清单",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-06-07",
+    "assignee": "陈妍",
+    "tags": [
+      "测试"
+    ]
+  },
+  {
+    "task_id": "TODO-M2-03",
+    "title": "自动化回归脚本升级",
+    "description": "完成自动化回归脚本升级",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-06-01",
+    "assignee": "林凯",
+    "tags": [
+      "自动化"
+    ]
+  },
+  {
+    "task_id": "TODO-M1-99",
+    "title": "月度采购资料整理（干扰）",
+    "description": "整理月度采购资料与对账单",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-06-20",
+    "assignee": "周澄",
+    "tags": [
+      "行政"
+    ]
+  }
+]

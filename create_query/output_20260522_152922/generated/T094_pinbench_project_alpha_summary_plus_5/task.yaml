@@ -1,0 +1,80 @@
+task_id: T094_pinbench_project_alpha_summary_plus_5
+task_name: Alpha Stakeholder Update & Status Alignment
+version: '1.0'
+category: synthesis
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T094_pinbench_project_alpha_summary_plus_5/fixtures/gmail/inbox.json
+prompt:
+  text: 'Search the Gmail inbox for all messages related to Project Alpha (use labels/tags
+    and subject/body keywords like “Project Alpha” or “Alpha”). Ignore unrelated noise
+    and similarly named but different projects (e.g., “Alphaware”).
+
+
+    Using the retrieved emails, produce an English stakeholder alignment status report
+    with these sections:
+
+    1) Project Overview
+
+    2) Role-based progress (Delivery/Engineering/Support/Customer Success) — summarize
+    the key points from each role
+
+    3) Dependencies and Risks — explicitly call out where progress depends on other
+    teams and what might block outcomes
+
+    4) Items requiring executive/management confirmation — list at least 3 actionable
+    items
+
+    5) Current Status — reconcile inconsistencies by incorporating the latest information
+    and the “metrics definition changed / communication correction” email if present,
+    then provide a single aligned final status.
+
+
+    Explicitly identify at least two places where different role emails disagree on
+    status, and resolve them into a unified final narrative in the “Current Status”
+    section.'
+  language: en
+tools:
+- name: gmail_list_messages
+  description: List inbox messages
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        default: 60
+      max_results:
+        type: integer
+        default: 30
+    required: []
+- name: gmail_get_message
+  description: Get one message
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+    required:
+    - message_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

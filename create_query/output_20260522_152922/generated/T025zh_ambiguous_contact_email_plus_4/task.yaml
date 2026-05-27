@@ -1,0 +1,145 @@
+task_id: T025zh_ambiguous_contact_email_plus_4
+task_name: 客户投诉升级-指派联系人确认
+version: '1.0'
+category: communication
+difficulty: medium
+tags:
+- general
+services:
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T025zh_ambiguous_contact_email_plus_4/fixtures/contacts/contacts.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T025zh_ambiguous_contact_email_plus_4/fixtures/gmail/inbox.json
+prompt:
+  text: '请处理收件箱中标题为“紧急：客户投诉升级处理”的最新邮件。邮件要求在工作日当日将升级工单指派给“周负责人”，并让其确认初步处理路径。由于通讯录中“周负责人”匹配到多个候选（姓名/邮箱/部门/职务不同且较接近），请先把所有候选及其差异信息列给我，让我选择对应编号或邮箱。
+
+    在我明确选择“周负责人”之前，请勿发送任何通知邮件；可以先根据邮件内容生成草稿，收件人To需留待我确认后再最终确定（如使用占位符，请在输出中说明待确认后再填入）。
+
+    另外注意：收件箱里还有一封关于“售后回访”的邮件提到“周主管”，请不要被其干扰。'
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: contacts_search
+  description: 搜索通讯录中的联系人
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词（姓名、部门等）
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详细信息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_save_draft
+  description: 将邮件保存为草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+      reply_to_message_id:
+        type: string
+        description: 如果是回复邮件，原邮件ID
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+sandbox_files:
+- fixtures/contacts/contacts.json
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

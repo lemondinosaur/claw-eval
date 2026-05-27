@@ -1,0 +1,77 @@
+task_id: T015zh_kb_search_plus_4
+task_name: VPN迁移后连接失败（知识库检索与排障）
+version: '1.0'
+category: knowledge
+difficulty: easy
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T015zh_kb_search_plus_4/fixtures/kb/articles.json
+prompt:
+  text: 公司要把VPN从旧客户端迁到新客户端了，但我现在连不上。请基于知识库：说明迁移优先级（为什么要按迁移公告的方式操作，而不是继续用旧指南/旧客户端），给出迁移操作顺序（卸载旧客户端→从指定可信来源下载新客户端→安装→用一致的服务器地址与凭据进行连接），并列出迁移期常见连接失败原因的排查清单（包括旧客户端残留、下载来源不可信/版本不匹配、连接参数是否一致、连接模式选择等）。最后用步骤清单形式引用至少4篇知识库文章ID与标题。
+  language: zh
+tools:
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按类别筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: kb_update_article
+  description: 更新知识库文章内容
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+      content:
+        type: string
+        description: 更新后的内容
+    required:
+    - article_id
+    - content
+tool_endpoints:
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: kb_update_article
+  url: http://localhost:9106/kb/articles/update
+  method: POST
+sandbox_files:
+- fixtures/kb/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 25

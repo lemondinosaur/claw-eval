@@ -1,0 +1,256 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T094_pinbench_project_alpha_summary_plus_1",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/gmail/inbox.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 1,
+  "new_task_id": "T094_pinbench_project_alpha_summary_plus_1",
+  "new_task_name": "Alpha Data Migration & Security Brief",
+  "task_goal": "从与“Project Alpha”相关的多封邮件中提取数据迁移计划、切换窗口、回滚策略以及关键安全/合规发现，并输出包含时间线与当前状态的结构化简报。",
+  "user_request": "在Gmail收件箱中检索所有与 Project Alpha 相关的邮件，忽略无关内容，生成结构化简报，包含：1) 项目概览 2) 迁移与切换时间线 3) 安全/合规风险与发现 4) 业务影响（对客户交付与运营） 5) 当前状态（含阻塞项）。语言使用英文。",
+  "scenario": "邮件显示Alpha正从旧报表平台迁移到新分析仪表盘：需要进行周末切换窗口；安全组发现传输加密与审计链路存在缺口；同时运营团队要求明确回滚与对外沟通模板。近期出现一次失败的压测导致延后，并且有关于“最小权限”的补丁实施进度邮件。",
+  "difference_from_source": "不再强调预算与前期技术选型为主，而是围绕“数据迁移/切换窗口/回滚策略/审计链路合规”进行综合；风险侧重点从架构选择转为迁移过程与安全审计落地，且加入对外沟通与运营影响。",
+  "service_and_tool_plan": "继续使用 gmail_list_messages 先拉取最近一段时间内可能相关的邮件（根据subject/labels线索），再使用 gmail_get_message 获取关键邮件正文以提取迁移与安全细节；为何：需要跨邮件汇总时间线与风险证据。",
+  "fixture_generation_plan": "生成一个新的 fixtures 文件夹中的 inbox.json（同schema风格）共 10 条消息：其中 7 条为 Project Alpha 相关（不同labels如project-alpha、migration、security、ops），2 条为噪声（promo/meeting），1 条为“相似但不相关”（例如 Project Alphascope 或仅提Alpha培训）。相关邮件日期覆盖 2026-03-01 到 2026-03-20；状态分布包含：1条迁移计划发布（draft/approved），1条切换窗口调整（delayed），1条回滚演练结果（pass但发现缺陷），2条安全/合规发现与整改跟踪（open->mitigating），1条对外沟通模板草案（pending），最后1条当前状态更新（blocked/unblocked）。字段避免与原fixture相同的message_id/邮箱/主题/数值。",
+  "expected_behavior": "agent 应筛选与“Project Alpha”明确相关的邮件，忽略会议/促销/不相关主题；对相关邮件进行归纳：输出5个固定章节（Project Overview/Timeline/Migration & Security/Business Impact/Current Status）。时间线需至少包含：迁移阶段（prep、dry-run、cutover、post-cutover）、切换窗口日期范围、回滚策略要点、安全审计链路缺口与拟补救措施、以及阻塞项。使用英文撰写并体现“当前状态”基于最新邮件的更新。",
+  "grading_plan": "grader应检查：1) 是否过滤了所有无关邮件与相似但不相关主题；2) 章节结构是否完整且与迁移/切换/回滚/合规安全对应；3) 时间线是否从多封邮件提炼出明确顺序与最新进展；4) 安全/合规风险表述是否与邮件内容一致（含至少两项风险与各自处置方向）；5) Current Status是否引用最新一两封邮件的状态（如blocked/mitigating/delayed）并给出阻塞项。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T094_pinbench_project_alpha_summary",
+  "task_name": "Pinbench Project Alpha Summary",
+  "task_type": "synthesis",
+  "category": "synthesis",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "en",
+  "services": [
+    "gmail"
+  ],
+  "tools": [
+    "gmail_list_messages",
+    "gmail_get_message"
+  ],
+  "fixture_paths": [
+    "fixtures/gmail/inbox.json"
+  ],
+  "sandbox_files": [
+    "fixtures/gmail/inbox.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "synthesis"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T094_pinbench_project_alpha_summary
+task_name: Pinbench Project Alpha Summary
+version: '1.0'
+category: synthesis
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T094_pinbench_project_alpha_summary/fixtures/gmail/inbox.json
+prompt:
+  text: 'Search the Gmail inbox for everything related to Project Alpha and produce
+    a
+
+    structured summary with these sections:
+
+    1. Project Overview
+
+    2. Timeline
+
+    3. Key Risks and Issues
+
+    4. Client and Business Impact
+
+    5. Current Status
+
+    Ignore unrelated noise emails.
+
+    '
+  language: en
+tools:
+- name: gmail_list_messages
+  description: List inbox messages
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        default: 60
+      max_results:
+        type: integer
+        default: 30
+    required: []
+- name: gmail_get_message
+  description: Get one message
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+    required:
+    - message_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "pb18_001",
+    "from": "sarah.chen@mycompany.com",
+    "to": "engineering-team@mycompany.com",
+    "subject": "Project Alpha - Kickoff and Timeline",
+    "date": "2026-01-15T14:00:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "project-alpha"],
+    "body": "Project Alpha is a new customer-facing analytics dashboard replacing the legacy reporting system. Timeline: Beta Launch Apr 21, GA May 12. Tech choices: PostgreSQL plus TimescaleDB, FastAPI, React with Recharts, OAuth2. Original budget is $340K."
+  },
+  {
+    "message_id": "pb18_002",
+    "from": "linda.zhao@mycompany.com",
+    "to": "sarah.chen@mycompany.com",
+    "subject": "Re: Project Alpha - Budget Overrun Risk",
+    "date": "2026-02-03T15:15:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "project-alpha"],
+    "body": "The extra infrastructure cost could push Project Alpha from $340K to $432K, a 27 percent overrun. I need cost-benefit analysis and sales confirmation before approving the expanded budget."
+  },
+  {
+    "message_id": "pb18_003",
+    "from": "security@mycompany.com",
+    "to": "sarah.chen@mycompany.com",
+    "subject": "Project Alpha - Mandatory Security Review Findings",
+    "date": "2026-02-10T16:00:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "project-alpha", "security"],
+    "body": "Critical issues: cross-tenant data exposure on the timeseries endpoint and per-message WebSocket authentication. High issues: stronger rate limiting, SSRF hardening on report generation, and missing audit logging."
+  },
+  {
+    "message_id": "pb18_004",
+    "from": "raj.patel@mycompany.com",
+    "to": "engineering-team@mycompany.com",
+    "subject": "Project Alpha - Phase 1 Complete! Data Pipeline Live",
+    "date": "2026-02-12T22:00:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "project-alpha"],
+    "body": "Phase 1 is complete. Approval landed for the expanded budget at $410K after savings from spot instances. Kafka, Flink, TimescaleDB, dbt, and Great Expectations are running."
+  },
+  {
+    "message_id": "pb18_005",
+    "from": "jessica.torres@mycompany.com",
+    "to": "sarah.chen@mycompany.com",
+    "subject": "Project Alpha - Early Client Feedback from Beta Waitlist",
+    "date": "2026-02-14T18:20:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "project-alpha", "sales"],
+    "body": "Five prospects gave strong feedback. The immediate pipeline from them is $1.85M ARR and overall tracking is $2.8M ARR, ahead of the $2.1M projection. Requests include custom alerting, exports, API access, and data residency."
+  },
+  {
+    "message_id": "pb18_006",
+    "from": "sarah.chen@mycompany.com",
+    "to": "engineering-team@mycompany.com",
+    "subject": "Project Alpha - Updated Timeline (Phase 2 delay)",
+    "date": "2026-02-18T14:30:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "project-alpha"],
+    "body": "Security fixes and the WebSocket gateway extend Phase 2. Beta moves to May 6 and GA moves to May 27. Shipping secure is non-negotiable."
+  },
+  {
+    "message_id": "pb18_007",
+    "from": "emily.nakamura@mycompany.com",
+    "to": "sarah.chen@mycompany.com",
+    "subject": "Project Alpha - Frontend Early Progress Update",
+    "date": "2026-02-25T20:45:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "project-alpha"],
+    "body": "Frontend work is already underway with Storybook, the dashboard layout engine, Recharts components, and SSO integration. The live metric widgets are blocked on the WebSocket gateway."
+  },
+  {
+    "message_id": "pb18_008",
+    "from": "office-admin@mycompany.com",
+    "to": "all-staff@mycompany.com",
+    "subject": "Team Appreciation Lunch - Next Friday",
+    "date": "2026-02-20T16:00:00+00:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "Please join the team appreciation lunch next Friday and fill out the dietary preference form."
+  },
+  {
+    "message_id": "pb18_009",
+    "from": "noreply@techconference.io",
+    "to": "sarah.chen@mycompany.com",
+    "subject": "Early bird pricing ends soon - TechSummit 2026",
+    "date": "2026-02-22T13:00:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "promo"],
+    "body": "TechSummit 2026 early bird pricing ends soon. Register now."
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

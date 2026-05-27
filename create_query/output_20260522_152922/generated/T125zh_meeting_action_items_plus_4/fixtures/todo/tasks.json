@@ -1,0 +1,67 @@
+[
+  {
+    "task_id": "TODO-DM-701",
+    "title": "回灌窗口与批次切分方案确认",
+    "description": "对齐生产到预发回灌窗口SLA，输出批次切分与停开批策略，作为迁移计划评审输入。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-10",
+    "assignee": "陈晨",
+    "tags": [
+      "数据迁移",
+      "演练"
+    ]
+  },
+  {
+    "task_id": "TODO-DM-702",
+    "title": "回滚触发条件与回滚演练流程整理",
+    "description": "定义回滚触发条件、回滚开关回放步骤，形成可执行回滚演练SOP并纳入复盘材料。",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-08",
+    "assignee": "周欣",
+    "tags": [
+      "回滚",
+      "演练"
+    ]
+  },
+  {
+    "task_id": "TODO-DM-703",
+    "title": "导入幂等处理策略落地",
+    "description": "制定并验证导入幂等处理策略，确保重复任务不产生副作用，给出脚本/配置要点。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-09",
+    "assignee": "郑凯",
+    "tags": [
+      "幂等",
+      "数据迁移"
+    ]
+  },
+  {
+    "task_id": "TODO-DM-704",
+    "title": "行级一致性核对用例（记录数与分区）",
+    "description": "设计回灌后行级校验用例：记录数核对、分区一致性核对，并输出测试用例清单。",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-04-12",
+    "assignee": "刘洋",
+    "tags": [
+      "验证",
+      "一致性"
+    ]
+  },
+  {
+    "task_id": "TODO-DM-705",
+    "title": "checksum仅用于脚本自检（非业务一致性验证）",
+    "description": "实现checksum用于脚本自检与环境健康检查，输出自检日志；不覆盖业务层一致性口径。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-11",
+    "assignee": "曹雯",
+    "tags": [
+      "checksum",
+      "脚本"
+    ]
+  }
+]

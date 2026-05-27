@@ -1,0 +1,93 @@
+task_id: T001zh_email_triage_plus_3
+task_name: 多团队合规与会议邀请
+version: '1.0'
+category: communication
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T001zh_email_triage_plus_3/fixtures/gmail/inbox.json
+prompt:
+  text: '帮我把收件箱里的邮件分类：逐条判断并输出“需回复 / 仅供参考 / 垃圾邮件”。
+
+
+    重点：
+
+    1) 会议邀请类邮件：如果要求你在邮件中选择“接受/拒绝”并回邮，或明确要求回复确认，归为“需回复”，并说明依据。
+
+    2) 合规文件请求类邮件：即使邮件看起来像通知，但若正文包含“请回复确认已收到/完成审核/回填并回复”，也归为“需回复”，说明依据。
+
+    3) 自动通知/安全提醒类邮件：如果标注“无需回复”但要求点击外部链接完成身份验证/敏感操作，则判断为“垃圾邮件（钓鱼）”，说明可疑点（外部验证链接、要求强制操作但声称不需回复等）。
+
+
+    对仅需阅读、下载附件或提供查看入口且明确不需要你回复的邮件，归为“仅供参考”。
+
+
+    只需要分类与理由，不要发送邮件。'
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

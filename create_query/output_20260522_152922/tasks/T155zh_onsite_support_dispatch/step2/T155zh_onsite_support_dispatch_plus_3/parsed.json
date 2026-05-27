@@ -1,0 +1,369 @@
+{
+  "task_id": "T155zh_onsite_support_dispatch_plus_3",
+  "task_name": "多语言干扰-采购条款驱动派遣",
+  "prompt_text": "请为VIP紧急现场工单选择工程师派遣并起草通知邮件草稿。要求：\n1) 从工单与CRM中准确提取现场要求与SLA（以helpdesk/tickets与crm/customers为准）；\n2) inbox中存在多语言营销/采购条款干扰，请只提取真正的现场支持关键信息（如到场截止时间、必须启动的现场流程），忽略不相关条款段落；\n3) 根据工程师技能与当天日程（calendar）完成最优选择：若多名工程师存在“部分重叠”技能，需在可用时间窗内选出更匹配“数据完整性校验/ETL回滚 + 数据库一致性验证”的人选；\n4) 邮件草稿需包含条款引用但不得逐字粘贴敏感原文（合同条款只做摘要性说明）；\n5) 保存邮件草稿给工程师与客户经理，并抄送技术总监；不得发送邮件。\n\n场景锚点：mock_today=2026-04-10。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_2101",
+        "title": "武汉光谷 VIP现场止血行动前交接会",
+        "start_time": "2026-04-10T19:50:00+08:00",
+        "end_time": "2026-04-10T22:10:00+08:00",
+        "location": "远程会议室（可前置结束）",
+        "organizer": "CT-2001",
+        "attendees": [
+          "engineer_A",
+          "engineer_lead_shadow"
+        ],
+        "description": "交接进行到关键点后可提前结束，以覆盖21:30前到场并启动采样复核流程。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_2102",
+        "title": "例行研发周同步",
+        "start_time": "2026-04-10T10:00:00+08:00",
+        "end_time": "2026-04-10T10:40:00+08:00",
+        "location": "工位会议角",
+        "organizer": "engineer_C",
+        "attendees": [
+          "engineer_C"
+        ],
+        "description": "状态同步与任务对齐。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_2103",
+        "title": "性能基准补测窗口",
+        "start_time": "2026-04-10T13:30:00+08:00",
+        "end_time": "2026-04-10T14:15:00+08:00",
+        "location": "性能实验室",
+        "organizer": "engineer_B",
+        "attendees": [
+          "engineer_B"
+        ],
+        "description": "针对离线任务的性能基准补测，14:15后可全时投入现场止血。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_2104",
+        "title": "午餐",
+        "start_time": "2026-04-10T12:05:00+08:00",
+        "end_time": "2026-04-10T12:55:00+08:00",
+        "location": "",
+        "organizer": "",
+        "attendees": [],
+        "description": "午休时间",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-2001",
+        "name": "林峻",
+        "department": "数据平台",
+        "title": "数据一致性与ETL资深工程师",
+        "email": "linjun@company.com",
+        "phone": "13800199111",
+        "location": "北京总部",
+        "skills": [
+          "数据完整性校验",
+          "ETL回滚",
+          "数据库一致性验证",
+          "批量数据污染止血"
+        ],
+        "notes": "擅长数据污染导致的批量放行失败；可快速定位脏读来源并执行回滚与一致性校验。"
+      },
+      {
+        "contact_id": "CT-2002",
+        "name": "周沐",
+        "department": "性能优化组",
+        "title": "性能优化工程师",
+        "email": "zhoumu@company.com",
+        "phone": "13800199222",
+        "location": "上海分部",
+        "skills": [
+          "性能优化",
+          "指标监控",
+          "资源调度",
+          "查询加速"
+        ],
+        "notes": "全天可用，但对ETL回滚与一致性验证经验不足；更适合作为备选支援。"
+      },
+      {
+        "contact_id": "CT-2003",
+        "name": "郑禾",
+        "department": "前端与集成",
+        "title": "前端/接口联调工程师",
+        "email": "zhenghe@company.com",
+        "phone": "13800199333",
+        "location": "广州分部",
+        "skills": [
+          "前端开发",
+          "接口联调",
+          "API契约校验",
+          "日志可视化"
+        ],
+        "notes": "擅长前端/接口联调，与数据一致性验证无直接经验；仅在技能不匹配情况下出现于候选。"
+      },
+      {
+        "contact_id": "CT-2004",
+        "name": "顾岚",
+        "department": "客户成功部",
+        "title": "客户经理",
+        "email": "gulan@company.com",
+        "phone": "13800199444",
+        "location": "武汉光谷区域驻点",
+        "skills": [
+          "客户关系",
+          "SLA沟通",
+          "现场协同协调"
+        ],
+        "notes": "对接VIP客户：星环生物医药；负责派遣通知与升级联络。"
+      },
+      {
+        "contact_id": "CT-2005",
+        "name": "陈霖",
+        "department": "技术管理",
+        "title": "技术总监",
+        "email": "chenlin@company.com",
+        "phone": "13800199555",
+        "location": "北京总部",
+        "skills": [
+          "技术管理",
+          "应急升级",
+          "风险评估"
+        ],
+        "notes": "VIP critical现场工单需升级通知与抄送；作为escalation contact。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2001",
+        "name": "星环生物医药",
+        "contact_person": "周总",
+        "email": "zhou@xinghuanbio.com",
+        "phone": "13900210001",
+        "industry": "生物医药",
+        "tier": "vip",
+        "annual_revenue": 3900000,
+        "last_contact_date": "2026-04-01",
+        "status": "active",
+        "location": "武汉光谷",
+        "sla_level": "platinum",
+        "sla_response": "4小时现场响应",
+        "notes": "VIP客户。合同条款引用要求：仅做要点摘要，严禁逐字粘贴敏感原文。对critical需要明确：到场截止时间、现场止血流程（采样复核/完整性校验/ETL回滚/一致性验证）。客户经理：顾岚。"
+      },
+      {
+        "customer_id": "CUS-2002",
+        "name": "青穗工业",
+        "contact_person": "赵经理",
+        "email": "zhaoming@qingsui-industry.cn",
+        "phone": "13900210002",
+        "industry": "制造业",
+        "tier": "standard",
+        "annual_revenue": 620000,
+        "last_contact_date": "2026-03-22",
+        "status": "active",
+        "location": "成都",
+        "sla_level": "standard",
+        "sla_response": "次日远程响应",
+        "notes": "常规问题以远程为主。"
+      },
+      {
+        "customer_id": "CUS-2003",
+        "name": "澄澈云服务",
+        "contact_person": "李总",
+        "email": "li@clearcloud.dev",
+        "phone": "13900210003",
+        "industry": "软件服务",
+        "tier": "standard",
+        "annual_revenue": 310000,
+        "last_contact_date": "2026-03-29",
+        "status": "active",
+        "location": "杭州",
+        "sla_level": "standard",
+        "sla_response": "48小时响应",
+        "notes": "非VIP，优先远程。"
+      },
+      {
+        "customer_id": "CUS-2004",
+        "name": "九霄科研",
+        "contact_person": "孙主任",
+        "email": "sun@jiuxiao-lab.org",
+        "phone": "13900210004",
+        "industry": "科研机构",
+        "tier": "vip",
+        "annual_revenue": 1500000,
+        "last_contact_date": "2026-04-03",
+        "status": "active",
+        "location": "西安",
+        "sla_level": "gold",
+        "sla_response": "8小时响应",
+        "notes": "VIP但非本次目标客户。合同条款引用同样要求只摘要不逐字。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2001",
+        "from": "zhou@xinghuanbio.com",
+        "to": "support@company.com",
+        "subject": "【现场支持紧急】数据污染导致批量放行失败（请于21:30前到场）",
+        "date": "2026-04-10T15:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important",
+          "urgent"
+        ],
+        "body": "您好，技术支持团队：\n\n（以下为多语言采购条款/营销内容干扰——不影响我们真实现场要求）\nEnglish section: This engagement includes promotional materials, vendor marketing references, and a long list of procurement clauses for branding compliance. None of the following paragraphs indicate any on-site timing.\n\n— 采购条款摘要（仅供参考，避免逐字引用）—\nThe parties agree that certain documentation may be referenced in a summarized form; sensitive contractual text must not be reproduced verbatim.\n\n接下来为关键现场要求（请重点处理）：\n1）现场支持：今天21:30前工程师到达“武汉光谷”现场。\n2）立即启动采样复核流程，并进行“数据完整性校验”。\n3）若发现数据污染导致ETL输出异常：执行“ETL回滚”，随后进行“数据库一致性验证”，以确保批量放行恢复成功。\n4）请在到场后先确认止血路径与回滚边界，再开展一致性校验。\n\n我们需要你们确认：谁到场、预计到场时间、以及现场第一步将做什么。\n\n周总\n星环生物医药\n地址：武汉光谷（具体楼栋另行提供）"
+      },
+      {
+        "message_id": "msg_2002",
+        "from": "ops-news@vendor-mail.com",
+        "to": "support@company.com",
+        "subject": "Weekly procurement update（营销/条款干扰，请忽略）",
+        "date": "2026-04-10T09:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "大家好，\n\n本周我们发布多语言采购条款更新与合作伙伴宣传。文中包含大量英文条款与品牌合规说明。\n\n提示：这些内容与任何现场到场时间无关，请不要从中提取派遣要求。\n\n谢谢。"
+      },
+      {
+        "message_id": "msg_2003",
+        "from": "alert-bot@monitoring.system",
+        "to": "support@company.com",
+        "subject": "Auto-alert: Data pipeline anomaly detected（自动告警干扰）",
+        "date": "2026-04-10T14:02:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "system"
+        ],
+        "body": "自动告警：检测到数据管道异常（ETL stage mismatch）。\n\n建议查看对应工单与客户邮件的现场要求，不要直接依据此告警进行派遣决策。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2001",
+        "title": "星环生物医药：数据污染导致批量放行失败（VIP现场止血）",
+        "description": "VIP客户反馈：批量放行失败，根因疑似数据污染导致ETL输出异常。需要现场快速止血：数据完整性校验/ETL回滚 + 数据库一致性验证，确保恢复成功并避免脏数据继续进入放行流程。客户强调今天21:30前需到场并启动采样复核流程。",
+        "customer_id": "CUS-2001",
+        "reporter": "周总",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-10T14:40:00+08:00",
+        "tags": [
+          "VIP",
+          "现场支持",
+          "数据污染",
+          "ETL回滚"
+        ],
+        "category": "数据一致性故障",
+        "requires_onsite": true,
+        "sla_deadline": "2026-04-10T21:30:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2002",
+        "title": "星环生物医药：远程性能微调建议（干扰工单）",
+        "description": "客户提出希望对某批次ETL性能做优化评估，但不要求现场支持。与数据污染止血流程、ETL回滚边界确认无关。",
+        "customer_id": "CUS-2001",
+        "reporter": "周总",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-10T13:10:00+08:00",
+        "tags": [
+          "性能",
+          "远程咨询"
+        ],
+        "category": "性能优化建议",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-11T12:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2003",
+        "title": "九霄科研：接口联调支持请求",
+        "description": "需要协助验证前端页面与对接API契约，线上排查为主；如需到场需提前确认。",
+        "customer_id": "CUS-2004",
+        "reporter": "孙主任",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-09T16:25:00+08:00",
+        "tags": [
+          "接口",
+          "联调"
+        ],
+        "category": "服务请求",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-12T18:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2004",
+        "title": "青穗工业：报表导出超时（偶发）",
+        "description": "导出任务偶发超时，需分析SQL执行计划与索引命中情况。",
+        "customer_id": "CUS-2002",
+        "reporter": "赵经理",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-08T11:05:00+08:00",
+        "tags": [
+          "报表",
+          "超时"
+        ],
+        "category": "功能故障",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-11T10:30:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2005",
+        "title": "澄澈云服务：日志可视化升级（低优先级）",
+        "description": "希望增强日志看板筛选能力，作为版本迭代事项跟进。",
+        "customer_id": "CUS-2003",
+        "reporter": "李总",
+        "department": "研发协作",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-07T09:30:00+08:00",
+        "tags": [
+          "日志",
+          "看板"
+        ],
+        "category": "需求变更",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-20T17:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2006",
+        "title": "星环生物医药：数据校验脚本咨询（非现场）",
+        "description": "仅咨询数据校验脚本如何配置与运行，不涉及到现场止血。",
+        "customer_id": "CUS-2001",
+        "reporter": "周总",
+        "department": "技术支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-10T08:50:00+08:00",
+        "tags": [
+          "咨询",
+          "数据校验"
+        ],
+        "category": "技术咨询",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-18T16:00:00+08:00"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原任务的系统故障与到场时间点替换为“数据污染止血+21:30前到场”的关键要求，并在邮件中加入英文采购条款与营销干扰，要求只摘要条款且不逐字引用。",
+    "fixture_design_summary": [
+      "helpdesk/tickets.json 提供同一VIP客户的一个目标requires_onsite=true critical工单，以及一个requires_onsite=false critical干扰工单用于排除。",
+      "crm/customers.json 中星环生物医药为vip且location=武汉光谷，notes 明确“合同条款只摘要不逐字粘贴”。",
+      "gmail/inbox.json 为同一客户提供含中英多语言条款干扰的邮件：关键现场要求集中在中文段落的“21:30前到场并启动采样复核/完整性校验/ETL回滚/一致性验证”。",
+      "contacts/contacts.json 将工程师技能差异化：工程师A覆盖“数据完整性校验/ETL回滚/数据库一致性验证”，工程师B偏性能优化，工程师C偏前端/接口联调；并提供客户经理与技术总监用于抄送。",
+      "calendar/events.json 设置工程师A 19:50-22:10交接事件（可前置以覆盖21:30），工程师B在14:15后空闲，工程师C仅有轻量同步，便于代理做最优派遣选择。"
+    ]
+  }
+}

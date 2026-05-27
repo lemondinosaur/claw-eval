@@ -1,0 +1,189 @@
+{
+  "task_id": "T094_pinbench_project_alpha_summary_plus_2",
+  "task_name": "Alpha Incident Postmortem Summary",
+  "prompt_text": "Search the Gmail inbox for all messages related to Project Alpha production incidents/postmortems/outages (ignore unrelated noise). Produce a structured incident postmortem summary in English with these sections:\n\n1) Project Overview\n2) Event Timeline (at least: detection, initial mitigation, root-cause confirmation, recovery complete, and subsequent fix deployment)\n3) Root Cause and Key Lessons (at least two lessons supported by the emails)\n4) Customer/Business Impact (what functions were affected and for how long; summarize consistently with the emails)\n5) Current Status (repair progress and next actions)\n\nAlso follow compliance: the incident log must not include sensitive identifiers; reflect that the log was cleaned/redacted in your summary.",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "alpha_pm2_101",
+        "from": "oncall-automation@mycompany.com",
+        "to": "alpha-ops@mycompany.com",
+        "subject": "[ALERT] Project Alpha metrics service latency spike; dashboard 'real-time' stalled",
+        "date": "2026-04-04T09:12:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "incident",
+          "ops",
+          "project-alpha"
+        ],
+        "body": "Detected elevated p95 latency between metrics-query-service and websocket-gateway for Project Alpha. Symptom: the 'Real-time Dashboard' widgets freeze and catch up in bursts. Start time: 2026-04-04 09:12 UTC. Runbook suggests checking network jitter, cache health, and thread pool saturation. No customer-impact disclaimer tokens found in logs yet."
+      },
+      {
+        "message_id": "alpha_pm2_102",
+        "from": "maya.kowalski@mycompany.com",
+        "to": "alpha-ops@mycompany.com",
+        "subject": "Re: [Mitigation] Alpha incident - scaling metrics-query-service and clearing hot cache",
+        "date": "2026-04-04T09:27:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "incident",
+          "project-alpha",
+          "ops"
+        ],
+        "body": "We applied an emergency scale-up (x2 replicas) and temporarily flushed the L2 cache entries tied to the dashboard query path. Partial improvement: dashboard staleness reduced, but websocket updates still lag under burst traffic. Proposed next step: throttle websocket update fanout and verify thread pool queue length."
+      },
+      {
+        "message_id": "alpha_pm2_103",
+        "from": "devon.rivas@mycompany.com",
+        "to": "alpha-ops@mycompany.com",
+        "subject": "Rollback attempt (partial): reverting websocket-gateway config for Alpha; results",
+        "date": "2026-04-04T10:03:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "incident",
+          "project-alpha"
+        ],
+        "body": "Attempted rollback of websocket-gateway to previous config that reduced batching. Result: still seeing queue growth in metrics-query-service; the rollback helps only marginally (~10-15% improvement) and does not restore stable real-time updates. We should treat this as a root-cause beyond gateway config (network jitter / cache stampede / executor exhaustion)."
+      },
+      {
+        "message_id": "alpha_pm2_104",
+        "from": "sre@mycompany.com",
+        "to": "alpha-ops@mycompany.com",
+        "subject": "Root-cause hypothesis confirmed: cache stampede + thread pool exhaustion under jitter (Alpha)",
+        "date": "2026-04-04T11:18:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "incident",
+          "project-alpha",
+          "ops"
+        ],
+        "body": "Hypotheses tested:\n1) Network jitter between services (p99 retransmits elevated)\n2) Cache stampede on dashboard query keys\n3) Thread pool exhaustion in metrics-query-service executor\n\nConfirmed: when jitter caused request retries, the dashboard workload bypassed warm cache and fanned out to expensive queries, triggering stampede. Executor threads saturated, worsening latency and causing websocket update delays. Mitigation plan: introduce request coalescing + circuit breaker (for cache misses) and tighten rate limits for real-time subscriptions."
+      },
+      {
+        "message_id": "alpha_pm2_105",
+        "from": "security-automation@mycompany.com",
+        "to": "alpha-security@mycompany.com",
+        "subject": "Security reminder: redact sensitive identifiers from Alpha incident logs before sharing externally",
+        "date": "2026-04-05T08:40:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "security",
+          "project-alpha"
+        ],
+        "body": "Compliance check: external-facing incident summary must not include customer-specific identifiers, internal hostnames, or request correlation tokens. The internal timeline can reference service names only at a high level. Please ensure the incident report uses generic terms and confirms log scrubbing/redaction was applied."
+      },
+      {
+        "message_id": "alpha_pm2_106",
+        "from": "rachel.sun@mycompany.com",
+        "to": "alpha-ops@mycompany.com",
+        "subject": "Postmortem: proposal to deploy improved rate limiting + circuit breaker for Alpha real-time flows",
+        "date": "2026-04-06T13:22:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "incident",
+          "project-alpha"
+        ],
+        "body": "Permanent fix proposal (approved criteria):\n- Rate limit per subscription key for websocket updates\n- Circuit breaker around cache-miss path to prevent stampede\n- Request coalescing for identical dashboard query windows\nExpected outcome: stable 'Real-time Dashboard' updates even during network jitter.\nStatus: PR ready; awaiting deployment window approval."
+      },
+      {
+        "message_id": "alpha_pm2_107",
+        "from": "team-lead-analytics@mycompany.com",
+        "to": "alpha-ops@mycompany.com",
+        "subject": "Alpha permanent fix review: monitoring enhancements and SLOs for metrics-query-service",
+        "date": "2026-04-10T16:05:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "incident",
+          "project-alpha",
+          "ops"
+        ],
+        "body": "Second permanent fix set (at review):\n- Add alerts for executor queue length and retry storms\n- Add cache stampede detection (miss rate + fanout)\n- Define SLO for websocket update freshness (target 95% within 3s)\nWe must prevent recurrence by improving early detection and reducing time-to-mitigation."
+      },
+      {
+        "message_id": "alpha_pm2_108",
+        "from": "customer-success@mycompany.com",
+        "to": "alpha-support@mycompany.com",
+        "subject": "Draft customer communication (Alpha): what happened and what we changed",
+        "date": "2026-04-12T10:12:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "customer-comm_pending"
+        ],
+        "body": "Customer email draft in progress:\n- Acknowledge intermittent delays causing the Real-time Dashboard to appear stuck and then catch up.\n- Explain it was related to backend metrics querying under retry storms and cache stampede.\n- Describe the permanent mitigations: rate limiting, circuit breaker, and request coalescing.\n- Confirm logs were redacted to avoid sensitive identifiers.\nNeed: final confirmation of monitoring deployment date and wording for 'recovery complete'."
+      },
+      {
+        "message_id": "alpha_pm2_109",
+        "from": "template-incidents@mycompany.com",
+        "to": "all-eng@mycompany.com",
+        "subject": "Company-wide incident postmortem template (use for consistency)",
+        "date": "2026-04-08T09:00:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "incident",
+          "template"
+        ],
+        "body": "Standard template for writing postmortems: overview, timeline, impact, root cause, lessons learned, and action items. (No Alpha-specific details.)"
+      },
+      {
+        "message_id": "alpha_pm2_110",
+        "from": "alpha-alerts@mycompany.com",
+        "to": "security-compliance@mycompany.com",
+        "subject": "[ALERT] Alpha quarterly review reminder - do not respond",
+        "date": "2026-04-15T12:30:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "ops",
+          "newsletter-like"
+        ],
+        "body": "This is a reminder for the quarterly Alpha review meeting. It is not related to production incidents."
+      },
+      {
+        "message_id": "alpha_pm2_111",
+        "from": "news@productupdates.io",
+        "to": "alpha-ops@mycompany.com",
+        "subject": "Product updates: new connectors and UI polish",
+        "date": "2026-04-10T08:20:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "promo"
+        ],
+        "body": "Newsletter: check out upcoming UI improvements and new integrations. No relation to Project Alpha incidents."
+      },
+      {
+        "message_id": "alpha_pm2_112",
+        "from": "newsletter@cloudinsights.ai",
+        "to": "alpha-ops@mycompany.com",
+        "subject": "CloudInsights Weekly - Observability tips",
+        "date": "2026-04-18T17:45:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "promo"
+        ],
+        "body": "Weekly observability tips for reducing latency and improving cache performance. Generic content; no Alpha outage details."
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "从项目进度/风险类汇总切换为围绕一次Project Alpha生产事故的检测-缓解-确认-恢复时间线、影响范围、教训与面向客户的沟通及日志脱敏要求的复盘总结。",
+    "fixture_design_summary": [
+      "提供12封新邮件：8封带 incident/ops/project-alpha 相关标签，2封“Alpha”相似但为模板/提醒的噪声，2封promo/newsletter噪声。",
+      "为关键时间线节点设置对应状态：detected（101）、mitigation（102）、rollback_partial（103）、hypothesis_confirmed（104）、customer_comm_pending（108）、后续监控/行动（107、106）、当前状态通过支持材料体现。",
+      "通过邮件内容明确受影响功能（Real-time Dashboard、小组件/实时订阅/ websocket 更新）与持续性描述（从09:12到恢复完成的同日恢复叙述语境）。",
+      "加入安全/合规提醒（105）以支撑“事故日志需脱敏/清理”这一任务约束。",
+      "所有message_id、发件人与收件人邮箱、主题、数值与正文均为新构造，确保与原fixture不复用。"
+    ]
+  }
+}

@@ -1,0 +1,178 @@
+[
+  {
+    "ticket_id": "TK-701",
+    "title": "登录认证失败（Token校验报错）",
+    "description": "北极星通信（CUS-701）反馈部分员工登录失败，提示“Invalid token signature”。高峰期更明显，重试后偶尔恢复。用户描述曾提到“VPN导致”，但主症状为认证签名校验失败。",
+    "customer_id": "CUS-701",
+    "reporter": "陈工",
+    "department": "技术支持",
+    "priority": "P2",
+    "status": "open",
+    "created_at": "2026-03-25T09:10:00Z",
+    "tags": [
+      "认证",
+      "登录",
+      "Token",
+      "VIP"
+    ],
+    "category": "认证失败"
+  },
+  {
+    "ticket_id": "TK-702",
+    "title": "消息推送延迟导致告警丢失",
+    "description": "云桥金融（CUS-702）称告警通知推送延迟约20-30分钟，且在部分场景出现“队列积压后补发”。工单涉及资金类业务链路，需严格按升级条件处理。描述中提到“客户端网络弱”，但主症状是推送链路延迟。",
+    "customer_id": "CUS-702",
+    "reporter": "周经理",
+    "department": "技术支持",
+    "priority": "P1",
+    "status": "open",
+    "created_at": "2026-03-25T10:20:00Z",
+    "tags": [
+      "推送",
+      "延迟",
+      "告警",
+      "资金类",
+      "VIP"
+    ],
+    "category": "消息推送延迟"
+  },
+  {
+    "ticket_id": "TK-703",
+    "title": "批量导出超时（离线导出任务卡住）",
+    "description": "海鸥物流（CUS-703）在导出近6个月运单报表时超时，界面显示持续转圈并最终失败，后台日志提示“export job timeout”。该问题看似导出功能故障，但关键是下游依赖超时（如任务队列/依赖服务响应慢）。",
+    "customer_id": "CUS-703",
+    "reporter": "孙总",
+    "department": "技术支持",
+    "priority": "P3",
+    "status": "open",
+    "created_at": "2026-03-25T08:45:00Z",
+    "tags": [
+      "导出",
+      "超时",
+      "离线任务",
+      "VIP"
+    ],
+    "category": "批量导出超时"
+  },
+  {
+    "ticket_id": "TK-704",
+    "title": "前端渲染异常：报表表头错位",
+    "description": "天成零售（CUS-704）反馈报表页面表头与数据列错位，刷新后短暂恢复。浏览器控制台无明显致命错误。该工单描述中提到“硬件性能差”，但主症状为前端渲染布局异常。",
+    "customer_id": "CUS-704",
+    "reporter": "李总监",
+    "department": "技术支持",
+    "priority": "P3",
+    "status": "open",
+    "created_at": "2026-03-25T11:35:00Z",
+    "tags": [
+      "前端",
+      "报表",
+      "UI"
+    ],
+    "category": "前端渲染异常"
+  },
+  {
+    "ticket_id": "TK-705",
+    "title": "数据同步延迟引发结算失败",
+    "description": "星河制造（CUS-705）称跨区域数据同步延迟超过45分钟，导致结算对账失败。主症状为同步延迟；用户未提供其他明确干扰线索。",
+    "customer_id": "CUS-705",
+    "reporter": "王部长",
+    "department": "技术支持",
+    "priority": "P2",
+    "status": "open",
+    "created_at": "2026-03-25T07:55:00Z",
+    "tags": [
+      "同步",
+      "延迟",
+      "结算",
+      "VIP"
+    ],
+    "category": "数据同步延迟"
+  },
+  {
+    "ticket_id": "TK-706",
+    "title": "登录认证失败：SSO回调报400",
+    "description": "长风教育（CUS-706）学生SSO回调出现400错误。用户怀疑“浏览器插件拦截”，但主症状是SSO回调接口返回400并导致登录失败。需要按认证失败主线排查。",
+    "customer_id": "CUS-706",
+    "reporter": "赵老师",
+    "department": "技术支持",
+    "priority": "P2",
+    "status": "open",
+    "created_at": "2026-03-25T12:05:00Z",
+    "tags": [
+      "认证",
+      "SSO",
+      "续约加速"
+    ],
+    "category": "认证失败"
+  },
+  {
+    "ticket_id": "TK-707",
+    "title": "消息推送延迟：批量事件未及时触达",
+    "description": "晨曦医疗（CUS-707）反馈患者通知事件未及时触达，延迟在10-20分钟；随后批量补发。用户提到“服务器CPU飙升”，但主症状为推送延迟与补发节奏异常。",
+    "customer_id": "CUS-707",
+    "reporter": "刘主任",
+    "department": "技术支持",
+    "priority": "P1",
+    "status": "open",
+    "created_at": "2026-03-25T09:40:00Z",
+    "tags": [
+      "推送",
+      "延迟",
+      "续约加速"
+    ],
+    "category": "消息推送延迟"
+  },
+  {
+    "ticket_id": "TK-708",
+    "title": "批量导出超时：时间范围过大",
+    "description": "银橡能源（CUS-708）导出报表时超时，提示“temporary table creation failed”。虽由用户描述为“数据库容量不足”，但主症状为导出超时/导出失败。该客户为续约期窗口内。",
+    "customer_id": "CUS-708",
+    "reporter": "郑工程师",
+    "department": "技术支持",
+    "priority": "P2",
+    "status": "open",
+    "created_at": "2026-03-25T10:55:00Z",
+    "tags": [
+      "导出",
+      "超时",
+      "临时表",
+      "续约加速"
+    ],
+    "category": "批量导出超时"
+  },
+  {
+    "ticket_id": "TK-709",
+    "title": "前端渲染异常：列表分页显示错乱",
+    "description": "林港地产（CUS-709）页面分页与页码状态错乱，切换页后数据重复。工单提到“网络波动导致”，但主症状是前端渲染状态管理异常。",
+    "customer_id": "CUS-709",
+    "reporter": "郭总",
+    "department": "技术支持",
+    "priority": "P3",
+    "status": "open",
+    "created_at": "2026-03-25T13:15:00Z",
+    "tags": [
+      "前端",
+      "分页",
+      "UI"
+    ],
+    "category": "前端渲染异常"
+  },
+  {
+    "ticket_id": "TK-710",
+    "title": "登录认证失败：验证码校验不一致",
+    "description": "彩虹餐饮（CUS-710）称偶发验证码校验不一致导致无法登录。用户将原因归结为“Chrome扩展”。但主症状是认证流程失败并伴随验证码校验问题。",
+    "customer_id": "CUS-710",
+    "reporter": "何老板",
+    "department": "技术支持",
+    "priority": "P3",
+    "status": "open",
+    "created_at": "2026-03-25T14:30:00Z",
+    "tags": [
+      "认证",
+      "验证码",
+      "干扰信息"
+    ],
+    "category": "认证失败"
+  }
+]

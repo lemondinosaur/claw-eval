@@ -1,0 +1,187 @@
+{
+  "task_id": "T094_pinbench_project_alpha_summary_plus_4",
+  "task_name": "Alpha Product Scope & Feature Tradeoffs",
+  "prompt_text": "Search the Gmail inbox for everything related to Project Alpha. Ignore unrelated noise.\n\nProduce an English structured summary with these sections:\n\n1) Project Overview\n2) Feature Scope & Decision Timeline (include at least 3 key decision nodes and the outcome of each)\n3) Tradeoff Reasons & Risks (map to at least two categories such as technical dependency, compliance/security audit cost, and/or resource constraints)\n4) Impact on Customer Value & Delivery (how the tradeoffs change what customers get and when)\n5) Current Status & Open Items (list at least 2 open items with their trigger/next step consistent with the latest email progress)\n\nFocus specifically on function additions/cancellations/delays, priority changes, acceptance criteria, and the resulting staged delivery plan (e.g., basic export + read-only now, field-level permissions later).",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "pa44_001",
+        "from": "product-mgr@alphaops.com",
+        "to": "pm-ops@mycompany.com",
+        "subject": "Project Alpha (Scope) - Client asks for Custom Export + Field Permissions",
+        "date": "2026-06-05T10:12:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "product"
+        ],
+        "body": "We received client input for Project Alpha: (a) custom export with selectable fields and (b) field-level permissions so different roles see different export columns. They want this for the next iteration, but they also care about clear acceptance criteria for export correctness and permission enforcement. Please confirm what we can safely include in the current milestone vs. what needs to move."
+      },
+      {
+        "message_id": "pa44_002",
+        "from": "sre-gateway@alphaops.com",
+        "to": "engineering@mycompany.com",
+        "subject": "Re: Project Alpha - Feasibility of Real-time Chart Linking (Gateway Dependency)",
+        "date": "2026-06-09T16:40:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "engineering"
+        ],
+        "body": "Feasibility notes: real-time chart linking depends on the WebSocket gateway capability being ready (auth + fanout + backpressure). Our current roadmap estimates gateway stabilization no earlier than 2026-06-20. Without it, chart linking will degrade to polling. Recommendation: prioritize basic export + read-only access now; revisit chart linking as the dependency lands."
+      },
+      {
+        "message_id": "pa44_003",
+        "from": "security-analyst@alphaops.com",
+        "to": "security-review@mycompany.com",
+        "subject": "Project Alpha Compliance Reminder - Field-level Permissions Require Extra Audit",
+        "date": "2026-06-12T09:05:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "security",
+          "compliance"
+        ],
+        "body": "Reminder for Project Alpha: field-level permissions impact data classification and require an additional security audit (role mapping validation, export-by-field authorization checks, and audit logging for denied/allowed exports). Expect extra effort for test evidence, especially for multi-tenant datasets. Suggest staged approach: ship read-only + basic export first, then introduce field-level permissions after audit artifacts are ready."
+      },
+      {
+        "message_id": "pa44_004",
+        "from": "product-mgr@alphaops.com",
+        "to": "engineering@mycompany.com",
+        "subject": "Project Alpha - Scope Cut Proposal for Next Milestone (Export First)",
+        "date": "2026-06-14T13:22:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "product"
+        ],
+        "body": "Proposal: cut the scope for the upcoming milestone by deprioritizing real-time chart linking and delaying field-level permissions. New scope: (1) custom export where selectable fields come from a fixed allowlist (no role-based field restrictions yet), (2) read-only access for exports, (3) permission enforcement at the row/object level only.\nDecision drivers: we meet the immediate client need for export usability, and we reduce dependency risk given gateway readiness is uncertain.\nPlease reply with confirmable estimates and any must-have acceptance criteria."
+      },
+      {
+        "message_id": "pa44_005",
+        "from": "engineering-lead@alphaops.com",
+        "to": "pm-ops@mycompany.com",
+        "subject": "Re: Project Alpha - Acceptance Criteria Draft (Export + Read-only)",
+        "date": "2026-06-17T08:55:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "engineering"
+        ],
+        "body": "Acceptance criteria draft for staged delivery:\n- Basic export correctness: for a given saved view, exported CSV contains only fields from the fixed allowlist; no extra columns appear.\n- Access: users without export entitlement cannot generate exports.\n- Read-only: export endpoints do not modify server-side data.\n- Audit: every export request generates an audit record.\nDefinition of done: pass automated export tests and security review checklist for row/object-level auth.\nField-level permissions and real-time chart linking are explicitly excluded from this milestone."
+      },
+      {
+        "message_id": "pa44_006",
+        "from": "compliance-officer@alphaops.com",
+        "to": "pm-ops@mycompany.com",
+        "subject": "Project Alpha - Risk & Resource Note: Field Permissions Audit Window",
+        "date": "2026-06-19T17:30:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "security",
+          "compliance"
+        ],
+        "body": "Risk note: if we attempt field-level permissions in the same milestone, the audit evidence collection will slip and we may fail the security gate for release. Estimated audit readiness window: 2026-06-28.\nResource risk: security reviewers are assigned across two projects; we need a clear cut of what changes after 6/28.\nRecommendation: proceed with basic export + read-only now, then introduce field-level permissions in the following milestone only after audit sign-off."
+      },
+      {
+        "message_id": "pa44_007",
+        "from": "program-office@alphaops.com",
+        "to": "all-stakeholders@mycompany.com",
+        "subject": "Project Alpha - Finalized Phased Delivery Plan (Export Now, Permissions Later)",
+        "date": "2026-06-21T11:26:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "product",
+          "engineering",
+          "security"
+        ],
+        "body": "Final decision (phased delivery):\nPhase 1 (by 2026-06-24):\n- Custom export with allowlisted selectable fields\n- Read-only access for exports\n- Row/object-level auth enforced\n- Acceptance criteria: use the criteria from the acceptance draft; audit logging included\nPhase 2 (target after 2026-06-28):\n- Field-level permissions with additional security audit artifacts\n- Real-time chart linking revisited once the WebSocket gateway is stabilized\nOutcome: we accept reduced UI dynamism now to secure the core export workflow and avoid compliance gate risk.\nOpen question: whether to include polling-based chart updates as a non-blocking enhancement in Phase 1."
+      },
+      {
+        "message_id": "pa44_008",
+        "from": "pm-ops@mycompany.com",
+        "to": "product-mgr@alphaops.com",
+        "subject": "Project Alpha Update - Waiting on Approval for Polling Chart Enhancement",
+        "date": "2026-06-24T15:50:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "product"
+        ],
+        "body": "Status update: Phase 1 plan is mostly locked, but we are waiting on executive approval to include polling-based chart updates as a best-effort enhancement (NOT real-time linking). Trigger: approval needs to confirm it will not be treated as a dependency on the WebSocket gateway.\nAdditionally, field-level permissions milestone depends on the security audit sign-off by 6/28."
+      },
+      {
+        "message_id": "trn_201",
+        "from": "learning-center@mycompany.com",
+        "to": "pm-ops@mycompany.com",
+        "subject": "Training Invitation: Data Export Best Practices",
+        "date": "2026-06-08T09:10:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "training"
+        ],
+        "body": "Join a training session next week about data export best practices. (No Project Alpha content.)"
+      },
+      {
+        "message_id": "rnd_330",
+        "from": "devops-random@mycompany.com",
+        "to": "engineering@mycompany.com",
+        "subject": "Random thread: chart components naming conventions",
+        "date": "2026-06-16T12:03:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "engineering"
+        ],
+        "body": "Quick discussion on chart component naming conventions. Not related to Project Alpha scope decisions."
+      },
+      {
+        "message_id": "promo_044",
+        "from": "newsletter@cloudvendor.com",
+        "to": "pm-ops@mycompany.com",
+        "subject": "Limited-time promo: managed analytics platform credits",
+        "date": "2026-06-20T18:25:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "promo"
+        ],
+        "body": "Get limited-time credits on a managed analytics platform. Promotional only."
+      },
+      {
+        "message_id": "pa_old_101",
+        "from": "product-mgr@alphaops.com",
+        "to": "pm-ops@mycompany.com",
+        "subject": "Re: Project Alpha - Support for Legacy Export (Old Version)",
+        "date": "2026-06-10T07:45:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha"
+        ],
+        "body": "This is about legacy export support in an older version, unrelated to the new phased plan for custom export and field permissions."
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原任务的预算/技术选型总结重点替换为基于邮件链的产品范围裁剪与功能取舍（新增/取消/延后、优先级变化、验收标准、分阶段交付与未决事项）总结。",
+    "fixture_design_summary": [
+      "用 7 封标注 project-alpha/product/engineering/security/compliance 的邮件覆盖：范围裁剪提案、依赖可行性、合规风险提醒、验收标准草案、分阶段定稿、最新状态更新。",
+      "在功能取舍上明确对比：自定义导出与字段级权限 vs 实时图表联动，并通过 Phase 1/Phase 2 结果体现新增/取消/延后。",
+      "风险部分覆盖两类原因：WebSocket gateway 依赖未就绪（技术/交付风险）与字段级权限额外审计成本/资源窗口（合规/资源风险）。",
+      "加入 3 封噪声邮件（培训/随机工程讨论/促销）以及 1 封相似但不相关的旧版本支持，确保过滤逻辑。",
+      "跨邮件保持自洽实体与触发条件：字段级权限依赖安全审计 6/28、以及 Phase 1 通过轮询增强需等待审批。"
+    ]
+  }
+}

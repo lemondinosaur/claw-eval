@@ -1,0 +1,67 @@
+[
+  {
+    "customer_id": "CUS-2101",
+    "name": "青岚科技",
+    "tier": "vip",
+    "status": "active",
+    "industry": "软件与数据",
+    "satisfaction": 2.8,
+    "contract_end": "2026-06-18",
+    "sales_owner": "周晴",
+    "notes": "近期开启降级谈判；连续两次服务整改未达预期；当前工单待确认（需关注SLA与性能）",
+    "contact_person": "周晴",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2102",
+    "name": "华桥物流",
+    "tier": "standard",
+    "status": "active",
+    "industry": "物流运输",
+    "satisfaction": 3.1,
+    "contract_end": "2026-07-29",
+    "sales_owner": "孙凯",
+    "notes": "满意度波动：对账争议与响应慢；待确认的整改工单（功能无法落地）",
+    "contact_person": "孙凯",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2103",
+    "name": "北海制造",
+    "tier": "vip",
+    "status": "active",
+    "industry": "装备制造",
+    "satisfaction": 2.2,
+    "contract_end": "2026-08-05",
+    "sales_owner": "周晴",
+    "notes": "整改中：上线后关键报表延迟；用户反馈“超过48小时仍未恢复”；续费条件尚待谈判",
+    "contact_person": "周晴",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2104",
+    "name": "橙海零售",
+    "tier": "standard",
+    "status": "active",
+    "industry": "零售与消费",
+    "satisfaction": 3.9,
+    "contract_end": "2026-06-30",
+    "sales_owner": "孙凯",
+    "notes": "合同到期临近；满意度中等但存在投诉升级（对账差异）；财务端疑似addon调整",
+    "contact_person": "孙凯",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2105",
+    "name": "星辰教育",
+    "tier": "standard",
+    "status": "active",
+    "industry": "教育科技",
+    "satisfaction": 4.1,
+    "contract_end": "2026-07-15",
+    "sales_owner": "周晴",
+    "notes": "邮件整体偏中性但存在潜在降级迹象；待跟进：确认技术交付与续费边界",
+    "contact_person": "周晴",
+    "annual_revenue": 0
+  }
+]

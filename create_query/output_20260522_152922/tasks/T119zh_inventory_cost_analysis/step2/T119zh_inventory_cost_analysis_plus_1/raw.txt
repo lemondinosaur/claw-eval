@@ -1,0 +1,186 @@
+{
+  "task_id": "T119zh_inventory_cost_analysis_plus_1",
+  "task_name": "批量采购价漂移检测",
+  "prompt_text": "请帮我做一次库存与采购成本的核对（重点：同一品类在财务系统中存在多笔分批采购，核对库存 unit_cost 是否为正确的加权平均单价）。\n\n请按以下要求输出一份成本分析报告：\n1）拉取当前所有库存品的数量、单位与 unit_cost，并按品类汇总。\n2）在财务系统中按日期范围拉取交易记录，并筛选出与这些品类相关的“采购”批次明细；忽略非采购交易（如 type='服务' 或 category='差旅'）。\n3）对每个品类：计算财务中“对应采购批次的加权平均单价”= Σ(批次单价×批次数量)/Σ(批次数量)，再与库存的 unit_cost 对比。\n4）识别并处理“冲销/调整”类交易：当 finance type='采购' 但 description/语义指向“冲销/调整”时，需要在匹配中排除或单独标注，并说明若纳入计算会造成的偏差方向。\n5）找出成本异常的品类（至少1个），说明偏差由哪些批次导致（列出参与计算的每笔批次：单价、数量、是否纳入、贡献方式）。\n6）输出核对表（每品类：库存unit_cost、财务加权平均单价、差异、匹配批次列表）+ 异常列表 + 建议（如修正库存成本/复核调整交易/补录遗漏批次等）。",
+  "files": {
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "FIN-2001",
+        "date": "2026-04-03",
+        "amount": 6200.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "云存储硬盘",
+        "description": "云存储硬盘 50块 × 124元/块",
+        "status": "completed",
+        "reference": "INV-2001"
+      },
+      {
+        "transaction_id": "FIN-2002",
+        "date": "2026-04-11",
+        "amount": 8050.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "云存储硬盘",
+        "description": "云存储硬盘 30块 × 268.333元/块",
+        "status": "completed",
+        "reference": "INV-2002"
+      },
+      {
+        "transaction_id": "FIN-2003",
+        "date": "2026-04-21",
+        "amount": 3900.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "云存储硬盘",
+        "description": "云存储硬盘 20块 × 195元/块",
+        "status": "completed",
+        "reference": "INV-2003"
+      },
+      {
+        "transaction_id": "FIN-2011",
+        "date": "2026-04-05",
+        "amount": 2400.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "办公椅",
+        "description": "办公椅 8把 × 300元/把",
+        "status": "completed",
+        "reference": "INV-2011"
+      },
+      {
+        "transaction_id": "FIN-2012",
+        "date": "2026-04-18",
+        "amount": -600.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "办公椅",
+        "description": "办公椅 冲销/调整：4把 × 150元/把（更正分配）",
+        "status": "completed",
+        "reference": "INV-2012"
+      },
+      {
+        "transaction_id": "FIN-2021",
+        "date": "2026-04-07",
+        "amount": 1730.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "路由器",
+        "description": "路由器 R1 10台 × 173元/台",
+        "status": "completed",
+        "reference": "INV-2021"
+      },
+      {
+        "transaction_id": "FIN-2031",
+        "date": "2026-04-09",
+        "amount": 9000.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "投影仪",
+        "description": "投影仪 3台 × 3000元/台",
+        "status": "completed",
+        "reference": "INV-2031"
+      },
+      {
+        "transaction_id": "FIN-2041",
+        "date": "2026-04-13",
+        "amount": 750.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "鼠标键盘套装",
+        "description": "鼠标键盘套装 15套 × 50元/套",
+        "status": "completed",
+        "reference": "INV-2041"
+      },
+      {
+        "transaction_id": "FIN-2051",
+        "date": "2026-04-16",
+        "amount": 260.00,
+        "currency": "CNY",
+        "type": "服务",
+        "category": "差旅",
+        "description": "差旅报销（不计采购）",
+        "status": "completed",
+        "reference": "INV-2051"
+      },
+      {
+        "transaction_id": "FIN-2061",
+        "date": "2026-04-22",
+        "amount": 1200.00,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "云存储硬盘",
+        "description": "云存储硬盘 5块 × 240元/块（干扰项：不在本次库存批次范围内）",
+        "status": "completed",
+        "reference": "INV-2061"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "P-3101",
+        "name": "云存储硬盘",
+        "category": "云存储硬盘",
+        "quantity": 70,
+        "unit": "块",
+        "unit_cost": 155.0,
+        "location": "仓库C-01",
+        "reorder_level": 25,
+        "supplier": "天翼存储"
+      },
+      {
+        "product_id": "P-3102",
+        "name": "办公椅",
+        "category": "办公椅",
+        "quantity": 4,
+        "unit": "把",
+        "unit_cost": 150.0,
+        "location": "仓库C-02",
+        "reorder_level": 10,
+        "supplier": "座安家具"
+      },
+      {
+        "product_id": "P-3103",
+        "name": "路由器 R1",
+        "category": "路由器",
+        "quantity": 10,
+        "unit": "台",
+        "unit_cost": 173.0,
+        "location": "机房D-01",
+        "reorder_level": 5,
+        "supplier": "网联数通"
+      },
+      {
+        "product_id": "P-3104",
+        "name": "投影仪",
+        "category": "投影仪",
+        "quantity": 3,
+        "unit": "台",
+        "unit_cost": 3000.0,
+        "location": "仓库E-01",
+        "reorder_level": 2,
+        "supplier": "视界科技"
+      },
+      {
+        "product_id": "P-3105",
+        "name": "鼠标键盘套装",
+        "category": "鼠标键盘套装",
+        "quantity": 15,
+        "unit": "套",
+        "unit_cost": 50.0,
+        "location": "仓库C-03",
+        "reorder_level": 20,
+        "supplier": "万得办公"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "从“固定两批导致偏差”升级为按同一品类多批采购计算加权平均，并要求识别财务中的冲销/调整语义与非采购干扰交易。",
+    "fixture_design_summary": [
+      "inventory：5个品类，保证4个品类 unit_cost 与财务加权平均一致；“云存储硬盘”故意设置错误 unit_cost。",
+      "finance：为“云存储硬盘”提供3笔连续采购（不同单价）以支持加权平均校验，并额外加入一笔采购干扰项（不应匹配到目标批次范围/或需被解析逻辑排除）。",
+      "finance：为“办公椅”提供一笔正常采购与一笔 type='采购' 但 description 含“冲销/调整”的交易，用于要求排除或单独标注。",
+      "finance：加入一笔 type='服务' 且 category='差旅' 的交易作为忽略干扰项。",
+      "跨文件一致性：云存储硬盘/办公椅/路由器/投影仪/鼠标键盘套装的 category 在财务与库存中保持一致，便于工具结果按品类匹配。"
+    ]
+  }
+}

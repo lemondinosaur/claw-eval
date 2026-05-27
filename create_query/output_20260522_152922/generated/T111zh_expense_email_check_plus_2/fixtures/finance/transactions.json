@@ -1,0 +1,68 @@
+[
+  {
+    "transaction_id": "TXB-201",
+    "date": "2026-03-26",
+    "amount": 2379.5,
+    "currency": "CNY",
+    "type": "差旅费报销",
+    "category": "费用报销",
+    "description": "赵晨出差上海差旅费，发票号INV-B401，交通+住宿合计2379.50元",
+    "status": "completed",
+    "approved_by": "财务主管"
+  },
+  {
+    "transaction_id": "TXB-202",
+    "date": "2026-03-26",
+    "amount": 2379.5,
+    "currency": "CNY",
+    "type": "差旅费报销（调整）",
+    "category": "费用报销",
+    "description": "赵晨出差上海差旅费调整单，发票号INV-B401，包含交通住宿明细，金额2379.50",
+    "status": "pending",
+    "approved_by": "财务主管"
+  },
+  {
+    "transaction_id": "TXB-203",
+    "date": "2026-03-26",
+    "amount": 1680.0,
+    "currency": "CNY",
+    "type": "餐饮报销",
+    "category": "费用报销",
+    "description": "周宁客户招待餐费，发票号INV-B402（含发票明细与参与人员），金额1680.00",
+    "status": "completed",
+    "approved_by": "李主管"
+  },
+  {
+    "transaction_id": "TXB-204",
+    "date": "2026-03-26",
+    "amount": 1760.0,
+    "currency": "CNY",
+    "type": "餐饮报销（差额）",
+    "category": "费用报销",
+    "description": "周宁客户招待餐费补差，发票号INV-B402，调整后金额1760.00",
+    "status": "completed",
+    "approved_by": "李主管"
+  },
+  {
+    "transaction_id": "TXB-205",
+    "date": "2026-03-27",
+    "amount": 9800.0,
+    "currency": "CNY",
+    "type": "云服务费",
+    "category": "运营成本",
+    "description": "运营云服务采购付款（非报销），参考单号OP-77881",
+    "status": "completed",
+    "approved_by": "采购专员"
+  },
+  {
+    "transaction_id": "TXB-206",
+    "date": "2026-03-25",
+    "amount": 560.25,
+    "currency": "CNY",
+    "type": "办公杂费",
+    "category": "费用报销",
+    "description": "日常办公杂费结算（无发票号，系统生成）",
+    "status": "completed",
+    "approved_by": "行政部"
+  }
+]

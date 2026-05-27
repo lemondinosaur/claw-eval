@@ -1,0 +1,125 @@
+{
+  "schema_version": "step1.task_descriptions.v2",
+  "generated_at": "2026-05-22 15:32:08",
+  "source_task_id": "T037zh_incident_postmortem",
+  "source_summary": {
+    "task_id": "T037zh_incident_postmortem",
+    "task_name": "Incident Postmortem — Root Cause Analysis",
+    "task_type": "跨多系统（工单/集成配置/邮件/知识库/会议记录/定时任务）收集证据并完成事故复盘根因分析的运维类任务",
+    "category": "ops",
+    "difficulty": "hard",
+    "tags": [
+      "general"
+    ],
+    "language": "zh",
+    "services": [
+      "helpdesk",
+      "config",
+      "gmail",
+      "kb",
+      "notes",
+      "scheduler"
+    ],
+    "tools": [
+      "helpdesk_list_tickets",
+      "helpdesk_get_ticket",
+      "config_list_integrations",
+      "config_get_integration",
+      "gmail_list_messages",
+      "gmail_get_message",
+      "kb_search",
+      "kb_get_article",
+      "notes_list",
+      "notes_get",
+      "scheduler_list_jobs",
+      "scheduler_get_job",
+      "scheduler_job_history"
+    ],
+    "fixture_paths": [
+      "fixtures/config/integrations.json",
+      "fixtures/gmail/inbox.json",
+      "fixtures/helpdesk/tickets.json",
+      "fixtures/kb/articles.json",
+      "fixtures/notes/meetings.json",
+      "fixtures/scheduler/jobs.json"
+    ],
+    "sandbox_files": [
+      "fixtures/helpdesk/tickets.json",
+      "fixtures/config/integrations.json",
+      "fixtures/gmail/inbox.json",
+      "fixtures/kb/articles.json",
+      "fixtures/notes/meetings.json",
+      "fixtures/scheduler/jobs.json"
+    ],
+    "has_user_agent": false,
+    "has_grader": true,
+    "core_capability": "从多源数据串联因果链，定位根因并给出复盘改进建议，同时保证只读合规"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T037zh_incident_postmortem_plus_1",
+      "new_task_name": "API超时+缓存风暴复盘",
+      "task_goal": "基于给定数据源完成一次生产事故复盘：建立完整时间线、跨系统核对证据、定位根因（不是仅列症状），并输出影响评估与可执行改进建议。",
+      "user_request": "昨晚（给定日期）生产环境出现严重故障。请你像运维事后复盘一样写一份报告：1）用工单构建事件时间线（按时间顺序）；2）检查第三方集成的当前恢复状态与异常字段；3）从邮件中提取关键技术线索与处置动作；4）检索知识库是否存在类似事故与结论要点；5）结合会议记录判断哪些变更/评审流程存在缺口；6）检查定时任务的触发与执行历史，找出触发链条。注意：只做数据收集与根因分析，不要修改、关闭、通知或更新任何内容。",
+      "scenario": "故障表现为：API网关出现间歇性超时（P99显著抬升），同时CDN回源流量飙升导致缓存命中率暴跌；客服工单显示用户加载失败与下单确认慢；支付回调链路出现延迟。排查过程中发现：某个定时任务在高峰期错误地触发了“全站缓存预热/失效重建”，并且该任务配置了错误的“缓存版本号”回滚，触发了缓存穿透式回源。第三方集成“风控规则引擎”在故障期间处于degraded状态，error_rate升高，且notes提示与缓存失效风暴相关。知识库里有一篇与“缓存版本回滚+预热任务”类似的历史文章，但当次处置团队忽略了其“只更新增量键集”的TODO建议。",
+      "difference_from_source": "原题根因围绕CRM同步SQL与连接池耗尽；本题根因转为“定时任务错误缓存版本号/失效重建”引发缓存风暴，关联的是API超时、CDN回源与回调链路延迟，并包含第三方集成风控引擎degraded的侧证；时间线证据强调任务触发->缓存异常->回源->超时，而非连接池与SQL全表扫描。",
+      "service_and_tool_plan": "使用 helpdesk_* 获取不同团队在故障窗口的表现与处置时间点；使用 config_* 查看第三方集成在故障后的状态字段与notes线索；使用 gmail_* 提取值班工程师/架构师关于缓存版本与回源现象的分析；使用 kb_* 搜索“缓存版本”“预热”“回源”类历史事故；使用 notes_* 读取变更评审会议中对缓存策略/任务配置的讨论与遗漏；使用 scheduler_* 确认触发了哪个定时任务、其cron/启停状态与历史运行耗时异常，从而形成触发链条。",
+      "fixture_generation_plan": "生成与原服务/工具兼容的一组新 fixtures（6个文件）。helpdesk/tickets：10~14条，覆盖API超时、CDN回源、下单确认慢、支付回调延迟、缓存穿透/热点key异常、以及恢复后通知；包含不同状态分布（resolved/done/open/investigating）并确保关键证据工单在中段出现。config/integrations：3~5条集成记录，其中至少1条为风控/规则引擎状态degraded，至少1条为网关侧或缓存侧“cache_layer”状态degraded或error_rate升高，notes需明确关联“缓存失效重建/版本回滚”。gmail/inbox：2~4封邮件，至少一封包含技术分析（缓存版本号回滚/预热触发错误）并写明处置动作，另有一封包含发布或变更提醒。kb/articles：新增2~3篇与缓存风暴相关的文章，包含一篇带TODO建议（如“增量键集预热”）；保持与其它文章类别不同以便kb_search能命中。notes/meetings：2条会议记录，包含缓存策略变更评审与“跳过关键验证”的讨论点。scheduler/jobs：3~5个任务记录，其中1个任务在故障窗口发生异常触发（enabled=true但历史显示耗时显著变长或状态异常，如由success变为stopped/failed/运行过久），包含执行历史里明确“版本号/失效重建”相关文字与运行时间。",
+      "expected_behavior": "调用工具进行只读数据收集：先 helpdesk_list_tickets 过滤出故障窗口的高优先级与核心表现工单，随后对关键ticket用 helpdesk_get_ticket 深挖；用 config_list_integrations 找到degraded集成，再对关键integration调用 config_get_integration读取notes与字段；用 gmail_list_messages 按天范围拉取，再对技术邮件调用 gmail_get_message提取缓存版本与回源证据；用 kb_search 用关键词“缓存版本/预热/回源/失效重建”定位历史文章，再用 kb_get_article读取TODO缺口；用 notes_list/notes_get提取会议中的变更评审缺失；用 scheduler_list_jobs 找到“缓存预热/失效重建”相关任务，再用 scheduler_get_job 与 scheduler_job_history确认其在故障窗口的触发与异常耗时/状态。最终输出一份复盘报告：时间线（按分钟级或至少按顺序）、根因（任务配置错误导致缓存风暴）、因果链（触发->缓存异常->回源拥塞->API超时），影响评估（API/回调/用户体验）、过程缺口（评审/验证缺失）、改进建议（如增量预热、版本号回滚保护、限流与熔断、任务幂等与回滚验证）。",
+      "grading_plan": "grader.py 应检查最终报告包含：明确的根因结论（必须指向定时任务触发缓存版本/失效重建错误而非泛化）；时间线按先后顺序列出至少5个关键事件且覆盖工单+任务触发；引用跨系统证据（至少提到helpdesk、config、gmail、kb、notes、scheduler各一种证据点）；检查是否包含改进建议关键词（如“增量”“缓存版本”“预热”“限流/幂等/验证”）；检查只读合规（确保没有调用任何写/更新/发送类工具）；并验证报告长度满足最低要求。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T037zh_incident_postmortem_plus_2",
+      "new_task_name": "数据丢失+重放风控复盘",
+      "task_goal": "完成一次事故复盘：构建事件时间线，定位根因（触发数据重放导致风控错误放行/拦截），并给出影响评估与流程改进建议。",
+      "user_request": "请你为“昨晚发生的生产故障”写一份事故复盘分析报告：1）收集相关工单并按时间线梳理故障演进；2）查看第三方集成的状态与错误率，确认恢复情况；3）从邮件中提取关于数据重放/队列处理的关键技术信息；4）查询知识库找类似事故与既往改进点；5）结合会议记录判断变更与评审流程的缺口；6）检查定时任务的触发情况与执行历史，识别是否存在重复触发或幂等失败。只做只读分析与根因推断，不要修改、关闭、通知或更新任何内容。",
+      "scenario": "故障核心是“订单风控判定异常”：部分订单被错误拦截（用户看到失败提示），同时另一部分订单出现重复后续处理（状态反复）。工单显示：在特定时段队列里出现大量“重放事件”，Worker不断重试导致处理延迟；风控集成在故障期间error_rate从低值跃升到高值并进入degraded。邮件中有团队指出某个定时任务触发了“事件补偿重放”，但由于上一次运行的游标写入失败，任务未能识别“游标未提交”，从而重复处理同一批事件；同时风控规则引擎的输入包含缺失字段，导致规则判断分支走偏。知识库中有一篇文章提到“补偿任务需严格幂等与游标一致性”，但上次复盘把“数据库事务一致性校验”列为TODO未完成。会议记录显示评审时有人强调需要端到端回放校验，但上线前仅做了功能层面测试。",
+      "difference_from_source": "原题是CRM同步SQL导致连接池耗尽；本题根因聚焦于定时任务触发“补偿重放/事件重放”时缺少游标一致性校验与幂等保护，导致风控集成处理重复事件并出现拦截与重复后续。证据链强调队列重试、重放批次重复、以及第三方风控集成在degraded状态下的异常输入。",
+      "service_and_tool_plan": "使用 helpdesk_* 收集关于订单风控异常、队列积压、重复处理与恢复的证据；使用 config_* 读取风控相关集成的状态与error_rate/notes；使用 gmail_* 获取对“游标/重放/幂等”的工程分析邮件；使用 kb_* 搜索“补偿任务 幂等 游标 一致性”类历史文章；使用 notes_* 提取评审会议中关于校验/事务一致性是否落实的讨论；使用 scheduler_* 定位“事件补偿重放”定时任务并检查历史运行与异常。",
+      "fixture_generation_plan": "helpdesk/tickets：12~16条，包含不同团队（订单、风控、数据平台、运维）的工单；状态分布包含open/investigating/resolved/done，并在关键时刻出现“重复重放批次”与“恢复停止重放”的处置证据。config/integrations：至少5条集成，其中一条为“risk_rules_engine”状态degraded、notes提到重复事件/缺失字段导致规则误判；另有一条为“event_bus”或“queue_gateway”状态active但error_rate略增用于干扰。gmail/inbox：3封邮件，包含：1）值班工程师指出补偿重放游标未提交导致重复；2）风控团队提到输入字段缺失与误判；3）发布/变更提醒邮件（包含评审跳过或只做功能测试）。kb/articles：2~3篇，至少1篇带TODO（例如“游标一致性校验”），并且内容中有明确整改点。notes/meetings：2条会议，至少一条记录“端到端回放校验”被弱化或推迟。scheduler/jobs：3~5个任务记录，其中“event_compensation_replay”任务在故障窗口触发次数/耗时明显异常，history里包含类似“游标未提交/重复批次/重试次数飙升/被人工暂停”。",
+      "expected_behavior": "按需调用工具：helpdesk_list_tickets 找到与“风控异常/重复处理/队列重试/停机”相关工单并用 helpdesk_get_ticket 深挖；config_list_integrations 找到degraded的风控集成并 config_get_integration读取异常notes；gmail_list_messages拉取技术邮件，gmail_get_message提取游标与幂等缺陷；kb_search用“幂等 游标 补偿 重放”定位历史文章并 kb_get_article提取TODO与结论；notes_list/notes_get提取会议中的评审缺口；scheduler_list_jobs找到补偿重放任务并用 scheduler_get_job + scheduler_job_history核对故障窗口的触发与异常重放批次。最终输出：时间线、根因（游标一致性/幂等缺失导致重复重放->风控误判与重复后续）、影响评估（拦截量/重复处理比例用文字描述即可但需与报告一致）、过程缺口（端到端回放校验与事务一致性校验缺失）、改进建议（幂等键设计、游标事务一致性、回放限速、重复检测与回滚策略）。全程不调用任何写/更新/发送/创建/删除类操作工具。",
+      "grading_plan": "grader.py 应检查：根因是否准确指向“补偿重放/事件重放的幂等与游标一致性缺失”（不接受仅描述队列拥塞）；时间线至少覆盖“任务触发”“重复批次”“风控集成degraded”“人工暂停/恢复”；报告中必须出现跨系统证据点（工单+集成+邮件+KB+会议+任务）；改进建议需包含“幂等/游标/一致性/重放限速/重复检测”中的至少3个概念词；并验证只读合规以及最低长度。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T037zh_incident_postmortem_plus_3",
+      "new_task_name": "消息投递失败+SMTP退避复盘",
+      "task_goal": "完成事故复盘：从多系统证据还原故障链条，定位根因（涉及邮件通知/消息投递链路与退避策略配置错误），输出影响与改进建议。",
+      "user_request": "请根据所给数据源撰写事故复盘报告（昨晚生产故障）：1）用工单形成按时间排序的故障时间线；2）检查相关第三方集成的健康状态与异常提示；3）阅读邮件以提取故障期间的技术分析与排查结论；4）在知识库查找历史类似事故与经验；5）查看会议记录确认近期变更与评审过程；6）检查定时任务的触发与历史执行情况，找出是否触发了错误的投递策略。要求只做只读分析与根因推断，不要修改、关闭、通知或更新任何内容。",
+      "scenario": "故障表现为通知与告警邮件大量延迟或未送达：告警系统触发后，邮件队列积压；用户工单显示“关键通知缺失”，同时运维在事后发现部分告警被重复发送，存在“先失败后成功的乱序”。第三方集成“mail_relay_smtp”处于degraded，notes提到“退避窗口配置与重试间隔冲突”。邮件证据中出现“退避策略从指数退避被误配置为固定退避且退避上限为0”的描述，导致重试风暴与乱序。定时任务“notification_dispatch”负责定时派发消息：在故障窗口其enabled=false/true状态发生变化，history显示某次运行耗时异常并在短时间内多次重入（可能因为上一次未完成就启动下一轮）。知识库文章提到类似问题发生在“配置回滚时未重置默认参数”，并包含TODO：需要在配置发布后执行回归校验（如模拟发送并确认退避参数）。会议记录显示上线时跳过了“投递策略回归脚本”的检查。",
+      "difference_from_source": "原题是数据库连接池耗尽与SQL全表扫描；本题根因转为“消息投递定时任务+SMTP退避策略参数配置错误/重入”导致投递失败、乱序与重试风暴，涉及第三方邮件中继集成degraded，并通过邮件内容/KBTODO对照形成证据链。",
+      "service_and_tool_plan": "helpdesk_*用于获取通知丢失/重复与恢复的工单证据；config_*用于定位SMTP中继集成的degraded状态与notes；gmail_*用于提取技术分析（退避策略/重试/乱序）与处置动作；kb_*用于检索“退避策略 配置回滚 回归校验”历史文章；notes_*用于读取变更评审中是否跳过投递策略回归；scheduler_*用于核验notification_dispatch任务的触发间隔、重入迹象与异常耗时。",
+      "fixture_generation_plan": "helpdesk/tickets：12~14条，聚焦“通知缺失”“重复发送”“队列积压”“投递超时”“恢复后仍有少量乱序修复”；状态分布含investigating与resolved/done，至少3条应围绕“乱序/重复/队列积压”展开。config/integrations：4~6条，其中至少1条为“mail_relay_smtp”degraded且notes明确提到退避窗口/重试间隔冲突；另可加入“ticket_notification_provider”作为干扰。gmail/inbox：2~4封邮件，至少1封包含对退避策略参数错误的解释与排查步骤，另1封包含发布确认/回归提醒（可能提到跳过回归脚本）。kb/articles：2~3篇，至少1篇提到“配置回滚未重置默认参数”并有TODO字段，另1篇为通用运维回退流程但不包含具体TODO以区分kb命中。notes/meetings：2条会议，包含投递策略/告警路由的变更评审讨论与遗漏点。scheduler/jobs：3~5个任务，其中notification_dispatch的history在故障窗口出现“多次短间隔重入/连续失败后成功/耗时显著增加”，并记录退避或重试相关参数（用notes字段呈现）。",
+      "expected_behavior": "先用 helpdesk_list_tickets 获取故障窗口通知投递相关工单，再逐条 helpdesk_get_ticket 提取“积压/重复/乱序/恢复”的时间点；调用 config_list_integrations 找到degraded的SMTP中继并用 config_get_integration读取notes中关于退避冲突的描述；用 gmail_list_messages拉取，gmail_get_message提取关于退避参数与重入/乱序的关键句；kb_search搜索“退避/指数/固定/重试/回归校验”等，再用 kb_get_article读取包含TODO的历史文章作为对照；用 notes_list/notes_get提取会议中关于回归脚本被跳过的记录；scheduler_list_jobs找到notification_dispatch后用 scheduler_get_job与 scheduler_job_history核对触发频率与异常运行。最终输出：时间线（从任务触发到投递失败风暴到恢复）、根因（退避策略参数错误+任务重入导致重试风暴与乱序）、影响评估（投递失败/重复发送的范围描述）、流程缺口（发布回归与参数校验缺失）、改进建议（退避参数保护、任务不可重入/互斥锁、配置发布后回归脚本、幂等投递与乱序保护）。确保只读，不触发任何写/更新/发送类工具。",
+      "grading_plan": "grader.py 应检查：根因必须明确是“退避/重试策略参数配置错误导致重试风暴与乱序”，并结合scheduler触发/重入证据；时间线至少包含“队列积压出现”“SMTP降级”“任务重入/异常耗时”“恢复后逐步恢复/仍乱序”的顺序；跨系统证据齐全（helpdesk+config+gmail+kb+notes+scheduler）；改进建议需包含“不可重入/互斥锁/幂等投递/回归校验/退避参数”至少3个概念；只读合规与最低长度要求。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T037zh_incident_postmortem_plus_4",
+      "new_task_name": "授权风暴+令牌过期复盘",
+      "task_goal": "编写事故复盘：通过多源证据定位根因（令牌刷新机制异常引发的授权风暴），输出影响范围与改进建议。",
+      "user_request": "为“昨晚发生的生产故障”生成事故复盘报告：1）收集并整理相关工单形成时间线；2）检查系统集成状态以判断恢复与残留风险；3）从邮件中抽取关于授权/令牌刷新异常的技术细节和处置要点；4）检索知识库是否有类似事故（尤其是令牌刷新/过期处理类）；5）结合会议记录识别近期变更与评审缺口；6）核对定时任务是否在故障窗口触发了异常的刷新/轮询逻辑，从而引发授权风暴。只做只读分析与根因推断，不要修改、关闭、通知或更新任何内容。",
+      "scenario": "故障为：用户登录与API鉴权大量失败，表现为401激增与少量500；同一时段内服务调用导致认证服务负载极高；同时第三方“identity_provider”集成处于degraded，error_rate上升并伴随notes提示“刷新请求洪泛”。工单显示：短时间内令牌刷新请求数暴涨，且刷新失败后客户端重试导致进一步雪上加霜。邮件中有人指出定时任务“token_refresh_harvester”每5分钟触发一次，但在某次发布后其参数把“刷新提前量”从正值误设为0或负值，导致大量即将过期的令牌在到期点同时刷新，且刷新失败后没有正确退避。知识库里有一篇历史文章说明类似事故的根因是“刷新窗口计算错误”，并给出改进建议：刷新提前量需有下限并且要做指数退避。会议记录显示该发布跳过了“鉴权压测与失败退避校验”。定时任务历史显示该任务在故障窗口运行耗时明显增长并出现短时间内重复启动。",
+      "difference_from_source": "原题是数据库/连接池/SQL全表扫描链条；本题根因改为“令牌刷新提前量计算错误+失败退避缺失”，由定时任务触发刷新洪泛引发401/认证服务过载，并通过identity_provider集成degraded与邮件技术分析形成佐证。",
+      "service_and_tool_plan": "helpdesk_*：用于抓取401/鉴权失败、重试风暴、认证服务过载与恢复工单；config_*：用于定位identity_provider或认证网关集成的degraded与notes；gmail_*：用于提取授权/刷新参数错误与处置；kb_*：用于检索与“刷新窗口/过期/退避”相关历史文章与TODO；notes_*：用于读取鉴权压测与失败退避校验被跳过的会议记录；scheduler_*：用于确认token_refresh_harvester任务的cron/启用状态与历史异常耗时与重入。",
+      "fixture_generation_plan": "helpdesk/tickets：12~15条，必须包含鉴权401失败激增、刷新失败重试、认证服务负载升高、以及恢复后“缓存/会话逐步稳定”的工单；状态覆盖resolved/done/investigating/open，并在中段给出“重试退避缺失/洪泛”的描述。config/integrations：至少4~6条，其中包含identity_provider（degraded，error_rate较高，notes描述刷新请求洪泛与退避/速率限制未生效）；另可加一个“api_gateway_authz”状态active但error_rate略增作为干扰。gmail/inbox：2~3封，至少一封是关于“刷新提前量/窗口计算错误”的技术分析邮件，另一封来自发布负责人/架构师提到压测与失败退避校验跳过或未通过。kb/articles：2~3篇，包含至少一篇历史文章明确提到“刷新窗口计算错误”与建议（带TODO或待补充检查）。notes/meetings：2条会议记录，重点记录鉴权相关变更评审与压测缺口。scheduler/jobs：3~5个任务记录，其中token_refresh_harvester需在故障窗口显示异常运行耗时、短时间内重复启动或失败后重入；notes字段中描述刷新提前量参数变化或回滚。",
+      "expected_behavior": "执行只读检索：helpdesk_list_tickets定位鉴权与令牌刷新相关工单并用 helpdesk_get_ticket提取关键时间点与指标变化；config_list_integrations找出degraded的identity_provider并 config_get_integration读取notes；gmail_list_messages按最近天数获取邮件，用 gmail_get_message提取刷新窗口计算与退避缺失的证据；kb_search针对“刷新 提前量 过期 退避”定位历史文章并 kb_get_article提取TODO；notes_list/notes_get提取会议中跳过压测/校验的记录；scheduler_list_jobs找到token_refresh_harvester并用 scheduler_get_job与 scheduler_job_history验证触发与异常运行。最终报告：时间线、根因（定时刷新任务刷新窗口计算错误导致到期点洪泛+缺少失败退避->401/鉴权失败）、影响评估、过程缺口（评审/压测/失败退避校验缺失）、改进建议（刷新提前量下限、失败退避、限流、任务互斥与幂等）。不调用任何写/更新/发送类工具。",
+      "grading_plan": "grader.py 检查：根因是否准确落在“刷新提前量/刷新窗口计算错误+失败退避缺失”并由scheduler触发证据支撑；时间线需包含“401激增”“刷新请求洪泛”“identity_provider degraded”“任务异常运行”“逐步恢复”；跨系统证据至少覆盖所有服务之一（6类证据点必须在文中体现）；改进建议需包含“刷新提前量/窗口”“指数退避/退避”“限流/互斥锁/幂等”等至少3项概念；只读合规与最低长度。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T037zh_incident_postmortem_plus_5",
+      "new_task_name": "批处理风控延迟+分区错配复盘",
+      "task_goal": "输出批处理类生产事故复盘：建立跨系统时间线，定位根因（分区/路由配置错误导致批处理任务处理积压并触发连锁告警），并给出改进建议。",
+      "user_request": "请为“昨晚生产故障”撰写事故复盘分析报告，要求：1）用工单构建事件时间线（按发生顺序）；2）检查第三方集成与关键状态，确认是否存在部分恢复或持续异常；3）从邮件中找出批处理延迟、分区路由或任务积压的技术线索；4）用知识库搜索类似事故并引用其中的改进点；5）结合会议记录判断近期变更是否触发了分区/路由配置问题；6）检查定时任务的触发与执行历史，找出异常触发或失败重试。只做只读分析与根因推断，不要修改、关闭、通知或更新任何内容。",
+      "scenario": "故障表现为：风控批处理结果延迟，导致后续实时服务等待批处理输出，出现一串连锁告警与降级。工单反映：风控离线校验在原本应完成的时间点明显滞后，随后实时链路超时；部分订单被标记为“待复核”并延迟放行。第三方集成“fraud_scoring_provider”处于degraded，notes提到“接收了错误分区批次，导致结果回填延迟”。邮件中有运维DBA/工程师指出：定时任务在故障窗口读取了错误的分区键映射（例如把分区A当成分区B处理），导致大部分数据落入低优先级队列且被延迟消费。知识库中有文章讲过“分区路由错配导致批处理积压”的历史事故，且该文章列出TODO：需要在配置发布后校验分区映射与回填时效。会议记录显示变更涉及分区映射表更新，但上线时跳过了对回填时效的验证脚本。定时任务历史显示：该批处理任务在故障窗口运行成功率下降，且多次重试但没有明显进展。",
+      "difference_from_source": "原题根因是CRM同步SQL全表扫描与连接池耗尽；本题根因是“批处理分区/路由映射错配”导致积压与回填延迟，并引发实时依赖链路超时与告警；强调config/邮件/知识库中关于分区映射与回填时效的证据，以及scheduler批处理重试情况。",
+      "service_and_tool_plan": "helpdesk_*：收集离线批处理延迟、实时链路超时、订单待复核与恢复的工单证据；config_*：查看fraud_scoring提供方与相关映射/回填集成的状态与notes；gmail_*：提取关于分区路由错配与回填延迟的技术邮件；kb_*：搜索“分区 路由 错配 批处理 积压 回填时效”并读取包含TODO的历史文章；notes_*：读取分区映射变更会议的评审缺口；scheduler_*：定位批处理定时任务并核对其历史重试与运行结果。",
+      "fixture_generation_plan": "helpdesk/tickets：12~16条，包含离线风控批处理延迟、实时超时、订单待复核、告警降级、以及恢复后清理积压；状态分布含investigating/open/resolved/done，关键证据工单包含“分区/路由错配”或“回填延迟”描述。config/integrations：4~6条，其中一条为fraud_scoring_provider degraded，notes明确提到错误分区批次导致结果回填延迟；可增加一个“batch_result_cache”或“routing_table_service”用于干扰但其状态可能仍active。gmail/inbox：2~4封邮件，至少一封来自工程师/DBA指出分区映射读取错误与队列优先级错配，另一封来自发布或值班负责人提到验证脚本跳过。kb/articles：2~3篇，包含一篇历史文章明确提到“分区路由错配导致批处理积压”，并有TODO（如“发布后校验映射与回填时效”）。notes/meetings：2条会议记录，涉及分区映射更新与回填时效验证被推迟/遗漏。scheduler/jobs：3~5个任务记录，其中“fraud_batch_recompute”任务在故障窗口显示多次重试、失败率升高或持续高耗时，并在notes里提到分区键映射读取错误或队列积压。",
+      "expected_behavior": "只读数据收集与证据串联：helpdesk_list_tickets筛选故障窗口的批处理延迟与实时超时相关工单，再用 helpdesk_get_ticket读取关键描述与处置时间点；config_list_integrations找出degraded的fraud_scoring_provider并 config_get_integration提取notes与字段；gmail_list_messages拉取技术邮件，用 gmail_get_message提取分区映射错配与回填延迟证据；kb_search用“分区 路由 错配 回填时效”定位历史文章并 kb_get_article读取TODO与改进点；notes_list/notes_get提取会议中关于验证脚本/回填时效校验缺失的证据；scheduler_list_jobs找到fraud_batch_recompute并用 scheduler_get_job + scheduler_job_history验证任务在故障窗口的重试与运行耗时异常。最终报告：时间线（批处理延迟->回填延迟->实时超时->告警/降级->恢复），根因（分区路由映射错配导致批处理结果落入错误路径/优先级，回填延迟触发依赖链路超时），影响评估（待复核订单规模用文本量级表达）、过程缺口（配置发布后缺少映射校验与回填时效验证）、改进建议（映射校验脚本、回填SLA监控、幂等与重试策略优化、任务依赖链路降级）。不调用任何写/更新/发送/创建/删除类工具。",
+      "grading_plan": "grader.py 应检查：根因是否清晰指向“分区/路由映射错配”并能与scheduler批处理重试/耗时异常和config degraded notes形成闭环；时间线需覆盖至少5个关键节点且按顺序呈现；报告需跨系统引用（helpdesk+config+gmail+kb+notes+scheduler）；改进建议需包含“分区映射校验/回填时效/SLA/幂等重试/依赖降级”等至少3项概念；验证只读合规与最低长度。"
+    }
+  ]
+}

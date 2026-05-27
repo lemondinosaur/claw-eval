@@ -1,0 +1,46 @@
+[
+  {
+    "integration_id": "INT-501",
+    "name": "risk_rule_engine",
+    "display_name": "风控规则引擎",
+    "status": "degraded",
+    "error_rate": 18.7,
+    "notes": "故障期间处于degraded：error_rate持续升高（最高18.7%），并在notes中提及“缓存失效重建触发了规则评估洪峰，影响回调链路耗时”。当前已恢复为degraded（仍有高位残留），但未观察到完全回落。",
+    "service": "risk",
+    "last_verified": "2026-03-01T09:10:00+08:00",
+    "monthly_calls": 2200000
+  },
+  {
+    "integration_id": "INT-502",
+    "name": "cdn_origin_adapter",
+    "display_name": "CDN回源适配器",
+    "status": "degraded",
+    "error_rate": 3.9,
+    "notes": "缓存命中率暴跌后的伴随异常：error_rate在20:42后持续抬升。notes指出“回源请求携带的cache_version在短时间内发生多次回滚，导致边缘缓存无法复用，出现穿透式回源”。",
+    "service": "cdn",
+    "last_verified": "2026-03-01T09:10:00+08:00",
+    "monthly_calls": 9800000
+  },
+  {
+    "integration_id": "INT-503",
+    "name": "payment_callback_router",
+    "display_name": "支付回调路由器",
+    "status": "active",
+    "error_rate": 0.6,
+    "notes": "已基本恢复。故障窗口内回调处理延迟与API网关超时同源：notes中关联“CDN回源拥塞导致回调链路排队增加”。",
+    "service": "payment",
+    "last_verified": "2026-03-01T09:10:00+08:00",
+    "monthly_calls": 3100000
+  },
+  {
+    "integration_id": "INT-504",
+    "name": "cache_control_plane",
+    "display_name": "缓存控制面",
+    "status": "degraded",
+    "error_rate": 9.2,
+    "notes": "degraded发生在“全站缓存预热/失效重建”任务开始后。notes记录：一次回滚动作写入了错误的缓存版本号（cache_version被置为旧值），触发了非预期的版本不匹配回源。",
+    "service": "cache",
+    "last_verified": "2026-03-01T09:10:00+08:00",
+    "monthly_calls": 7600000
+  }
+]

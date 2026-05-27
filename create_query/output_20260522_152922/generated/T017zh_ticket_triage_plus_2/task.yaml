@@ -1,0 +1,94 @@
+task_id: T017zh_ticket_triage_plus_2
+task_name: 支付网关与告警处置
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T017zh_ticket_triage_plus_2/fixtures/helpdesk/tickets.json
+prompt:
+  text: 请帮我对待处理工单做排查分流：按支付链路相关问题归类并标注关联（重点依据错误码与时间窗），更新每张工单的优先级、tags 和 category。包含以下边界：1）真实支付网关故障（回调失败/网关超时）优先级应高，并把同一错误码同一时间窗的工单归为强关联组；2）商户配置问题（商户号版本/证书过期）与上述故障源不同，但可能被误关联，必须分开分类；3）对账/数据延迟工单若文本明确写明“已恢复/无需立即处理”，优先级要降下来且不得与网关故障组合并；4）系统权限/审计缺失（日志缺失导致无法核查）单独分类并体现其与告警的弱关联。不要关闭任何工单。最终回答请包含：关联组摘要和更新清单。
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选 (open/closed/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级 (urgent/high/medium/low)
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 分类
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决方案描述
+    required:
+    - ticket_id
+    - resolution
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+sandbox_files:
+- fixtures/helpdesk/tickets.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

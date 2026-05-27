@@ -1,0 +1,73 @@
+task_id: T009zh_contact_lookup_plus_4
+task_name: Location-aware Contact Lookup
+version: '1.0'
+category: communication
+difficulty: easy
+tags:
+- general
+services:
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T009zh_contact_lookup_plus_4/fixtures/contacts/contacts.json
+prompt:
+  text: 请帮我查一下“陈然”在“广州分部”的联系方式（邮箱+办公电话）。如果没有明确的广州分部联系人，也要说明原因，并给出最接近的替代项（例如全国/远程）。只需要返回联系人邮箱与办公电话，不要发送消息。
+  language: zh
+tools:
+- name: contacts_search
+  description: 按名字搜索联系人
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词（姓名）
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 根据ID获取联系人详细信息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: contacts_send_message
+  description: 给联系人发送消息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+      message:
+        type: string
+        description: 消息内容
+    required:
+    - contact_id
+    - message
+tool_endpoints:
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: contacts_send_message
+  url: http://localhost:9103/contacts/send_message
+  method: POST
+sandbox_files:
+- fixtures/contacts/contacts.json
+environment:
+  timeout_seconds: 300
+  max_turns: 15

@@ -1,0 +1,116 @@
+[
+  {
+    "event_id": "evt_031_global_review_block",
+    "title": "季度复盘会前期准备（干扰）",
+    "start_time": "2026-03-03T12:30:00Z",
+    "end_time": "2026-03-03T13:30:00Z",
+    "attendees": [
+      "林川",
+      "沈佳",
+      "周航"
+    ],
+    "location": "远程会议室",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_032_shen_phone_call",
+    "title": "沈佳 - 外部电话会议",
+    "start_time": "2026-03-03T09:00:00Z",
+    "end_time": "2026-03-03T10:15:00Z",
+    "attendees": [
+      "沈佳",
+      "外部客户A"
+    ],
+    "location": "电话",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_033_shen_focus_block",
+    "title": "沈佳 - 专注写作时间（冲突）",
+    "start_time": "2026-03-03T15:00:00Z",
+    "end_time": "2026-03-03T15:45:00Z",
+    "attendees": [
+      "沈佳"
+    ],
+    "location": "工位",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_034_zhou_midday_meeting",
+    "title": "周航 - 午间评审会（冲突）",
+    "start_time": "2026-03-03T11:45:00Z",
+    "end_time": "2026-03-03T12:45:00Z",
+    "attendees": [
+      "周航",
+      "产品团队"
+    ],
+    "location": "会议室B",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_035_zhou_followup",
+    "title": "周航 - 需求对齐（冲突）",
+    "start_time": "2026-03-03T16:30:00Z",
+    "end_time": "2026-03-03T17:15:00Z",
+    "attendees": [
+      "周航"
+    ],
+    "location": "线上",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_036_lin_private_block",
+    "title": "林川 - 个人事务（冲突）",
+    "start_time": "2026-03-03T13:00:00Z",
+    "end_time": "2026-03-03T14:00:00Z",
+    "attendees": [
+      "林川"
+    ],
+    "location": "自定义地点",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_037_lin_late_task",
+    "title": "林川 - 会议材料整理（边界附近干扰）",
+    "start_time": "2026-03-03T17:45:00Z",
+    "end_time": "2026-03-03T18:15:00Z",
+    "attendees": [
+      "林川"
+    ],
+    "location": "工位",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_038_noise_internal_sync",
+    "title": "内部同步（不相关干扰）",
+    "start_time": "2026-03-03T10:45:00Z",
+    "end_time": "2026-03-03T11:30:00Z",
+    "attendees": [
+      "运营团队"
+    ],
+    "location": "会议室D",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_039_noise_support_call",
+    "title": "支持热线答疑（不相关干扰）",
+    "start_time": "2026-03-03T14:30:00Z",
+    "end_time": "2026-03-03T15:20:00Z",
+    "attendees": [
+      "支持团队"
+    ],
+    "location": "远程",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_040_noise_cancelled_simulation",
+    "title": "临时占位（不相关干扰）",
+    "start_time": "2026-03-03T08:30:00Z",
+    "end_time": "2026-03-03T08:50:00Z",
+    "attendees": [
+      "系统占位"
+    ],
+    "location": "",
+    "recurring": false
+  }
+]

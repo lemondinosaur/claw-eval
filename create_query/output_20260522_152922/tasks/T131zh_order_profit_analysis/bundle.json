@@ -1,0 +1,185 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:39:59",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T131zh_order_profit_analysis",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:37:23",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:37:23",
+      "source_task_id": "T131zh_order_profit_analysis",
+      "source_summary": {
+        "task_id": "T131zh_order_profit_analysis",
+        "task_name": "订单利润分析",
+        "task_type": "跨CRM/库存/财务三系统联动，按客户订单汇总利润并结合收款与退款/欠款状态标注异常，输出结构化利润分析报告。",
+        "category": "ops",
+        "difficulty": "medium",
+        "tags": [
+          "general",
+          "multi_service"
+        ],
+        "language": "zh",
+        "services": [
+          "finance",
+          "inventory",
+          "crm"
+        ],
+        "tools": [
+          "crm_list_customers",
+          "crm_get_customer",
+          "inventory_list_items",
+          "inventory_get_item",
+          "finance_list_transactions",
+          "finance_get_transaction"
+        ],
+        "fixture_paths": [
+          "fixtures/crm/customers.json",
+          "fixtures/finance/transactions.json",
+          "fixtures/inventory/items.json"
+        ],
+        "sandbox_files": [],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "从多源数据计算订单利润率并对收款异常进行识别与报告表达"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T131zh_order_profit_analysis_plus_1",
+          "new_task_name": "分期回款利润率与缺口监测",
+          "task_goal": "分析指定时间窗口内每位客户订单的毛利与利润率，并对“分期回款未完成/部分退款”等收款异常给出缺口金额与结论。",
+          "user_request": "请帮我分析本季度内各客户订单的利润情况：按客户最近订单产品组合汇总成本；从财务核对回款进度，计算利润率=(售价-成本)/售价；若回款未覆盖应收或存在部分退款/冲正，请标注并给出未回款缺口或净回款金额；最后输出一份按客户维度的利润与回款异常报告。",
+          "scenario": "在CRM中存在3类客户（活跃VIP、活跃标准、流失但仍有未结算订单）。每个客户最近订单包含2-4个产品，部分产品属于增值服务类别（成本与售价差距较大）。财务系统记录的交易存在：A客户订单发生两笔收款（第一笔已完成，第二笔仍待入账，且状态为partial）；B客户订单包含一次完成的退款（金额为订单售价的20%-35%）；C客户订单交易状态为completed但存在一笔冲正transaction_amount为负且类型为“收款冲正”，需要将其合并到净回款中。需要基于给定起止日期筛选交易，忽略工资/其他非订单交易。",
+          "difference_from_source": "从“全额完成或单次退款”扩展为“分期部分回款(partial) + 冲正净额 + 多产品订单”的混合异常；并且要求在报告中明确缺口/净回款金额与结论，而不仅是简单欠款或退款标注。",
+          "service_and_tool_plan": "继续使用crm_list_customers获取客户列表，再对每个客户用crm_get_customer读取最近订单及其产品组合；用inventory_get_item或先inventory_list_items定位产品成本价；用finance_list_transactions按起止日期拉取交易集合，并对与订单相关的交易用finance_get_transaction校验每笔交易金额、类型与状态（completed/partial/冲正）。三服务组合用于“成本计算 + 回款净额 + 异常识别”。",
+          "fixture_generation_plan": "生成3份新fixture：1) CRM客户fixture：包含5个客户（至少1个流失客户），每个客户recent_orders仅保留1条最近订单；客户字段要包含tier/status且最近订单products为不同的产品ID组合（不复用原PROD/CUS/TXN实体名）；2) Inventory物料fixture：提供至少10个产品ID，覆盖2个许可类+至少6个服务类，unit_cost与selling_price设置为能产生多种利润率区间；3) Finance交易fixture：在同一日期窗口内生成每个订单1-4笔交易，总计约15-20条交易；其中至少2个订单出现partial回款（状态字段为partial，金额为应收的40%-70%），至少1个订单出现退款（type='退款'且amount为负），至少1个订单出现收款冲正（type='收款冲正'，amount为负且status=completed）；另插入2-3条非订单类交易（如工资/运营费）以测试筛选能力。关键字段：transaction_id、date、amount、customer_id、type、category、description、status。",
+          "expected_behavior": "代理需要：1) 从CRM列出客户并逐个读取recent_orders；2) 对订单中的每个产品从库存取unit_cost，汇总成本；3) 由CRM订单中的total_price或按products的selling_price组合得到应售价（按描述采用订单total_price字段）；4) 从财务按起止日期筛选，仅统计与对应客户订单相关的“订单收款/退款/冲正”等交易；5) 计算利润率=(售价-成本)/售价；6) 汇总净回款=所有相关收款金额+退款冲正金额（注意负数）；若净回款<售价则标注缺口金额；若存在partial或退款则标注“分期未完成/部分退款/冲正导致净回款偏差”，给出净回款与缺口或净额说明；7) 输出结构化报告，至少包含：客户名称、订单售价、成本、利润、利润率、回款摘要（已回款/净回款/缺口）、异常类型与原因。工具调用应围绕finance_list_transactions与finance_get_transaction完成校验。",
+          "grading_plan": "grader应检查：1) 成本与利润率计算是否匹配由inventory单价与订单售价得到的结果（容忍小数误差）；2) 是否正确将退款/冲正纳入净回款与缺口判断；3) 是否能识别partial状态并在报告中给出缺口金额或“待回款”结论；4) 是否忽略非订单类交易；5) 报告结构是否完整且异常标注与计算一致。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T131zh_order_profit_analysis_plus_2",
+          "new_task_name": "高毛利组合对比与成本口径校验",
+          "task_goal": "对比多客户订单中不同产品组合带来的毛利差异，并核对库存成本口径（例如服务类成本单位不同），输出利润对比与异常提示（如成本缺失/库存缺货导致无法核算）。",
+          "user_request": "请帮我分析各客户订单利润并做组合对比：请从CRM拿到每个客户的最近订单及产品清单；从库存核算每个产品的成本价，并特别注意服务类产品可能有不同计量单位；从财务匹配该客户在指定月份的订单交易状态，计算利润率=(售价-成本)/售价；若某产品在库存中缺失成本信息或订单日期超出交易范围，请在报告中明确说明并标记为“利润无法完整核算”；最后给出按利润率从高到低的客户排序和简要洞察。",
+          "scenario": "CRM里共有4个客户：两位活跃VIP、一个活跃标准、一个活跃但recent_orders为空（无最近订单但仍可能有交易记录干扰）。每个有订单的客户其products包括：许可类、增值模块类，以及至少一个服务类产品。库存系统中刻意制造边界：其中一个服务类product_id存在但unit_cost字段为空或为null（用于测试成本缺失处理）；另一个产品条目存在但category不属于预期，仍需按inventory_get_item返回字段决定成本是否可用。财务系统对其中2个客户订单只在月份内出现部分交易（仍为completed但缺少退款或收款），对另1个客户出现交易但日期落在月份外（需排除），且对“无最近订单的客户”存在一两笔非匹配交易用于干扰。",
+          "difference_from_source": "加入“库存成本信息缺失/订单与交易日期不匹配导致无法完整核算”的边界条件，并要求对服务类计量单位差异进行口径说明；同时进行按利润率排序与“无法核算”标记。",
+          "service_and_tool_plan": "使用crm_list_customers列出全部客户；对每个客户crm_get_customer获取recent_orders（可能为空）；inventory_list_items先用于建立可用产品集合，再用inventory_get_item对订单中的每个product取成本字段（验证是否缺失）；finance_list_transactions按月份范围获取交易候选，再通过finance_get_transaction校验每笔交易类型与状态，完成净回款/异常判断与“日期排除”。",
+          "fixture_generation_plan": "生成新fixtures：1) CRM客户fixture：4条记录，至少1条status为active但recent_orders为空；recent_orders包含products数组（每个订单total_price给出），客户ID与产品ID均不与源任务复用；2) Inventory items fixture：至少12个产品，包含许可、模块、服务三类；其中1个服务产品的unit_cost设为null（或缺失字段），另一个产品selling_price与unit_cost相差悬殊产生高利润率；3) Finance transactions fixture：约14条记录；对2个有订单客户：交易日期都在月份内但某客户缺少退款或缺少第二笔收款以产生“净回款与售价不一致”的提示；对另1个客户：仅有月份外交易；对无最近订单客户：有月份内“其他类型交易”（如广告费或工单结算）以测试过滤。关键字段保留与原schema一致：transaction_id/date/amount/customer_id/customer_name/type/category/description/status。",
+          "expected_behavior": "代理需要：1) 对有recent_orders的客户，逐产品取成本并汇总成本；若发现unit_cost缺失（null）则：成本/利润/利润率标记为“无法完整核算”，仍可给出已知信息（售价与已知成本部分如描述要求），并在异常提示中说明缺失原因；2) 仅统计月份内、且与该客户订单相关的交易类型（订单收款/退款/冲正等），若交易日期落在范围外则不纳入回款分析；3) 对无recent_orders的客户：如果财务有交易记录，需说明“无可匹配订单，无法进行订单利润分析”，但可列为“交易未归因”；4) 输出按利润率从高到低排序（对无法核算的放在末尾或单独分组），并给出简要洞察（例如高毛利组合来自哪些产品类别）。",
+          "grading_plan": "grader应检查：1) 对库存成本缺失的处理是否正确（是否标记无法核算且不强行计算利润率）；2) 对交易日期范围筛选是否严格（月份外交易不应影响利润/回款）；3) 是否正确过滤与订单无关的交易（例如广告费/工单结算）；4) 排序是否基于可核算利润率；5) 报告中对服务类成本口径差异是否有合理说明（至少指出是否按unit_cost直接用于成本核算）。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T131zh_order_profit_analysis_plus_3",
+          "new_task_name": "退款后净利润与异常分级",
+          "task_goal": "识别“超额退款/部分退款导致净亏损”的订单，并对异常按严重程度分级（轻微/严重），输出净利润与利润率的修正结果。",
+          "user_request": "请帮我分析并分级每个客户订单的利润情况：用CRM找到客户最近订单及产品；用库存获取每个产品成本价；用财务系统核对该订单在指定区间内的收款与退款，计算利润率=(售价-成本)/售价；同时计算净回款=所有与订单相关的收款+退款（退款为负）；若净回款低于售价且退款比例超过阈值或出现净亏损，则在报告中进行异常分级；最后输出一份包含“售价、成本、账面利润、净回款、净影响利润率、异常分级”的客户报告。",
+          "scenario": "CRM包含5个客户（混合tier与status），每个客户最近订单包含3-5个产品，且产品组合中同时包含许可类与服务类。财务系统针对其中2个客户：出现多次退款，其中一次退款金额大于该订单首笔收款，形成“超额退款”的表象；另1个客户出现退款但同时有一笔额外收款补齐，最终净回款接近售价但退款比例仍偏高。还存在一种干扰：有客户交易类型为“服务费退款”但并非订单退款，需要依赖category/type字段判断是否与订单利润相关。要求用给定区间筛选并逐单汇总。",
+          "difference_from_source": "引入“异常分级（轻微/严重）+ 净回款驱动的净影响利润率”并要求识别超额退款与类别干扰（非订单退款不计入净回款/异常）。原题仅需标注欠款或退款。",
+          "service_and_tool_plan": "用crm_list_customers与crm_get_customer获取订单产品；用inventory_get_item获取unit_cost与selling_price（用于核算成本和售价一致性校验）；用finance_list_transactions按区间获取交易候选，再用finance_get_transaction逐笔核验type/category/status并筛选订单相关交易。三服务联动完成“账面利润 + 净回款异常分级”。",
+          "fixture_generation_plan": "1) CRM fixture：5条客户记录，recent_orders均非空；每条recent_orders只含1个订单，products为不同的产品ID组合；total_price为订单售价（不复用源客户/订单命名）；2) Inventory fixture：至少15个产品（不同category），确保成本与售价差异形成：有的组合高利润、有的组合低利润且易被退款影响；至少1个服务类产品成本占比高；3) Finance fixture：约25条交易；每个订单至少1笔收款，至少2个订单包含1-3笔退款与可能的冲正；设置退款比例阈值（例如退款金额绝对值/售价>0.35为严重，可在数据中体现）；同时插入3-4条“服务费退款”或“预付款冲正”但category/type不属于订单退款，以测试筛选；每条交易含customer_id与customer_name与status字段（completed）。",
+          "expected_behavior": "代理应：1) 计算账面利润=售价-成本，并给出账面利润率=(售价-成本)/售价；2) 匹配财务交易：只纳入与“订单收款/订单退款/收款冲正”相关的type/category（忽略其他退款类别）；3) 计算净回款=收款金额合计+退款金额合计（负数）；4) 若净回款<售价，计算净影响利润率（可定义为(净回款-成本)/售价或等价口径，并在报告中说明采用哪一种）；5) 根据退款比例或净亏损情况对异常分级：轻微（少量差异）、严重（超额退款或导致净亏损），并解释判定依据；6) 输出每客户报告字段齐全且结论一致（分级与计算匹配）。",
+          "grading_plan": "grader应检查：1) 退款筛选是否正确（错误计入非订单退款会导致净回款/分级错误）；2) 超额退款与净亏损是否被识别并分级准确；3) 净影响利润率的口径与数值是否自洽；4) 报告字段是否齐全、解释是否覆盖异常判定依据。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T131zh_order_profit_analysis_plus_4",
+          "new_task_name": "多币种折算下的利润率一致性",
+          "task_goal": "在存在多币种交易的情况下，完成客户订单利润核算与利润率输出，并验证不同币种回款折算后的一致性；对币种缺失或汇率无法获取的情形进行提示。",
+          "user_request": "请帮我分析各客户订单的利润情况：从CRM获取客户最近订单及产品组合、订单售价；从库存获取产品成本价；从财务匹配指定日期区间内的收款与退款交易。部分交易使用不同币种（如USD/EUR），请将交易金额按给定汇率折算到CNY再计算净回款与收款异常。利润率按(售价-成本)/售价计算，不随币种变化。若某币种没有汇率信息或财务记录缺币种字段，请在报告中标注“回款折算不可用”。最后输出每客户的利润率、折算后的净回款与异常说明。",
+          "scenario": "财务fixture中交易amount可能以不同币种出现，currency字段为USD/EUR/CNY。假设任务要求使用固定汇率（在fixture中以字段提供，例如rate_to_cny），但其中一条故意缺少rate_to_cny或currency缺失，用于测试提示能力。CRM订单total_price始终以CNY计价。部分客户出现退款，使得净回款低于售价。还有干扰：有一笔交易currency为CNY但type为“开票服务费”，不应纳入订单回款。",
+          "difference_from_source": "引入多币种与汇率折算、缺失汇率导致回款折算不可用的边界；同时要求利润率基于订单售价与库存成本（CNY口径）保持不变。",
+          "service_and_tool_plan": "仍使用crm_list_customers/crm_get_customer获取订单；inventory_get_item计算成本；finance_list_transactions按区间拉取交易并finance_get_transaction校验每笔交易的currency、rate_to_cny（或等价字段）与type/category，用以决定折算与筛选纳入范围。",
+          "fixture_generation_plan": "1) CRM fixture：4个客户，recent_orders均非空，products含多类产品；total_price以CNY给出；2) Inventory fixture：至少10个产品，unit_cost与selling_price均以CNY；3) Finance fixture：约18条交易；其中至少6条币种为USD、4条为EUR、其余为CNY；对至少2个订单包含退款（amount为负且type='退款'）；插入至少2条与订单无关的服务费/开票费交易（type/category不匹配）；并故意制作：1条交易缺少currency或缺少rate_to_cny字段（用于标注折算不可用），同时其它交易包含完整rate_to_cny确保可计算。",
+          "expected_behavior": "代理应：1) 计算账面利润与利润率（基于CNY售价与库存成本）；2) 汇总订单回款：筛选只包含订单收款/退款/冲正；3) 对非CNY交易：使用rate_to_cny折算到CNY后计算净回款与异常（若缺失汇率或currency为空，则该订单回款折算结果标记不可用，异常类型仅基于可用部分描述）；4) 输出每客户报告：售价、成本、利润率、折算净回款（或不可用）、异常说明（欠款/退款/折算不可用）。",
+          "grading_plan": "grader应检查：1) 币种折算是否按rate_to_cny进行且只用于回款分析；2) 缺币种或缺汇率时是否正确标记不可用而非胡算；3) 是否过滤非订单相关交易；4) 利润率计算是否与币种无关并与库存/订单一致。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T131zh_order_profit_analysis_plus_5",
+          "new_task_name": "存货成本波动与历史/当前成本对账",
+          "task_goal": "对比同一订单在不同时间点采用的“历史成本 vs 当前成本”，计算利润率差异，并在成本变更较大时提示风险；同时核对财务收款状态以确认是否已结算。",
+          "user_request": "请帮我分析客户订单利润，并进行成本口径对账：对每个客户最近订单，使用库存系统获取该订单涉及产品的当前成本价；同时使用历史成本价（库存中为同一product提供不同时间版本）计算“历史利润率”和“当前利润率”的差异。再从财务核对该订单在指定月份是否已全部结算（completed），未结算则标注“未完全结算风险”。最终输出：历史利润率、当前利润率、差异原因（成本上调/下调）、结算状态与建议。",
+          "scenario": "库存fixture中对同一product_id提供两条成本记录：一个effective_date早于订单日期（历史成本），一个在订单之后更新（当前成本）。财务系统按月查询交易：对部分客户订单只有部分收款（status='partial'），另一些订单有完整收款但包含退款导致净回款低于售价。需要用CRM订单date作为订单时间锚点，在库存中选择历史成本版本（effective_date<=订单date）与当前成本版本（有效期最新）。干扰信息包括：库存中存在一条effective_date晚于订单且cost字段异常（例如极端值），要求通过选择最新<=订单date的历史版本避免误用。",
+          "difference_from_source": "从单一成本价计算升级为“历史成本 vs 当前成本对账”，需要根据订单日期选择库存版本并输出差异与风险；同时引入订单未完全结算风险(partial)的提示。",
+          "service_and_tool_plan": "使用crm_list_customers与crm_get_customer获取订单date与products；库存方面：先inventory_list_items获取产品列表，再inventory_get_item取得包含多版本成本与effective_date的信息；财务方面：finance_list_transactions按月份抓取候选交易并finance_get_transaction校验status，判断结算是否completed且结合退款形成净回款差异。三服务组合用于“版本成本选择 + 收款结算状态”。",
+          "fixture_generation_plan": "1) CRM fixture：3-4个客户，每个recent_orders包含订单date（至少跨越两个季度边界），products数量2-4；2) Inventory fixture：对至少8个product_id引入成本版本机制（可以用字段history_costs或cost_history数组，包含effective_date与unit_cost）；确保每个被用到的产品在历史与当前两版本都存在；并设置一个产品包含异常极端成本但其effective_date早于/晚于订单以测试选择逻辑（确保选择历史版本时不会取到异常）；3) Finance fixture：约12-18条；每个订单至少有1-3笔交易；设置至少1个订单存在partial回款（status='partial'），另1个订单包含退款（amount负）但status=completed；另外插入1-2条非订单类交易干扰。",
+          "expected_behavior": "代理应：1) 对每个客户订单，基于订单date为每个product选择历史unit_cost（effective_date<=订单date的最近版本）并选择当前unit_cost（effective_date最新的版本）；2) 计算历史利润率与当前利润率，并给出差异（利润率差/百分比变化）；3) 判断成本差异方向：成本上调会导致利润率下降等，并在报告中解释来自哪些产品成本变更；4) 用财务确认结算：若相关订单交易中存在partial或缺少完成收款，标注“未完全结算风险”；若存在退款，说明净回款低于售价但不改变利润率计算口径；5) 输出结构化对账报告，至少包含：客户、订单日期、历史成本/当前成本汇总、两种利润率、差异原因、结算状态与异常说明。",
+          "grading_plan": "grader应检查：1) 历史成本选择是否正确（effective_date<=订单date且取最近）；2) 当前成本选择是否正确（取最新版本）；3) 利润率差异计算是否与成本差异一致；4) 结算状态是否基于财务status判断（partial触发未完全结算风险）；5) 报告中对差异原因的归因是否覆盖具体产品与变更方向。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:39:59",
+    "items": [
+      {
+        "task_id": "T131zh_order_profit_analysis_plus_1",
+        "index": 1,
+        "status": "failed",
+        "generated_at": "2026-05-22 15:37:49",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_1/raw.txt",
+        "parsed": "",
+        "task_dir": "",
+        "error": "Expecting ',' delimiter: line 131 column 3 (char 3899)"
+      },
+      {
+        "task_id": "T131zh_order_profit_analysis_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:38:19",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T131zh_order_profit_analysis_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:38:54",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T131zh_order_profit_analysis_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:39:31",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T131zh_order_profit_analysis_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:39:59",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/T131zh_order_profit_analysis_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T131zh_order_profit_analysis/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T131zh_order_profit_analysis",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

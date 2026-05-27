@@ -1,0 +1,154 @@
+[
+  {
+    "ticket_id": "TK-24010",
+    "title": "北辰云联（CUS-101）华东：交付SLA偏差投诉",
+    "description": "客户在华东区域反馈交付节奏与SLA偏差，要求补偿并得到书面处理通知。",
+    "customer_id": "CUS-101",
+    "reporter": "客户服务-区域值班",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-02-28T09:35:00Z",
+    "tags": [
+      "east",
+      "升级",
+      "SLA偏差"
+    ]
+  },
+  {
+    "ticket_id": "TK-24011",
+    "title": "北辰云联（CUS-101）华南：升级二次补偿诉求",
+    "description": "客户在华南区域再次升级，要求更高补偿金额，并要求书面回复。",
+    "customer_id": "CUS-101",
+    "reporter": "客户服务-华南",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-02-28T10:20:00Z",
+    "tags": [
+      "south",
+      "升级二次"
+    ]
+  },
+  {
+    "ticket_id": "TK-24020",
+    "title": "青橙数据（CUS-103）海外：服务升级审批中",
+    "description": "青橙数据海外区域升级事件，当前存在审批流，要求更新后续动作并与财务记录核对。",
+    "customer_id": "CUS-103",
+    "reporter": "客户服务-海外",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-02-25T08:00:00Z",
+    "tags": [
+      "overseas",
+      "已提交审批",
+      "服务升级"
+    ]
+  },
+  {
+    "ticket_id": "TK-24021",
+    "title": "青橙数据（CUS-103）海外：补充诉求跟进工单",
+    "description": "用于承接补充邮件的内部跟进，后续需判断是否重复升级无需再发。",
+    "customer_id": "CUS-103",
+    "reporter": "客户服务-海外",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-02-26T10:00:00Z",
+    "tags": [
+      "overseas",
+      "补充跟进"
+    ]
+  },
+  {
+    "ticket_id": "TK-24030",
+    "title": "澄海工业（CUS-102）华东：补偿金额异常校验",
+    "description": "收到含负数补偿金额的升级邮件（疑似填报错误），需标记无效并不执行发送动作。",
+    "customer_id": "CUS-102",
+    "reporter": "客户服务-华东",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-02-28T13:30:00Z",
+    "tags": [
+      "east",
+      "金额异常"
+    ]
+  },
+  {
+    "ticket_id": "TK-24031",
+    "title": "澄海工业（CUS-102）华南：交付延迟升级工单",
+    "description": "客户在华南区域反馈交付延迟并要求补偿金额。",
+    "customer_id": "CUS-102",
+    "reporter": "客户服务-华南",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-02-28T14:20:00Z",
+    "tags": [
+      "south",
+      "交付延迟"
+    ]
+  },
+  {
+    "ticket_id": "TK-24040",
+    "title": "金穗零售（CUS-104）华东：账户已停用异常升级",
+    "description": "客户邮件含“已停用账户”线索，需走法务介入并更新异常标签，不做客户承诺。",
+    "customer_id": "CUS-104",
+    "reporter": "客户服务-华东",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-02-28T16:25:00Z",
+    "tags": [
+      "east",
+      "异常-待法务"
+    ]
+  },
+  {
+    "ticket_id": "TK-24050",
+    "title": "蓝桥健康（CUS-105）海外：SLA超时补偿诉求",
+    "description": "客户海外区域升级，要求较小补偿并希望尽快得到处理通知。",
+    "customer_id": "CUS-105",
+    "reporter": "客户服务-海外",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-02-28T17:15:00Z",
+    "tags": [
+      "overseas",
+      "SLA超时"
+    ]
+  },
+  {
+    "ticket_id": "TK-24060",
+    "title": "星港通信（CUS-106）华南：升级预算内处理",
+    "description": "华南区域升级，客户提出补偿并要求处理通知，需按比率判断 sent/draft。",
+    "customer_id": "CUS-106",
+    "reporter": "客户服务-华南",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-02-28T18:10:00Z",
+    "tags": [
+      "south",
+      "预算判断"
+    ]
+  },
+  {
+    "ticket_id": "TK-24061",
+    "title": "星港通信（CUS-106）华南：补充升级（用于去重验证）",
+    "description": "用于承接同客户不同区域/不同邮件的去重逻辑（应根据最高金额保留）。",
+    "customer_id": "CUS-106",
+    "reporter": "客户服务-华南",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-02-28T18:25:00Z",
+    "tags": [
+      "south",
+      "补充升级"
+    ]
+  }
+]

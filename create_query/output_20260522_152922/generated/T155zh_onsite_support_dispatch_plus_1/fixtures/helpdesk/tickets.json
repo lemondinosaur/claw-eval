@@ -1,0 +1,113 @@
+[
+  {
+    "ticket_id": "TK-2201",
+    "title": "数据中心断电：关键业务恢复（需电源定位+DR切换）",
+    "description": "极光云计算（CUS-2201）报告：北京朝阳数据中心园区A发生断电，导致关键业务系统无法维持服务。当前表现为UPS/配电链路异常与服务器无法稳定切换到主备环境。需要到场进行：电源/硬件故障定位 + 服务器远程控制切换（DR/主备）评估与初始巡检。\n\n客户强调：到达后30分钟内完成初始巡检，否则将升级合同罚款。",
+    "customer_id": "CUS-2201",
+    "reporter": "法务/运营对接",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-02T09:05:00+08:00",
+    "tags": [
+      "VIP",
+      "critical",
+      "断电",
+      "DR切换",
+      "requires_onsite"
+    ],
+    "category": "基础设施故障",
+    "requires_onsite": true,
+    "sla_deadline": "2026-04-02T10:05:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2202",
+    "title": "数据库连接间歇性中断",
+    "description": "北辰物流科技（CUS-2202）反馈数据库在高峰期偶发连接中断，建议远程排查连接池与网络抖动。无需现场。",
+    "customer_id": "CUS-2202",
+    "reporter": "IT负责人",
+    "department": "数据库支持",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-01T16:20:00+08:00",
+    "tags": [
+      "数据库",
+      "远程"
+    ],
+    "category": "性能问题",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-03T12:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2203",
+    "title": "报表导出偶发超时（低优先级）",
+    "description": "星河零售集团（CUS-2203）月度报表导出偶发超时，业务影响较小，优先建议优化SQL并在夜间执行变更。",
+    "customer_id": "CUS-2203",
+    "reporter": "平台运营经理",
+    "department": "数据分析",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-01T10:30:00+08:00",
+    "tags": [
+      "报表",
+      "低优先级"
+    ],
+    "category": "功能故障",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-05T18:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2204",
+    "title": "VIP：容量扩容咨询（非现场）",
+    "description": "银杏金融云（CUS-2204）咨询扩容方案与时间预估，暂不需要现场实施，提供远程建议即可。",
+    "customer_id": "CUS-2204",
+    "reporter": "技术负责人",
+    "department": "售前支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-01T13:05:00+08:00",
+    "tags": [
+      "咨询",
+      "VIP"
+    ],
+    "category": "技术咨询",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-04T16:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2205",
+    "title": "网络波动：边界路由器丢包",
+    "description": "北辰物流科技的边界路由器偶发丢包，建议远程抓包定位原因，必要时再评估现场。",
+    "customer_id": "CUS-2202",
+    "reporter": "IT负责人",
+    "department": "网络支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-30T09:25:00+08:00",
+    "tags": [
+      "网络",
+      "丢包"
+    ],
+    "category": "网络故障",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-02T20:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2206",
+    "title": "主备切换演练安排确认（干扰工单）",
+    "description": "内部演练安排确认，非客户critical onsite工单，不参与派遣决策。",
+    "customer_id": "CUS-2204",
+    "reporter": "项目协调",
+    "department": "项目管理",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-02T08:10:00+08:00",
+    "tags": [
+      "演练",
+      "非现场"
+    ],
+    "category": "项目事务",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-02T23:59:00+08:00"
+  }
+]

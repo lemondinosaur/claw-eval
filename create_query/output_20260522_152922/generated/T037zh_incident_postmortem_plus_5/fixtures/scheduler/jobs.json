@@ -1,0 +1,106 @@
+[
+  {
+    "job_id": "JOB-541",
+    "name": "fraud_batch_recompute",
+    "description": "风控批处理重算：按分区键批次计算并触发回填",
+    "cron_expression": "10 0 * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-04-28T01:10:00+08:00",
+    "action": "执行风控批处理重算并触发回填",
+    "created_by": "risk_platform",
+    "tags": [
+      "risk",
+      "batch",
+      "recompute"
+    ],
+    "notes": "故障窗口期间多次重试未能有效改善回填时效，疑似分区键映射读取与队列路由错配；重试带来重复批次回填请求，队列进一步积压。",
+    "execution_history": [
+      {
+        "run_time": "2026-04-28T00:50:00+08:00",
+        "status": "success",
+        "duration_seconds": 1260,
+        "notes": "计算阶段完成但回填明显延迟；回填通道收到错误分区批次标识（A被当作B）。"
+      },
+      {
+        "run_time": "2026-04-28T01:10:00+08:00",
+        "status": "failed",
+        "duration_seconds": 640,
+        "notes": "等待回填确认超时后失败并触发重试；错误聚合提示显示低优先级队列堆积。"
+      },
+      {
+        "run_time": "2026-04-28T01:30:00+08:00",
+        "status": "failed",
+        "duration_seconds": 690,
+        "notes": "重试仍未改善回填端到端耗时；队列深度继续上升，疑似路由错配未修复。"
+      },
+      {
+        "run_time": "2026-04-28T02:05:00+08:00",
+        "status": "success",
+        "duration_seconds": 980,
+        "notes": "部分批次回填恢复到约55分钟；但低优先级队列仍有积压，业务侧订单仍处于待复核。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-542",
+    "name": "fraud_partition_mapping_refresh",
+    "description": "刷新分区映射表到本地缓存（包含分区键映射）",
+    "cron_expression": "0 */6 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-04-28T00:00:00+08:00",
+    "action": "更新分区键映射缓存",
+    "created_by": "data_platform",
+    "tags": [
+      "partition",
+      "mapping",
+      "refresh"
+    ],
+    "notes": "刷新本身成功，但发布后未执行校验脚本；因此可能缓存版本与预期路由不一致。",
+    "execution_history": [
+      {
+        "run_time": "2026-04-28T00:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 22,
+        "notes": "映射缓存刷新完成到规则 v4。未触发校验脚本运行。"
+      },
+      {
+        "run_time": "2026-04-27T18:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 21,
+        "notes": "常规刷新。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-543",
+    "name": "queue_rebalance_worker",
+    "description": "队列再平衡：根据分区优先级调整派发权重",
+    "cron_expression": "30 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-04-28T03:00:00+08:00",
+    "action": "按优先级调整队列权重",
+    "created_by": "async_ops",
+    "tags": [
+      "queue",
+      "rebalance"
+    ],
+    "notes": "故障窗口内权重调整执行成功，但因分区错配导致再平衡效果被抵消。",
+    "execution_history": [
+      {
+        "run_time": "2026-04-28T01:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 8,
+        "notes": "执行再平衡但观察到低优先级队列仍持续增长。"
+      },
+      {
+        "run_time": "2026-04-28T02:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 7,
+        "notes": "继续再平衡，随着回填改善积压开始下降。"
+      }
+    ]
+  }
+]

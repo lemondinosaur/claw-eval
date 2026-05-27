@@ -1,0 +1,289 @@
+{
+  "task_id": "T029zh_cross_service_meeting_plus_5",
+  "task_name": "多方同步会（人数5且存在碎片化可用时段）",
+  "prompt_text": "请处理我邮箱里来自“Helios Systems”的多方同步会邀请邮件。\n\n要求：\n1）阅读邮件获取会议主题《跨团队里程碑对齐》、时长2小时，以及偏好策略：优先上午（09:00-12:00）；若上午找不到共同可用连续2小时，则改用下午（13:30-17:30）。\n2）通讯录中为以下5位参会人各自查找邮箱：林澜、邱博、白薇、蒋晨、顾然（邮件给出姓名但不含邮箱）。\n3）对这5人在指定日期 2026-03-12（周四）的日程分别查询，找出所有人都有空的“连续2小时”。\n   - 需先在上午区寻找；若上午不存在共同的连续2小时，则在下午区寻找。\n   - 选择“所有人共同最早”的可行时段；并遵循上午优先/下午兜底策略。\n4）创建日历事件：参会人包含全部5位（attendees 为5个邮箱），地点为“会议室E”，事件主题与邮件一致。\n5）给Helios Systems发送确认邮件（先保存草稿再发送）。邮件正文需包含：最终选定时段（含日期与开始/结束时间）以及5位参会人姓名列表。\n\n目标情况下应选在 2026-03-12 下午的最早共同可用连续2小时：15:30-17:30。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_701",
+        "title": "林澜 - 需求评审",
+        "organizer": "linlan@helios-sim.com",
+        "attendees": [
+          "linlan@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T09:30:00+08:00",
+        "end_time": "2026-03-12T10:30:00+08:00",
+        "location": "A座101",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_702",
+        "title": "林澜 - 状态汇报",
+        "organizer": "linlan@helios-sim.com",
+        "attendees": [
+          "linlan@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T11:00:00+08:00",
+        "end_time": "2026-03-12T12:00:00+08:00",
+        "location": "",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_703",
+        "title": "林澜 - 项目协同",
+        "organizer": "linlan@helios-sim.com",
+        "attendees": [
+          "linlan@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T14:00:00+08:00",
+        "end_time": "2026-03-12T16:00:00+08:00",
+        "location": "会议室B",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_704",
+        "title": "邱博 - 设计研讨",
+        "organizer": "qiubo@helios-sim.com",
+        "attendees": [
+          "qiubo@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T10:00:00+08:00",
+        "end_time": "2026-03-12T11:30:00+08:00",
+        "location": "线上",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_705",
+        "title": "邱博 - 对外沟通",
+        "organizer": "qiubo@helios-sim.com",
+        "attendees": [
+          "qiubo@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T13:30:00+08:00",
+        "end_time": "2026-03-12T14:30:00+08:00",
+        "location": "",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_706",
+        "title": "邱博 - 运营同步",
+        "organizer": "qiubo@helios-sim.com",
+        "attendees": [
+          "qiubo@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T15:00:00+08:00",
+        "end_time": "2026-03-12T16:30:00+08:00",
+        "location": "会议室D",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_707",
+        "title": "白薇 - 早会",
+        "organizer": "baiwei@helios-sim.com",
+        "attendees": [
+          "baiwei@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T09:00:00+08:00",
+        "end_time": "2026-03-12T09:45:00+08:00",
+        "location": "A座204",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_708",
+        "title": "白薇 - 评审复盘",
+        "organizer": "baiwei@helios-sim.com",
+        "attendees": [
+          "baiwei@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T10:45:00+08:00",
+        "end_time": "2026-03-12T12:00:00+08:00",
+        "location": "",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_709",
+        "title": "白薇 - 安全合规检查",
+        "organizer": "baiwei@helios-sim.com",
+        "attendees": [
+          "baiwei@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T14:30:00+08:00",
+        "end_time": "2026-03-12T17:30:00+08:00",
+        "location": "会议室C",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_710",
+        "title": "蒋晨 - 同步会",
+        "organizer": "jiangchen@helios-sim.com",
+        "attendees": [
+          "jiangchen@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T09:30:00+08:00",
+        "end_time": "2026-03-12T10:15:00+08:00",
+        "location": "",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_711",
+        "title": "蒋晨 - 阶段评估",
+        "organizer": "jiangchen@helios-sim.com",
+        "attendees": [
+          "jiangchen@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T11:15:00+08:00",
+        "end_time": "2026-03-12T12:00:00+08:00",
+        "location": "会议室A",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_712",
+        "title": "蒋晨 - 客户演示",
+        "organizer": "jiangchen@helios-sim.com",
+        "attendees": [
+          "jiangchen@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T13:30:00+08:00",
+        "end_time": "2026-03-12T15:30:00+08:00",
+        "location": "会议室F",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_713",
+        "title": "顾然 - 复盘",
+        "organizer": "guran@helios-sim.com",
+        "attendees": [
+          "guran@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T10:00:00+08:00",
+        "end_time": "2026-03-12T12:00:00+08:00",
+        "location": "",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_714",
+        "title": "顾然 - 项目讨论",
+        "organizer": "guran@helios-sim.com",
+        "attendees": [
+          "guran@helios-sim.com"
+        ],
+        "start_time": "2026-03-12T16:00:00+08:00",
+        "end_time": "2026-03-12T17:30:00+08:00",
+        "location": "线上",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-601",
+        "name": "林澜",
+        "department": "交付部",
+        "title": "项目经理",
+        "email": "linlan@helios-sim.com",
+        "phone": "18600001111",
+        "location": "上海"
+      },
+      {
+        "contact_id": "CT-602",
+        "name": "邱博",
+        "department": "工程部",
+        "title": "软件工程师",
+        "email": "qiubo@helios-sim.com",
+        "phone": "18600002222",
+        "location": "杭州"
+      },
+      {
+        "contact_id": "CT-603",
+        "name": "白薇",
+        "department": "数据部",
+        "title": "数据分析师",
+        "email": "baiwei@helios-sim.com",
+        "phone": "18600003333",
+        "location": "南京"
+      },
+      {
+        "contact_id": "CT-604",
+        "name": "蒋晨",
+        "department": "产品部",
+        "title": "产品运营",
+        "email": "jiangchen@helios-sim.com",
+        "phone": "18600004444",
+        "location": "北京"
+      },
+      {
+        "contact_id": "CT-605",
+        "name": "顾然",
+        "department": "解决方案部",
+        "title": "解决方案顾问",
+        "email": "guran@helios-sim.com",
+        "phone": "18600005555",
+        "location": "深圳"
+      },
+      {
+        "contact_id": "CT-606",
+        "name": "程远",
+        "department": "财务部",
+        "title": "成本分析师",
+        "email": "chengyuan@helios-sim.com",
+        "phone": "18600006666",
+        "location": "成都"
+      },
+      {
+        "contact_id": "CT-607",
+        "name": "郑若",
+        "department": "市场部",
+        "title": "品牌经理",
+        "email": "zhengruo@helios-sim.com",
+        "phone": "18600007777",
+        "location": "广州"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_701",
+        "from": "scheduler@helios-systems.example.com",
+        "to": "me@company.com",
+        "subject": "Helios Systems 多方同步会邀请：跨团队里程碑对齐",
+        "date": "2026-03-01T10:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "你好，\n\nHelios Systems 计划安排一次多方同步会，主题为《跨团队里程碑对齐》，预计时长2小时。\n\n时间偏好：优先上午（09:00-12:00）；如果上午找不到所有人都能参加的连续2小时，则改到下午（13:30-17:30）。\n\n建议日期：2026-03-12（周四）。地点：会议室E（如需线上也可在确认邮件中说明）。\n\n请邀请以下参会人（邮件中仅提供姓名）：\n- 林澜\n- 邱博\n- 白薇\n- 蒋晨\n- 顾然\n\n请你们根据各自日历找出共同可用的最早连续2小时并确认回邮。\n\n谢谢！\nHelios Systems 团队"
+      },
+      {
+        "message_id": "msg_702",
+        "from": "updates@helios-systems.example.com",
+        "to": "me@company.com",
+        "subject": "系统通知：账户安全检查",
+        "date": "2026-03-01T15:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "尊敬的用户您好：\n\n我们将进行账户安全检查，请确认密码在可用期内。\n\n此致\nHelios Systems 支持团队"
+      },
+      {
+        "message_id": "msg_703",
+        "from": "newsletter@helios-systems.example.com",
+        "to": "me@company.com",
+        "subject": "每周通讯：里程碑进展摘要",
+        "date": "2026-03-02T09:45:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "周报已发布，请查收。\n\n- Q2关键节点更新\n- 风险与缓解措施\n- 资源调整概览"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题仅协调2人且时段较宽松；本题改为5人且日程高度碎片化，需按“上午优先、下午兜底”计算共同最早连续2小时并完成确认邮件。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 新增来自 Helios Systems 的邀请邮件，主题包含《跨团队里程碑对齐》，并写明2小时与偏好策略与5位姓名。",
+      "contacts/contacts.json 为5位参会人提供唯一邮箱，保证后续attendees可被正确组装。",
+      "calendar/events.json 为2026-03-12分别布置5人碎片化占用事件，使上午共同连续2小时不存在，而下午最早共同可用连续2小时落在15:30-17:30。"
+    ]
+  }
+}

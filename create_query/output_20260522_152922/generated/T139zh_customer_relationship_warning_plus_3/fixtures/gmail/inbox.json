@@ -1,0 +1,132 @@
+[
+  {
+    "message_id": "msg_301",
+    "from": "support@starbridge-fintech.com",
+    "to": "me@company.com",
+    "subject": "关于续约宽限期与服务不中断的担忧",
+    "date": "2026-06-03T10:20:00Z",
+    "body": "您好，我们这边付款审批还在推进中，担心如果到期后款项未能及时到账，服务会被中断。我们希望能确认在宽限期内续约并保证服务不中断，同时约定付款安排（预计在宽限期内完成）。谢谢——星桥金融科技",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_302",
+    "from": "billing@yunstack-retailcloud.com",
+    "to": "me@company.com",
+    "subject": "发票与付款时间不确定，能否继续使用？",
+    "date": "2026-06-06T07:45:00Z",
+    "body": "团队你好，我们这边发票流程比较慢，付款时间可能不完全按单次到账。请问在宽限期内是否可以先确认续约？我们希望服务继续可用，并且能按计划在宽限期内分两次付款。——云栈零售云",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_303",
+    "from": "admin@aurora-learning.cn",
+    "to": "me@company.com",
+    "subject": "续约同意：希望继续使用并按新周期执行",
+    "date": "2026-06-07T12:10:00Z",
+    "body": "您好，我们已经评估过续约条款，想继续使用贵司服务。请告知下一周期的安排，我们会在到期后按流程启动。——极光教育平台",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_304",
+    "from": "qiulan@aurora-legal.com",
+    "to": "me@company.com",
+    "subject": "内部催办：到期合同条款核对（非客户回复）",
+    "date": "2026-05-28T09:05:00Z",
+    "body": "提醒：请核对几份到期合同的条款版本，涉及宽限/付款条款的表述一致性。该邮件为内部处理，不对应任何客户来信。",
+    "labels": [
+      "inbox",
+      "内部"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_305",
+    "from": "qiulan@aurora-legal.com",
+    "to": "me@company.com",
+    "subject": "关于逾期合同升级处理建议（法务/催办）",
+    "date": "2026-06-01T16:30:00Z",
+    "body": "对已逾期超过15天但仍active的合同，建议走升级流程。无需给客户发邮件草稿，待风控确认后再推进。",
+    "labels": [
+      "inbox",
+      "内部"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_306",
+    "from": "admin@northenergy-group.com",
+    "to": "me@company.com",
+    "subject": "合同续约咨询（已超宽限）",
+    "date": "2026-05-20T11:25:00Z",
+    "body": "我们近期想了解合同续约情况，但付款进度比预期慢很多，可能需要升级处理。请先告知后续流程。",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_307",
+    "from": "finance@hefeng-manufacturing.com",
+    "to": "me@company.com",
+    "subject": "付款时间调整通知（不涉及宽限期邮件范围）",
+    "date": "2026-05-30T08:00:00Z",
+    "body": "我们申请调整付款节奏，后续会按约推进。由于涉及到期时间较早，请不要误触发暂停风险。",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_308",
+    "from": "ops@jinling-logisticscloud.com",
+    "to": "me@company.com",
+    "subject": "关于下一阶段使用安排的确认",
+    "date": "2026-06-09T15:12:00Z",
+    "body": "当前还未到期，我们想确认下一阶段使用安排是否可按计划继续。",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_309",
+    "from": "team@citrus-support.cn",
+    "to": "me@company.com",
+    "subject": "系统公告：维护时间安排",
+    "date": "2026-06-08T03:20:00Z",
+    "body": "尊敬的用户：本周系统维护安排如下……（与续约/付款无关）",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_310",
+    "from": "contact@coralhealth-it.com",
+    "to": "me@company.com",
+    "subject": "续约意向确认（非active客户）",
+    "date": "2026-06-05T18:40:00Z",
+    "body": "我们希望重新评估续约，但目前账户状态不确定（可能为非活跃）。",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  }
+]

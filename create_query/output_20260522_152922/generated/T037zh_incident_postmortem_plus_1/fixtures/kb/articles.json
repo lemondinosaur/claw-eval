@@ -1,0 +1,46 @@
+[
+  {
+    "article_id": "KB-910",
+    "title": "缓存风暴与预热任务参数错误的故障模式",
+    "category": "事故",
+    "tags": [
+      "cache-thundering",
+      "prewarm",
+      "version",
+      "postmortem"
+    ],
+    "created_at": "2025-09-18T11:20:00+08:00",
+    "content": "# 缓存风暴与预热任务参数错误的故障模式\n\n## 事件概述\n当预热/失效重建任务在高峰期触发，且cache_version参数出现错误回写（回滚到旧值），会造成：\n- 边缘无法命中缓存\n- 大量回源（穿透式回源）\n- 下游API等待增加、超时抬升\n\n## 关键结论\n1. 必须对cache_version进行“与稳定版本一致性校验”\n2. 避免全站失效重建：应采用“只更新增量键集”的策略\n3. 预热任务需具备幂等与失败回退验证（防止参数错误被放大）\n\n## 复盘提示\n若出现“回滚+预热触发”的组合，优先检查scheduler任务链路与参数来源。",
+    "last_updated": "2025-12-02T15:05:00+08:00",
+    "views": 0
+  },
+  {
+    "article_id": "KB-911",
+    "title": "增量键集预热：TODO清单与验收要点",
+    "category": "技术",
+    "tags": [
+      "incremental-prewarm",
+      "validation",
+      "TODO"
+    ],
+    "created_at": "2025-10-03T09:00:00+08:00",
+    "content": "# 增量键集预热：TODO清单与验收要点\n\n## 方案要点\n- 只更新增量键集（incremental key set），避免全量失效重建\n- 回滚路径必须二次校验（版本一致性）\n- 支持灰度与采样验证\n\n## TODO（未完成项）\n- TODO：将“增量键集预热”的验收从人工checklist升级为自动化门禁\n- TODO：当cache_version回滚时，自动阻断全站失效重建\n\n## 验收要点\n- 命中率不应在短时段内出现断崖式下跌\n- 回源流量不应超过阈值\n- 关键链路（网关、回调）延迟应保持在SLO内",
+    "last_updated": "2026-01-12T18:40:00+08:00",
+    "views": 0
+  },
+  {
+    "article_id": "KB-912",
+    "title": "CDN回源拥塞对支付回调链路的影响分析",
+    "category": "技术",
+    "tags": [
+      "cdn",
+      "origin",
+      "payment-callback",
+      "latency"
+    ],
+    "created_at": "2025-11-06T13:10:00+08:00",
+    "content": "# CDN回源拥塞对支付回调链路的影响分析\n\n## 关联机制\n当边缘无法命中缓存时，回源拥塞会导致：\n- API网关上游等待时间增加\n- 下游业务链路队列堆积\n- 支付回调路由出现延迟与超时\n\n## 观测指标\n- CDN命中率\n- 回源请求速率与错误码\n- API网关P99\n- 回调链路处理耗时分位数\n\n## 建议\n结合scheduler触发窗口与cache_version变更轨迹做因果链串联分析。",
+    "last_updated": "2025-12-20T10:05:00+08:00",
+    "views": 0
+  }
+]

@@ -1,0 +1,215 @@
+[
+  {
+    "ticket_id": "TK-2401",
+    "title": "BFL-77 违约金豁免条款升级工单",
+    "description": "合同BFL-77对应违约金豁免条款触发。客户CUS-101请求以违约金豁免合计作为等效赔付口径（待模型提取金额）。",
+    "customer_id": "CUS-101",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-02T08:45:00Z",
+    "tags": [
+      "条款触发",
+      "违约金豁免",
+      "升级拦截"
+    ]
+  },
+  {
+    "ticket_id": "TK-2402",
+    "title": "QCJ-2024 付款抵扣条款（服务费减免替代赔付）",
+    "description": "合同QCJ-2024付款抵扣条款。需要从邮件解析服务费减免等价金额并按预算阈值分流。客户CUS-102为VIP。",
+    "customer_id": "CUS-102",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-02T09:55:00Z",
+    "tags": [
+      "VIP",
+      "付款抵扣",
+      "等效赔付"
+    ]
+  },
+  {
+    "ticket_id": "TK-2403",
+    "title": "STG-12 SLA违约条款待核算",
+    "description": "合同STG-12对应SLA违约条款。邮件中金额为待确认/另行核算：应更新状态到“待核算”。客户CUS-103。",
+    "customer_id": "CUS-103",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-02T10:55:00Z",
+    "tags": [
+      "SLA违约条款",
+      "待核算候选"
+    ]
+  },
+  {
+    "ticket_id": "TK-2404",
+    "title": "WX-901 争议条款异常-条款触发（不续约）",
+    "description": "合同WX-901争议条款。邮件将出现已终止/不续约或churned触发：应通知法务并打tag“异常-条款触发”。客户CUS-109。",
+    "customer_id": "CUS-109",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-02T11:20:00Z",
+    "tags": [
+      "异常候选",
+      "争议条款"
+    ]
+  },
+  {
+    "ticket_id": "TK-2405",
+    "title": "RD-330 服务费减免/抵扣条款预算分流",
+    "description": "合同RD-330服务费减免/抵扣条款。需要提取服务费抵扣等效赔付金额并按阈值决定发送还是保存审批草稿。客户CUS-105。",
+    "customer_id": "CUS-105",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-02T12:50:00Z",
+    "tags": [
+      "服务费抵扣",
+      "预算分流"
+    ]
+  },
+  {
+    "ticket_id": "TK-2406",
+    "title": "YL-88 SLA违约条款 预算内处理通知",
+    "description": "合同YL-88SLA违约条款。提取违约金豁免合计等效金额并计算是否<=5%。客户CUS-106。",
+    "customer_id": "CUS-106",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-02T13:20:00Z",
+    "tags": [
+      "SLA违约条款",
+      "预算内候选"
+    ]
+  },
+  {
+    "ticket_id": "TK-2407",
+    "title": "CHR-55 付款抵扣条款 需上级审批草稿",
+    "description": "合同CHR-55付款抵扣条款。提取服务费抵扣等效赔付金额并判断是否>5%以保存草稿。客户CUS-107。",
+    "customer_id": "CUS-107",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-02T14:10:00Z",
+    "tags": [
+      "付款抵扣",
+      "审批候选"
+    ]
+  },
+  {
+    "ticket_id": "TK-2408",
+    "title": "HL-14 争议条款（干扰：客户编号缺失）",
+    "description": "合同HL-14争议条款。用于干扰：邮件缺失客户编号，不应更新匹配动作（摘要标注跳过）。",
+    "customer_id": "CUS-108",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-02T15:40:00Z",
+    "tags": [
+      "干扰样本",
+      "争议条款"
+    ]
+  },
+  {
+    "ticket_id": "TK-2409",
+    "title": "CEF-1 违约金豁免条款 <=5%边界",
+    "description": "合同CEF-1违约金豁免条款。用于边界：等效赔付50,000与annual_revenue=1,000,000比率=5%。客户CUS-110。",
+    "customer_id": "CUS-110",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-02T16:50:00Z",
+    "tags": [
+      "边界样本",
+      "违约金豁免",
+      "预算阈值5%"
+    ]
+  },
+  {
+    "ticket_id": "TK-2410",
+    "title": "QCJ-2024 SLA条款（同合同多条工单用于匹配干扰）",
+    "description": "合同QCJ-2024的SLA违约条款工单。与付款抵扣条款不同，用于确认匹配依据必须是合同编号+条款名称。",
+    "customer_id": "CUS-102",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-02T09:40:00Z",
+    "tags": [
+      "SLA违约条款",
+      "匹配干扰"
+    ]
+  },
+  {
+    "ticket_id": "TK-2411",
+    "title": "BFL-77 付款抵扣条款（同合同多条工单用于匹配干扰）",
+    "description": "合同BFL-77的付款抵扣条款工单。用于干扰：邮件实际是违约金豁免条款。",
+    "customer_id": "CUS-101",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-02T08:50:00Z",
+    "tags": [
+      "付款抵扣",
+      "匹配干扰"
+    ]
+  },
+  {
+    "ticket_id": "TK-2412",
+    "title": "STG-12 付款抵扣条款（同合同多条工单用于匹配干扰）",
+    "description": "合同STG-12的付款抵扣条款工单。用于干扰：邮件是SLA违约条款且为待核算。",
+    "customer_id": "CUS-103",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-02T10:20:00Z",
+    "tags": [
+      "付款抵扣",
+      "匹配干扰"
+    ]
+  },
+  {
+    "ticket_id": "TK-2413",
+    "title": "RD-330 SLA条款（同合同多条工单用于匹配干扰）",
+    "description": "合同RD-330的SLA条款工单。用于干扰：邮件实际是服务费减免/抵扣条款。",
+    "customer_id": "CUS-105",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-02T12:30:00Z",
+    "tags": [
+      "SLA违约条款",
+      "匹配干扰"
+    ]
+  },
+  {
+    "ticket_id": "TK-2414",
+    "title": "CHR-55 违约金豁免条款（同合同多条工单用于匹配干扰）",
+    "description": "合同CHR-55的违约金豁免条款工单。用于干扰：邮件实际是付款抵扣条款。",
+    "customer_id": "CUS-107",
+    "reporter": "客户服务-自动触发",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-02T14:00:00Z",
+    "tags": [
+      "违约金豁免",
+      "匹配干扰"
+    ]
+  }
+]

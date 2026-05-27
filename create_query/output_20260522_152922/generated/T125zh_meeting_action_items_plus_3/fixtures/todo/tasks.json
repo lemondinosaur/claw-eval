@@ -1,0 +1,121 @@
+[
+  {
+    "task_id": "TODO-CH-901",
+    "title": "更新热线话术脚本（v2）",
+    "description": "完成智能分配上线前热线话术脚本更新（含常见问答替换与话术结构调整）。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-10",
+    "assignee": "陈敏",
+    "tags": [
+      "客服运营",
+      "热线升级",
+      "话术"
+    ]
+  },
+  {
+    "task_id": "TODO-CH-902",
+    "title": "录制坐席应答示例音频样例",
+    "description": "录制“坐席应答示例”音频并交付样例（用于热线升级演练）。",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-12",
+    "assignee": "魏杰",
+    "tags": [
+      "客服运营",
+      "热线升级",
+      "示例"
+    ]
+  },
+  {
+    "task_id": "TODO-CH-903",
+    "title": "同步知识库FAQ（工单常见问题）",
+    "description": "将热线升级相关FAQ同步到知识库，并确保工单常见问题可检索。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-11",
+    "assignee": "杨柳",
+    "tags": [
+      "知识库",
+      "FAQ"
+    ]
+  },
+  {
+    "task_id": "TODO-CH-904",
+    "title": "制定抽检规则v1.3并组织评审",
+    "description": "制定抽检规则v1.3，包含抽检范围与触发条件，安排评审并汇总意见。",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-13",
+    "assignee": "王晨",
+    "tags": [
+      "质检",
+      "抽检规则"
+    ]
+  },
+  {
+    "task_id": "TODO-CH-906",
+    "title": "回退策略Runbook编写（含演练记录）",
+    "description": "编写热线升级相关回退策略Runbook，并完成一次演练记录归档。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-18",
+    "assignee": "郑沛",
+    "tags": [
+      "运维",
+      "回退策略"
+    ]
+  },
+  {
+    "task_id": "TODO-CH-905",
+    "title": "完成评分标准细则（争议判定）",
+    "description": "将评分标准细则落到文档：包含争议判定口径与示例，供质检打分使用。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-15",
+    "assignee": "赵航",
+    "tags": [
+      "质检",
+      "评分标准"
+    ]
+  },
+  {
+    "task_id": "TODO-CH-907",
+    "title": "培训课件更新并组织小范围演练",
+    "description": "更新培训课件并组织一次小范围演练，用于热线应答话术与质检规则宣贯。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-16",
+    "assignee": "周薇",
+    "tags": [
+      "培训",
+      "课件"
+    ]
+  },
+  {
+    "task_id": "TODO-CH-908",
+    "title": "配置关键链路监控告警（SLO）",
+    "description": "为热线升级后关键链路配置监控告警，并对齐SLO目标与通知策略。",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-17",
+    "assignee": "刘凯",
+    "tags": [
+      "运维",
+      "监控告警"
+    ]
+  },
+  {
+    "task_id": "TODO-CH-909",
+    "title": "告警阈值校准与复盘（升级前版本）",
+    "description": "对上一版本告警阈值进行校准与复盘（与本次热线升级阈值不同时间范围）。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-04-14",
+    "assignee": "孙晓",
+    "tags": [
+      "运维",
+      "告警"
+    ]
+  }
+]

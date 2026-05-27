@@ -1,0 +1,79 @@
+[
+  {
+    "event_id": "evt_501",
+    "title": "研发同步（东港）",
+    "start_time": "2026-03-30T09:00:00+08:00",
+    "end_time": "2026-03-30T11:30:00+08:00",
+    "location": "东港-会议室1",
+    "organizer": "沈工",
+    "attendees": [
+      "我",
+      "沈工"
+    ],
+    "description": "补丁发布前同步会（占用东港3/30上午窗口）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_502",
+    "title": "客户现场评审（南湾）",
+    "start_time": "2026-03-31T14:00:00+08:00",
+    "end_time": "2026-03-31T17:00:00+08:00",
+    "location": "南湾-客户楼",
+    "organizer": "周主任",
+    "attendees": [
+      "我",
+      "周主任"
+    ],
+    "description": "南湾3/31下午评审（占用南湾下午窗口）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_503",
+    "title": "供应商验收（江城-短时）",
+    "start_time": "2026-04-01T09:15:00+08:00",
+    "end_time": "2026-04-01T10:30:00+08:00",
+    "location": "江城-仓库A",
+    "organizer": "张主管",
+    "attendees": [
+      "我",
+      "张主管"
+    ],
+    "description": "只占用江城4/1早晨一部分（后续上午仍可调整）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_504",
+    "title": "自由窗口（系统维护待确认）",
+    "start_time": "2026-03-29T00:00:00+08:00",
+    "end_time": "2026-03-29T23:59:00+08:00",
+    "location": "",
+    "organizer": "",
+    "attendees": [],
+    "description": "空闲日：可用于调整顺序",
+    "status": "free"
+  },
+  {
+    "event_id": "evt_505",
+    "title": "运维例会（本地）",
+    "start_time": "2026-03-30T15:00:00+08:00",
+    "end_time": "2026-03-30T16:30:00+08:00",
+    "location": "本地-工位",
+    "organizer": "运维",
+    "attendees": [
+      "我"
+    ],
+    "description": "不影响东港3/30上午窗口的主要冲突判断",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_506",
+    "title": "自由窗口（缓冲日）",
+    "start_time": "2026-04-02T00:00:00+08:00",
+    "end_time": "2026-04-02T23:59:00+08:00",
+    "location": "",
+    "organizer": "",
+    "attendees": [],
+    "description": "空闲日：支持错峰拆分",
+    "status": "free"
+  }
+]

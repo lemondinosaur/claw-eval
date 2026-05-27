@@ -1,0 +1,892 @@
+{
+  "task_id": "T157zh_month_end_reconciliation_plus_4",
+  "task_name": "部分数据脱敏与字段缺失对账",
+  "prompt_text": "月末了，请协助完成“部分数据脱敏与字段缺失”的对账工作：\n\n1）检查调度任务是否触发了数据清洗/脱敏管道失败（并定位失败的任务与时间点）。\n2）检查集成配置中是否存在字段映射错误/降级（重点关注 customer_ref ↔ customer_id 的映射异常或替代键策略）。\n3）核对财务流水与CRM应收：当 finance 侧 customer_id 缺失时，使用可用的替代字段（如 payer_ref / billing_ref）完成跨系统配对；找出无法匹配的交易并估计金额影响（含占比或合计）。\n4）核对采购支出与库存：当 finance 侧 related_item 缺失时，用交易 description 中的SKU/物料线索做近似匹配（必须给出规则与匹配结果的证据/对应到具体库存产品）。\n5）输出对账报告：对每类“匹配失败”给出交易/产品列表、可能原因、需要补齐哪些字段、以及重跑建议。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-2401",
+        "name": "data_masking_pipeline",
+        "display_name": "数据清洗/脱敏管道",
+        "service": "data_masking",
+        "status": "degraded",
+        "last_verified": "2026-04-28T02:10:00+08:00",
+        "monthly_calls": 9800,
+        "error_rate": 7.5,
+        "notes": "脱敏管道本月末发生一次字段裁剪/截断异常：CRM邮箱/电话字段被截断，导致下游映射表无法更新。"
+      },
+      {
+        "integration_id": "INT-2402",
+        "name": "field_mapping",
+        "display_name": "字段映射（customer_ref→customer_id）",
+        "service": "mapping",
+        "status": "error",
+        "last_verified": "2026-04-28T02:40:00+08:00",
+        "monthly_calls": 5400,
+        "error_rate": 38.0,
+        "notes": "customer_ref 解析失败：当 customer_id 为空时，本应回退 payer_ref，但当前配置把 payer_ref 映射到错误的目标字段，导致匹配失败。"
+      },
+      {
+        "integration_id": "INT-2403",
+        "name": "customer_ref_resolution",
+        "display_name": "客户替代键解析（payer_ref/billing_ref）",
+        "service": "resolution",
+        "status": "active",
+        "last_verified": "2026-04-27T09:30:00+08:00",
+        "monthly_calls": 11200,
+        "error_rate": 0.6,
+        "notes": "替代键策略正常：优先使用 payer_ref；若 payer_ref 缺失则使用 billing_ref。解析规则包含去除前缀'P-'与截断后4位校验。"
+      },
+      {
+        "integration_id": "INT-2404",
+        "name": "inventory_ref_resolution",
+        "display_name": "库存物料线索匹配（SKU短码/名称近似）",
+        "service": "inventory_resolution",
+        "status": "active",
+        "last_verified": "2026-04-26T16:45:00+08:00",
+        "monthly_calls": 6200,
+        "error_rate": 1.1,
+        "notes": "采购 related_item 缺失时：从 description 提取形如'SKU:KBD-4X'或名称短码(KBD/THR/PSU)；与 inventory.short_code 或 name 关键字做相似度匹配，阈值>=0.72 则给出匹配证据。"
+      },
+      {
+        "integration_id": "INT-2405",
+        "name": "reconciliation_mapping_refresh",
+        "display_name": "映射表刷新",
+        "service": "reconciliation",
+        "status": "degraded",
+        "last_verified": "2026-04-28T03:05:00+08:00",
+        "monthly_calls": 3200,
+        "error_rate": 12.4,
+        "notes": "映射表刷新在本月末失败一次：由于脱敏管道输出字段不完整，导致 customer_ref→customer_id 的映射未刷新。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2401",
+        "name": "青岚科技有限公司",
+        "contact_person": "周明",
+        "email": "zhoum***@ql-tech.cn",
+        "phone": "13***8201",
+        "industry": "科技服务",
+        "tier": "VIP",
+        "annual_revenue": 16800000,
+        "last_contact_date": "2026-04-18",
+        "status": "active",
+        "contract_amount": 140000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 140000,
+        "alt_keys": {
+          "payer_ref_alias": "P-GLT-4821",
+          "billing_ref_alias": "BILL-GLT-2207"
+        },
+        "notes": "脱敏后邮箱/电话被截断，仅保留可用于对账的替代键 payer_ref_alias / billing_ref_alias。"
+      },
+      {
+        "customer_id": "CUS-2402",
+        "name": "星河贸易（天津）有限公司",
+        "contact_person": "蒋晴",
+        "email": "jiangq***@xh-trade.com",
+        "phone": "13***7712",
+        "industry": "贸易",
+        "tier": "standard",
+        "annual_revenue": 4200000,
+        "last_contact_date": "2026-04-10",
+        "status": "active",
+        "contract_amount": 35000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 35000,
+        "alt_keys": {
+          "payer_ref_alias": "P-XHT-7712",
+          "billing_ref_alias": "BILL-XHT-3309"
+        },
+        "notes": "customer_id 正常存在，但本月脱敏会导致部分导出字段缺失。"
+      },
+      {
+        "customer_id": "CUS-2403",
+        "name": "澄海物流集团",
+        "contact_person": "许航",
+        "email": "xuhang***@chenghai-log.cn",
+        "phone": "13***6406",
+        "industry": "物流",
+        "tier": "VIP",
+        "annual_revenue": 9800000,
+        "last_contact_date": "2026-04-22",
+        "status": "active",
+        "contract_amount": 90000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 90000,
+        "alt_keys": {
+          "payer_ref_alias": "P-CHL-6406",
+          "billing_ref_alias": "BILL-CHL-9011"
+        },
+        "notes": "部分字段脱敏导致 email/phone 无法作为匹配依据，仅能用替代键。"
+      },
+      {
+        "customer_id": "CUS-2404",
+        "name": "沃德网络科技有限公司",
+        "contact_person": "曹颖",
+        "email": "caoyin***@wd-net.cn",
+        "phone": "15***1204",
+        "industry": "网络科技",
+        "tier": "standard",
+        "annual_revenue": 2600000,
+        "last_contact_date": "2026-04-06",
+        "status": "active",
+        "contract_amount": 28000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 28000,
+        "alt_keys": {
+          "payer_ref_alias": "P-WDN-1204",
+          "billing_ref_alias": "BILL-WDN-7780"
+        },
+        "notes": "为对账代理提供 payer_ref/billing_ref 对应关系。"
+      },
+      {
+        "customer_id": "CUS-2405",
+        "name": "鹭桥电子商务有限公司",
+        "contact_person": "赵涛",
+        "email": "zhaot***@lq-ec.com",
+        "phone": "18***0903",
+        "industry": "电商",
+        "tier": "standard",
+        "annual_revenue": 1900000,
+        "last_contact_date": "2026-04-14",
+        "status": "active",
+        "contract_amount": 21000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 21000,
+        "alt_keys": {
+          "payer_ref_alias": "P-LQEC-0903",
+          "billing_ref_alias": "BILL-LQEC-4508"
+        },
+        "notes": "邮箱/电话截断，替代键可用。"
+      },
+      {
+        "customer_id": "CUS-2406",
+        "name": "北斗文化传媒有限公司",
+        "contact_person": "陈欣",
+        "email": "chenxi***@bd-media.cn",
+        "phone": "13***5549",
+        "industry": "传媒",
+        "tier": "standard",
+        "annual_revenue": 1500000,
+        "last_contact_date": "2026-04-01",
+        "status": "active",
+        "contract_amount": 16000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 16000,
+        "alt_keys": {
+          "payer_ref_alias": "P-BDMC-5549",
+          "billing_ref_alias": "BILL-BDMC-1122"
+        },
+        "notes": "替代键用于在 customer_id 丢失时完成对齐。"
+      },
+      {
+        "customer_id": "CUS-2407",
+        "name": "皓矩工业自动化有限公司",
+        "contact_person": "刘珂",
+        "email": "liuke***@haoju-auto.com",
+        "phone": "14***3008",
+        "industry": "制造业",
+        "tier": "VIP",
+        "annual_revenue": 13200000,
+        "last_contact_date": "2026-04-26",
+        "status": "active",
+        "contract_amount": 120000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 120000,
+        "alt_keys": {
+          "payer_ref_alias": "P-HJA-3008",
+          "billing_ref_alias": "BILL-HJA-6087"
+        },
+        "notes": "月末脱敏任务失败后，导出字段截断仍允许用替代键完成匹配。"
+      },
+      {
+        "customer_id": "CUS-2408",
+        "name": "云端教育科技有限公司",
+        "contact_person": "马文",
+        "email": "mawen***@yund-edu.cn",
+        "phone": "17***9055",
+        "industry": "教育科技",
+        "tier": "standard",
+        "annual_revenue": 3100000,
+        "last_contact_date": "2026-04-12",
+        "status": "active",
+        "contract_amount": 32000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 32000,
+        "alt_keys": {
+          "payer_ref_alias": "P-YDE-9055",
+          "billing_ref_alias": "BILL-YDE-2140"
+        },
+        "notes": "用于兑换替代键与finance流水的 payer_ref/billing_ref。"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-24001",
+        "date": "2026-04-02",
+        "amount": 140000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-2401",
+        "customer_name": "青岚科技有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-GLT-4821 4月订阅费",
+        "status": "completed",
+        "payer_ref": "P-GLT-4821",
+        "billing_ref": "BILL-GLT-2207"
+      },
+      {
+        "transaction_id": "TXN-24002",
+        "date": "2026-04-03",
+        "amount": 35000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-2402",
+        "customer_name": "星河贸易（天津）有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-XHT-7712 4月服务费",
+        "status": "completed",
+        "payer_ref": "P-XHT-7712",
+        "billing_ref": "BILL-XHT-3309"
+      },
+      {
+        "transaction_id": "TXN-24003",
+        "date": "2026-04-05",
+        "amount": 90000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-2403",
+        "customer_name": "澄海物流集团",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-CHL-6406 4月合同款",
+        "status": "completed",
+        "payer_ref": "P-CHL-6406",
+        "billing_ref": "BILL-CHL-9011"
+      },
+      {
+        "transaction_id": "TXN-24004",
+        "date": "2026-04-06",
+        "amount": 28000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-2404",
+        "customer_name": "沃德网络科技有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-WDN-1204 4月服务费",
+        "status": "completed",
+        "payer_ref": "P-WDN-1204",
+        "billing_ref": "BILL-WDN-7780"
+      },
+      {
+        "transaction_id": "TXN-24005",
+        "date": "2026-04-07",
+        "amount": 21000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-2405",
+        "customer_name": "鹭桥电子商务有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-LQEC-0903 4月服务费",
+        "status": "completed",
+        "payer_ref": "P-LQEC-0903",
+        "billing_ref": "BILL-LQEC-4508"
+      },
+      {
+        "transaction_id": "TXN-24006",
+        "date": "2026-04-08",
+        "amount": 16000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-2406",
+        "customer_name": "北斗文化传媒有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-BDMC-5549 4月服务费",
+        "status": "completed",
+        "payer_ref": "P-BDMC-5549",
+        "billing_ref": "BILL-BDMC-1122"
+      },
+      {
+        "transaction_id": "TXN-24007",
+        "date": "2026-04-10",
+        "amount": 120000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-2407",
+        "customer_name": "皓矩工业自动化有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-HJA-3008 4月合同款",
+        "status": "completed",
+        "payer_ref": "P-HJA-3008",
+        "billing_ref": "BILL-HJA-6087"
+      },
+      {
+        "transaction_id": "TXN-24008",
+        "date": "2026-04-11",
+        "amount": 32000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-2408",
+        "customer_name": "云端教育科技有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-YDE-9055 4月服务费",
+        "status": "completed",
+        "payer_ref": "P-YDE-9055",
+        "billing_ref": "BILL-YDE-2140"
+      },
+      {
+        "transaction_id": "TXN-24009",
+        "date": "2026-04-12",
+        "amount": -18000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "退款",
+        "category": "退款支出",
+        "description": "退款单 billing_ref BILL-CHL-9011（脱敏字段截断）",
+        "status": "completed",
+        "payer_ref": "P-CHL-6406",
+        "billing_ref": "BILL-CHL-9011",
+        "related_item": null
+      },
+      {
+        "transaction_id": "TXN-24010",
+        "date": "2026-04-13",
+        "amount": -5200.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "退款",
+        "category": "退款支出",
+        "description": "退款单 payer_ref P-WDN-1204（电话字段缺失）",
+        "status": "completed",
+        "payer_ref": "P-WDN-1204",
+        "billing_ref": "BILL-WDN-7780",
+        "related_item": null
+      },
+      {
+        "transaction_id": "TXN-24011",
+        "date": "2026-04-15",
+        "amount": 35000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-XHT-7712 4月服务费（customer_id缺失）",
+        "status": "completed",
+        "payer_ref": "P-XHT-7712",
+        "billing_ref": "BILL-XHT-3309"
+      },
+      {
+        "transaction_id": "TXN-24012",
+        "date": "2026-04-16",
+        "amount": 42000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-GLT-4821（脱敏后customer_id丢失）+ 4月补款",
+        "status": "completed",
+        "payer_ref": "P-GLT-4821",
+        "billing_ref": "BILL-GLT-2207"
+      },
+      {
+        "transaction_id": "TXN-24013",
+        "date": "2026-04-17",
+        "amount": 28000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "billing_ref BILL-WDN-7780（customer_id缺失）",
+        "status": "completed",
+        "payer_ref": "P-WDN-1204",
+        "billing_ref": "BILL-WDN-7780"
+      },
+      {
+        "transaction_id": "TXN-24014",
+        "date": "2026-04-18",
+        "amount": 21000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-LQEC-0903 4月服务费（customer_id为空）",
+        "status": "completed",
+        "payer_ref": "P-LQEC-0903",
+        "billing_ref": "BILL-LQEC-4508"
+      },
+      {
+        "transaction_id": "TXN-24015",
+        "date": "2026-04-19",
+        "amount": 16000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-BDMC-5549 4月服务费（字段缺失）",
+        "status": "completed",
+        "payer_ref": "P-BDMC-5549",
+        "billing_ref": "BILL-BDMC-1122"
+      },
+      {
+        "transaction_id": "TXN-24016",
+        "date": "2026-04-20",
+        "amount": 120000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-HJA-3008 4月合同款（customer_id缺失）",
+        "status": "completed",
+        "payer_ref": "P-HJA-3008",
+        "billing_ref": "BILL-HJA-6087"
+      },
+      {
+        "transaction_id": "TXN-24017",
+        "date": "2026-04-21",
+        "amount": 32000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-YDE-9055 4月服务费（customer_id缺失）",
+        "status": "completed",
+        "payer_ref": "P-YDE-9055",
+        "billing_ref": "BILL-YDE-2140"
+      },
+      {
+        "transaction_id": "TXN-24018",
+        "date": "2026-04-22",
+        "amount": 27500.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-XHT-7712（映射降级导致无法解析customer_ref）",
+        "status": "completed",
+        "payer_ref": "P-XHT-7712",
+        "billing_ref": "BILL-XHT-3309",
+        "mapping_error": "customer_ref_resolution_degraded"
+      },
+      {
+        "transaction_id": "TXN-24019",
+        "date": "2026-04-23",
+        "amount": 9900.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "P-UNKNOWN-9999（替代键不在CRM中）",
+        "status": "completed",
+        "payer_ref": "P-UNKNOWN-9999",
+        "billing_ref": "BILL-UNKNOWN-0000"
+      },
+      {
+        "transaction_id": "TXN-24020",
+        "date": "2026-04-24",
+        "amount": -24000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购 SKU:KBD-4X 机械键盘套件（related_item丢失）",
+        "status": "completed",
+        "payer_ref": null,
+        "billing_ref": null,
+        "related_item": null
+      },
+      {
+        "transaction_id": "TXN-24021",
+        "date": "2026-04-24",
+        "amount": -8800.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购 SKU:UPS-9G UPS电源（相关Item偶发缺失）",
+        "status": "completed",
+        "payer_ref": null,
+        "billing_ref": null,
+        "related_item": null
+      },
+      {
+        "transaction_id": "TXN-24022",
+        "date": "2026-04-25",
+        "amount": -12500.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购 SKU:THR-2X 显示器支架（customer字段被清洗）",
+        "status": "completed",
+        "payer_ref": null,
+        "billing_ref": null,
+        "related_item": null
+      },
+      {
+        "transaction_id": "TXN-24023",
+        "date": "2026-04-26",
+        "amount": -4200.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购 SKU:MOU-7B 无线鼠标（related_item缺失，靠description匹配）",
+        "status": "completed",
+        "payer_ref": null,
+        "billing_ref": null,
+        "related_item": null
+      },
+      {
+        "transaction_id": "TXN-24024",
+        "date": "2026-04-27",
+        "amount": -9900.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购 SKU:CHA-0001 打印纸（物料短码模糊，近似匹配风险）",
+        "status": "completed",
+        "payer_ref": null,
+        "billing_ref": null,
+        "related_item": null
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "ITEM-24001",
+        "name": "机械键盘 KBD-4X",
+        "category": "外设",
+        "quantity": 80,
+        "unit": "个",
+        "unit_cost": 86.00,
+        "location": "仓库C-01",
+        "short_code": "KBD-4X",
+        "last_in": "2026-04-05",
+        "last_in_qty": 80,
+        "last_out": "2026-04-20",
+        "last_out_qty": 15,
+        "supplier": "光速键盘供应链",
+        "notes": "与finance description的SKU:KBD-4X可精确匹配。"
+      },
+      {
+        "product_id": "ITEM-24002",
+        "name": "UPS不间断电源 UPS-9G",
+        "category": "IT设备",
+        "quantity": 12,
+        "unit": "台",
+        "unit_cost": 2900.00,
+        "location": "仓库C-02",
+        "short_code": "UPS-9G",
+        "last_in": "2026-04-15",
+        "last_in_qty": 12,
+        "last_out": "2026-04-24",
+        "last_out_qty": 4,
+        "supplier": "稳能电源",
+        "notes": "与SKU:UPS-9G描述一致。"
+      },
+      {
+        "product_id": "ITEM-24003",
+        "name": "显示器支架 THR-2X",
+        "category": "办公用品",
+        "quantity": 60,
+        "unit": "个",
+        "unit_cost": 210.00,
+        "location": "仓库C-03",
+        "short_code": "THR-2X",
+        "last_in": "2026-04-10",
+        "last_in_qty": 60,
+        "last_out": "2026-04-24",
+        "last_out_qty": 22,
+        "supplier": "办公立架",
+        "notes": "与SKU:THR-2X一致，可用于采购近似匹配。"
+      },
+      {
+        "product_id": "ITEM-24004",
+        "name": "无线鼠标 MOU-7B",
+        "category": "外设",
+        "quantity": 140,
+        "unit": "个",
+        "unit_cost": 28.00,
+        "location": "仓库C-04",
+        "short_code": "MOU-7B",
+        "last_in": "2026-04-13",
+        "last_in_qty": 140,
+        "last_out": "2026-04-25",
+        "last_out_qty": 30,
+        "supplier": "京北数码",
+        "notes": "SKU短码可直接匹配。"
+      },
+      {
+        "product_id": "ITEM-24005",
+        "name": "A4打印纸 CHA-0001",
+        "category": "办公用品",
+        "quantity": 250,
+        "unit": "箱",
+        "unit_cost": 24.50,
+        "location": "仓库C-05",
+        "short_code": "CHA-0001",
+        "last_in": "2026-04-01",
+        "last_in_qty": 250,
+        "last_out": "2026-04-22",
+        "last_out_qty": 80,
+        "supplier": "办公易购",
+        "notes": "finance description短码模糊但仍含CHA-0001，可给出中等置信度匹配。"
+      },
+      {
+        "product_id": "ITEM-24006",
+        "name": "墨盒 HP-88B",
+        "category": "耗材",
+        "quantity": 50,
+        "unit": "个",
+        "unit_cost": 155.00,
+        "location": "仓库C-06",
+        "short_code": "INK-88B",
+        "last_in": "2026-03-26",
+        "last_in_qty": 50,
+        "last_out": "2026-04-18",
+        "last_out_qty": 20,
+        "supplier": "惠普授权",
+        "notes": "用于提供对照：本次采购近似匹配不应误命中。"
+      },
+      {
+        "product_id": "ITEM-24007",
+        "name": "超六类网线 NET-X6-200",
+        "category": "网络设备",
+        "quantity": 120,
+        "unit": "根",
+        "unit_cost": 38.00,
+        "location": "仓库C-07",
+        "short_code": "NET-X6",
+        "last_in": "2026-04-08",
+        "last_in_qty": 120,
+        "last_out": "2026-04-17",
+        "last_out_qty": 40,
+        "supplier": "安普网络",
+        "notes": "用于避免与UPS/KBD/THR等短码混淆。"
+      },
+      {
+        "product_id": "ITEM-24008",
+        "name": "固态硬盘 SSD-512G",
+        "category": "IT设备",
+        "quantity": 18,
+        "unit": "块",
+        "unit_cost": 520.00,
+        "location": "仓库C-08",
+        "short_code": "SSD-512G",
+        "last_in": "2026-04-02",
+        "last_in_qty": 18,
+        "last_out": "2026-04-21",
+        "last_out_qty": 6,
+        "supplier": "三星直销",
+        "notes": "本月不在采购缺失相关描述中出现。"
+      },
+      {
+        "product_id": "ITEM-24009",
+        "name": "服务器硬盘 2TB HDD-2T",
+        "category": "IT设备",
+        "quantity": 14,
+        "unit": "块",
+        "unit_cost": 1850.00,
+        "location": "仓库C-09",
+        "short_code": "HDD-2T",
+        "last_in": "2026-04-09",
+        "last_in_qty": 14,
+        "last_out": "2026-04-23",
+        "last_out_qty": 5,
+        "supplier": "希捷直销",
+        "notes": "用于对照近似匹配：description若不含HDD-2T不应匹配。"
+      },
+      {
+        "product_id": "ITEM-24010",
+        "name": "显示器支架 THR-2X（备选批次）",
+        "category": "办公用品",
+        "quantity": 25,
+        "unit": "个",
+        "unit_cost": 215.00,
+        "location": "仓库C-10",
+        "short_code": "THR-2X",
+        "last_in": "2026-04-20",
+        "last_in_qty": 25,
+        "last_out": "2026-04-28",
+        "last_out_qty": 0,
+        "supplier": "办公立架",
+        "notes": "同short_code存在多个批次，代理可通过名称/短码精确归并，给出中高置信度证据。"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-2401",
+        "name": "脱敏与字段清洗（月末一次失败）",
+        "cron_expression": "15 01 * * *",
+        "action": "mask_and_clean",
+        "enabled": true,
+        "last_run": "2026-04-28T01:15:00Z",
+        "next_run": "2026-04-29T01:15:00Z",
+        "last_status": "failed",
+        "created_by": "compliance_ops",
+        "tags": [
+          "compliance",
+          "masking",
+          "month_end"
+        ],
+        "created_at": "2025-10-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-28T01:15:00Z",
+            "status": "failed",
+            "duration_s": 260,
+            "error": "PIICleanupTruncationError: CRM导出email/phone字段截断，mapping_table_update跳过（运行失败，持续约1天回滚窗口）"
+          },
+          {
+            "run_at": "2026-04-27T01:15:00Z",
+            "status": "failed",
+            "duration_s": 240,
+            "error": "FieldTruncateWarning escalated: 下游消费方无法解析customer_ref；疑似与INT-2402字段映射错误耦合"
+          },
+          {
+            "run_at": "2026-04-26T01:15:00Z",
+            "status": "success",
+            "duration_s": 145
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2402",
+        "name": "映射表刷新（应对替代键）",
+        "cron_expression": "10 02 * * *",
+        "action": "refresh_resolution_mappings",
+        "enabled": true,
+        "last_run": "2026-04-28T02:10:00Z",
+        "next_run": "2026-04-29T02:10:00Z",
+        "last_status": "failed",
+        "created_by": "data_platform",
+        "tags": [
+          "mapping",
+          "refresh"
+        ],
+        "created_at": "2025-11-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-28T02:10:00Z",
+            "status": "failed",
+            "duration_s": 65,
+            "error": "MappingRefreshFailed: customer_ref→customer_id映射未更新（字段映射INT-2402 degraded），回退payer_ref失败"
+          },
+          {
+            "run_at": "2026-04-27T02:10:00Z",
+            "status": "success",
+            "duration_s": 58
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2403",
+        "name": "每日对账（财务侧）",
+        "cron_expression": "0 06 * * *",
+        "action": "daily_reconciliation_finance",
+        "enabled": true,
+        "last_run": "2026-04-28T06:00:00Z",
+        "next_run": "2026-04-29T06:00:00Z",
+        "last_status": "success",
+        "created_by": "finance_team",
+        "tags": [
+          "finance",
+          "reconciliation",
+          "daily"
+        ],
+        "created_at": "2025-06-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-28T06:00:00Z",
+            "status": "success",
+            "duration_s": 130
+          },
+          {
+            "run_at": "2026-04-27T06:00:00Z",
+            "status": "success",
+            "duration_s": 118
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2404",
+        "name": "库存近似匹配预处理",
+        "cron_expression": "30 06 * * *",
+        "action": "inventory_approx_preprocess",
+        "enabled": true,
+        "last_run": "2026-04-28T06:30:00Z",
+        "next_run": "2026-04-29T06:30:00Z",
+        "last_status": "success",
+        "created_by": "ops_team",
+        "tags": [
+          "inventory",
+          "approx_match"
+        ],
+        "created_at": "2025-09-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-28T06:30:00Z",
+            "status": "success",
+            "duration_s": 55
+          },
+          {
+            "run_at": "2026-04-27T06:30:00Z",
+            "status": "success",
+            "duration_s": 49
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2405",
+        "name": "月末汇总报告（供审计）",
+        "cron_expression": "0 09 25-31 * *",
+        "action": "month_end_summary",
+        "enabled": true,
+        "last_run": "2026-04-27T09:00:00Z",
+        "next_run": "2026-04-28T09:00:00Z",
+        "last_status": "success",
+        "created_by": "finance_team",
+        "tags": [
+          "finance",
+          "report",
+          "monthly"
+        ],
+        "created_at": "2025-07-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-27T09:00:00Z",
+            "status": "success",
+            "duration_s": 210
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题强调“脱敏/字段缺失”引发的客户与采购匹配失败，并要求用 config 的替代键与SKU近似规则完成对账与补齐清单。",
+    "fixture_design_summary": [
+      "scheduler 注入两类失败：脱敏与清洗失败（持续约1天）+ 映射表刷新失败，支撑根因定位。",
+      "config 集成配置包含 field_mapping error 与明确的替代键回退策略（payer_ref/billing_ref）与库存近似匹配规则。",
+      "CRM customers 提供脱敏后的 email/phone（截断形态）以及用于匹配的 alt_keys：payer_ref_alias/billing_ref_alias。",
+      "finance transactions 覆盖：多笔 customer_id 为空的收入/退款交易（含 payer_ref/billing_ref），并包含多笔 related_item 为空的采购交易（description 含 SKU 短码）。",
+      "inventory items 提供对应 short_code 的产品，用于验证“相关Item缺失时基于description完成近似匹配”的规则与证据。"
+    ]
+  }
+}

@@ -1,0 +1,268 @@
+{
+  "task_id": "T039zh_onboarding_coordinator_plus_2",
+  "task_name": "分阶段入职：先发草稿后补发通知",
+  "prompt_text": "请你为“下周二”（根据系统当前日期 2026-03-05 计算出具体日期）这一天入职的3位新员工做分阶段入职协调。要求：\n\n1）读取HR入职邮件，提取每位员工的岗位/部门需求，并识别是否涉及“合规审查”与“设备缺货/触控板”。\n2）读取知识库，确定需要先“保存草稿后补发最终通知”的触发规则：当出现设备缺货或合规审查尚未完成时，先对有部门经理的部门经理保存草稿；在本次流程规则推定的条件满足后（以本任务内的规则为准，不额外发起澄清流程），补发最终通知。\n3）查通讯录获取每位员工所属部门经理邮箱；若出现“同名歧义”，需用部门匹配选择正确邮箱。\n4）检查日历：入职培训建议时段与日历中“合规例会”覆盖起点附近发生冲突时，选择无冲突的时段创建培训事件。\n5）核对IT库存：重点判断“触控板”是否缺货；如缺货，通知与总结中必须包含“缺货登记/临时备用”和预计到货信息。\n6）对每位员工：向部门经理进行分阶段通信（满足条件则最终发送，否则只保存草稿），并在本次流程中补发（根据规则推定已满足的条件）。\n7）为每位员工创建至少1条入职跟进待办：账号准备/培训/设备或合规进度；缺货与合规相关待办需更高优先级。\n8）输出一份入职安排总结：按员工逐条列出（草稿/发送状态、培训时间与是否调整、设备/合规影响与理由、待办摘要与优先级）。\n\n请严格按以上规则完成，并确保跨邮件收件人与通讯录部门匹配一致。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_611",
+        "title": "合规例会（覆盖培训建议起点）",
+        "organizer": "compliance_lead@company.com",
+        "attendees": [
+          "compliance_lead@company.com",
+          "gopan@company.com"
+        ],
+        "start_time": "2026-03-10T13:30:00+08:00",
+        "end_time": "2026-03-10T14:30:00+08:00",
+        "location": "会议室D",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_612",
+        "title": "季度安全教育",
+        "organizer": "security_ops@company.com",
+        "attendees": [
+          "security_ops@company.com",
+          "it_support@company.com"
+        ],
+        "start_time": "2026-03-10T15:00:00+08:00",
+        "end_time": "2026-03-10T16:00:00+08:00",
+        "location": "线上会议",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_613",
+        "title": "产品体验例行同步",
+        "organizer": "prod_ex@company.com",
+        "attendees": [
+          "prod_ex@company.com"
+        ],
+        "start_time": "2026-03-10T11:00:00+08:00",
+        "end_time": "2026-03-10T11:40:00+08:00",
+        "location": "会议室E",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-411",
+        "name": "周璐",
+        "department": "产品体验",
+        "title": "产品体验部经理",
+        "email": "lulu.pro@company.com",
+        "phone": "13801001111"
+      },
+      {
+        "contact_id": "CT-412",
+        "name": "赵昊",
+        "department": "支持中心",
+        "title": "支持中心经理",
+        "email": "haozhao.support@company.com",
+        "phone": "13801002222"
+      },
+      {
+        "contact_id": "CT-413",
+        "name": "韩旭",
+        "department": "支持中心",
+        "title": "一线支持经理",
+        "email": "hanxu.support@company.com",
+        "phone": "13801003333",
+        "notes": "支持中心：用于新员工韩旭对应经理邮件"
+      },
+      {
+        "contact_id": "CT-414",
+        "name": "韩旭",
+        "department": "市场增长",
+        "title": "市场增长经理",
+        "email": "hanxu.growth@company.com",
+        "phone": "13801004444",
+        "notes": "同名歧义：仅当部门=市场增长时使用该邮箱"
+      },
+      {
+        "contact_id": "CT-415",
+        "name": "许安宁",
+        "department": "工程运维",
+        "title": "工程运维经理",
+        "email": "anning.ops@company.com",
+        "phone": "13801005555"
+      },
+      {
+        "contact_id": "CT-416",
+        "name": "周宁",
+        "department": "合规与风险",
+        "title": "",
+        "email": "ning.compliance@company.com",
+        "phone": "13801006666",
+        "notes": "该部门目前通讯录未登记部门经理，仅有合规协调邮箱（不可当作“部门经理”发送最终通知）"
+      },
+      {
+        "contact_id": "CT-417",
+        "name": "顾晨",
+        "department": "人力资源部",
+        "title": "HR运营",
+        "email": "chen.hrops@company.com",
+        "phone": "13801007777"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_3101",
+        "from": "hr_ops@company.com",
+        "to": "user@company.com",
+        "subject": "下周二入职协调清单（3位分阶段沟通）",
+        "body": "你好，\n\n根据安排，下周二（3月10日）入职3位员工，请你按“分阶段：先草稿后补发”规则进行协调：\n\n1）移动端「沈澜」— 产品体验部（入职当天领用设备并参加培训）\n- 设备：MacBook + 触控板（如缺货可用临时备用，但需说明预计到货）\n- 培训：新员工入职培训建议时段从 13:30 开始\n\n2）客服「韩旭」— 支持中心（需要部门经理邮件；通讯录可能同名两条，请用部门匹配）\n- 设备：MacBook Air + 触控板\n\n3）合规岗「孟洁」— 合规与风险部（该部门没有部门经理记录，只能走草稿策略）\n- 关键：涉及“合规审查”，需等待1-2个工作日完成；审查未完成前不得发放相关权限\n\n补充说明：\n- 若触控板缺货：先登记需求并安排临时备用；最终通知要包含预计到货日期与替代方案。\n- 若涉及合规审查：等待期间只保存草稿或说明等待状态；条件满足后在同一批流程中补发最终通知。\n\n谢谢！\nHR运营",
+        "date": "2026-03-05T09:40:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_3102",
+        "from": "it_procurement@company.com",
+        "to": "user@company.com",
+        "subject": "IT库存更新：触控板短缺及临时备用方案",
+        "body": "各位好，\n\n触控板目前库存为0，已进入缺货登记队列；预计 3月12日到货。\n\n临时备用：可在缺货期间先配发“兼容触控板（型号A）”并在系统中标记为临时替代，等正式触控板到货后优先置换。\n\n其他办公设备均可用。\n\n— IT采购",
+        "date": "2026-03-05T16:10:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_3103",
+        "from": "random_mailer@vendor.com",
+        "to": "user@company.com",
+        "subject": "本周促销信息（噪声邮件）",
+        "body": "这是一封与入职无关的促销邮件，请忽略。",
+        "date": "2026-03-05T12:05:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "EQ-510",
+        "name": "触控板（正式版）",
+        "category": "外设",
+        "current_stock": 0,
+        "status": "out_of_stock",
+        "unit_price": 399.00,
+        "restock_date": "2026-03-12",
+        "notes": "缺货：已加入登记队列，预计3月12日到货"
+      },
+      {
+        "product_id": "EQ-511",
+        "name": "兼容触控板（临时备用A）",
+        "category": "外设",
+        "current_stock": 18,
+        "status": "low_stock",
+        "unit_price": 279.00,
+        "notes": "用于缺货期间临时替代，需在最终通知中说明置换计划"
+      },
+      {
+        "product_id": "EQ-512",
+        "name": "MacBook（移动端）13英寸",
+        "category": "办公电脑",
+        "current_stock": 6,
+        "status": "normal",
+        "unit_price": 10999.00,
+        "notes": ""
+      },
+      {
+        "product_id": "EQ-513",
+        "name": "MacBook Air 13英寸",
+        "category": "办公电脑",
+        "current_stock": 9,
+        "status": "normal",
+        "unit_price": 8999.00,
+        "notes": ""
+      },
+      {
+        "product_id": "EQ-514",
+        "name": "标准显示器 24英寸",
+        "category": "外设",
+        "current_stock": 22,
+        "status": "normal",
+        "unit_price": 2499.00,
+        "notes": ""
+      },
+      {
+        "product_id": "EQ-515",
+        "name": "办公桌椅套装",
+        "category": "办公家具",
+        "current_stock": 12,
+        "status": "normal",
+        "unit_price": 3599.00,
+        "notes": ""
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-811",
+        "title": "新员工入职：分阶段沟通与培训时段冲突处理",
+        "category": "HR",
+        "tags": [
+          "入职",
+          "分阶段",
+          "草稿",
+          "培训冲突"
+        ],
+        "content": "# 新员工分阶段沟通规则\n\n## 何时先草稿后补发（同一批流程中）\n当满足任一条件时：\n1）设备存在缺货（例如：触控板缺货）\n2）合规/安全审查尚未在入职当日完成（等待1-2个工作日）\n\n则对“有部门经理”的部门经理：先保存草稿（draft），内容需明确：缺货/审查等待状态、临时替代方案（若有）、预计完成/到货时间。\n\n当本任务规则推定条件满足（如本次可获得的库存预计到货日期或审查等待区间已给出）时，在同一批流程中补发最终通知（send）。\n\n## 培训建议时段\n- 培训建议时段的起点会随HR邮件给出（本次示例：从 13:30 开始）。\n- 若日历中存在与“起点附近”的覆盖时间冲突，则选择更后且无冲突的位置创建培训事件（不得提前压缩到冲突起点之前）。\n\n## 无部门经理部门\n- 若通讯录中不存在部门经理记录：只能保存草稿，不发送最终通知；草稿需说明“无部门经理记录，仅草稿协调”。",
+        "last_updated": "2026-02-27",
+        "views": 3120
+      },
+      {
+        "article_id": "KB-812",
+        "title": "IT设备申请：缺货登记、临时备用与预计到货说明模板",
+        "category": "IT",
+        "tags": [
+          "设备",
+          "缺货登记",
+          "临时备用"
+        ],
+        "content": "# IT设备申请与缺货处理\n\n## 设备缺货\n- 触控板/外设缺货时：先登记需求并标记“缺货等待”。\n- 同时可申请临时备用设备，用于保证入职当天可完成培训与基本工作。\n\n## 通知口径（必须包含）\n最终通知/草稿中需包含：\n1）正式设备缺货状态与预计到货日期\n2）临时备用设备名称与用途\n3）到货后置换/补发计划（优先置换）\n\n## 合规审查联动\n- 若岗位涉及合规审查：在草稿/最终通知中明确审查等待对权限发放的影响（例如：审查未通过前不发放相关权限）。\n- 审查等待通常为1-2个工作日。"
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-521",
+        "title": "整理资产盘点表（本周）",
+        "description": "对仓库外设数量进行核对，完成盘点表。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-03-09",
+        "tags": [
+          "资产管理"
+        ],
+        "created_at": "2026-03-02T11:20:00+08:00"
+      },
+      {
+        "task_id": "TODO-522",
+        "title": "更新培训材料版本v3",
+        "description": "同步新员工入职培训PPT与讲义，确认编号无误。",
+        "status": "in_progress",
+        "priority": "low",
+        "due_date": "2026-03-10",
+        "tags": [
+          "培训"
+        ],
+        "created_at": "2026-03-03T15:10:00+08:00"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原有入职协调基础上加入“先草稿后补发”的规则化分阶段通信，并制造了培训时段与合规例会冲突、触控板缺货联动、支持中心同名歧义与合规部门无经理等组合干扰。",
+    "fixture_design_summary": [
+      "HR邮件与库存邮件给出：触控板缺货（预计3月12日）与合规审查等待（1-2个工作日），用于推导分阶段通信触发条件。",
+      "KB文章明确：满足缺货或审查等待时先draft后send；同时规定培训起点冲突要选更后无冲突时段创建事件。",
+      "通讯录提供“韩旭”同名两条但部门不同的两邮箱，确保必须按部门匹配选择支持中心经理；另提供“合规与风险”无部门经理记录的情况。",
+      "日历在下周二13:30附近安排“合规例会”覆盖培训起点，推动代理选择更晚时间创建培训事件。",
+      "库存包含触控板正式版out_of_stock与临时备用型号A，以支撑通知内容与待办中的缺货登记/临时替代/置换说明。",
+      "todo预置2条任务作为干扰，确保新增待办数量与优先级可被验证且不依赖复杂外部状态。"
+    ]
+  }
+}

@@ -1,0 +1,220 @@
+task_id: T147zh_system_health_check_plus_3
+task_name: 支付对账与退款风控巡检
+version: '1.0'
+category: ops
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T147zh_system_health_check_plus_3/fixtures/helpdesk/tickets.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T147zh_system_health_check_plus_3/fixtures/kb/articles.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: create_query/output_20260522_152922/generated/T147zh_system_health_check_plus_3/fixtures/config/integrations.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: create_query/output_20260522_152922/generated/T147zh_system_health_check_plus_3/fixtures/scheduler/jobs.json
+prompt:
+  text: '请帮我做一次“支付对账与退款风控”系统健康巡检：
+
+
+    1）检查所有API集成配置的健康状态，重点关注支付回调、对账数据汇聚，以及风控/规则同步相关集成
+
+    2）检查定时任务的运行情况，重点关注对账汇总、风控规则同步、退款处理延迟类任务
+
+    3）查看当前未解决工单，找出与对账差异为空、验签失败告警、退款状态卡住、退款规则未生效相关的工单
+
+    4）在知识库中搜索与“签名校验失败排查”“对账任务重跑/补数策略”“退款风控规则同步恢复与验证”相关的解决方案
+
+    5）输出系统健康报告：标注故障链（至少两条，需包含“验签失败→对账汇总失败→对账差异为空”的链路，并包含“任务停用→退款规则未生效→退款相关异常”的并行链/独立因素），给出可执行修复建议（明确包含对账重跑策略、以及disabled任务恢复后的验证步骤）。
+
+
+    注意：巡检阶段不要关闭工单，只做定位与建议。'
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: scheduler_list_jobs
+  description: 列出定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(all/enabled/disabled)
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: config_list_integrations
+  description: 列出系统集成配置
+  input_schema:
+    type: object
+    properties:
+      type:
+        type: string
+        description: 按类型筛选
+      status:
+        type: string
+        description: 按状态筛选
+    required: []
+- name: config_get_integration
+  description: 获取集成配置详情
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

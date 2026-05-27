@@ -1,0 +1,69 @@
+[
+  {
+    "ticket_id": "TK-2411",
+    "title": "A站点库存错配导致发货延迟",
+    "description": "A站点热销SKU出现“可发货库存”与实际门店盘点不一致，触发发货资格检查拒绝。希望确认门店库存同步是否因认证失败未更新。",
+    "reporter": "运营支持-林柚",
+    "department": "运营支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-22T03:10:00Z",
+    "tags": [
+      "库存错配",
+      "发货延迟",
+      "A站点",
+      "可发货状态异常"
+    ],
+    "category": "库存与发货异常"
+  },
+  {
+    "ticket_id": "TK-2412",
+    "title": "B站点冷启动SKU数据为unknown",
+    "description": "B站点冷启动SKU的库存状态显示unknown，导致下游“发货资格检查”长期拒绝执行。请排查同步失败原因并重算资格。",
+    "reporter": "客户成功-周屿",
+    "department": "客户成功",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-22T02:45:00Z",
+    "tags": [
+      "B站点",
+      "库存状态unknown",
+      "发货资格检查",
+      "自动化失败"
+    ],
+    "category": "可发货状态异常"
+  },
+  {
+    "ticket_id": "TK-2413",
+    "title": "多站点同步失败影响部分订单履约",
+    "description": "客服反馈部分订单因“可发货库存更新”未完成而延迟。希望根据任务依赖链定位根因（401/404）并制定恢复步骤。",
+    "reporter": "履约运维-薛岚",
+    "department": "履约运维",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-22T04:05:00Z",
+    "tags": [
+      "部分站点",
+      "可发货库存",
+      "依赖链",
+      "401/404"
+    ],
+    "category": "发货延迟"
+  },
+  {
+    "ticket_id": "TK-2414",
+    "title": "打印机服务噪声告警（无关）",
+    "description": "办公区打印机显示缺纸告警，影响少量内部打印。与库存同步无明显关联，请确认是否需要派单给硬件团队。",
+    "reporter": "行政服务-唐芷",
+    "department": "行政服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-22T01:20:00Z",
+    "tags": [
+      "硬件",
+      "打印机",
+      "噪声"
+    ],
+    "category": "硬件打印"
+  }
+]

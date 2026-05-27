@@ -1,0 +1,112 @@
+[
+  {
+    "transaction_id": "FIN-2001",
+    "date": "2026-04-03",
+    "amount": 6200.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "云存储硬盘",
+    "description": "云存储硬盘 50块 × 124元/块",
+    "status": "completed",
+    "reference": "INV-2001"
+  },
+  {
+    "transaction_id": "FIN-2002",
+    "date": "2026-04-11",
+    "amount": 8050.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "云存储硬盘",
+    "description": "云存储硬盘 30块 × 268.333元/块",
+    "status": "completed",
+    "reference": "INV-2002"
+  },
+  {
+    "transaction_id": "FIN-2003",
+    "date": "2026-04-21",
+    "amount": 3900.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "云存储硬盘",
+    "description": "云存储硬盘 20块 × 195元/块",
+    "status": "completed",
+    "reference": "INV-2003"
+  },
+  {
+    "transaction_id": "FIN-2011",
+    "date": "2026-04-05",
+    "amount": 2400.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公椅",
+    "description": "办公椅 8把 × 300元/把",
+    "status": "completed",
+    "reference": "INV-2011"
+  },
+  {
+    "transaction_id": "FIN-2012",
+    "date": "2026-04-18",
+    "amount": -600.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公椅",
+    "description": "办公椅 冲销/调整：4把 × 150元/把（更正分配）",
+    "status": "completed",
+    "reference": "INV-2012"
+  },
+  {
+    "transaction_id": "FIN-2021",
+    "date": "2026-04-07",
+    "amount": 1730.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "路由器",
+    "description": "路由器 R1 10台 × 173元/台",
+    "status": "completed",
+    "reference": "INV-2021"
+  },
+  {
+    "transaction_id": "FIN-2031",
+    "date": "2026-04-09",
+    "amount": 9000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "投影仪",
+    "description": "投影仪 3台 × 3000元/台",
+    "status": "completed",
+    "reference": "INV-2031"
+  },
+  {
+    "transaction_id": "FIN-2041",
+    "date": "2026-04-13",
+    "amount": 750.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "鼠标键盘套装",
+    "description": "鼠标键盘套装 15套 × 50元/套",
+    "status": "completed",
+    "reference": "INV-2041"
+  },
+  {
+    "transaction_id": "FIN-2051",
+    "date": "2026-04-16",
+    "amount": 260.0,
+    "currency": "CNY",
+    "type": "服务",
+    "category": "差旅",
+    "description": "差旅报销（不计采购）",
+    "status": "completed",
+    "reference": "INV-2051"
+  },
+  {
+    "transaction_id": "FIN-2061",
+    "date": "2026-04-22",
+    "amount": 1200.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "云存储硬盘",
+    "description": "云存储硬盘 5块 × 240元/块（干扰项：不在本次库存批次范围内）",
+    "status": "completed",
+    "reference": "INV-2061"
+  }
+]

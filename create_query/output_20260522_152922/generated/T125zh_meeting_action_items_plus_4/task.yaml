@@ -1,0 +1,96 @@
+task_id: T125zh_meeting_action_items_plus_4
+task_name: 数据迁移演练行动项审阅
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T125zh_meeting_action_items_plus_4/fixtures/notes/meetings.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T125zh_meeting_action_items_plus_4/fixtures/todo/tasks.json
+prompt:
+  text: '请协助我做“生产到预发”数据回灌的数据迁移演练行动项审阅：
+
+    1）浏览所有演练会议纪要
+
+    2）提取其中的有效行动项（包含验证与回滚相关），忽略看似行动但实际上是风险/注意事项（例如没有动词或没有截止日期等）
+
+    3）查询当前待办系统中的全部待办（包含completed）
+
+    4）对比并去重：若已有待办覆盖同一验证/回滚动作，则标注对应待办ID（即使该待办状态为completed，也仍视为“已有待办”，不再重复创建）
+
+    5）输出行动项追踪表（每行包含：来源会议、行动项摘要、负责人、截止日期、匹配到的待办ID、是否已有待办）并给出需要新建的待办建议（负责人、截止日期）'
+  language: zh
+tools:
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: all
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

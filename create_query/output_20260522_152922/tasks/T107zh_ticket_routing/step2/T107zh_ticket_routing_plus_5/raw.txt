@@ -1,0 +1,303 @@
+{
+  "task_id": "T107zh_ticket_routing_plus_5",
+  "task_name": "多分类并行处置与标签编排",
+  "prompt_text": "请并行处理当前6个open工单：\n1) 通过 helpdesk_get_ticket 获取每条工单的详细描述，并通过 crm_get_customer 获取对应客户的tier与续约期窗口/合同状态信息；\n2) 对每条工单从知识库中检索并选择最贴合的主症状技术方案（若出现多症状/主次不清，需以description中的关键证据判断主症状，不要被干扰tags或冲突category误导）；\n3) 按SLA定义重算优先级，并结合VIP加速与“续约期客户加速”（合同到期前60天内）规则更新为建议priority；\n4) 给出建议的工单 category 与 tags（tags需覆盖主问题模块/错误类型/关键证据关键词，且不能原样抄回干扰tags）；\n5) 在输出报告中标注：每条工单是否需要升级、升级原因、推荐的KB文章（给出article_id/标题），以及建议的priority/category/tags。任务不要求关闭工单；如需要，可调用 helpdesk_update_ticket 落地建议priority、category、tags。\n输出为完整路由建议报告，确保每条工单字段齐全、结构一致。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-601",
+        "name": "星河云联",
+        "contact_person": "陈总",
+        "email": "chenzong@xinghecloud.cn",
+        "phone": "13960102001",
+        "industry": "云计算",
+        "tier": "vip",
+        "annual_revenue": 7600000,
+        "last_contact_date": "2026-04-10",
+        "status": "active",
+        "notes": "VIP：核心链路SLA要求极高，需优先响应与快速升级"
+      },
+      {
+        "customer_id": "CUS-602",
+        "name": "北斗零售",
+        "contact_person": "周女士",
+        "email": "zhouy@beidou-retail.com",
+        "phone": "13960102002",
+        "industry": "零售",
+        "tier": "vip",
+        "annual_revenue": 4200000,
+        "last_contact_date": "2026-04-02",
+        "status": "active",
+        "notes": "VIP：续约流程已启动，预计合同到期前集中排障窗口"
+      },
+      {
+        "customer_id": "CUS-603",
+        "name": "蓝鲸电信运营商",
+        "contact_person": "刘经理",
+        "email": "liuj@bluewhale-telecom.cn",
+        "phone": "13960102003",
+        "industry": "通信",
+        "tier": "standard",
+        "annual_revenue": 1200000,
+        "last_contact_date": "2026-03-26",
+        "status": "active",
+        "notes": "标准客户：合同到期在60天内（续约期加速适用）"
+      },
+      {
+        "customer_id": "CUS-604",
+        "name": "青橙教育平台",
+        "contact_person": "孙老师",
+        "email": "sunj@qcedu.org",
+        "phone": "13960102004",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 260000,
+        "last_contact_date": "2026-03-18",
+        "status": "active",
+        "notes": "标准客户：处于续约期前窗口（需按加速规则评估优先级）"
+      },
+      {
+        "customer_id": "CUS-605",
+        "name": "融港物流",
+        "contact_person": "高总监",
+        "email": "gaoz@ronggang-logistics.com",
+        "phone": "13960102005",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 980000,
+        "last_contact_date": "2026-02-25",
+        "status": "active",
+        "notes": "普通标准：单点功能异常，优先按SLA走常规流程"
+      },
+      {
+        "customer_id": "CUS-606",
+        "name": "珊瑚酒店集团",
+        "contact_person": "吴总",
+        "email": "wuz@coralhotels.com",
+        "phone": "13960102006",
+        "industry": "酒店",
+        "tier": "standard",
+        "annual_revenue": 510000,
+        "last_contact_date": "2026-01-30",
+        "status": "active",
+        "notes": "普通标准：非核心功能咨询转故障，需准确路由并给出主因"
+      },
+      {
+        "customer_id": "CUS-607",
+        "name": "云栈制造",
+        "contact_person": "赵工",
+        "email": "zhaog@yunstack-mfg.com",
+        "phone": "13960102007",
+        "industry": "制造",
+        "tier": "standard",
+        "annual_revenue": 340000,
+        "last_contact_date": "2026-02-12",
+        "status": "active",
+        "notes": "用于知识库场景覆盖：通常不触发VIP加速"
+      },
+      {
+        "customer_id": "CUS-608",
+        "name": "星翼媒体",
+        "contact_person": "钱编辑",
+        "email": "qianbianji@starwingmedia.cn",
+        "phone": "13960102008",
+        "industry": "媒体",
+        "tier": "vip",
+        "annual_revenue": 3000000,
+        "last_contact_date": "2026-04-16",
+        "status": "active",
+        "notes": "VIP：若涉及核心功能链路需直接升级处理"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-601",
+        "title": "导出超时且伴随UI加载慢（疑似主因非UI）",
+        "description": "【客户】星河云联（CUS-601）反馈：在“订单导出”时出现超时，浏览器控制台同时出现模块UI占位，但核心报错来自后端：\n- 日志关键字：TimeoutError: exportJob exceeded 30000ms\n- 接口路径：/api/v2/reports/export\n- 现象：导出CSV在第30秒无响应后失败，随后页面加载也变慢（疑似二次影响）\n【对抗线索】当前工单tags被错误填写为：['UI','渲染','导出']，但问题证据显示是导出任务超时。\n【当前字段】category现在写成“UI问题”，需要重新判断主症状并更新分类与tags。",
+        "customer_id": "CUS-601",
+        "reporter": "陈总",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-18T09:10:00Z",
+        "tags": [
+          "UI",
+          "渲染",
+          "导出"
+        ],
+        "category": "UI问题"
+      },
+      {
+        "ticket_id": "TK-602",
+        "title": "权限校验失败（但页面提示为导出异常）",
+        "description": "北斗零售（CUS-602）告警：导出按钮可点击但实际请求返回403。\n关键证据：\n- HTTP状态：403 Forbidden\n- 响应体：{\"code\":\"AUTH_403\",\"message\":\"scope missing\"}\n- 相关模块：导出服务调用UserScope鉴权链路\n【对抗线索】工单当前category填“导出故障”，tags却写成['导出','权限','UI']，其中UI只是伴随提示文字。\n【补充】同时出现页面弹窗：“导出失败，请重试”。但抓包显示鉴权失败是根因。",
+        "customer_id": "CUS-602",
+        "reporter": "周女士",
+        "department": "技术支持",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-18T10:25:00Z",
+        "tags": [
+          "导出",
+          "权限",
+          "UI"
+        ],
+        "category": "导出故障"
+      },
+      {
+        "ticket_id": "TK-603",
+        "title": "网关接口超时（伴随批量导入失败日志）",
+        "description": "蓝鲸电信运营商（CUS-603）在批量同步后触发接口超时。\n关键证据：\n- 错误码：GATEWAY_TIMEOUT (504)\n- 日志短语：\"upstream timed out while calling api-gateway\"\n- 同期批量导入失败：Import部分任务重试，但导入失败是由于上游超时导致\n【对抗线索】当前tags写反为['接口','导出','UI异常']（把导入失败误当成导出/ UI问题）。\n【当前字段】category当前填“使用咨询”，与实际接口超时不符，需要基于GATEWAY_TIMEOUT重新路由。",
+        "customer_id": "CUS-603",
+        "reporter": "刘经理",
+        "department": "技术支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-18T11:40:00Z",
+        "tags": [
+          "接口",
+          "导出",
+          "UI异常"
+        ],
+        "category": "使用咨询"
+      },
+      {
+        "ticket_id": "TK-604",
+        "title": "数据同步延迟与权限校验并发：主症状疑为延迟恢复",
+        "description": "青橙教育平台（CUS-604）反馈：课程资料在教师端展示滞后。\n关键证据：\n- 同步延迟：约45分钟（系统页面显示lag指标持续上升）\n- 日志短语：Kafka consumer lag exceeded threshold\n- 同时请求出现部分“401 Unauthorized”，但该401来自后续补偿调用（依赖同步数据尚未就绪）\n【对抗线索】当前category写“权限校验”，tags写['数据同步','权限','导出超时']，其中导出超时只是零星任务失败。\n需要判断主症状为数据同步延迟，并给出正确category/tags与KB。",
+        "customer_id": "CUS-604",
+        "reporter": "孙老师",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-18T12:55:00Z",
+        "tags": [
+          "数据同步",
+          "权限",
+          "导出超时"
+        ],
+        "category": "权限校验"
+      },
+      {
+        "ticket_id": "TK-605",
+        "title": "报表导出与UI渲染卡顿：导出成功但生成耗时过长",
+        "description": "融港物流（CUS-605）提出异常：报表导出流程耗时，虽然最终会生成文件，但平均需要18分钟。\n关键证据：\n- 接口：/api/v2/reports/export?format=xlsx\n- 生成队列时间：job_queue_delay ~ 1100000ms\n- 前端渲染仅表现为等待态（非真正UI错误）\n【对抗线索】当前tags=['UI','渲染','性能']，category='UI问题'，但主症状是导出耗时/队列积压。\n请按主证据更新category与tags，并重算priority。",
+        "customer_id": "CUS-605",
+        "reporter": "高总监",
+        "department": "技术支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-18T14:10:00Z",
+        "tags": [
+          "UI",
+          "渲染",
+          "性能"
+        ],
+        "category": "UI问题"
+      },
+      {
+        "ticket_id": "TK-606",
+        "title": "UI接口联动报错：权限校验失败导致页面无法加载",
+        "description": "珊瑚酒店集团（CUS-606）页面无法打开“订单看板”。\n关键证据：\n- 浏览器错误：Failed to fetch /api/v2/ui/dashboard\n- 响应：401 Unauthorized\n- 错误码：AUTH_SCOPE_DENIED\n- 影响范围：仅看板模块不可用，其它页面可正常。\n【对抗线索】工单tags目前写为['接口超时','导出','UI']，category='性能问题'，与实际401鉴权失败矛盾。\n需要基于401/AUTH_SCOPE_DENIED判断主症状并选择KB方案。",
+        "customer_id": "CUS-606",
+        "reporter": "吴总",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-18T15:25:00Z",
+        "tags": [
+          "接口超时",
+          "导出",
+          "UI"
+        ],
+        "category": "性能问题"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-601",
+        "title": "导出任务超时与队列积压排查（含主症状判定）",
+        "category": "技术文档",
+        "tags": [
+          "导出",
+          "超时",
+          "导出任务",
+          "队列积压",
+          "TimeoutError"
+        ],
+        "content": "## 导出任务超时与队列积压排查\n\n### 典型现象\n- 导出接口返回失败：TimeoutError / 生成超时\n- 日志出现 exportJob exceeded 或 job_queue_delay 持续升高\n\n### 排查要点\n1. 检查导出任务执行耗时：定位生成阶段/依赖资源\n2. 检查队列延迟：job_queue_delay 是否显著大于正常值\n3. 若接口有明显超时阈值，建议临时提高网关/应用超时\n\n### 升级条件（建议）\n- 如果导出失败导致核心业务中断：优先升级至P1\n- VIP客户的导出超时：优先升级（并同步升级技术负责人）",
+        "last_updated": "2026-04-01",
+        "views": 311
+      },
+      {
+        "article_id": "KB-602",
+        "title": "权限校验失败（401/403）主因识别与解决路径",
+        "category": "技术文档",
+        "tags": [
+          "权限校验",
+          "鉴权",
+          "401",
+          "403",
+          "scope"
+        ],
+        "content": "## 权限校验失败（401/403）主因识别与解决路径\n\n### 关键证据\n- 401 Unauthorized / 错误码 AUTH_SCOPE_DENIED\n- 403 Forbidden / 错误码 AUTH_403（scope missing）\n\n### 排查路径\n1. 确认token scope/role映射是否存在\n2. 检查该接口/模块的访问控制列表 ACL\n3. 对导出/看板等受限模块：核对权限模板与用户组绑定\n\n### 升级条件（建议）\n- 付费/关键客户出现401/403导致核心页面或关键能力不可用：升级至P1\n- VIP客户鉴权失败：直接按P1升级并通知相关负责人",
+        "last_updated": "2026-03-20",
+        "views": 527
+      },
+      {
+        "article_id": "KB-603",
+        "title": "API网关超时（504/GATEWAY_TIMEOUT）与下游依赖定位",
+        "category": "技术文档",
+        "tags": [
+          "接口超时",
+          "504",
+          "网关",
+          "GATEWAY_TIMEOUT",
+          "上游超时"
+        ],
+        "content": "## API网关超时（504/GATEWAY_TIMEOUT）与下游依赖定位\n\n### 典型证据\n- HTTP 504\n- 日志：upstream timed out while calling api-gateway\n- 错误码：GATEWAY_TIMEOUT\n\n### 排查步骤\n1. 查看网关超时配置与链路耗时分解\n2. 定位上游依赖（下游服务是否慢、是否超出超时阈值）\n3. 若出现重试风暴：限制重试次数并检查连接池与线程池\n\n### 升级条件（建议）\n- 如果影响核心API链路：升级至P1\n- VIP或续约期客户出现504并影响多个请求：升级至P1并启动加速处置",
+        "last_updated": "2026-03-28",
+        "views": 842
+      },
+      {
+        "article_id": "KB-604",
+        "title": "数据同步延迟（Kafka consumer lag）恢复与补偿机制",
+        "category": "技术文档",
+        "tags": [
+          "数据同步",
+          "延迟",
+          "Kafka",
+          "consumer lag",
+          "恢复"
+        ],
+        "content": "## 数据同步延迟（Kafka consumer lag）恢复与补偿机制\n\n### 关键证据\n- Kafka consumer lag exceeded threshold\n- 同步lag持续上升（例如45分钟以上）\n\n### 排查与恢复\n1. 检查consumer group积压与分区分布\n2. 重启/扩容同步worker，观察lag是否回落\n3. 若出现数据未就绪导致的后续401/业务失败：以同步恢复为主线处理\n\n### 升级条件（建议）\n- VIP客户数据同步延迟超过30分钟：升级至P1\n- 续约期客户（合同到期前60天内）且延迟影响关键业务：升级至P1",
+        "last_updated": "2026-04-05",
+        "views": 639
+      },
+      {
+        "article_id": "KB-605",
+        "title": "工单分流标签（主症状驱动）与category/tags编排规则",
+        "category": "流程规范",
+        "tags": [
+          "工单分流",
+          "标签编排",
+          "主症状",
+          "category",
+          "tags"
+        ],
+        "content": "## 工单分流标签（主症状驱动）与category/tags编排规则\n\n### 主症状判定\n- 以description中“根因证据”作为主症状：HTTP状态码/错误码/关键日志短语\n- 对“伴随/二次影响”不作为主症状：例如页面等待态、后续补偿调用失败\n\n### 建议标签模板\n- 导出-超时：['导出','超时','exportJob']\n- 权限-校验失败：['权限','鉴权','401/403','scope']\n- 接口-网关超时：['接口','网关','504','GATEWAY_TIMEOUT']\n- 同步-延迟恢复：['数据同步','延迟','Kafka','consumer lag']\n\n### 升级触发提示\n- VIP自动加速一级\n- 续约期前60天内自动加速一级\n\n### 注意\n- 不要将冲突/对抗tags直接复制到最终tags；category需与主症状一致",
+        "last_updated": "2026-04-12",
+        "views": 198
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原有优先级与升级建议基础上，新增“category/tags编排”并强化多症状主次判断，加入对抗性错误tags与category矛盾，工单数量扩展为6条。",
+    "fixture_design_summary": [
+      "helpdesk/tickets.json 新增6条全新工单，覆盖导出超时、权限校验(401/403)、网关504、数据同步Kafka延迟等多模块；至少4条包含tags与category与description关键证据冲突的对抗场景。",
+      "crm/customers.json 新增8个全新客户，其中包含2个VIP、2个续约期standard（notes提示在60天内），其余为普通standard，用于驱动VIP/续约期加速重算priority与升级原因。",
+      "kb/articles.json 提供与主症状强匹配的KB文章（导出超时、权限校验、网关超时、数据同步延迟），并额外提供工单标签编排规范文章KB-605以支持正确的主症状驱动标签输出。",
+      "跨fixture保持一致的实体引用：tickets 中的 customer_id 对应 customers.json 中存在的 CUS-601~CUS-606；KB article_id 为全新且在KB-articles中可检索到。"
+    ]
+  }
+}

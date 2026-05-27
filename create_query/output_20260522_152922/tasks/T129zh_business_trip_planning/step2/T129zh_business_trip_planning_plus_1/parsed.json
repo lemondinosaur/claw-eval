@@ -1,0 +1,231 @@
+{
+  "task_id": "T129zh_business_trip_planning_plus_1",
+  "task_name": "双城路演排期",
+  "prompt_text": "收件箱中可能有多封与路演/拜访相关的邀请邮件。请你规划一次“双城路演/拜访”出差：\n1）在收件箱中识别出所有关键出差邀请（忽略与出差无关的干扰邮件）；本任务通常会有两地关键邀请（城市不同、活动类型不同）。\n2）根据两封关键邀请邮件中明确的日期范围与时间段，查询对应日期的日历事件；把“confirmed”视为硬冲突，把“待定”视为风险但不要当作必然硬冲突。\n3）对每个城市分别检索当地同事/对接联系人（检索与该城市匹配的联系人并补全关键信息）。\n4）输出建议方案：\n   - 冲突结论：哪些行程不能同一天参加需要取舍（硬冲突来自 confirmed）；\n   - 风险提示：哪些与待定事件可能相关需要注意；\n   - 推荐行程顺序：到达/离开顺序应与冲突分析一致，并说明取舍理由（优先级/时间段）；\n   - 各城市联系人清单：至少列出每个城市2名联系人（姓名、职务/部门与联系方式或邮箱/电话）。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_501",
+        "title": "产品路演-城市A评审会（已确认）",
+        "start_time": "2026-04-03T09:30:00+08:00",
+        "end_time": "2026-04-03T12:00:00+08:00",
+        "location": "城市A-会场1/三层",
+        "organizer": "张怡",
+        "attendees": [
+          "我",
+          "张怡",
+          "项目团队"
+        ],
+        "description": "面向城市A客户的产品路演评审，需现场出席。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_502",
+        "title": "客户高层电话会（已确认）",
+        "start_time": "2026-04-03T14:00:00+08:00",
+        "end_time": "2026-04-03T15:00:00+08:00",
+        "location": "线上/会议室B（远程接入）",
+        "organizer": "沈浩",
+        "attendees": [
+          "我",
+          "沈浩",
+          "法务代表"
+        ],
+        "description": "客户高层拜访前的要点同步电话会。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_503",
+        "title": "中午对接午餐会（待定）",
+        "start_time": "2026-04-03T12:15:00+08:00",
+        "end_time": "2026-04-03T13:00:00+08:00",
+        "location": "城市A-酒店餐厅",
+        "organizer": "陈昊",
+        "attendees": [
+          "我",
+          "陈昊"
+        ],
+        "description": "与城市A渠道方的午间对接安排（待定）。",
+        "status": "tentative"
+      },
+      {
+        "event_id": "evt_504",
+        "title": "城市B路演准备例会（已确认）",
+        "start_time": "2026-04-04T10:00:00+08:00",
+        "end_time": "2026-04-04T11:00:00+08:00",
+        "location": "城市B-楼宇C/5F-会议室",
+        "organizer": "周宁",
+        "attendees": [
+          "我",
+          "周宁"
+        ],
+        "description": "城市B路演资料与话术对齐。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_505",
+        "title": "自由窗口（干扰/空闲）",
+        "start_time": "2026-04-03T18:00:00+08:00",
+        "end_time": "2026-04-03T19:30:00+08:00",
+        "location": "",
+        "organizer": "",
+        "attendees": [],
+        "description": "空闲窗口，用于安排晚间交通/简餐。",
+        "status": "free"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-601",
+        "name": "陈若曦",
+        "department": "城市A-战略客户部",
+        "title": "渠道对接经理",
+        "email": "chen.ruoxi@company-a.cn",
+        "phone": "15600102001",
+        "location": "城市A",
+        "notes": "负责城市A路演对接与现场联络"
+      },
+      {
+        "contact_id": "CT-602",
+        "name": "马子腾",
+        "department": "城市A-解决方案团队",
+        "title": "解决方案顾问",
+        "email": "ma.zteng@company-a.cn",
+        "phone": "15600102002",
+        "location": "城市A",
+        "notes": "提供路演技术要点与演示环境支持"
+      },
+      {
+        "contact_id": "CT-603",
+        "name": "许静怡",
+        "department": "城市A-客户运营部",
+        "title": "客户运营负责人",
+        "email": "xu.jingyi@company-a.cn",
+        "phone": "15600102003",
+        "location": "城市A",
+        "notes": "协调会前材料与到场签到流程"
+      },
+      {
+        "contact_id": "CT-604",
+        "name": "林景浩",
+        "department": "城市B-企业客户部",
+        "title": "企业客户经理",
+        "email": "lin.jinghao@company-b.cn",
+        "phone": "15700203001",
+        "location": "城市B",
+        "notes": "负责城市B客户拜访排期与会务沟通"
+      },
+      {
+        "contact_id": "CT-605",
+        "name": "高思琪",
+        "department": "城市B-产品与交付",
+        "title": "交付负责人",
+        "email": "gao.siqi@company-b.cn",
+        "phone": "15700203002",
+        "location": "城市B",
+        "notes": "对接路演现场交付与答疑资源"
+      },
+      {
+        "contact_id": "CT-606",
+        "name": "周子航",
+        "department": "城市B-销售支持",
+        "title": "销售运营专员",
+        "email": "zhou.zihang@company-b.cn",
+        "phone": "15700203003",
+        "location": "城市B",
+        "notes": "协助会后跟进与资料归档"
+      },
+      {
+        "contact_id": "CT-607",
+        "name": "赵雨辰",
+        "department": "其他城市-客户部",
+        "title": "客户经理（干扰联系人）",
+        "email": "zhao.yuchen@company-other.cn",
+        "phone": "15800304001",
+        "location": "其他城市",
+        "notes": "与城市A/B无直接匹配"
+      },
+      {
+        "contact_id": "CT-608",
+        "name": "刘佳宁",
+        "department": "其他城市-技术团队",
+        "title": "技术支持（干扰联系人）",
+        "email": "liu.jianing@company-other.cn",
+        "phone": "15800304002",
+        "location": "其他城市",
+        "notes": "与城市A/B无直接匹配"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_901",
+        "from": "ruoxi.chen@a-channel.com",
+        "to": "me@company.com",
+        "subject": "城市A 产品路演邀请（4/3-4/3）对接人Ruoxi",
+        "date": "2026-03-24T11:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "您好！我们诚邀您参加城市A的“产品路演”交流。\n日期与范围：2026年4月3日（周五）上午 09:30-12:00。\n地点：城市A-会场1（三层）。\n对接人：陈若曦（chen.ruoxi@company-a.cn）。\n如需调整，请尽快回复确认。"
+      },
+      {
+        "message_id": "msg_902",
+        "from": "lin.jinghao@b-enterprise.com",
+        "to": "me@company.com",
+        "subject": "城市B 客户高层拜访&路演（单日 4/4）",
+        "date": "2026-03-24T15:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "团队您好！我们计划安排城市B的客户高层拜访与“路演问答”环节。\n日期：2026年4月4日（周六）10:00-11:00。\n预计流程：到达城市B后先进行路演问答，再同步后续合作要点。\n对接线索：林景浩（lin.jinghao@company-b.cn）。\n请您确认参会与到达时间。"
+      },
+      {
+        "message_id": "msg_903",
+        "from": "learning-team@company.com",
+        "to": "me@company.com",
+        "subject": "内部学习活动通知：敏捷实践（时间临近但非出差）",
+        "date": "2026-03-25T09:20:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "通知：本周将举办内部学习活动“敏捷实践”。\n时间：4月3日 10:30-11:30（仅培训，不涉及出差）。\n地点：本地会议室B。\n请根据安排自行选择是否参加。"
+      },
+      {
+        "message_id": "msg_904",
+        "from": "care@partner-mail.com",
+        "to": "me@company.com",
+        "subject": "问候：欢迎你参加我们的交流会",
+        "date": "2026-03-24T18:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "你好，最近是否方便？我们期待与您保持沟通。"
+      },
+      {
+        "message_id": "msg_905",
+        "from": "ops@event-house.com",
+        "to": "me@company.com",
+        "subject": "路演材料快递提醒（不含日期/不构成邀请）",
+        "date": "2026-03-25T08:35:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "路演材料已安排寄出，请留意签收。此邮件仅为物流提醒。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "两封关键邀请分别命中城市A的路演上午时段与城市B的路演单日时段，同时在城市A邀请日中午加入待定事件需风险提示，而不再是三方同日硬冲突取舍。",
+    "fixture_design_summary": [
+      "gmail：5封邮件，其中2封关键出差邀请（城市A产品路演4/3，城市B路演问答4/4），其余为学习通知/问候/材料提醒干扰。",
+      "calendar：在4/3设置一条confirmed上午评审会与一条confirmed下午电话会，并在4/3中午附近加入tentative待定午餐会；同时加入4/4一条confirmed城市B准备例会与一条free空闲干扰。",
+      "contacts：城市A提供3名联系人、城市B提供3名联系人，并额外加入2名其他城市干扰联系人；城市归属与邮箱信息保证可检索到正确分组。"
+    ]
+  }
+}

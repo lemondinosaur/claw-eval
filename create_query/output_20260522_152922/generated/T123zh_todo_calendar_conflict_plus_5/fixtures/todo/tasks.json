@@ -1,0 +1,108 @@
+[
+  {
+    "task_id": "TD-8101",
+    "title": "撰写事故复盘初稿（3小时）",
+    "description": "完成事故复盘初稿，需连续投入3小时",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-02-21",
+    "assignee": "我",
+    "tags": [
+      "事故复盘"
+    ],
+    "estimated_hours": 3
+  },
+  {
+    "task_id": "TD-8102",
+    "title": "提交改版需求（2小时）",
+    "description": "整理并提交改版需求说明，预计2小时产出",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-02-22",
+    "assignee": "我",
+    "tags": [
+      "改版",
+      "需求"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TD-8103",
+    "title": "完成演练后续工单（2小时）",
+    "description": "根据演练结果完成后续工单的关键修复与闭环，2小时",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-02-23",
+    "assignee": "我",
+    "tags": [
+      "演练",
+      "工单"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TD-8104",
+    "title": "整理会议材料备份（1小时）",
+    "description": "将相关材料备份并归档到共享盘",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-02-21",
+    "assignee": "我",
+    "tags": [
+      "归档"
+    ],
+    "estimated_hours": 1
+  },
+  {
+    "task_id": "TD-8105",
+    "title": "排查日志异常并写结论（1小时）",
+    "description": "对异常日志进行快速排查并形成结论要点",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-02-22",
+    "assignee": "我",
+    "tags": [
+      "排查"
+    ],
+    "estimated_hours": 1
+  },
+  {
+    "task_id": "TD-8106",
+    "title": "邮件沟通：同步风险点（0.5小时）",
+    "description": "给相关方发送风险点同步邮件并收集反馈",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-02-21",
+    "assignee": "我",
+    "tags": [
+      "邮件"
+    ],
+    "estimated_hours": 0.5
+  },
+  {
+    "task_id": "TD-8107",
+    "title": "完成版本回归清单（1.5小时，干扰）",
+    "description": "更新并核对回归清单，属于低优先级但需处理",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-02-23",
+    "assignee": "我",
+    "tags": [
+      "回归"
+    ],
+    "estimated_hours": 1.5
+  },
+  {
+    "task_id": "TD-8110",
+    "title": "已完成：周报汇总（干扰项）",
+    "description": "已于昨天完成周报汇总与发布",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-02-22",
+    "assignee": "我",
+    "tags": [
+      "周报"
+    ],
+    "estimated_hours": 1
+  }
+]

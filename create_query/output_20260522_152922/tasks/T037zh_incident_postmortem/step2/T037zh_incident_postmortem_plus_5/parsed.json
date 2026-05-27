@@ -1,0 +1,425 @@
+{
+  "task_id": "T037zh_incident_postmortem_plus_5",
+  "task_name": "批处理风控延迟+分区错配复盘",
+  "prompt_text": "请为“昨晚生产故障”撰写事故复盘分析报告，要求只做只读分析与根因推断，不要修改、关闭、通知或更新任何内容。报告需包含：\n1）用工单构建事件时间线（按发生顺序），覆盖风控批处理延迟→结果回填延迟→实时链路超时→连锁告警/降级→恢复与清理；\n2）检查第三方集成与关键状态，确认是否存在部分恢复或持续异常（尤其关注 fraud_scoring_provider degraded）；\n3）从邮件中找出批处理延迟、分区路由或任务积压的技术线索（至少引用一次“错误分区批次导致结果回填延迟”的直接表述）；\n4）用知识库搜索类似事故并引用其中的改进点（需包含“分区路由错配导致批处理积压”相关内容以及文中 TODO/待改进项）；\n5）结合会议记录判断近期变更是否触发了分区/路由配置问题（例如分区映射表更新上线但跳过回填时效验证脚本）；\n6）检查定时任务的触发与执行历史，找出异常触发或失败重试（重点是批处理任务在故障窗口运行成功率下降、持续高耗时或反复重试）。\n\n输出结构建议：概览→跨系统时间线→证据核对（工单/集成/邮件/知识库/会议/调度）→根因推断（分区/路由错配链路）→影响评估→过程缺口→改进建议（至少3项，覆盖映射校验、回填时效/SLA监控、幂等与重试、依赖降级等概念）。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-511",
+        "name": "fraud_scoring_provider",
+        "display_name": "风控评分第三方",
+        "status": "degraded",
+        "error_rate": 37.5,
+        "notes": "degraded：接收了错误分区批次，导致评分结果回填延迟；部分批次在2小时后才到达回填通道，触发下游等待超时。故障期间曾出现短暂恢复，但回填时效未达标。",
+        "service": "risk",
+        "last_verified": "2026-04-29T09:10:00+08:00",
+        "monthly_calls": 128000
+      },
+      {
+        "integration_id": "INT-512",
+        "name": "batch_result_cache",
+        "display_name": "批处理结果缓存",
+        "status": "active",
+        "error_rate": 0.2,
+        "notes": "active：缓存命中率在故障窗口下降（约从92%降至71%），与分区路由错配造成的回填延迟一致。未见缓存服务本身崩溃。",
+        "service": "risk",
+        "last_verified": "2026-04-29T09:10:00+08:00",
+        "monthly_calls": 56000
+      },
+      {
+        "integration_id": "INT-513",
+        "name": "queue_dispatcher",
+        "display_name": "任务队列派发器",
+        "status": "active",
+        "error_rate": 0.6,
+        "notes": "active：派发链路存在排队增长（队列深度持续上升），但未出现持续失败；异常主要来自批处理结果回填不及时。",
+        "service": "async",
+        "last_verified": "2026-04-29T09:10:00+08:00",
+        "monthly_calls": 220000
+      },
+      {
+        "integration_id": "INT-514",
+        "name": "risk_realtime_api",
+        "display_name": "实时风控API",
+        "status": "degraded",
+        "error_rate": 18.1,
+        "notes": "degraded：实时链路等待批处理输出（fraud_batch_recompute结果）期间发生超时；当第三方回填延迟改善时，该指标在恢复后逐步回落，但仍未完全恢复到基线。",
+        "service": "risk",
+        "last_verified": "2026-04-29T09:10:00+08:00",
+        "monthly_calls": 98000
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_4311",
+        "from": "oncall-dba@company.com",
+        "to": "incidents@company.com",
+        "subject": "关键线索：风控批处理分区键映射读取错误（回填延迟）",
+        "body": "各位好，\n\n我们在故障窗口排查到：定时批处理任务读取了错误的分区键映射表，导致大量数据按“低优先级队列”路径处理。\n\n直接证据：\n- 批处理作业 fraud_batch_recompute 在 01:10-01:55 期间产出批次 A 的期望结果，但回填通道收到的批次标识为 B（分区错配）\n- 第三方 fraud_scoring_provider 端反馈：接收了错误分区批次，导致结果回填延迟\n- 回填延迟叠加实时依赖等待，导致实时链路超时并触发连锁告警\n\n建议复盘重点：\n1) 上线后分区映射校验脚本是否被跳过\n2) 回填时效 SLA 是否被监控到并触发降级/熔断\n\nDBA 小赵",
+        "date": "2026-04-28T03:12:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_4312",
+        "from": "release-manager@company.com",
+        "to": "incidents@company.com",
+        "subject": "关于分区映射表变更：上线后未跑校验脚本",
+        "body": "大家好，\n\n关于昨晚分区映射表更新的发布说明：\n- 变更目标：调整分区路由以提升批处理吞吐\n- 实际执行：上线时跳过了“发布后校验分区映射与回填时效”的验证脚本（当时值班优先级更高，未纳入上线检查单）\n\n因此更可能出现：\n- 映射表生效后，部分批次落入错误队列/低优先级路径\n- 回填时效无法及时被发现，进而影响实时等待依赖\n\n值班负责人",
+        "date": "2026-04-29T10:02:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_4313",
+        "from": "sre-ops@company.com",
+        "to": "incidents@company.com",
+        "subject": "实时链路超时与批处理回填延迟的相关性",
+        "body": "补充一条相关性观察：\n\n在 01:20 左右，实时风控 API 开始超时，随后告警从“等待批处理输出”扩散到“依赖降级/链路错误率上升”。\n\n与我们从第三方和缓存侧看到的回填延迟时间窗重叠。\n\n请在复盘中把：批处理延迟→回填延迟→实时超时→告警/降级，串成统一时间线。\n\nSRE",
+        "date": "2026-04-28T03:35:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": true
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2401",
+        "title": "风控离线批处理延迟：fraud_batch_recompute 超时",
+        "reporter": "监控系统",
+        "created_at": "2026-04-28T01:00:00+08:00",
+        "priority": "critical",
+        "status": "investigating",
+        "description": "fraud_batch_recompute 预计 00:45 完成并回填，但在 01:00 仍未达到目标完成时间；队列等待时间从5分钟升至38分钟。下游实时依赖开始积压等待。",
+        "tags": [
+          "risk",
+          "batch",
+          "latency"
+        ],
+        "assignee": "风控运维值班",
+        "department": "SRE"
+      },
+      {
+        "ticket_id": "TK-2402",
+        "title": "第三方评分回填延迟：部分批次在2小时后到达",
+        "reporter": "风控平台",
+        "created_at": "2026-04-28T01:18:00+08:00",
+        "priority": "critical",
+        "status": "investigating",
+        "description": "fraud_scoring_provider 反馈 degraded：回填通道延迟明显，部分批次从预期T+30min 延后到 T+2h。影响订单复核结果更新节奏。",
+        "tags": [
+          "integration",
+          "refill",
+          "degraded"
+        ],
+        "assignee": "平台对接同学",
+        "department": "Risk"
+      },
+      {
+        "ticket_id": "TK-2403",
+        "title": "实时风控 API 等待批处理输出超时",
+        "reporter": "监控系统",
+        "created_at": "2026-04-28T01:26:00+08:00",
+        "priority": "critical",
+        "status": "investigating",
+        "description": "实时风控接口开始超时（>5s），错误原因包含等待批处理结果。告警从“超时”扩展到“依赖降级”与“链路错误率上升”。",
+        "tags": [
+          "realtime",
+          "timeout",
+          "cascading-alerts"
+        ],
+        "assignee": "风控SRE",
+        "department": "SRE"
+      },
+      {
+        "ticket_id": "TK-2404",
+        "title": "订单被标记为“待复核”并延迟放行",
+        "reporter": "电商订单服务",
+        "created_at": "2026-04-28T01:35:00+08:00",
+        "priority": "high",
+        "status": "open",
+        "description": "故障窗口内大量订单状态停留在“待复核”，延迟放行；预计影响约 1.2k~1.8k 单，需人工复核或等待回填结果写入。",
+        "tags": [
+          "orders",
+          "pending-review",
+          "delay"
+        ],
+        "assignee": "订单值班",
+        "department": "Order"
+      },
+      {
+        "ticket_id": "TK-2405",
+        "title": "连锁告警与降级策略触发（实时依赖被限流）",
+        "reporter": "值班SRE",
+        "created_at": "2026-04-28T01:48:00+08:00",
+        "priority": "high",
+        "status": "resolved",
+        "description": "由于批处理结果回填迟导致实时链路超时，触发依赖降级与限流策略；告警从“timeout”切换为“degraded”与“fallback执行”。",
+        "tags": [
+          "degrade",
+          "rate-limit",
+          "alerts"
+        ],
+        "assignee": "风控SRE",
+        "department": "SRE"
+      },
+      {
+        "ticket_id": "TK-2406",
+        "title": "部分恢复：回填延迟改善但优先级队列仍积压",
+        "reporter": "风控平台",
+        "created_at": "2026-04-28T02:20:00+08:00",
+        "priority": "medium",
+        "status": "resolved",
+        "description": "看到回填延迟从约2小时缩短到约55分钟，但仍存在低优先级队列积压，导致批处理吞吐未完全恢复。需要确认分区路由映射是否正确。",
+        "tags": [
+          "partial-recovery",
+          "queue",
+          "routing"
+        ],
+        "assignee": "平台对接同学",
+        "department": "Risk"
+      },
+      {
+        "ticket_id": "TK-2407",
+        "title": "确认存在分区路由错配：批次A被当作批次B处理",
+        "reporter": "oncall-dba",
+        "created_at": "2026-04-28T03:05:00+08:00",
+        "priority": "critical",
+        "status": "resolved",
+        "description": "核对日志后确认：定时任务读取了错误的分区键映射，导致大量批次标识错配（A→B）。错误分区批次进入低优先级队列，回填通道延迟并触发实时依赖超时。",
+        "tags": [
+          "partition",
+          "routing-mismatch",
+          "root-cause"
+        ],
+        "assignee": "oncall-dba",
+        "department": "DBA"
+      },
+      {
+        "ticket_id": "TK-2408",
+        "title": "恢复后清理：积压批处理与回填补偿完成",
+        "reporter": "运维值班",
+        "created_at": "2026-04-28T04:10:00+08:00",
+        "priority": "high",
+        "status": "done",
+        "description": "恢复阶段完成：低优先级队列逐步消化，回填补偿完成；实时超时告警停止，降级策略自动解除。仍有少量订单待人工复核。",
+        "tags": [
+          "recovery",
+          "cleanup",
+          "compensation"
+        ],
+        "assignee": "SRE值班",
+        "department": "SRE"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-781",
+        "title": "历史事故复盘：分区路由错配导致批处理积压与回填时效失守（TODO）",
+        "category": "事故",
+        "tags": [
+          "partition",
+          "routing",
+          "batch",
+          "backfill-latency"
+        ],
+        "created_at": "2025-11-06T15:20:00+08:00",
+        "content": "# 分区路由错配事故复盘（摘要）\n\n## 事件背景\n当分区映射表或分区键路由配置在发布后未完成校验时，批处理任务可能把数据分到错误的队列/分区。\n\n## 典型表现\n- 批处理产出延迟（任务完成但回填时效延后）\n- 结果在错误优先级队列中等待，导致回填时效失守\n- 下游实时依赖等待批处理输出，触发连锁告警与降级\n\n## 改进点\n1. **发布后校验分区映射**：对比“任务读取的分区键映射”与“期望映射”，输出校验差异。\n2. **回填时效监控（SLA）**：为回填链路增加端到端耗时指标并设置告警阈值。\n3. **幂等与重试策略**：在重试时避免重复回填造成的队列膨胀。\n\n## TODO\n- TODO：配置发布后必须运行“回填时效验证脚本”（现有流程中常被跳过）。\n- TODO：将回填时效指标纳入值班联动（告警自动关联到映射变更记录）。\n",
+        "last_updated": "2025-12-18T10:00:00+08:00",
+        "views": 0
+      },
+      {
+        "article_id": "KB-782",
+        "title": "批处理-实时依赖：如何做降级与等待超时治理",
+        "category": "技术",
+        "tags": [
+          "realtime",
+          "degrade",
+          "timeout",
+          "SLA"
+        ],
+        "created_at": "2025-09-02T11:05:00+08:00",
+        "content": "# 批处理-实时依赖：等待超时治理\n\n## 关键建议\n- 对实时依赖设置等待上限，并在超时后进入明确的降级路径（例如使用缓存或历史评分）。\n- 将“批处理结果可用时间”作为SLO/SLA的一部分监控，避免只监控批处理任务是否成功。\n- 对回填链路与队列长度建立联动告警，快速定位“积压但任务状态成功”的场景。\n\n## 常见误区\n- 只看批处理 job success 状态，忽略回填端到端耗时与队列优先级。\n- 重试不幂等，导致队列进一步积压。",
+        "last_updated": "2026-01-22T09:15:00+08:00",
+        "views": 0
+      },
+      {
+        "article_id": "KB-783",
+        "title": "任务积压排查清单：失败重试 vs 回填延迟 vs 路由错配",
+        "category": "运维",
+        "tags": [
+          "troubleshooting",
+          "retry",
+          "routing-mismatch"
+        ],
+        "created_at": "2026-02-01T08:40:00+08:00",
+        "content": "# 任务积压排查清单\n\n## 三类常见原因\n1) 失败重试：job failed/timeout导致反复重试，队列堆积。\n2) 回填延迟：job 本身成功，但回填通道延迟导致下游等待。\n3) 路由错配：分区/队列路由配置错误，使数据落入错误优先级。\n\n## 推荐证据\n- job 执行历史与耗时变化\n- 回填端到端耗时指标\n- 分区映射读取的配置版本与发布记录\n- 队列优先级命中率变化\n",
+        "last_updated": "2026-03-10T14:25:00+08:00",
+        "views": 0
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "NOTE-731",
+        "title": "分区映射表变更评审（回填时效验证被跳过）",
+        "type": "meeting",
+        "participants": [
+          "分区负责人",
+          "DBA",
+          "风控平台工程师",
+          "SRE值班"
+        ],
+        "tags": [
+          "partition",
+          "routing",
+          "release"
+        ],
+        "content": "## 分区映射表变更评审\n\n日期：2026年4月27日\n\n### 变更摘要\n- 更新分区映射表：将部分分区键从规则 v3 升级到 v4\n- 目标：提升 fraud 批处理吞吐\n\n### 讨论与结论\n- DBA 提醒：映射更新后需要校验“回填时效验证脚本”，以避免错误分区批次进入低优先级队列\n- 负责人与SRE确认：上线检查单里未包含该脚本的必跑项\n- 会议结论：按紧急计划上线，部署后人工观察一段时间再决定是否补跑\n\n### 风险记录\n- 若校验被跳过，可能出现：A批次被路由到B队列，回填延迟并引发实时依赖超时\n",
+        "created_at": "2026-04-27",
+        "duration_minutes": 55
+      },
+      {
+        "note_id": "NOTE-732",
+        "title": "故障窗口后复盘讨论：批处理回填链路联动缺口",
+        "type": "meeting",
+        "participants": [
+          "CTO",
+          "风控平台负责人",
+          "SRE负责人",
+          "DBA"
+        ],
+        "tags": [
+          "incident",
+          "postmortem"
+        ],
+        "content": "## 故障窗口后复盘讨论\n\n日期：2026年4月29日\n\n### 关键问题\n1) 为何批处理任务表面成功但业务结果回填延迟？\n2) 回填时效 SLA 是否被纳入联动告警？\n3) 分区映射变更上线后是否跑过校验脚本？\n\n### 讨论结论（摘要）\n- SRE指出：历史上分区路由错配会把批次落入低优先级队列，但监控主要覆盖 job 状态而非回填端到端耗时。\n- DBA确认：当晚映射变更上线跳过校验，导致批次标识错配（A→B）。\n- 风控平台提出：需要把“映射校验差异”和“回填时效指标”绑定到告警与变更单。\n",
+        "created_at": "2026-04-29",
+        "duration_minutes": 60
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-541",
+        "name": "fraud_batch_recompute",
+        "description": "风控批处理重算：按分区键批次计算并触发回填",
+        "cron_expression": "10 0 * * *",
+        "enabled": true,
+        "last_status": "failed",
+        "last_run": "2026-04-28T01:10:00+08:00",
+        "action": "执行风控批处理重算并触发回填",
+        "created_by": "risk_platform",
+        "tags": [
+          "risk",
+          "batch",
+          "recompute"
+        ],
+        "notes": "故障窗口期间多次重试未能有效改善回填时效，疑似分区键映射读取与队列路由错配；重试带来重复批次回填请求，队列进一步积压。",
+        "execution_history": [
+          {
+            "run_time": "2026-04-28T00:50:00+08:00",
+            "status": "success",
+            "duration_seconds": 1260,
+            "notes": "计算阶段完成但回填明显延迟；回填通道收到错误分区批次标识（A被当作B）。"
+          },
+          {
+            "run_time": "2026-04-28T01:10:00+08:00",
+            "status": "failed",
+            "duration_seconds": 640,
+            "notes": "等待回填确认超时后失败并触发重试；错误聚合提示显示低优先级队列堆积。"
+          },
+          {
+            "run_time": "2026-04-28T01:30:00+08:00",
+            "status": "failed",
+            "duration_seconds": 690,
+            "notes": "重试仍未改善回填端到端耗时；队列深度继续上升，疑似路由错配未修复。"
+          },
+          {
+            "run_time": "2026-04-28T02:05:00+08:00",
+            "status": "success",
+            "duration_seconds": 980,
+            "notes": "部分批次回填恢复到约55分钟；但低优先级队列仍有积压，业务侧订单仍处于待复核。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-542",
+        "name": "fraud_partition_mapping_refresh",
+        "description": "刷新分区映射表到本地缓存（包含分区键映射）",
+        "cron_expression": "0 */6 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-04-28T00:00:00+08:00",
+        "action": "更新分区键映射缓存",
+        "created_by": "data_platform",
+        "tags": [
+          "partition",
+          "mapping",
+          "refresh"
+        ],
+        "notes": "刷新本身成功，但发布后未执行校验脚本；因此可能缓存版本与预期路由不一致。",
+        "execution_history": [
+          {
+            "run_time": "2026-04-28T00:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 22,
+            "notes": "映射缓存刷新完成到规则 v4。未触发校验脚本运行。"
+          },
+          {
+            "run_time": "2026-04-27T18:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 21,
+            "notes": "常规刷新。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-543",
+        "name": "queue_rebalance_worker",
+        "description": "队列再平衡：根据分区优先级调整派发权重",
+        "cron_expression": "30 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-04-28T03:00:00+08:00",
+        "action": "按优先级调整队列权重",
+        "created_by": "async_ops",
+        "tags": [
+          "queue",
+          "rebalance"
+        ],
+        "notes": "故障窗口内权重调整执行成功，但因分区错配导致再平衡效果被抵消。",
+        "execution_history": [
+          {
+            "run_time": "2026-04-28T01:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 8,
+            "notes": "执行再平衡但观察到低优先级队列仍持续增长。"
+          },
+          {
+            "run_time": "2026-04-28T02:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 7,
+            "notes": "继续再平衡，随着回填改善积压开始下降。"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题根因路径从“CRM同步SQL全表扫描与连接池耗尽”替换为“风控批处理分区/路由映射错配导致积压与回填延迟”，并围绕第三方 degraded、邮件证据、知识库 TODO与 scheduler 重试异常重建时间线。",
+    "fixture_design_summary": [
+      "helpdesk 工单按故障链路串联：离线批处理延迟→第三方回填延迟→实时超时→订单待复核→连锁告警/降级→确认分区路由错配→恢复清理。",
+      "config/integrations.json 提供 fraud_scoring_provider degraded，notes 明确“错误分区批次导致结果回填延迟”，并加入相关缓存/派发器的辅助状态。",
+      "gmail/inbox.json 包含 DBA/工程师邮件指出分区键映射读取错误与批次A/B错配回填延迟，以及发布负责人说明校验脚本被跳过。",
+      "kb/articles.json 提供一篇明确“分区路由错配导致批处理积压”的历史文章，并包含 TODO（回填时效验证脚本常被跳过）供引用。",
+      "notes/meetings.json 记录分区映射变更评审中跳过回填时效验证脚本的过程缺口，并在复盘讨论中确认 A→B 错配。",
+      "scheduler/jobs.json 聚焦 fraud_batch_recompute 在故障窗口的 success/failed 与多次重试表现，同时提供分区映射刷新任务的刷新成功但未校验的线索。"
+    ]
+  }
+}

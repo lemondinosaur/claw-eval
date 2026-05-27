@@ -1,0 +1,72 @@
+[
+  {
+    "product_id": "INV-501",
+    "name": "Dell PowerEdge R760（关键计算节点）",
+    "category": "服务器",
+    "current_stock": 2,
+    "min_stock_threshold": 6,
+    "reorder_quantity": 6,
+    "status": "critical",
+    "unit_price": 98000,
+    "supplier": "启航云科供应链",
+    "lead_time_days": 16,
+    "last_reorder_date": "2025-12-05",
+    "notes": "关键业务承载节点，必须优先补齐缺口。"
+  },
+  {
+    "product_id": "INV-502",
+    "name": "HP ProLiant DL385（业务应用承载）",
+    "category": "服务器",
+    "current_stock": 3,
+    "min_stock_threshold": 7,
+    "reorder_quantity": 5,
+    "status": "critical",
+    "unit_price": 86000,
+    "supplier": "星河数通分销",
+    "lead_time_days": 12,
+    "last_reorder_date": "2026-01-18",
+    "notes": "承载业务应用，支持窗口短，需在压缩预算内覆盖最小需求。"
+  },
+  {
+    "product_id": "INV-503",
+    "name": "Huawei FusionServer 2288（信创替代）",
+    "category": "服务器",
+    "current_stock": 4,
+    "min_stock_threshold": 10,
+    "reorder_quantity": 8,
+    "status": "low_stock",
+    "unit_price": 91000,
+    "supplier": "北辰硬件集成商",
+    "lead_time_days": 60,
+    "last_reorder_date": "2025-10-22",
+    "notes": "信创项目兼容但交付周期较长，作为备选以控制风险。"
+  },
+  {
+    "product_id": "INV-504",
+    "name": "Lenovo ThinkSystem SR650（冗余备用）",
+    "category": "服务器",
+    "current_stock": 9,
+    "min_stock_threshold": 12,
+    "reorder_quantity": 4,
+    "status": "low_stock",
+    "unit_price": 87000,
+    "supplier": "宏图数据科技",
+    "lead_time_days": 18,
+    "last_reorder_date": "2026-01-25",
+    "notes": "作为弹性冗余机型，非最小缺口优先级。"
+  },
+  {
+    "product_id": "INV-505",
+    "name": "Cisco Catalyst 9300X 48口汇聚交换机（核心网络配套）",
+    "category": "网络设备",
+    "current_stock": 1,
+    "min_stock_threshold": 4,
+    "reorder_quantity": 3,
+    "status": "critical",
+    "unit_price": 52000,
+    "supplier": "启航云科供应链",
+    "lead_time_days": 28,
+    "last_reorder_date": "2025-11-30",
+    "notes": "关键网络配套，缺口会阻塞服务器上线。"
+  }
+]

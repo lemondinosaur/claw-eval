@@ -1,0 +1,255 @@
+{
+  "task_id": "T117zh_customer_followup_plus_2",
+  "task_name": "季度满意度回访（按行业定制）",
+  "prompt_text": "今天视为2026-05-15。\n请在CRM中完成季度满意度回访草稿准备：\n1) 从CRM筛选status为active且last_contact_date严格早于60天前的客户；当last_contact_date恰好等于60天前时不纳入（只包含“超过60天未联系”）。\n2) 排除churned客户。\n3) 对每个入选客户：读取CRM notes/行业字段，提取其所在行业关键背景，并提取“可能的关注点/痛点”作为备用依据（若邮件无法提供可靠线索则使用此备用依据，但不要编造具体承诺）。\n4) 在Gmail收件箱中为每位客户寻找其最近一次“在labels包含inbox的相关邮件”。仅当labels包含inbox时才作为线索；labels不含inbox（如archive/other）或不满足筛选条件的邮件需要忽略。\n5) 从所选邮件正文中提取“上一次提到的关注点/痛点”，作为邮件核心段落。\n6) 按行业定制提问方式：教育侧重合规与课堂效率；物流侧重交付与时效；软件侧重稳定性与集成等。\n7) 按客户等级定制语气：VIP客户更正式并包含下一步建议；standard客户更友好并简要确认需求。\n8) 仅保存邮件草稿，不发送。\n最后输出：需回访客户 + 每封草稿要点（包含客户ID、草稿主题要点、行业定制点、关注点/痛点来源标注：来自邮件或来自CRM notes）。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-811",
+        "name": "明阶教育科技",
+        "contact_person": "陈校长",
+        "email": "principal.chen@mingjie-edu.com",
+        "phone": "18600110011",
+        "industry": "教育",
+        "tier": "vip",
+        "annual_revenue": 6900000,
+        "last_contact_date": "2026-02-28",
+        "status": "active",
+        "notes": "行业：教育培训/院校。近期更关心合规审计材料是否齐全、以及课堂管理效率（排课/点名）是否稳定。希望下次回访能先做现状确认，不要过度承诺。"
+      },
+      {
+        "customer_id": "CUS-812",
+        "name": "星航供应链",
+        "contact_person": "周总",
+        "email": "zhou@xinghang-scm.cn",
+        "phone": "18600110022",
+        "industry": "物流",
+        "tier": "vip",
+        "annual_revenue": 4200000,
+        "last_contact_date": "2026-01-30",
+        "status": "active",
+        "notes": "行业：物流/供应链。关注点主要在交付时效与异常单处理：希望了解是否能减少揽收到签收的波动，并优化异常告警的可读性。若近期不方便升级，可先给出优化建议与路线图。"
+      },
+      {
+        "customer_id": "CUS-813",
+        "name": "北辰云工厂",
+        "contact_person": "刘负责人",
+        "email": "liu@beichen-cloudfactory.com",
+        "phone": "18600110033",
+        "industry": "软件",
+        "tier": "standard",
+        "annual_revenue": 980000,
+        "last_contact_date": "2026-03-01",
+        "status": "active",
+        "notes": "行业：SaaS/软件集成。近期痛点是系统稳定性（高峰期响应）与与现有ERP/CRM的集成兼容。希望回访时简要确认当前集成是否仍需调整。"
+      },
+      {
+        "customer_id": "CUS-814",
+        "name": "恒桥物流服务",
+        "contact_person": "潘经理",
+        "email": "pan@hengqiao-logistics.com",
+        "phone": "18600110044",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 760000,
+        "last_contact_date": "2026-02-12",
+        "status": "active",
+        "notes": "行业：物流运营。关注交付时效与对账准确性；希望下一次沟通能确认异常差错是否减少。若不涉及大改动，倾向于小步优化与培训支持。"
+      },
+      {
+        "customer_id": "CUS-815",
+        "name": "纸鹤教育平台",
+        "contact_person": "胡老师",
+        "email": "hu@papercrane-edu.cn",
+        "phone": "18600110055",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 340000,
+        "last_contact_date": "2026-03-16",
+        "status": "active",
+        "notes": "行业：教育。该客户在60天边界内刚刚沟通过系统使用体验；不应纳入本次回访阈值。"
+      },
+      {
+        "customer_id": "CUS-816",
+        "name": "澄湾软件维护部",
+        "contact_person": "蒋主管",
+        "email": "jiang@chengwan-maint.com",
+        "phone": "18600110066",
+        "industry": "软件",
+        "tier": "standard",
+        "annual_revenue": 520000,
+        "last_contact_date": "2026-01-20",
+        "status": "active",
+        "notes": "客户仍为active，但备注含：暂停采购、仅维保。回访时语气要更保守，重点放在维保稳定性、故障响应与集成不变更的前提下的确认。"
+      },
+      {
+        "customer_id": "CUS-817",
+        "name": "海韵贸易集团",
+        "contact_person": "周采购",
+        "email": "cg@haiyun-trade.com",
+        "phone": "18600110077",
+        "industry": "贸易",
+        "tier": "vip",
+        "annual_revenue": 2500000,
+        "last_contact_date": "2026-02-05",
+        "status": "churned",
+        "notes": "已流失，不纳入回访。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_9201",
+        "from": "principal.chen@mingjie-edu.com",
+        "to": "support@company.com",
+        "subject": "关于合规审计材料与课堂效率的确认",
+        "date": "2026-03-02T09:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "陈经理这边想再对齐一下：我们近期在做合规审计准备，材料整理是否还能按你们的口径导出？另外课堂管理模块高峰时偶尔会慢半拍，想确认是否能提升排课/点名的响应体验。——陈校长"
+      },
+      {
+        "message_id": "msg_9202",
+        "from": "principal.chen@mingjie-edu.com",
+        "to": "support@company.com",
+        "subject": "补充：部分功能导出路径",
+        "date": "2026-03-10T15:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "archive"
+        ],
+        "body": "补充一下我们导出功能的路径截图。这里就不再多打扰了。——陈校长"
+      },
+      {
+        "message_id": "msg_9203",
+        "from": "zhou@xinghang-scm.cn",
+        "to": "support@company.com",
+        "subject": "异常告警可读性与签收波动问题",
+        "date": "2026-02-01T11:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "最近异常单的告警信息有点难读，排查成本增加。我们看到从揽收到签收之间的波动也比预期更大，希望你们能给个优化方向：是先从告警规则还是从流程编排入手？——周总"
+      },
+      {
+        "message_id": "msg_9204",
+        "from": "zhou@xinghang-scm.cn",
+        "to": "support@company.com",
+        "subject": "维度同步需求（不急）",
+        "date": "2026-02-20T18:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "other"
+        ],
+        "body": "我们内部这周先不做升级，只想确认一下后续可能的维度同步需求。"
+      },
+      {
+        "message_id": "msg_9205",
+        "from": "liu@beichen-cloudfactory.com",
+        "to": "support@company.com",
+        "subject": "高峰期响应与ERP集成兼容性",
+        "date": "2026-03-05T13:30:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "最近业务高峰期系统响应会慢一些，我们想确认瓶颈是否定位到位。同时ERP那边的接口数据映射有没有兼容风险？能否简要确认当前集成状态是否需要调整？——刘负责人"
+      },
+      {
+        "message_id": "msg_9206",
+        "from": "pan@hengqiao-logistics.com",
+        "to": "support@company.com",
+        "subject": "异常差错与对账准确性回顾",
+        "date": "2026-02-18T10:25:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们对账这边近期差错确实有减少，但仍希望把异常差错的原因再梳理一下。交付时效方面你们能否在下一次沟通时也顺带确认当前波动情况？——潘经理"
+      },
+      {
+        "message_id": "msg_9207",
+        "from": "jiang@chengwan-maint.com",
+        "to": "support@company.com",
+        "subject": "仅维保下的稳定性与故障响应",
+        "date": "2026-01-22T08:55:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们这边已暂停采购，只做维保。最近一次稳定性表现还可以，但如果再次出现故障，希望你们的响应流程能更明确（比如预计响应时长与升级路径）。另外集成保持不变的前提下，是否有简单体检建议？——蒋主管"
+      },
+      {
+        "message_id": "msg_9210",
+        "from": "billing@vendor.com",
+        "to": "support@company.com",
+        "subject": "发票开具提醒",
+        "date": "2026-04-20T09:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "本月发票已生成，请留意查收。"
+      },
+      {
+        "message_id": "msg_9211",
+        "from": "hr@company.com",
+        "to": "support@company.com",
+        "subject": "员工活动通知",
+        "date": "2026-04-18T16:20:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "本周五下午有活动通知。"
+      },
+      {
+        "message_id": "msg_9212",
+        "from": "ops@partner.com",
+        "to": "support@company.com",
+        "subject": "合作伙伴对接安排（非客户）",
+        "date": "2026-04-10T12:00:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "这是一封与客户无关的对接邮件。"
+      },
+      {
+        "message_id": "msg_9213",
+        "from": "pan@hengqiao-logistics.com",
+        "to": "support@company.com",
+        "subject": "草稿：培训资料版本（仅内部）",
+        "date": "2026-02-25T17:45:00+08:00",
+        "is_read": true,
+        "labels": [
+          "archive"
+        ],
+        "body": "内部准备一下培训资料版本，不确定是否需要你们协助。"
+      },
+      {
+        "message_id": "msg_9214",
+        "from": "principal.chen@mingjie-edu.com",
+        "to": "support@company.com",
+        "subject": "课堂效率小反馈",
+        "date": "2026-03-20T09:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "other"
+        ],
+        "body": "再补一句课堂效率最近稍好，但仍希望合规材料导出能更顺手。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原任务的“超过30天跟进提醒”升级为“季度满意度回访”，并按行业定制问法、严格使用“>60天且非churned/排除=60天边界”且忽略非inbox邮件线索。",
+    "fixture_design_summary": [
+      "CRM共7名客户，目标包含4位：CUS-811(VIP/教育)、CUS-812(VIP/物流)、CUS-813(standard/软件)、CUS-814(standard/物流)；CUS-815为=60天边界不纳入；CUS-816 active但备注“暂停采购/仅维保”仍回访且邮件用于更保守措辞；CUS-817为churned排除。",
+      "Gmail inbox.json为各目标客户提供至少1封labels包含inbox的相关邮件，提取点位分别覆盖：教育合规审计与课堂效率、物流异常告警可读性与签收波动、软件高峰响应与ERP兼容、物流异常差错与对账准确性。",
+      "额外加入干扰邮件与至少1封labels不含inbox（archive/other）的“相关邮件”用于验证过滤。",
+      "跨fixture实体引用一致：客户邮箱在CRM与Gmail邮件from字段中保持对应关系。"
+    ]
+  }
+}

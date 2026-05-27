@@ -1,0 +1,515 @@
+{
+  "task_id": "T153zh_market_research_report_plus_5",
+  "task_name": "合规与数据治理年度路线图（研判版）",
+  "prompt_text": "你是企业合规与数据治理专项的分析师。请基于以下信息撰写《合规与数据治理年度路线图（研判版）》并保存邮件草稿（不要直接发送）：\n\n要求：\n1) 先查看收件箱邮件，提炼本次路线图的写作偏好（尤其是季度结构与指标口径）。\n2) 从RSS中筛选与“监管强化、认证/合规证明、审计、数据治理/数据出境、合规成本”相关的关键外部变化，并将其转化为内部能力建设（映射到KB的合规能力点与数据治理工作项）。\n3) 从KB中检索并拉通：合规能力点、数据治理框架、认证准备与运营流程/衡量指标。形成年度可落地的工作项（必须能落到每个季度阶段）。\n4) 从CRM系统拉取客户分层：区分VIP与标准/高风险客户。进一步读取高风险客户notes中的合规风险短语（例如“认证延后、审计不通过、数据出境顾虑、合规证明缺失”），据此评估“合规不足导致续约受阻/流失”的阶段影响，并在路线图中给出针对性优先级。\n5) 路线图必须包含4个季度阶段目标（按Q2~Q5或等效四阶段）。每个阶段都要明确：\n   - 需要补齐的合规能力点（至少2点）\n   - 数据治理工作项（至少2项，体现数据口径/流程/控制）\n   - 交付/运营动作（至少2个，体现谁做什么与产出物）\n   - 衡量指标（至少2个，尽量量化）\n   - 对VIP客户与至少一类高风险客户的影响评估（至少点名两类客户/分层）\n6) 邮件草稿：发送给两个对象（不要直接发送）：\n   - 信息安全负责人：通讯录关键词命中“信息安全”\n   - 合规运营负责人：通讯录中department=“合规运营”\n   邮件草稿的subject需体现“年度路线图（研判版）”。正文需包含：四阶段路线图摘要+关键决策请求（例如资源/优先级/认证排期）。\n\n输出：\n- 仅保存邮件草稿，调用gmail_save_draft完成；不要调用gmail_send_message。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-2201",
+        "name": "陈予安",
+        "email": "chenya@company.com",
+        "phone": "13901002201",
+        "department": "信息安全与风险",
+        "title": "信息安全负责人",
+        "responsibilities": [
+          "安全合规治理",
+          "等保/审计准备",
+          "数据安全与出境评估"
+        ]
+      },
+      {
+        "contact_id": "CON-2202",
+        "name": "林芷澄",
+        "email": "linzicheng@company.com",
+        "phone": "13901002202",
+        "department": "合规运营",
+        "title": "合规运营负责人",
+        "responsibilities": [
+          "合规流程运营",
+          "认证材料管理",
+          "客户合规交付与审计跟踪"
+        ]
+      },
+      {
+        "contact_id": "CON-2203",
+        "name": "周明睿",
+        "email": "zhoumingrui@company.com",
+        "phone": "13901002203",
+        "department": "合规运营",
+        "title": "合规运营经理",
+        "responsibilities": [
+          "数据治理工作流",
+          "内控检查与闭环",
+          "第三方评估协调"
+        ]
+      },
+      {
+        "contact_id": "CON-2204",
+        "name": "赵佳仪",
+        "email": "zhaojayi@company.com",
+        "phone": "13901002204",
+        "department": "法务合规部",
+        "title": "法务经理",
+        "responsibilities": [
+          "合同条款合规",
+          "数据处理合规审查"
+        ]
+      },
+      {
+        "contact_id": "CON-2205",
+        "name": "高俊安",
+        "email": "gaojuan@company.com",
+        "phone": "13901002205",
+        "department": "技术平台",
+        "title": "数据平台负责人",
+        "responsibilities": [
+          "数据湖治理",
+          "权限与血缘管理"
+        ]
+      },
+      {
+        "contact_id": "CON-2206",
+        "name": "孙若澜",
+        "email": "sunrulan@company.com",
+        "phone": "13901002206",
+        "department": "审计与内控",
+        "title": "内控审计专员",
+        "responsibilities": [
+          "审计计划",
+          "合规证据留存"
+        ]
+      },
+      {
+        "contact_id": "CON-2207",
+        "name": "许若彤",
+        "email": "xurutong@company.com",
+        "phone": "13901002207",
+        "department": "合规运营",
+        "title": "认证与材料管理员",
+        "responsibilities": [
+          "合规证明材料编制",
+          "证书续期管理"
+        ]
+      },
+      {
+        "contact_id": "CON-2208",
+        "name": "吴凯宁",
+        "email": "wukaining@company.com",
+        "phone": "13901002208",
+        "department": "客户成功",
+        "title": "客户成功总监",
+        "responsibilities": [
+          "续约风险预警",
+          "客户交付落地"
+        ]
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2301",
+        "name": "北极星金融科技",
+        "industry": "金融",
+        "tier": "vip",
+        "annual_revenue": 2100000,
+        "status": "active",
+        "contract_end": "2027-09-30",
+        "sales_rep": "周明睿",
+        "notes": "VIP核心客户：续约决策高度依赖合规证明完备性；对审计证据留存与等保/合规材料完整度敏感。若合规证明缺失将显著拖慢审批。",
+        "contact_person": "周明睿"
+      },
+      {
+        "customer_id": "CUS-2302",
+        "name": "东方信通供应链",
+        "industry": "制造业",
+        "tier": "vip",
+        "annual_revenue": 1320000,
+        "status": "active",
+        "contract_end": "2027-05-31",
+        "sales_rep": "陈予安",
+        "notes": "VIP制造客户：数据出境顾虑强，要求明确数据边界、脱敏与跨境传输合规说明；认证延后会导致季度续约延期。",
+        "contact_person": "陈予安"
+      },
+      {
+        "customer_id": "CUS-2303",
+        "name": "云岚医疗集团",
+        "industry": "医疗",
+        "tier": "vip",
+        "annual_revenue": 980000,
+        "status": "active",
+        "contract_end": "2027-02-28",
+        "sales_rep": "林芷澄",
+        "notes": "VIP医疗客户：过往审计不通过后曾要求整改闭环；目前等待数据治理台账与访问审计报表对齐，否则续约存在波动。",
+        "contact_person": "林芷澄"
+      },
+      {
+        "customer_id": "CUS-2304",
+        "name": "银汇普惠小贷",
+        "industry": "金融",
+        "tier": "standard",
+        "annual_revenue": 360000,
+        "status": "active",
+        "contract_end": "2026-10-31",
+        "sales_rep": "林芷澄",
+        "notes": "标准客户：近期被监管要求补充合规材料；若认证延后（证书/报告无法按期提供），可能选择竞品以换取更快的合规通过。",
+        "contact_person": "林芷澄"
+      },
+      {
+        "customer_id": "CUS-2305",
+        "name": "汇达保险运营中心",
+        "industry": "金融",
+        "tier": "standard",
+        "annual_revenue": 420000,
+        "status": "active",
+        "contract_end": "2026-11-30",
+        "sales_rep": "周明睿",
+        "notes": "标准客户：关注审计结果与风险整改时效；一旦出现审计不通过的证据缺口，将触发续约受阻评审。",
+        "contact_person": "周明睿"
+      },
+      {
+        "customer_id": "CUS-2306",
+        "name": "辰光智造科技",
+        "industry": "制造业",
+        "tier": "standard",
+        "annual_revenue": 310000,
+        "status": "active",
+        "contract_end": "2026-08-31",
+        "sales_rep": "陈予安",
+        "notes": "高风险客户（标准档）：数据出境顾虑较大；要求提供脱敏策略与数据流向说明。合规证明缺失将导致续约窗口错过。",
+        "contact_person": "陈予安"
+      },
+      {
+        "customer_id": "CUS-2307",
+        "name": "盛唐工业服务",
+        "industry": "制造业",
+        "tier": "standard",
+        "annual_revenue": 250000,
+        "status": "churned",
+        "contract_end": "2026-03-31",
+        "sales_rep": "陈予安",
+        "notes": "已流失：认证延后导致对方审计计划无法对齐；最终选择更快出具合规证明的供应商。",
+        "contact_person": "陈予安"
+      },
+      {
+        "customer_id": "CUS-2308",
+        "name": "星河教育科技",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 190000,
+        "status": "active",
+        "contract_end": "2027-01-31",
+        "sales_rep": "林芷澄",
+        "notes": "标准客户：更重视隐私保护与访问控制；若合规材料无法形成可审计的证据包，会影响续约审批节奏。",
+        "contact_person": "林芷澄"
+      },
+      {
+        "customer_id": "CUS-2309",
+        "name": "和光社区卫生中心",
+        "industry": "医疗",
+        "tier": "standard",
+        "annual_revenue": 160000,
+        "status": "active",
+        "contract_end": "2026-09-30",
+        "sales_rep": "林芷澄",
+        "notes": "高风险客户（标准档）：审计不通过后要求提供数据治理台账与访问审计报表；若无法按期交付将显著影响续约。",
+        "contact_person": "林芷澄"
+      },
+      {
+        "customer_id": "CUS-2310",
+        "name": "格致教育培训集团",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 145000,
+        "status": "churned",
+        "contract_end": "2026-05-31",
+        "sales_rep": "周明睿",
+        "notes": "已流失：合规证明缺失导致招生数据处理审批卡住，续约直接被否决。",
+        "contact_person": "周明睿"
+      },
+      {
+        "customer_id": "CUS-2311",
+        "name": "皓月医疗影像联盟",
+        "industry": "医疗",
+        "tier": "standard",
+        "annual_revenue": 205000,
+        "status": "active",
+        "contract_end": "2026-12-31",
+        "sales_rep": "陈予安",
+        "notes": "标准客户：在等待数据出境顾虑澄清与脱敏策略说明；若后续材料与实际不一致，将产生续约风险。",
+        "contact_person": "陈予安"
+      },
+      {
+        "customer_id": "CUS-2312",
+        "name": "荣盛制造装备厂",
+        "industry": "制造业",
+        "tier": "standard",
+        "annual_revenue": 275000,
+        "status": "active",
+        "contract_end": "2027-03-31",
+        "sales_rep": "陈予安",
+        "notes": "标准客户：对认证准备进度可见性要求高；若认证延后将推迟采购决策并降低续约概率。",
+        "contact_person": "陈予安"
+      },
+      {
+        "customer_id": "CUS-2313",
+        "name": "华采金融数据服务",
+        "industry": "金融",
+        "tier": "standard",
+        "annual_revenue": 230000,
+        "status": "active",
+        "contract_end": "2026-07-31",
+        "sales_rep": "周明睿",
+        "notes": "高风险客户（标准档）：过去审计不通过的整改证据不齐，客户要求合规证明与审计证据成套交付，否则续约受阻。",
+        "contact_person": "周明睿"
+      },
+      {
+        "customer_id": "CUS-2314",
+        "name": "澄澈云智制造",
+        "industry": "制造业",
+        "tier": "standard",
+        "annual_revenue": 185000,
+        "status": "active",
+        "contract_end": "2026-06-30",
+        "sales_rep": "周明睿",
+        "notes": "标准客户：强调数据边界与访问控制；若合规材料更新滞后，将导致内部审批周期拉长。",
+        "contact_person": "周明睿"
+      },
+      {
+        "customer_id": "CUS-2315",
+        "name": "金桥教育平台",
+        "industry": "教育",
+        "tier": "vip",
+        "annual_revenue": 760000,
+        "status": "active",
+        "contract_end": "2027-08-31",
+        "sales_rep": "林芷澄",
+        "notes": "VIP教育客户：隐私合规与可审计性是关键续约因素；要求建立合规证明更新机制，避免认证延后造成审批延迟。",
+        "contact_person": "林芷澄"
+      },
+      {
+        "customer_id": "CUS-2316",
+        "name": "北辰医疗用品公司",
+        "industry": "医疗",
+        "tier": "standard",
+        "annual_revenue": 130000,
+        "status": "active",
+        "contract_end": "2026-08-15",
+        "sales_rep": "林芷澄",
+        "notes": "标准客户：关注审计不通过风险提示与整改闭环；希望能获得数据治理工作项的清单化交付。",
+        "contact_person": "林芷澄"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_23001",
+        "from": "chenya@company.com",
+        "to": "me@company.com",
+        "subject": "合规与数据治理年度路线图（研判版）- 请按季度落地",
+        "date": "2026-03-26T10:20:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "important"],
+        "body": "团队同学好，监管强化周期临近，客户续约时会要求“认证/合规能力证明”作为关键决策点。\n\n请你们写一份《合规与数据治理年度路线图（研判版）》并保存草稿（不要发送）。要求：\n- 必须是四阶段：Q2~Q5（或等效四季度）\n- 每阶段要有：能力点补齐 + 数据治理工作项 + 交付/运营动作 + 可衡量指标\n- 需要把RSS的监管/认证要点映射成KB里的内部能力建设\n- CRM里重点看VIP与高风险客户notes里提到的“认证延后/审计不通过/数据出境顾虑/合规证明缺失”，给出对续约的影响评估\n\n草稿最终要发给：信息安全负责人 + 合规运营负责人（不直接发送）。\n\n陈予安"
+      },
+      {
+        "message_id": "msg_23002",
+        "from": "linzicheng@company.com",
+        "to": "me@company.com",
+        "subject": "指标口径建议：用“证据包/闭环/覆盖率/复用率”等",
+        "date": "2026-03-27T16:05:00+08:00",
+        "is_read": false,
+        "labels": ["inbox"],
+        "body": "补充一点指标口径偏好（便于落地和审计）：\n- 证据包完整度（按材料清单核验）\n- 控制项覆盖率（治理/权限/脱敏/审计留痕）\n- 整改闭环时长（从发现到完成的天数）\n- 认证/审计准备按期率（按里程碑）\n\n另外邮件收件人要通过通讯录检索规则确认：\n- 关键词“信息安全”命中信息安全负责人\n- department=“合规运营”命中至少两位合规运营负责人/负责人\n\n请按上述口径输出四阶段路线图。谢谢。\n\n林芷澄"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-2301",
+        "title": "合规能力盘点：认证/审计所需的证据体系",
+        "category": "合规能力",
+        "tags": ["认证准备", "审计证据", "证据包"],
+        "content": "## 合规能力盘点（证据体系）\n\n### 关键能力点\n1. 认证材料可追溯：从控制项到证据文件具备映射关系（控制-证据矩阵）\n2. 审计留痕机制：访问控制、变更记录、导出行为与审批流程能被查询\n3. 证据包版本管理：材料更新有时间戳与变更说明，避免“材料与实际不一致”\n\n### 指标建议\n- 证据包完整度：按清单核验通过率（目标≥95%）\n- 控制-证据覆盖率：覆盖率≥90%\n\n### 交付/运营流程\n- 每季度进行一次“证据包预检”（内部自查）\n- 发现差距→责任人→整改排期→闭环验收（形成闭环记录）",
+        "last_updated": "2026-03-18",
+        "views": 1800
+      },
+      {
+        "article_id": "KB-2302",
+        "title": "数据治理框架：数据边界、脱敏与可审计权限",
+        "category": "数据治理",
+        "tags": ["数据边界", "脱敏", "权限审计"],
+        "content": "## 数据治理框架\n\n### 工作项\n1. 数据分级分域：明确数据边界（哪些数据可用、可导出、可共享）\n2. 脱敏策略体系：对敏感字段定义脱敏规则与适用场景（测试可验证）\n3. 可审计权限模型：最小权限+访问审批+导出留痕（含审批人/时间/用途）\n4. 数据出境评估流程：跨境前的合规校验、日志与审批记录留存\n\n### 衡量指标\n- 脱敏规则覆盖率（目标≥92%）\n- 敏感数据访问可追溯率（目标≥95%）\n- 数据出境评估按期率（目标≥98%）\n\n### 交付方式\n- 输出《数据治理控制清单》《脱敏规则库》《访问留痕报表模板》",
+        "last_updated": "2026-03-12",
+        "views": 2400
+      },
+      {
+        "article_id": "KB-2303",
+        "title": "认证准备作战手册：里程碑与回归验证",
+        "category": "认证准备",
+        "tags": ["里程碑", "回归验证", "认证延后"],
+        "content": "## 认证准备作战手册\n\n### 组织节奏\n- Q2：完成控制项基线与差距评估（现状-目标差距）\n- Q3：完成控制实现与证据生成机制回归\n- Q4：开展预审计与漏洞修复闭环\n- Q5：完成正式认证/审计材料定版与复核\n\n### 工作项\n1. 控制项基线盘点（制度/技术/流程）\n2. 证据生成自动化或半自动化（减少人工补材料）\n3. 回归验证：每次变更后回归检查证据可用性\n\n### 评价口径\n- 认证/审计按期率（≥98%）\n- 整改闭环时长中位数（目标≤21天）\n\n### 产出物\n- 里程碑看板、差距分析报告、回归验证记录、证据包定版清单",
+        "last_updated": "2026-03-20",
+        "views": 2100
+      },
+      {
+        "article_id": "KB-2304",
+        "title": "合规运营运营化：从客户请求到交付闭环",
+        "category": "运营流程",
+        "tags": ["合规交付", "闭环", "客户请求响应"],
+        "content": "## 合规运营运营化\n\n### 工作流\n1. 客户合规请求登记（材料/问题分类、截止时间）\n2. 内部协同分工（信息安全/法务/数据治理/审计）\n3. 证据包生成与复核（双人复核）\n4. 交付后复盘（对下一次请求做模板复用）\n\n### 指标\n- 客户请求SLA达标率（目标≥95%）\n- 模板复用率（目标≥60%）\n- 交付后差评/返工率（目标≤5%）\n\n### 运营动作\n- 建立“合规材料库”和“通用答复模板”\n- 每月复盘TOP客户风险点（对VIP与高风险客户加速）",
+        "last_updated": "2026-02-28",
+        "views": 1950
+      },
+      {
+        "article_id": "KB-2305",
+        "title": "审计风险预警：把高风险线索转成行动项",
+        "category": "风险运营",
+        "tags": ["审计不通过", "预警", "整改闭环"],
+        "content": "## 审计风险预警\n\n### 高频风险线索（需触发行动）\n- 证据缺口：无法支撑某项控制的证据文件\n- 数据出境顾虑：缺少脱敏/边界说明与日志记录\n- 访问留痕不完整：审批/导出记录缺失\n\n### 行动建议\n- 对高风险客户建立“证据补齐快车道”（优先级排序+限时整改）\n- 每阶段完成一次“差距复核”，确保下一阶段材料可用\n\n### 衡量\n- 高风险客户证据补齐按期率（目标≥92%）\n- 证据缺口复现率（目标≤3%）",
+        "last_updated": "2026-03-08",
+        "views": 1750
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-2301",
+        "title": "金融科技合规新规：证据包与等保材料一致性要求升级",
+        "category": "金融合规",
+        "content": "监管强调金融科技产品在认证与审计阶段必须提供可追溯证据包，要求材料与实际控制能力一致。若材料更新滞后或证据链断裂，将导致审计结论不通过并影响后续续约审批节奏。",
+        "url": "https://reg.example.com/fintech-evidence-consistency",
+        "tags": ["金融", "监管", "证据包", "审计"],
+        "source": "监管简报",
+        "published_at": "2026-03-26T09:10:00Z",
+        "summary": "监管强调证据包与等保/控制能力一致性，证据链断裂会导致审计不通过并影响续约审批节奏。",
+        "word_count": 92
+      },
+      {
+        "article_id": "RSS-2302",
+        "title": "数据治理与可审计性成为审计关注点：访问留痕与导出审批入表",
+        "category": "数据治理",
+        "content": "行业审计越来越关注访问留痕、导出行为与审批流程是否可被查询与复核。建议企业建立可审计权限模型：最小权限+审批流+日志留存，并形成可复用的报表模板以降低返工。",
+        "url": "https://audit.example.com/audit-log-export-approval",
+        "tags": ["审计", "权限", "访问留痕", "导出审批"],
+        "source": "审计观察",
+        "published_at": "2026-03-24T13:30:00Z",
+        "summary": "审计关注访问留痕与导出审批可查询与复核，建议建立可审计权限模型并复用报表模板。",
+        "word_count": 118
+      },
+      {
+        "article_id": "RSS-2303",
+        "title": "数据出境监管趋严：脱敏与边界说明需可核验",
+        "category": "数据出境",
+        "content": "相关部门要求对跨境处理提供明确的脱敏策略、数据边界与日志记录，材料需可核验。数据出境顾虑成为客户续约决策的重要因素，缺少说明会导致内部审批推迟甚至终止合作。",
+        "url": "https://compliance.example.com/data-cross-border-verifiable",
+        "tags": ["数据出境", "脱敏", "边界说明"],
+        "source": "合规要闻",
+        "published_at": "2026-03-25T08:40:00Z",
+        "summary": "跨境处理需提供可核验的脱敏策略、数据边界与日志记录；缺少说明会推迟审批甚至终止合作。",
+        "word_count": 103
+      },
+      {
+        "article_id": "RSS-2304",
+        "title": "认证周期延后风险上升：企业需建立里程碑与回归验证机制",
+        "category": "认证合规",
+        "content": "行业内有多家企业因认证材料准备不充分或回归验证不足导致周期延后。分析建议企业用里程碑看板管理控制项实现，变更后执行回归验证确保证据可用，减少“材料与实际不一致”问题。",
+        "url": "https://industry.example.com/certification-delay-risk",
+        "tags": ["认证", "里程碑", "回归验证"],
+        "source": "行业分析",
+        "published_at": "2026-03-23T17:20:00Z",
+        "summary": "认证延后常见于材料准备不足与回归验证缺失；建议里程碑看板与证据回归确保可用。",
+        "word_count": 121
+      },
+      {
+        "article_id": "RSS-2305",
+        "title": "合规成本上行：第三方评估与整改闭环的预算压力扩大",
+        "category": "合规成本",
+        "content": "企业合规成本持续上行，尤其是第三方评估、材料补齐与整改闭环的时间成本。具备成熟证据体系和运营流程的公司更能降低返工率，并在续约谈判中获得更高信任度。",
+        "url": "https://cost.example.com/compliance-cost-up",
+        "tags": ["合规成本", "整改闭环", "返工率"],
+        "source": "管理洞察",
+        "published_at": "2026-03-22T12:00:00Z",
+        "summary": "合规成本上行，预算压力来自第三方评估与整改闭环；证据体系成熟的企业返工更低。",
+        "word_count": 97
+      },
+      {
+        "article_id": "RSS-2306",
+        "title": "非合规领域噪声：区块链应用市场热度波动（与合规路线无直接关系）",
+        "category": "区块链噪声",
+        "content": "近期区块链相关应用热度波动，部分项目融资放缓。但该内容与公司年度合规与数据治理路线图的监管/认证要点关联较弱。",
+        "url": "https://noise.example.com/blockchain-heat",
+        "tags": ["区块链"],
+        "source": "科技快讯",
+        "published_at": "2026-03-21T10:00:00Z",
+        "summary": "区块链热度波动，与合规路线图监管认证要点关联较弱。",
+        "word_count": 44
+      },
+      {
+        "article_id": "RSS-2307",
+        "title": "非合规领域噪声：AI聊天工具的用户增长与法规无关",
+        "category": "AI噪声",
+        "content": "AI聊天工具用户增长迅速，但该趋势更多反映产品使用规模变化，无法直接转化为“认证/审计证据”或“数据出境可核验材料”的能力建设要求。",
+        "url": "https://noise.example.com/ai-chat-users",
+        "tags": ["AI", "用户增长"],
+        "source": "行业快报",
+        "published_at": "2026-03-20T09:30:00Z",
+        "summary": "AI聊天工具用户增长与认证/审计证据要求关联较弱。",
+        "word_count": 49
+      },
+      {
+        "article_id": "RSS-2308",
+        "title": "制造业客户续约变动：合规证明缺失导致审批延期",
+        "category": "客户续约",
+        "content": "部分制造企业在续约时将合规证明作为关键门槛。若供应商无法按期提供合规证明（证书/报告/证据包），客户内部审批将延期，影响合同签署节奏。",
+        "url": "https://industry.example.com/renewal-proof-missing-manufacturing",
+        "tags": ["续约", "合规证明", "审批延期"],
+        "source": "行业观察",
+        "published_at": "2026-03-24T06:50:00Z",
+        "summary": "合规证明缺失会导致客户内部审批延期，从而影响合同签署节奏。",
+        "word_count": 84
+      },
+      {
+        "article_id": "RSS-2309",
+        "title": "审计不通过案例复盘：证据链断裂与权限不可追溯",
+        "category": "审计风险",
+        "content": "审计不通过的常见原因包括证据链断裂以及权限/导出行为不可追溯。整改需要将控制项落到流程与系统日志，并以可复用模板提交证据包，从而降低后续复查成本。",
+        "url": "https://audit.example.com/audit-fail-evidence-chain",
+        "tags": ["审计不通过", "证据链", "权限追溯"],
+        "source": "审计复盘",
+        "published_at": "2026-03-25T11:05:00Z",
+        "summary": "审计不通过常因证据链断裂与权限不可追溯；整改需把控制落到流程与系统日志并复用模板。",
+        "word_count": 110
+      },
+      {
+        "article_id": "RSS-2310",
+        "title": "行业趋势：数据治理台账与控制项矩阵被视为“可审计资产”",
+        "category": "数据治理趋势",
+        "content": "越来越多的客户把数据治理台账与控制项矩阵视为可审计资产。建议将治理框架产品化为可检查的清单，明确负责人、频率、验收标准与证据留存位置。",
+        "url": "https://trend.example.com/control-matrix-auditable-asset",
+        "tags": ["数据治理", "控制矩阵", "可审计资产"],
+        "source": "战略简报",
+        "published_at": "2026-03-26T15:40:00Z",
+        "summary": "治理台账与控制项矩阵被视为可审计资产，建议产品化清单明确责任与验收证据留存。",
+        "word_count": 96
+      },
+      {
+        "article_id": "RSS-2311",
+        "title": "教育/医疗合规需求变化：隐私保护与访问控制成为采购要点",
+        "category": "隐私合规",
+        "content": "在教育与医疗场景中，客户在采购与续约阶段强调隐私保护与访问控制的可审计性；若缺少访问审批记录或无法提供可核验证据包，会增加审批摩擦并降低续约概率。",
+        "url": "https://sector.example.com/privacy-access-audit-education-medical",
+        "tags": ["隐私", "访问控制", "教育医疗"],
+        "source": "行业动态",
+        "published_at": "2026-03-23T09:15:00Z",
+        "summary": "教育与医疗场景采购强调隐私保护与访问控制可审计性，缺证据包会增加审批摩擦。",
+        "word_count": 105
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新任务将主题从综合市场研究改为合规与数据治理年度路线图（研判版），并用CRM notes的合规风险线索评估续约受阻/流失影响，同时邮件收件人改为“信息安全+合规运营”。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 提供Q2~Q5四阶段结构与指标口径的写作偏好，且要求保存草稿不发送",
+      "contacts/contacts.json 通过“信息安全”关键词命中信息安全负责人，并在department=“合规运营”命中至少两位联系人",
+      "rss/feeds.json 至少11篇，其中≥7篇覆盖监管强化/认证要求/审计/合规成本/数据出境等，并加入2篇非合规噪声以测试筛选聚焦",
+      "kb/articles.json 提供合规能力点、数据治理框架、认证准备节奏与合规运营流程等，可直接支撑四阶段工作项与衡量指标",
+      "crm/customers.json 覆盖VIP与standard及churned，notes包含“认证延后/审计不通过/数据出境顾虑/合规证明缺失”等短语，用于阶段影响评估；跨fixture通过负责人姓名在CRM销售归属与contacts部门实现一致性"
+    ]
+  }
+}

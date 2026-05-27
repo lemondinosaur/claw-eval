@@ -1,0 +1,290 @@
+{
+  "task_id": "T039zh_onboarding_coordinator_plus_4",
+  "task_name": "失败重试预案：培训事件创建前先校验参会人",
+  "prompt_text": "系统当前日期为2026-03-05。请为“下周一”（按系统当前日期计算出的2026-03-09）4位不同岗位新员工协调入职安排，并遵循失败重试预案流程：\n\n1) 从HR邮件读取4位新员工信息（岗位需求、培训规则、以及参会人规则/特殊要求）。\n2) 在知识库中查找：入职培训与通知规则、以及IT设备申请与缺货处理规则（尤其是缺货如何登记/待办）。\n3) 查通讯录获取：每位员工的部门经理邮箱；以及培训参会人至少包含IT支持主管与对应部门经理（若存在）。\n4) 检查IT库存：为缺货设备创建待办（并包含预计到货日期）。\n5) 查看日历冲突：培训建议时段与已有事件冲突时，需调整到冲突外后再创建。\n6) 关键预案：在calendar_create_event创建任何培训/占位事件之前，先核验参会人邮箱是否可用。\n   - 如果某位参会人的联系人无法找到或邮箱缺失/为空：不要把该人员加入培训事件参会人列表。\n   - 若因为校验失败导致“应包含的参会人信息不完整”，则改为创建“不包含该参会人”的“占位培训事件”，并为“补齐该参会人信息”创建todo待办（due_date设为入职前1天）。\n7) 通知：\n   - 有部门经理的部门：向部门经理发送通知邮件。\n   - 无部门经理的部门：只保存草稿不发送。\n8) 最终输出一份入职安排总结，必须覆盖4位员工：\n   - 参会人校验结果（哪些人有效/缺失原因）、占位事件创建原因\n   - 日历冲突处理与调整后的培训时间\n   - GPU/缺货设备清单、缺货与预计到货日期、以及已创建的跟进待办摘要\n   - 每位员工的设备/账号准备状态与待办列表摘要\n\n请确保整个流程中calendar_create_event发生前已经完成参会人邮箱有效性校验。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_731",
+        "title": "研发周报评审",
+        "organizer": "weekly_reviewer@company.com",
+        "attendees": [
+          "team_rnd@company.com"
+        ],
+        "start_time": "2026-03-09T10:30:00+08:00",
+        "end_time": "2026-03-09T11:30:00+08:00",
+        "location": "研发会议室2",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_732",
+        "title": "产品对齐会",
+        "organizer": "product_ops@company.com",
+        "attendees": [
+          "pm@company.com",
+          "design_lead@company.com"
+        ],
+        "start_time": "2026-03-09T09:30:00+08:00",
+        "end_time": "2026-03-09T10:15:00+08:00",
+        "location": "会议室A",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_733",
+        "title": "客户技术走查",
+        "organizer": "customer_owner@company.com",
+        "attendees": [
+          "tech_support@company.com"
+        ],
+        "start_time": "2026-03-09T13:30:00+08:00",
+        "end_time": "2026-03-09T14:30:00+08:00",
+        "location": "远程/腾讯会议",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-451",
+        "name": "沈澈",
+        "department": "设计部",
+        "title": "设计部经理",
+        "email": "shenche_design_mgr@company.com",
+        "phone": "13900001111"
+      },
+      {
+        "contact_id": "CT-452",
+        "name": "赵岚",
+        "department": "后端部",
+        "title": "后端部经理",
+        "email": "zhaolan_backend_mgr@company.com",
+        "phone": "13900001112"
+      },
+      {
+        "contact_id": "CT-453",
+        "name": "周韵",
+        "department": "测试部",
+        "title": "测试部经理",
+        "email": "zhouyun_qa_mgr@company.com",
+        "phone": "13900001113"
+      },
+      {
+        "contact_id": "CT-454",
+        "name": "蒋珂",
+        "department": "BI部",
+        "title": "",
+        "email": "jiangke_bi_steward@company.com",
+        "phone": "13900001114",
+        "notes": "BI部门目前无部门经理记录；仅有日常对接人"
+      },
+      {
+        "contact_id": "CT-455",
+        "name": "林烁",
+        "department": "IT部",
+        "title": "IT支持主管",
+        "email": "",
+        "phone": "13900001115",
+        "notes": "数据质量问题：邮箱字段为空（模拟参会人校验失败场景）"
+      },
+      {
+        "contact_id": "CT-456",
+        "name": "顾盼",
+        "department": "IT部",
+        "title": "IT支持工程师",
+        "email": "gu_pang_it@company.com",
+        "phone": "13900001116"
+      },
+      {
+        "contact_id": "CT-457",
+        "name": "余澜",
+        "department": "设计部",
+        "title": "",
+        "email": "yulan_design_newhire@company.com",
+        "phone": "13900001117"
+      },
+      {
+        "contact_id": "CT-458",
+        "name": "吕哲",
+        "department": "后端部",
+        "title": "",
+        "email": "lvzhe_backend_newhire@company.com",
+        "phone": "13900001118"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_4101",
+        "from": "hr_ops@company.com",
+        "to": "user@company.com",
+        "subject": "2026-03-09入职培训与通知安排（4人）",
+        "body": "您好！\n\n下周一（2026-03-09）共有4位新员工入职，请协助协调培训与通知。\n\n入职培训与参会人规则：\n- 培训事件参会人至少包含：IT支持主管 与 “对应部门经理（若有）”。\n- 如果通讯录中某位参会人联系信息缺失（找不到联系人或邮箱为空），则需走预案：先创建“不包含该人员”的占位培训事件，并为补齐信息创建待办。\n- 培训建议时段为：10:30-11:30（可能与现有会议冲突需要调整）。\n\n员工信息：\n1) 设计岗位：余澜\n   - 需求：双屏显示器 + 账号开通（前置：Designer环境）\n   - 部门经理：沈澈\n   - 培训：需参加入职培训\n\n2) 后端岗位：吕哲\n   - 需求：GPU工作站（含CUDA环境）+ 账号开通\n   - 部门经理：赵岚\n   - 培训：参会人需包含部门经理 与 IT支持主管，并在设备到货前先安排占位沟通\n\n3) 测试岗位：顾霖\n   - 需求：测试环境访问（不涉及安全审查）\n   - 部门经理：周韵\n   - 培训：需参加入职培训\n\n4) BI岗位：唐芷\n   - 需求：BI报表系统账号开通\n   - 部门经理：未提供（通讯录中也可能无部门经理记录）\n   - 培训：需参加入职培训\n\n设备补充：\n- GPU工作站存在到货限制：当日培训可先占位，IT将跟进预计到货日期。\n\n谢谢！",
+        "date": "2026-03-05T09:20:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_4102",
+        "from": "it_assets@company.com",
+        "to": "user@company.com",
+        "subject": "GPU工作站缺货与预计到货日期（用于入职协调）",
+        "body": "通知：GPU工作站目前库存为0，已登记等候名单。\n- 产品：GPU工作站（SKU-GPU-WS-2）\n- 预计到货日期：2026-03-12（预计到货：4台）\n- 建议：入职当日可使用临时CPU替代方案，并在到货后再完成GPU分配与环境迁移。\n\n其他常规设备可正常配置。",
+        "date": "2026-03-05T13:40:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_4103",
+        "from": "news@company.com",
+        "to": "user@company.com",
+        "subject": "公司公告：欢迎新同学",
+        "body": "无关邮件：内部公告。",
+        "date": "2026-03-04T16:00:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "SKU-GPU-WS-2",
+        "name": "GPU工作站（双风扇）",
+        "category": "办公电脑",
+        "current_stock": 0,
+        "status": "out_of_stock",
+        "unit_price": 28999.00,
+        "restock_date": "2026-03-12",
+        "notes": "预计3月12日到货4台；入职当日需临时CPU替代"
+      },
+      {
+        "product_id": "SKU-MON-24QHD-1",
+        "name": "24英寸QHD显示器",
+        "category": "外设",
+        "current_stock": 14,
+        "status": "normal",
+        "unit_price": 1999.00,
+        "notes": ""
+      },
+      {
+        "product_id": "SKU-TABLE-SET-2",
+        "name": "办公桌椅套装（2号位）",
+        "category": "办公家具",
+        "current_stock": 6,
+        "status": "normal",
+        "unit_price": 3899.00,
+        "notes": ""
+      },
+      {
+        "product_id": "SKU-LAP-DEV-5",
+        "name": "开发笔记本（14寸）",
+        "category": "办公电脑",
+        "current_stock": 9,
+        "status": "normal",
+        "unit_price": 12999.00,
+        "notes": ""
+      },
+      {
+        "product_id": "SKU-LAP-TEST-3",
+        "name": "测试笔记本（13寸）",
+        "category": "办公电脑",
+        "current_stock": 7,
+        "status": "normal",
+        "unit_price": 10999.00,
+        "notes": ""
+      },
+      {
+        "product_id": "SKU-CPU-TEMP-1",
+        "name": "临时CPU替代工作站",
+        "category": "办公电脑",
+        "current_stock": 2,
+        "status": "low_stock",
+        "unit_price": 7499.00,
+        "notes": "仅用于GPU缺货期间的临时过渡"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-821",
+        "title": "入职培训与部门通知规则（含占位事件与参会人校验）",
+        "category": "HR",
+        "tags": [
+          "入职",
+          "培训",
+          "通知",
+          "占位事件"
+        ],
+        "content": "# 入职培训与通知规则\n\n## 参会人最低要求\n- 培训事件参会人至少包含：IT支持主管 + 对应部门经理（若存在）。\n\n## 邮箱有效性校验（关键）\n- 在创建calendar事件前，必须核验通讯录获取到的参会人邮箱：\n  - 联系人不存在 或 邮箱字段为空：视为“不可用”，不能加入attendees。\n\n## 失败预案：占位培训事件\n- 若因邮箱缺失/联系人找不到导致参会人信息不完整：\n  1) 创建“不包含该参会人”的占位培训事件（标题中体现“占位”）。\n  2) 同步创建待办：用于补齐参会人信息（due_date=入职前1天）。\n\n## 无部门经理处理\n- 若某部门无部门经理：通知只保存为草稿不发送。\n",
+        "last_updated": "2026-02-18",
+        "views": 3120
+      },
+      {
+        "article_id": "KB-822",
+        "title": "IT设备申请与缺货处理策略（含临时替代）",
+        "category": "IT",
+        "tags": [
+          "设备",
+          "缺货",
+          "到货",
+          "临时替代"
+        ],
+        "content": "# IT设备申请与缺货处理策略\n\n## 申请与时点\n- 入职前3天完成设备申请/准备。\n\n## 缺货处理\n- 缺货设备需：\n  1) 登记等候\n  2) 创建“到货跟进与分配”待办\n  3) 到货后按申请先后分配\n\n## 临时方案\n- 对于关键设备缺货（例如GPU/特种配置）：\n  - 可先提供临时CPU替代方案完成基础培训与账号联调\n  - 在到货后再完成环境迁移与分配\n",
+        "last_updated": "2026-02-22",
+        "views": 2544
+      },
+      {
+        "article_id": "KB-823",
+        "title": "日历时间安排建议（冲突调整）",
+        "category": "IT",
+        "tags": [
+          "日历",
+          "冲突调整"
+        ],
+        "content": "# 日历时间安排建议\n- 建议时段与现有事件冲突时：\n  - 优先选择冲突外的可用时段\n  - 保持同一日且尽量不改变参会人出席逻辑\n",
+        "last_updated": "2026-02-10",
+        "views": 980
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-610",
+        "title": "准备BI域名白名单申请",
+        "description": "整理BI新账号的域名访问清单并提交。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-03-08",
+        "tags": [
+          "BI",
+          "账号"
+        ],
+        "created_at": "2026-03-03T10:05:00+08:00"
+      },
+      {
+        "task_id": "TODO-611",
+        "title": "更新测试环境访问清单",
+        "description": "对测试环境权限进行梳理与变更记录归档。",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-03-06",
+        "tags": [
+          "测试",
+          "权限"
+        ],
+        "created_at": "2026-03-02T15:30:00+08:00"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原本直接协调入职与处理冲突基础上，本题新增“培训创建前参会人邮箱可用性校验”失败预案：缺失则创建占位事件+补齐待办，并加入GPU缺货到货跟进与无经理部门只保存草稿。",
+    "fixture_design_summary": [
+      "calendar/events.json 提供与培训建议时段（10:30-11:30）冲突的既有会议：研发周报评审",
+      "contacts/contacts.json 设置IT支持主管邮箱为空以触发参会人校验失败并导致占位培训事件",
+      "gmail/inbox.json 含HR入职邮件与GPU缺货邮件；HR邮件要求参会人至少包含IT支持主管与部门经理（若有）",
+      "inventory/products.json 将GPU工作站 current_stock=0 并给出 restock_date=2026-03-12，用于创建跟进到货待办",
+      "todo/tasks.json 预置2条干扰任务，确保代理仍能正确创建新的缺货/补齐参会人/入职跟进待办"
+    ]
+  }
+}

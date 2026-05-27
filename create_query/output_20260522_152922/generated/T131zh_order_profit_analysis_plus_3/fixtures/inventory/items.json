@@ -1,0 +1,110 @@
+[
+  {
+    "product_id": "SKU-ALPHA-1",
+    "name": "企业工单许可-基础",
+    "category": "软件许可",
+    "quantity": 120,
+    "unit": "套",
+    "unit_cost": 9000.0,
+    "selling_price": 28000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研"
+  },
+  {
+    "product_id": "SKU-ALPHA-2",
+    "name": "企业工单许可-专业",
+    "category": "软件许可",
+    "quantity": 80,
+    "unit": "套",
+    "unit_cost": 17000.0,
+    "selling_price": 42000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研"
+  },
+  {
+    "product_id": "SKU-MOD-NOVA-1",
+    "name": "Nova数据分析模块",
+    "category": "增值模块",
+    "quantity": 60,
+    "unit": "套",
+    "unit_cost": 12000.0,
+    "selling_price": 26000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研"
+  },
+  {
+    "product_id": "SKU-MOD-NOVA-2",
+    "name": "Nova数据分析模块-高阶",
+    "category": "增值模块",
+    "quantity": 45,
+    "unit": "套",
+    "unit_cost": 22000.0,
+    "selling_price": 48000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研"
+  },
+  {
+    "product_id": "SKU-MOD-ORBIT-1",
+    "name": "Orbit运维监控模块",
+    "category": "增值模块",
+    "quantity": 90,
+    "unit": "套",
+    "unit_cost": 15000.0,
+    "selling_price": 36000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研"
+  },
+  {
+    "product_id": "SKU-SVC-EDGE-1",
+    "name": "Edge实施服务-标准",
+    "category": "服务",
+    "quantity": 40,
+    "unit": "人天",
+    "unit_cost": 5200.0,
+    "selling_price": 14000.0,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "交付团队"
+  },
+  {
+    "product_id": "SKU-SVC-EDGE-2",
+    "name": "Edge实施服务-加急",
+    "category": "服务",
+    "quantity": 35,
+    "unit": "人天",
+    "unit_cost": 6800.0,
+    "selling_price": 17000.0,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "交付团队"
+  },
+  {
+    "product_id": "SKU-SVC-CARE-1",
+    "name": "Care客户支持服务",
+    "category": "服务",
+    "quantity": 25,
+    "unit": "月",
+    "unit_cost": 6000.0,
+    "selling_price": 15000.0,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "支持团队"
+  },
+  {
+    "product_id": "SKU-SVC-CARE-2",
+    "name": "Care高级支持服务",
+    "category": "服务",
+    "quantity": 18,
+    "unit": "月",
+    "unit_cost": 9000.0,
+    "selling_price": 22000.0,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "支持团队"
+  }
+]

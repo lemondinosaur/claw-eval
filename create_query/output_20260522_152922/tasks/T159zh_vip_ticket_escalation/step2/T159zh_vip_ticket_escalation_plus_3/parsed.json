@@ -1,0 +1,292 @@
+{
+  "task_id": "T159zh_vip_ticket_escalation_plus_3",
+  "task_name": "VIP数据同步延迟P0升级",
+  "prompt_text": "请处理一张VIP客户的critical级别工单：\n1）使用帮助台工具确认工单是否为critical，并核对关联客户的VIP属性与SLA；\n2）在知识库中检索与“数据同步延迟/消息堆积/重试失败”相关的应急与排查方案，并提炼关键步骤与恢复窗口判断依据；\n3）从内部通讯录中定位执行负责人（后端/中台/数据平台方向）、升级接收人，以及客户对接人；\n4）保存两封邮件草稿（禁止发送）：\n- 客户确认回复草稿：必须给出你在1小时内可提供的“同步恢复可能原因方向 + 预计恢复窗口（含时间范围）+ 是否评估临时降级（如切换读取到缓存/只读模式）的结论与影响说明”。\n- 内部升级通知草稿：必须明确P0/VIP严重性、需要关注的观察指标与排查/恢复的行动要点，并抄送/提及相关技术负责人。\n\n注意：仅保存草稿，不要发送邮件。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-2101",
+        "name": "陈屹",
+        "department": "数据平台部",
+        "title": "后端技术负责人",
+        "email": "chenyi.data-platform@company.com",
+        "phone": "13900211001",
+        "location": "杭州",
+        "specialization": "数据平台/中台",
+        "notes": "负责数据同步链路、消息队列消费与中台服务的故障处置；对P0/P1数据一致性与延迟问题负技术牵头责任"
+      },
+      {
+        "contact_id": "CT-2102",
+        "name": "蒋岚",
+        "department": "技术管理部",
+        "title": "技术总监",
+        "email": "jianglan.tech-mgmt@company.com",
+        "phone": "13900211002",
+        "location": "上海总部",
+        "specialization": "技术管理/升级接收人",
+        "notes": "P0/P1升级接收点；负责跨团队协调并确认升级策略与对外承诺风险控制"
+      },
+      {
+        "contact_id": "CT-2103",
+        "name": "周晴",
+        "department": "客户成功部",
+        "title": "VIP客户经理",
+        "email": "zhouqing.cs@company.com",
+        "phone": "13900211003",
+        "location": "上海总部",
+        "specialization": "客户成功/VIP对接",
+        "notes": "负责VIP客户沟通、升级节奏跟进与客户侧需求汇总；会参与客户确认邮件的内容校对"
+      },
+      {
+        "contact_id": "CT-2104",
+        "name": "程昊",
+        "department": "运维与可靠性",
+        "title": "SRE值班",
+        "email": "chenghao.sre@company.com",
+        "phone": "13900211004",
+        "location": "深圳",
+        "specialization": "可靠性/监控与应急",
+        "notes": "负责观测指标收敛（队列积压、消费速率、重试失败率）与应急执行（熔断/降级/回滚）"
+      },
+      {
+        "contact_id": "CT-2105",
+        "name": "唐薇",
+        "department": "中台工程",
+        "title": "消息系统工程师",
+        "email": "tangwei.messaging@company.com",
+        "phone": "13900211005",
+        "location": "杭州",
+        "specialization": "消息队列/同步机制",
+        "notes": "负责消息队列与同步机制相关优化；可协助定位重试失败、死信队列、消费位点异常等"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2101",
+        "name": "星河零售科技",
+        "contact_person": "沈总监",
+        "email": "shen@xinghe-retail.com",
+        "phone": "13900212001",
+        "industry": "零售科技",
+        "tier": "vip",
+        "annual_revenue": 2200000,
+        "sla": "1小时响应，4小时解决（数据同步）",
+        "last_contact_date": "2026-04-12",
+        "status": "active",
+        "contract_end_date": "2027-11-30",
+        "notes": "VIP客户，履约系统强依赖订单状态同步与消息一致性；历史多次因同步延迟产生追偿风险"
+      },
+      {
+        "customer_id": "CUS-2102",
+        "name": "北境制造",
+        "contact_person": "韩经理",
+        "email": "han@beijing-manufacture.cn",
+        "phone": "13900212002",
+        "industry": "制造",
+        "tier": "standard",
+        "annual_revenue": 480000,
+        "sla": "4小时响应，24小时解决",
+        "last_contact_date": "2026-04-09",
+        "status": "active",
+        "contract_end_date": "2026-10-31",
+        "notes": "标准客户，偶发同步延迟可常规处理"
+      },
+      {
+        "customer_id": "CUS-2103",
+        "name": "云栖教育平台",
+        "contact_person": "刘主管",
+        "email": "liu@yunqi-edu.com",
+        "phone": "13900212003",
+        "industry": "教育科技",
+        "tier": "standard",
+        "annual_revenue": 310000,
+        "sla": "8小时响应，48小时解决",
+        "last_contact_date": "2026-04-05",
+        "status": "active",
+        "contract_end_date": "2026-12-15",
+        "notes": "标准客户，主要诉求为报表与数据展示延迟"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2101",
+        "from": "shen@xinghe-retail.com",
+        "to": "support@company.com",
+        "subject": "P0：订单状态同步延迟 + 消息堆积，必须给出恢复窗口与是否降级",
+        "date": "2026-04-12T09:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "沈总监致支持团队：\n\n我们在过去两周内已遇到过3次“订单状态同步延迟/数据落后”，这次更严重：履约系统显示的数据比后台下单晚约20-35分钟。\n\n请在1小时内给出：\n1）同步恢复的可能原因方向（不要泛泛而谈，至少覆盖队列堆积/消费速率/重试失败这几类）；\n2）预计恢复窗口（给出一个时间范围，例如“1.5小时~3小时”）；\n3）是否需要临时降级：例如切换读取到缓存或只读模式以保障展示一致性。若需要，请说明对前端/对账的影响。\n\n另外请确认内部升级已同步到数据平台/中台负责人，避免重复排查。\n\n谢谢。\n星河零售科技 沈总监"
+      },
+      {
+        "message_id": "msg_2102",
+        "from": "deploy-bot@company.com",
+        "to": "all-staff@company.com",
+        "subject": "发布提醒：中台同步服务 v5.6.2 已部署（可回滚）",
+        "date": "2026-04-12T08:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "今天08:00已完成中台同步服务 v5.6.2 部署。\n变更包含：消息重试参数调整、消费线程数优化。\n如需回滚：参考runbook执行。"
+      },
+      {
+        "message_id": "msg_2103",
+        "from": "newsletter@company.com",
+        "to": "support@company.com",
+        "subject": "产品更新：缓存策略与权限控制优化",
+        "date": "2026-04-11T16:30:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "本周我们发布了权限控制与缓存策略的优化说明，详情见内部文档。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2101",
+        "title": "sync lag：订单状态同步延迟超过阈值（持续中）/ queue backlog",
+        "description": "星河零售科技（CUS-2101）报告：订单状态同步延迟持续超过阈值，履约系统显示比后台下单落后约20-35分钟。监控提示消息队列积压（queue backlog）持续增长，且存在部分重试失败记录，导致下游消费位点推进异常。\n客户要求：按VIP/SLA启动紧急升级，并在1小时内给出恢复窗口与是否临时降级（切换读取到缓存/只读模式）的建议方向。",
+        "customer_id": "CUS-2101",
+        "reporter": "沈总监",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-12T08:58:00Z",
+        "tags": [
+          "VIP",
+          "数据同步",
+          "消息队列",
+          "堆积",
+          "重试失败",
+          "P0候选"
+        ],
+        "category": "数据一致性"
+      },
+      {
+        "ticket_id": "TK-2102",
+        "title": "支付回调接口间歇超时",
+        "description": "北境制造反馈支付回调偶发超时，部分订单延迟入账。建议评估API网关超时与下游依赖。",
+        "customer_id": "CUS-2102",
+        "reporter": "韩经理",
+        "department": "技术支持",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-12T07:30:00Z",
+        "tags": [
+          "API",
+          "超时",
+          "支付"
+        ],
+        "category": "性能与稳定性"
+      },
+      {
+        "ticket_id": "TK-2103",
+        "title": "用户画像导入任务失败（低频）",
+        "description": "云栖教育平台反馈画像导入任务偶发失败，影响少量用户数据更新。可按常规工单处理。",
+        "customer_id": "CUS-2103",
+        "reporter": "刘主管",
+        "department": "数据工程",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-12T06:12:00Z",
+        "tags": [
+          "ETL",
+          "批处理",
+          "失败"
+        ],
+        "category": "数据处理"
+      },
+      {
+        "ticket_id": "TK-2104",
+        "title": "缓存失效告警：权限变更后短暂访问异常",
+        "description": "北境制造反馈在权限变更后出现短暂访问异常，可能与缓存一致性刷新有关。",
+        "customer_id": "CUS-2102",
+        "reporter": "韩经理",
+        "department": "平台安全",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-12T05:42:00Z",
+        "tags": [
+          "缓存",
+          "权限",
+          "一致性"
+        ],
+        "category": "平台安全"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-2101",
+        "title": "消息队列堆积与数据同步延迟应急处置（含恢复窗口评估）",
+        "category": "应急手册",
+        "tags": [
+          "消息队列",
+          "堆积",
+          "数据同步",
+          "重试失败",
+          "消费速率",
+          "降级"
+        ],
+        "content": "## 消息队列堆积 / 数据同步延迟：P0应急处置\n\n### 适用场景\n- 数据同步延迟超阈值（sync lag）\n- 队列积压（queue backlog）持续上升\n- 重试失败率（retry failed）升高或出现死信\n\n### 关键观察指标（用于估算恢复窗口）\n1. 队列积压量（backlog）与变化斜率（是否仍在增长）\n2. 消费速率（consume rate）与目标处理能力差距\n3. 重试失败率、失败原因分布（超时/幂等冲突/下游拒绝）\n4. 消费位点推进情况（是否卡在某一分区/主题）\n5. DLQ/死信队列增长（是否需要清理或人工重放）\n\n### 排查与恢复步骤\n1. **止血**：确认是否存在下游依赖异常（依赖服务错误率/超时）导致消费失败\n2. **定位失败**：拉取失败原因分布，优先处理“可重试但失败放大”的原因（如超时、连接抖动）\n3. **估算恢复窗口**：使用 backlog / 实测 consume rate 估算达到0积压所需时间；结合新失败率判断是否会再次积压\n4. **恢复策略**：\n   - 如为幂等/格式问题：先修复消费端或降级写路径\n   - 如为依赖超时：调整超时/并发、短期增加重试间隔\n   - 如为DLQ：按规则清理并重放关键消息\n5. **必要降级**：若预计恢复窗口超过SLA，评估临时切换读路径到缓存/只读模式以降低一致性风险；同时明确哪些页面/报表将使用缓存快照。\n\n### 升级条件\n- VIP/SLA极短 + backlog持续增长 → 升级至P0并通知数据平台/中台负责人\n- 重试失败率持续上升或出现死信增长 → 立即启动P0处置流程",
+        "last_updated": "2026-04-01",
+        "views": 1320
+      },
+      {
+        "article_id": "KB-2102",
+        "title": "API网关超时调优与权限校验（不适用于消息堆积主因）",
+        "category": "技术文档",
+        "tags": [
+          "API",
+          "超时",
+          "权限",
+          "网关"
+        ],
+        "content": "## API网关超时调优与权限校验\n\n### 常见场景\n- 接口超时、返回500\n- 权限校验导致拒绝\n\n### 建议\n- 检查网关超时阈值\n- 检查鉴权策略与缓存\n\n### 注意\n- 本文不覆盖消息队列消费位点、重试失败与DLQ处置",
+        "last_updated": "2026-03-20",
+        "views": 510
+      },
+      {
+        "article_id": "KB-2103",
+        "title": "缓存一致性与只读降级策略（用于应急展示一致性）",
+        "category": "应急策略",
+        "tags": [
+          "缓存",
+          "降级",
+          "只读模式",
+          "一致性"
+        ],
+        "content": "## 缓存一致性与只读降级\n\n### 适用场景\n- 下游依赖异常时，为保障展示与查询稳定，临时启用缓存快照或只读模式\n\n### 操作要点\n- 明确读路径切换范围（哪些页面/接口使用缓存）\n- 标注一致性延迟（例如最多延后N分钟）\n- 记录恢复后重新同步的策略（重新拉取/回填）\n\n### 升级建议\n- 与数据同步延迟/消息堆积同时发生时，可作为临时兜底方案，但须继续排查同步根因",
+        "last_updated": "2026-03-28",
+        "views": 744
+      },
+      {
+        "article_id": "KB-2104",
+        "title": "数据权限与API速率限制最佳实践（与同步延迟关联较弱）",
+        "category": "安全与治理",
+        "tags": [
+          "权限管理",
+          "速率限制",
+          "治理"
+        ],
+        "content": "## 数据权限与API速率限制最佳实践\n- 速率限制配置\n- 权限模型与审计\n\n不涉及消息队列堆积与重试失败的应急处置。",
+        "last_updated": "2026-02-10",
+        "views": 289
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的“数据库连接池故障”替换为“数据同步延迟与消息队列堆积/重试失败”的VIP P0升级流程，并要求邮件聚焦恢复窗口与是否临时降级。",
+    "fixture_design_summary": [
+      "helpdesk/tickets.json 新增1条priority=critical的VIP数据同步延迟工单（持续中、含queue backlog与重试失败描述）。",
+      "crm/customers.json 新增1个tier=vip客户并配置更短SLA（1小时响应，4小时解决）。",
+      "gmail/inbox.json 新增1封来自VIP客户的紧急邮件，明确要求1小时内给出“原因方向+预计恢复窗口+是否降级”。",
+      "kb/articles.json 新增1条与“消息队列堆积/数据同步延迟/恢复窗口/升级条件”强相关的应急文章，另加入2条相近但不匹配主因的干扰文章。",
+      "contacts/contacts.json 新增数据平台/中台方向的后端负责人、技术总监升级接收人与客户成功对接人，确保内部邮件草稿收件/抄送可与联系人匹配。"
+    ]
+  }
+}

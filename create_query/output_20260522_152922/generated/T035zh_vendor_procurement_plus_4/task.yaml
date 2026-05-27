@@ -1,0 +1,251 @@
+task_id: T035zh_vendor_procurement_plus_4
+task_name: 分布式边缘节点混采评测
+version: '1.0'
+category: procurement
+difficulty: hard
+tags:
+- general
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T035zh_vendor_procurement_plus_4/fixtures/finance/transactions.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T035zh_vendor_procurement_plus_4/fixtures/kb/articles.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T035zh_vendor_procurement_plus_4/fixtures/inventory/products.json
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/articles
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T035zh_vendor_procurement_plus_4/fixtures/rss/articles.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T035zh_vendor_procurement_plus_4/fixtures/crm/customers.json
+prompt:
+  text: '我们要为分布式边缘节点进行混采供应商评估（只做评估不下单、不联系供应商）。项目包含两类缺口：边缘服务器与网络配套设备。请你基于库存、RSS、CRM、知识库和财务系统输出一份可执行的供应商组合建议，要求：
+
+    1）同时考虑服务器与网络配套的缺口，明确哪些供应商更适合承担服务器、哪些更适合承担网络配套或作为备选；
+
+    2）从RSS找出至少3家供应商在“交付稳定性/实施团队连续性/边缘场景支持能力”相关的风险信号，且要呈现矛盾对照（至少每家一条正面或中性信息+一条负面或风险信息）；
+
+    3）从CRM判断至少3家供应商对边缘项目的支持状态：例如是否曾因支持不足拒单、是否需要整改、以及问题闭环/响应速度；
+
+    4）依据知识库的评分权重与审批/集中度约束，对至少3个供应商做对比评分口径说明，并给出每家在本次边缘阶段的角色定位；
+
+    5）结合财务预算与历史交易，说明为什么需要“分阶段采购”以降低审批压力；若达到审批门槛，指出需哪个审批层级并给出分阶段策略（例如先关键服务器后网络配套/或先关键服务器子批次）。
+
+    输出中不得调用 finance_report_submit，也不要提“下单/联系供应商”。'
+  language: zh
+tools:
+- name: inventory_list_products
+  description: 获取商品库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: inventory_get_product
+  description: 获取单个商品的详细库存信息
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+    required:
+    - product_id
+- name: rss_list_articles
+  description: 获取文章列表
+  input_schema:
+    type: object
+    properties:
+      source:
+        type: string
+        description: 按来源筛选
+      category:
+        type: string
+        description: 按类别筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章完整内容
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: crm_list_customers
+  description: 获取CRM客户列表，可按状态、等级、行业筛选
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选：active, inactive, churned
+      tier:
+        type: string
+        description: 客户等级筛选：vip, standard
+      industry:
+        type: string
+        description: 按行业筛选
+    required: []
+- name: crm_get_customer
+  description: 获取单个客户的完整详细信息
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: finance_list_transactions
+  description: 获取费用交易记录列表
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 开始日期 (YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 结束日期 (YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取单笔交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: finance_report_submit
+  description: 提交财务报告
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 报告标题
+      content:
+        type: string
+        description: 报告内容
+      total_amount:
+        type: number
+        description: 总金额
+      report_type:
+        type: string
+        description: 报告类型：expense, procurement, budget
+    required:
+    - title
+    - content
+tool_endpoints:
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: finance_report_submit
+  url: http://localhost:9104/finance/report/submit
+  method: POST
+sandbox_files:
+- fixtures/inventory/products.json
+- fixtures/rss/articles.json
+- fixtures/crm/customers.json
+- fixtures/kb/articles.json
+- fixtures/finance/transactions.json
+environment:
+  timeout_seconds: 900
+  max_turns: 40

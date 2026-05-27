@@ -1,0 +1,50 @@
+[
+  {
+    "message_id": "msg_301",
+    "from": "pmo@company.com",
+    "to": "me@company.com",
+    "subject": "跨部门评审邀请",
+    "date": "2026-03-04T11:15:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位同事好：\n\n本周五将召开跨部门评审会，需邀请“刘主任”参加，并请在会前阅读附件中的议程与材料（正文不提供链接）。\n\n评审会时间：本周五下午。\n\n麻烦你协助发送邀请通知，并确认收件人无误。\n\nPMO"
+  },
+  {
+    "message_id": "msg_302",
+    "from": "itops@company.com",
+    "to": "me@company.com",
+    "subject": "设备维护通知",
+    "date": "2026-03-03T16:40:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "周三晚间计划进行机房设备维护，期间部分系统会短暂停机，请提前安排。谢谢。\n\nIT运维"
+  },
+  {
+    "message_id": "msg_303",
+    "from": "sales@company.com",
+    "to": "me@company.com",
+    "subject": "关于客户回访的安排",
+    "date": "2026-03-02T09:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "请协助安排本周对客户的回访时间，并同步更新CRM记录。\n\n销售团队"
+  },
+  {
+    "message_id": "msg_304",
+    "from": "assistant.liuquality@company.com",
+    "to": "me@company.com",
+    "subject": "Re: 跨部门评审邀请（转达）",
+    "date": "2026-03-04T10:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，刘主任助理转达：请留意会前阅读议程与材料。本周五评审会请按流程通知相关主任。\n\n刘主任助理"
+  }
+]

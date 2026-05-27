@@ -1,0 +1,113 @@
+task_id: T119zh_inventory_cost_analysis_plus_3
+task_name: 部分缺货触发缺单核对
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T119zh_inventory_cost_analysis_plus_3/fixtures/inventory/items.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T119zh_inventory_cost_analysis_plus_3/fixtures/finance/transactions.json
+prompt:
+  text: '请帮我做一次库存与采购成本的交叉核对（包含边界条件：库存数量为0/缺货、财务可能只有历史采购、以及窗口外交易干扰）。
+
+
+    要求：
+
+    1）拉取当前库存品列表，重点记录 quantity=0 的品类；对 quantity>0 的品类也一并记录其 unit_cost、供应商/分类（如需要可调用明细）。
+
+    2）查询财务系统中这些品类在给定时间窗口内的采购交易（只纳入窗口内、且类型/状态符合“已完成采购”的记录）。
+
+    3）核对规则：
+
+    - 若库存 quantity>0：比较库存 unit_cost 与窗口内对应采购的实际单价；如存在多批采购，按加权平均或可解释的聚合方式推导并判断是否一致。
+
+    - 若库存 quantity=0（缺货）：不强行做单价一致性断言；改为核对成本来源是否合理（例如是否存在历史采购但已停用、是否存在但已失效/取消、是否存在窗口内采购从而与“已清零”矛盾），并给出风险与需要补录的信息。
+
+    - 若窗口内找不到对应采购交易：输出“无法核对/疑似缺单”，并明确哪些信息缺失。
+
+    4）找出异常与数据质量问题：至少区分
+
+    - 成本异常（确有匹配采购单价/加权平均与库存 unit_cost 不一致）；
+
+    - 库存状态异常/数据不一致（如 quantity=0 但仍与窗口内采购形成矛盾，或记录链路存在疑点）；
+
+    - 无法核对/疑似缺单（窗口内缺少必要采购记录）。
+
+    5）输出一份成本分析报告，按上述三类分段呈现，并给出可操作的核查/补录建议。'
+  language: zh
+tools:
+- name: inventory_list_items
+  description: 查看库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取库存品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

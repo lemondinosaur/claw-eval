@@ -1,0 +1,98 @@
+{
+  "task_id": "T099_pinbench_second_brain_recall_plus_4",
+  "task_name": "Second Brain: Learning Path Summary",
+  "prompt_text": "把 notes 服务当作持久化的第二大脑。找到名为 “learning path summary” 的学习路径总结笔记，并回答：\n\n1) 学习路径的主题是什么？\n2) 你具体在什么时候开始学习它（精确到月份）？\n3) 你推荐了哪本书以及作者是谁？\n4) 该学习路径绑定在什么项目上，以及目标用户是谁？\n5) 团队通行卡片上的口令短语是什么？\n",
+  "files": {
+    "fixtures/notes/memory.json": [
+      {
+        "note_id": "mem_104",
+        "title": "杂记：阅读与笔记整理",
+        "content": "topic: deep work\nstart month: 2023-11\nbook: The Mythical Man-Month — F. Brooks\nproject: build-time tooling\ntarget user: maintainers\ncard phrase: tiger behind glass\n",
+        "created_at": "2026-02-09T10:20:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 6
+      },
+      {
+        "note_id": "mem_105",
+        "title": "学习笔记：learning path summary（目标）",
+        "content": "learning path theme: Distributed Systems with Rust\nstart month: 2024-04\nrecommended book: Designing Data-Intensive Applications by Martin Kleppmann\nproject: Atlas Queue\ntarget user: backend engineers at growth-stage startups\nteam card phrase: bronze compass whisper\n",
+        "created_at": "2026-02-10T09:05:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 8
+      },
+      {
+        "note_id": "mem_106",
+        "title": "阅读清单：并发与一致性",
+        "content": "book: Data-Intensive Applications — M. Kleppmann\nauthor: Martin Kleppmann\nstart month: April 2024\nlearning path theme: eventually consistent workflows\nproject: Atlas Scheduler\ntarget user: QA analysts\ncard phrase idea: bronze compass whisper (maybe)\n",
+        "created_at": "2026-02-08T14:40:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 7
+      },
+      {
+        "note_id": "mem_107",
+        "title": "想法草稿：团队卡片口令",
+        "content": "card phrase: bronze compass whisper\nnote: do not confuse with another draft phrase\ncontext: internal onboarding\n",
+        "created_at": "2026-02-07T16:25:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 3
+      },
+      {
+        "note_id": "mem_108",
+        "title": "学习笔记：系统设计备忘",
+        "content": "learning path theme: Functional Programming Foundations\nstart month: 2022-09\nrecommended book: Programming Erlang — Joe Armstrong\nproject: Faultline Runtime\ntarget user: SRE teams\ncard phrase: copper lantern drift\n",
+        "created_at": "2026-02-11T11:10:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 9
+      },
+      {
+        "note_id": "mem_109",
+        "title": "阅读清单：作者缩写收集",
+        "content": "book: Effective Software Testing — C. Myers\nauthor: C. M.\nstart month: 2024-04\nlearning path theme: testing strategies\nproject: Atlas Queue\ntarget user: product managers\ncard phrase: bronze compass (widened)\n",
+        "created_at": "2026-02-06T08:55:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 5
+      },
+      {
+        "note_id": "mem_110",
+        "title": "杂记：会议后总结",
+        "content": "learning path theme: Storage reliability in the wild\nstart month: 2024-03\nrecommended book: Building Microservices — Sam Newman\nproject: Atlas Queue\ntarget user: frontend platform leads\ncard phrase: amber compass hush\n",
+        "created_at": "2026-02-12T13:30:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 4
+      },
+      {
+        "note_id": "mem_111",
+        "title": "阅读清单：数据建模速记",
+        "content": "book: Designing Data-Intensive Systems by M. Kleppman\nstart month: March 2024\nlearning path theme: schema evolution\nproject: Atlas Interpreter\ntarget user: data analysts\ncard phrase: bronze compass whisper (transposed: whisper compass bronze)\n",
+        "created_at": "2026-02-05T19:05:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 6
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的“编程语言+导师+秘密短语+项目用途”改为从同类 notes 中提取“学习路径主题+开始月份+推荐书籍作者+项目与目标用户+团队通行口令”，并通过相近书名/作者与口令相似干扰增强区分。",
+    "fixture_design_summary": [
+      "总共 8 条笔记，其中 1 条标题包含 learning path summary，且内容同时包含五类字段以支撑精确匹配",
+      "至少两条干扰包含 book/author 或同作者相近信息，但字段组合不与目标 note 完全一致",
+      "至少两条干扰包含类似 card phrase 语句，但词序或短语不完全匹配目标口令",
+      "目标 note 在列表中不为首位，避免基于顺序的错误命中"
+    ]
+  }
+}

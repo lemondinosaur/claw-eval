@@ -1,0 +1,72 @@
+[
+  {
+    "integration_id": "INT-2401",
+    "name": "门店库存同步-旧密钥",
+    "service": "store_inventory_sync",
+    "status": "active",
+    "endpoint": "https://store-inventory.example.com/api/v1/stores/sync",
+    "api_key": "sk-old-store-sync-2401-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-10T09:20:00Z",
+    "monthly_calls": 9800,
+    "error_rate": 0.93,
+    "notes": "令牌已过期但配置仍保持active；连续产生401/403/404。与新密钥INT-2402需完成状态切换与验证。"
+  },
+  {
+    "integration_id": "INT-2402",
+    "name": "门店库存同步-新密钥",
+    "service": "store_inventory_sync",
+    "status": "inactive",
+    "endpoint": "https://store-inventory.example.com/api/v1/stores/sync",
+    "api_key": "sk-new-store-sync-2402-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-18T15:05:00Z",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "notes": "新密钥已完成离线验证，但尚未激活到生产配置；需要切换触发链路恢复。"
+  },
+  {
+    "integration_id": "INT-2403",
+    "name": "发货资格校验服务",
+    "service": "fulfillment_eligibility",
+    "status": "active",
+    "endpoint": "https://eligibility.example.com/api/v2/check",
+    "api_key": "sk-eligibility-2403-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-20T11:40:00Z",
+    "monthly_calls": 42100,
+    "error_rate": 0.006,
+    "notes": "服务运行正常。拒绝执行原因应来自上游可发货库存数据过期/不达阈值。"
+  },
+  {
+    "integration_id": "INT-2404",
+    "name": "监控告警聚合服务",
+    "service": "monitoring_aggregator",
+    "status": "active",
+    "endpoint": "https://monitoring.example.com/api/v1/alerts/aggregate",
+    "api_key": "sk-monitor-2404-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-21T18:00:00Z",
+    "monthly_calls": 7600,
+    "error_rate": 0.01,
+    "notes": "存在磁盘空间接近阈值的噪声告警，但不依赖本次门店库存同步链路。"
+  },
+  {
+    "integration_id": "INT-2405",
+    "name": "站点元数据服务",
+    "service": "site_metadata",
+    "status": "active",
+    "endpoint": "https://sites.example.com/api/v1/sites",
+    "api_key": "sk-site-meta-2405-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-19T08:12:00Z",
+    "monthly_calls": 12000,
+    "error_rate": 0.001,
+    "notes": "运行正常，用于站点维度映射。"
+  }
+]

@@ -1,0 +1,166 @@
+{
+  "task_id": "T029zh_cross_service_meeting_plus_2",
+  "task_name": "技术评审会（部分缺失联系人容错）",
+  "prompt_text": "请处理收件箱中一封来自“北极星软件”客户成功经理发来的“架构评审会议”邀请：\n- 邮件提到参会人含我方“何晴”（部门写为平台架构组）以及“郑岩”（只给了英文姓氏：ZHENG），还提到对方“客户成功经理（姓名可能省略）”。\n你的任务：\n1）读取邮件，提取会议主题与会期窗口（会议时长2小时，主窗口为 2026-03-07 周六 10:00-14:00）；\n2）在通讯录里尽可能通过姓名/部门/英文姓氏进行检索，确保至少找到我方两位的邮箱；若对方联系人未能在通讯录中唯一匹配，请从邮件头信息推断其邮箱并用于发信（不需要额外联系人工工具时也要能完成）；\n3）查询所有确定参会者在该窗口内的空闲，选择共同可用的最早2小时；\n4）在日历创建会议（地点为“线上会议（Teams）”；若邮件要求含“会议室C或线上（二选一）”，以邮件要求为准），并确保会议标题为“架构评审会议”；\n5）保存并发送回复确认给邮件发起方，正文包含：选定的日期时间、会议主题、地点、参会人（列出你找到的姓名与邮箱）。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_701",
+        "title": "平台变更评审",
+        "organizer": "heqing@company.com",
+        "attendees": [
+          "heqing@company.com",
+          "zhouxuan@company.com"
+        ],
+        "start_time": "2026-03-07T11:00:00+08:00",
+        "end_time": "2026-03-07T12:00:00+08:00",
+        "location": "会议室A",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_702",
+        "title": "郑姓同学同步对齐",
+        "organizer": "zhenyan@company.com",
+        "attendees": [
+          "zhenyan@company.com"
+        ],
+        "start_time": "2026-03-07T10:30:00+08:00",
+        "end_time": "2026-03-07T11:30:00+08:00",
+        "location": "线上",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_703",
+        "title": "晨会 & 周计划",
+        "organizer": "heqing@company.com",
+        "attendees": [
+          "heqing@company.com"
+        ],
+        "start_time": "2026-03-07T09:30:00+08:00",
+        "end_time": "2026-03-07T10:00:00+08:00",
+        "location": "",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_704",
+        "title": "午后专注时段",
+        "organizer": "zhenyan@company.com",
+        "attendees": [
+          "zhenyan@company.com"
+        ],
+        "start_time": "2026-03-07T14:30:00+08:00",
+        "end_time": "2026-03-07T15:30:00+08:00",
+        "location": "",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_705",
+        "title": "北极星回访简报（仅对方）",
+        "organizer": "csm.polaris@polaris-soft.com",
+        "attendees": [
+          "csm.polaris@polaris-soft.com"
+        ],
+        "start_time": "2026-03-06T16:00:00+08:00",
+        "end_time": "2026-03-06T17:00:00+08:00",
+        "location": "线上",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-601",
+        "name": "何晴",
+        "department": "平台架构组",
+        "title": "架构师",
+        "email": "heqing@company.com",
+        "phone": "13901010001",
+        "location": "北京总部"
+      },
+      {
+        "contact_id": "CT-602",
+        "name": "郑岩",
+        "department": "平台架构组",
+        "title": "高级工程师",
+        "email": "zhenyan@company.com",
+        "phone": "13901010002",
+        "location": "北京总部"
+      },
+      {
+        "contact_id": "CT-603",
+        "name": "郑昕",
+        "department": "数据平台组",
+        "title": "数据工程师",
+        "email": "zhengxin@company.com",
+        "phone": "13901010003",
+        "location": "上海分部"
+      },
+      {
+        "contact_id": "CT-604",
+        "name": "郑楠",
+        "department": "客户端组",
+        "title": "前端工程师",
+        "email": "zhengnan@company.com",
+        "phone": "13901010004",
+        "location": "深圳分部"
+      },
+      {
+        "contact_id": "CT-605",
+        "name": "北极星软件-客户成功负责人（非本次）",
+        "department": "外部 — 北极星软件",
+        "title": "Customer Success Director",
+        "email": "cslead.polaris@polaris-soft.com",
+        "phone": "13902020001",
+        "location": "外部"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_801",
+        "from": "csm.polaris@polaris-soft.com",
+        "to": "me@company.com",
+        "subject": "架构评审会议（邀请）",
+        "date": "2026-03-01T09:15:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "你好，\n\n我是北极星软件的客户成功经理，想邀请贵方参加“架构评审会议”。\n\n参会人线索如下：\n- 贵方：何晴（平台架构组）\n- 贵方：郑岩（仅提供英文姓氏：ZHENG）\n- 我方：客户成功经理（姓名可能省略）\n\n会议信息：\n- 会议主题：架构评审会议\n- 建议时段：2026-03-07 周六 10:00-14:00（会议时长2小时）\n- 地点要求：线上会议（Teams）\n\n请确认可参会的最早2小时，并回邮告知。\n\n谢谢！\n北极星软件客户成功经理\n"
+      },
+      {
+        "message_id": "msg_802",
+        "from": "hr-notify@othercorp.com",
+        "to": "me@company.com",
+        "subject": "关于公司福利表单填写提醒",
+        "date": "2026-03-01T12:20:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位好，\n\n请在本周内完成福利表单填写，逾期将不再受理。\n\n谢谢。\n"
+      },
+      {
+        "message_id": "msg_803",
+        "from": "no-reply@service-alert.com",
+        "to": "me@company.com",
+        "subject": "告警：服务健康检查失败（无需操作）",
+        "date": "2026-03-02T08:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，\n\n检测到一项服务健康检查失败告警，系统将自动恢复。\n如需协助请联系值班同事。\n"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新增任务引入“郑岩仅给英文姓氏 ZHENG”以及对方客户成功经理在通讯录中可能无法唯一匹配、需从邮件发件人兜底推断邮箱，并将会议窗口固定为周六 2026-03-07 10:00-14:00以求最早2小时交集。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 提供1封“架构评审会议（邀请）”邮件（含主题、窗口、地点Teams、参会线索与可用于兜底的发件人邮箱），并附加2封干扰邮件。",
+      "contacts/contacts.json 中加入我方何晴（平台架构组，唯一匹配邮箱 heqing@company.com）与郑姓多人（仅郑岩的邮箱为 zhenyan@company.com），保证需用姓氏ZHENG与可能的部门/姓名线索定位正确。",
+      "contacts/contacts.json 中包含一个与北极星相关但非本次对方姓名线索明确的联系人（避免通讯录唯一匹配对方）；对方邮箱改用邮件 from 兜底 csm.polaris@polaris-soft.com。",
+      "calendar/events.json 在 2026-03-07 的 10:00-14:00 内为何晴与郑岩制造冲突，使其共同最早可用连续2小时落在 12:00-14:00；对方（csm.polaris@polaris-soft.com）在该窗口内不放事件。",
+      "所有实体（邮箱/联系人/事件）为全新设定，且跨 fixture 保持一致以支撑参会人解析、日程交集计算、会议创建与回复发送。"
+    ]
+  }
+}

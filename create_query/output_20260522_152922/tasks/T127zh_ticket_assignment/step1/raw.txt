@@ -1,0 +1,88 @@
+{
+  "source_task_id": "T127zh_ticket_assignment",
+  "source_summary": {
+    "task_type": "基于工单详情与通讯录负责人职责，将未分配工单匹配到最合适处理人并给出理由的运维工单路由建议",
+    "services": [
+      "contacts",
+      "helpdesk"
+    ],
+    "tools": [
+      "helpdesk_list_tickets",
+      "helpdesk_get_ticket",
+      "contacts_search",
+      "contacts_get"
+    ],
+    "fixture_paths": [
+      "fixtures/contacts/contacts.json",
+      "fixtures/helpdesk/tickets.json"
+    ],
+    "core_capability": "工单类型到部门/负责人映射的路由判断与分配理由质量"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T127zh_ticket_assignment_plus_1",
+      "new_task_name": "跨域路由优先级分派",
+      "task_goal": "为系统中状态为open的未分配工单生成分配建议表：逐个读取工单详情，判断是否属于IT/安全/数据/行政或其他域，并结合优先级与标签线索分配到最合适的负责人，同时给出不超过3条的分配理由。",
+      "user_request": "现在有5个尚未分配的工单需要做建议分配：请你逐个查看工单详情，区分IT、安全、数据与非IT（如行政/采购）。再到通讯录查找各部门负责人，并结合每张工单的优先级与标签给出最合适的处理人。最后输出分配建议表（工单→建议处理人→分配理由）。",
+      "scenario": "工单列表包含5条：其中2条为高优先级、1条为中优先级、1条为低优先级，且类别字段存在不一致干扰（例如标题写“权限”，但描述为“门禁卡失效”；或类别为“系统故障”，但标签指向“办公设备”）。要求模型不能只看category或title，必须综合tags、description与reporter部门来判断归属。",
+      "difference_from_source": "从固定6单与已知领域判定，改为5单且引入“category/title与tags冲突”的干扰；同时要求分配理由以优先级与证据点为导向，并对门禁/办公设备等非IT边界做更细区分。",
+      "service_and_tool_plan": "继续使用helpdesk_list_tickets拉取open工单集合；对每个ticket调用helpdesk_get_ticket获取description、tags、category、reporter等关键信息；使用contacts_search按目标部门查找负责人；需要时再用contacts_get获取负责人详情以补充输出中的姓名与部门口径。",
+      "fixture_generation_plan": "生成两类fixture：contacts约8条联系人，覆盖IT运维、安全、数据、行政/采购、网络、客服系统管理员等部门（每部门至少1人）；helpdesk tickets生成5条，ticket_id使用不与源相同格式但保持“TK-”前缀习惯，状态均为open，priority分布为2 high + 2 medium + 1 low；至少2条设置category与tags/description相互矛盾（例如category=权限管理但tags=门禁/物理；category=系统故障但tags=办公设备），并确保每条的description都包含可判定归属的证据片段。",
+      "expected_behavior": "先调用helpdesk_list_tickets(status=open)拿到5个ticket_id；随后逐一helpdesk_get_ticket读取description/tags/category/priority/reporter/deparment；依据证据判断域（IT/安全/数据/行政等），再用contacts_search定位对应部门负责人并用contacts_get确认；输出5行分配建议表，包含工单id、处理人姓名（或联系人字段中的name）与理由（每条不超过3点，优先引用tags与description中的具体证据）。如果出现冲突，必须说明“为何不按category/title而按证据判定”。",
+      "grading_plan": "grader应检查：1）每张工单分配到的负责人是否符合预期部门与职责边界；2）理由中是否至少包含一个与tags或description直接相关的证据点；3）对冲突工单是否体现了“综合判断”而非盲从category/title；4）输出表格字段齐全且行数=5。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T127zh_ticket_assignment_plus_2",
+      "new_task_name": "按系统模块分派（多域共用）",
+      "task_goal": "对5个未分配工单提供模块级分派建议：根据工单涉及的业务系统模块（如“工单中心/CRM/支付/消息/设备管理”等）、现象与标签，路由到对应处理团队（可能是同一大部门下不同子岗），并给出理由。",
+      "user_request": "目前有5个未分配工单，请你做模块级分派建议：逐个查看工单详情，识别工单主要影响的系统模块（从标题+描述+标签判断），再在通讯录中找到对应子岗/负责人并完成分配。注意同一“系统”可能涉及不同模块，不能简单按IT与非IT二分。输出分配建议表（工单→建议处理人→分配理由）。",
+      "scenario": "工单主题集中在同一业务平台，但模块不同：例如同为“CRM”，可能分别对应“账户同步”“审批流”“消息通知”“导出报表”；另外加入1条明显非IT（例如“会议室设备更换”），但仍伪装成系统类词（标题提“系统异常”）。要求模型既要区分非IT，也要在IT内部做模块归属。",
+      "difference_from_source": "从“IT/非IT + 少量领域”扩展为“模块级路由”，同一系统域内需要更细的子岗/负责人匹配；同时加入“非IT伪装成系统异常”的对抗干扰。",
+      "service_and_tool_plan": "使用helpdesk_list_tickets列出open工单；对每个ticket调用helpdesk_get_ticket获取模块线索（description中会出现模块关键词，如“审批流引擎/消息队列/数据导出器”等）；用contacts_search检索可能的处理部门/子岗名称（如“CRM平台组/支付平台组/设备运维/办公设备支持”）；用contacts_get补齐负责人姓名信息以保证输出一致。",
+      "fixture_generation_plan": "contacts fixture生成约10条联系人，部门字段设计为“平台运维组/消息与通知组/数据报表组/支付运维组/设备与资产组/行政支持组”等，确保至少3个IT子岗；helpdesk tickets生成5条，ticket_id保持“TK-”前缀但数值与源不同；priority与status均为合理分布（至少2条high，1条low）；其中4条为IT内部不同模块（tags包含模块词），1条为非IT并在title中使用“系统异常/平台故障”之类词但description明确是会议室/办公设备；category字段对其中2条做轻微误导（例如category=系统故障但tags=办公设备）。",
+      "expected_behavior": "完成列表→逐条详情读取→模块识别→在通讯录中找到对应子岗负责人→输出5行表格；分配理由必须明确写出“模块关键词→对应负责人职责”的映射关系，且对非IT伪装工单需解释为何将其归为行政支持/设备资产而非IT模块运维。",
+      "grading_plan": "grader应核对：1）4条IT工单的模块级归属是否正确（不是简单IT运维）；2）非IT伪装工单是否被正确识别为非IT并分配到行政/设备支持；3）理由是否包含模块关键词或明显可验证的描述证据；4）输出格式与行数是否正确。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T127zh_ticket_assignment_plus_3",
+      "new_task_name": "基于SLA的紧急/延后分派",
+      "task_goal": "对4个未分配工单给出分派建议，并按紧急程度与SLA要求在分配理由中体现“先处置谁、为什么分配给某类负责人”。同时要处理1条描述缺失信息的边界工单：当关键信息不足时，仍需基于可用线索做最佳路由。",
+      "user_request": "现在有4个未分配工单需要你给出建议分配：请你逐个查看详情，判断问题归属部门，并结合SLA/优先级决定处理顺序与负责人类型（例如24小时响应组/普通处理组）。有一条工单信息不完整，你需要说明你依据了哪些线索来做最佳判断。最后输出分配建议表（工单→建议处理人→分配理由，理由需体现SLA或紧急度证据）。",
+      "scenario": "工单总数减少为4条，状态均为open，但优先级组合为high、high、medium、low；其中一条priority=medium但description包含“已超SLA 2小时”的提示；另一条包含明显缺失字段（例如没有tags、category不填或为空），但description里出现“故障时段/影响范围/系统名称”。要求不能多轮追问流程，必须用现有信息作出决策。",
+      "difference_from_source": "任务规模从6单变4单；强调SLA与紧急度证据驱动的分配理由；新增“缺失字段工单”的边界处理要求与解释要求。",
+      "service_and_tool_plan": "调用helpdesk_list_tickets抓取open集合；对每条执行helpdesk_get_ticket以获取SLA/影响范围线索；contacts_search按“响应组/运维组/支持组”关键词检索负责人；必要时contacts_get获取负责人名称用于最终输出。",
+      "fixture_generation_plan": "contacts生成约9条，包含“极速响应运维组/普通运维组/数据质量组/安全合规支持/行政支持”等，并在department字段中加入可用于搜索的名称片段；helpdesk tickets生成4条，ticket_id与源不重复；至少2条带tags以指导路由，1条tag为空或缺失；category对其中1条设置为空字符串或不存在字段（在fixture里用null）以制造缺失；description里至少出现1条明确SLA超时信息（如“已超SLA 2小时”），并保证其依然能判断归属。",
+      "expected_behavior": "输出4行建议表；对每条：先给出负责人（必须与归属逻辑一致），再给理由，其中理由要包含紧急度/SLA证据（优先级或description中的SLA字样）；对缺失字段工单，需要在理由中明确写出采用的替代线索（如“系统名称+影响范围”），并仍完成分配而不是拒绝。",
+      "grading_plan": "grader检查：1）每条工单分配负责人是否匹配正确的响应类型/部门职责；2）紧急度与SLA证据是否出现在理由中且与所分配负责人类型相符；3）缺失字段工单是否仍做出了合理的基于可用线索的最佳判断；4）输出表格式清晰、4行且字段齐全。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T127zh_ticket_assignment_plus_4",
+      "new_task_name": "多来源报告的责任归属甄别",
+      "task_goal": "为6个未分配工单中的5个进行建议分配（第6个为噪声：属于外部供应商范畴，不能分配到内部处理人），要求模型识别并将其标记为“需升级外包/无法内部分配”，同时对其余工单仍输出建议处理人和理由。",
+      "user_request": "有6个未分配工单需要处理建议：请你查看每个工单详情，根据现象、标签和reporter部门判断归属。注意其中有1个工单其实是外部供应商/合同服务范畴，不应给内部通讯录中的处理人，而是要在建议里明确标注“外包升级/不分配内部”。其余5个工单照常完成分配建议表（工单→建议处理人→分配理由）。",
+      "scenario": "工单数量为6但要求只对5个内部分配，另外1个识别为外包：例如“电梯维保异常”“门禁系统维保超期”“打印机租赁服务故障”；同时加入干扰：有些工单reporter部门与问题域冲突（例如reporter来自IT，但问题是行政活动设备）。需要通过description中的关键证据（合同/维保/租赁/外包字样）识别外包。",
+      "difference_from_source": "新增“不可内部分配”的分类与输出要求：对1条噪声工单给出升级外包标注而非内部负责人；并引入reporter与问题域矛盾导致的甄别压力。",
+      "service_and_tool_plan": "依旧使用helpdesk_list_tickets拿到全部6条open工单；对每条用helpdesk_get_ticket获取description/tags/报修类型线索；对可能的内部部门使用contacts_search/contacts_get完成负责人定位；对外包工单不触发内部分配逻辑，但仍可用helpdesk_get_ticket证据支持“外包升级”。",
+      "fixture_generation_plan": "contacts生成约8条联系人，覆盖IT运维、数据、信息安全、行政、采购支持等内部部门；helpdesk tickets生成6条，ticket_id不与源一致；其中5条为内部可分配，1条外包（description包含“合同维保/第三方服务/租赁公司”字样，tags包含“外包/维保/租赁”）；priority分布为2 high、3 medium、1 low；至少2条设置reporter部门与归属部门不一致（例如reporter=行政但description明显是网络故障）。",
+      "expected_behavior": "流程：list→逐条get→判断是否外包；若外包工单，输出建议处理人为“外包升级/不分配内部”（固定短语），并给出理由（必须引用description证据）；其余5条按域路由到通讯录负责人，理由引用tags/description/类别线索。最终输出表格必须包含6行，且仅5行有具体内部负责人姓名。",
+      "grading_plan": "grader应检查：1）外包工单是否被正确识别并使用指定标注而非错误分配到内部联系人；2）其余5条的负责人归属准确性；3）干扰工单中是否依据description/tags纠正reporter误导；4）输出表行数=6，字段齐全。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T127zh_ticket_assignment_plus_5",
+      "new_task_name": "基于故障现象与根因猜测的分派",
+      "task_goal": "为5个未分配工单生成分配建议：要求从故障现象推断可能根因类型（例如认证/缓存/依赖服务/配置/权限/数据同步），再路由到对应处理负责人；对于同一根因类型的工单要分配到同一负责人以体现一致性。",
+      "user_request": "当前有5个未分配工单需要分配建议：请你逐个读取工单详情，从描述的故障现象推断根因类型（认证、权限、缓存、依赖服务、数据同步等），再到通讯录查找能处理该根因类型的负责人。注意要保证同类根因的工单分配给同一个负责人。输出分配建议表（工单→建议处理人→分配理由）。",
+      "scenario": "5条工单包含2条“认证失败/会话异常”（根因推测为认证服务/会话中间件）、2条“数据延迟/同步不全”（根因推测为数据同步或ETL），以及1条“页面加载慢但无错误码”（根因更偏缓存/依赖服务）。干扰信息：其中一条数据延迟工单category标为系统故障，另一条认证失败工单tags写得较泛（如“用户反馈”），需要靠description的具体错误描述（如“token过期但未刷新”“同步任务积压”）判断。",
+      "difference_from_source": "从“问题类别/IT非IT”转为“根因类型推断→一致性分配”的更细能力；并引入“同类根因一致性”要求与根因-负责人映射检验。",
+      "service_and_tool_plan": "使用helpdesk_list_tickets列出open工单；逐条helpdesk_get_ticket读取description中的错误表述与现象细节；contacts_search按根因类型对应的处理团队/负责人department关键字检索（如“认证中间件组/数据同步组/缓存性能组/依赖服务支持”）；contacts_get用于输出负责人姓名。",
+      "fixture_generation_plan": "contacts生成约11条联系人，department覆盖“认证与会话组/数据同步与ETL组/缓存与性能组/依赖服务运维组/安全组/行政支持”等；helpdesk tickets生成5条，ticket_id不与源重复；设置两对同类根因工单：例如TK类中两条包含“token/会话/登录态异常”关键词，两条包含“同步延迟/任务积压/导入不全”关键词；最后一条包含“加载慢/超时但无错误/依赖调用慢”。至少2条设置category或tags与根因相反或泛化。",
+      "expected_behavior": "完成：list→get→根因推断（在理由中点出推断依据）→在通讯录中找到处理该根因类型的负责人→同类根因分配同一人；输出5行表格，理由需包含“现象→推断根因→为何由该负责人负责”。对干扰字段（泛tags或误category）不能直接据此分配。",
+      "grading_plan": "grader检查：1）每对同类根因工单是否分配给同一负责人；2）根因推断依据是否来自description中的具体错误/现象词；3）是否忽略了误导性的category/tags；4）输出格式与行数=5，且理由可读且对应逻辑闭环（现象→根因→负责人）。"
+    }
+  ]
+}

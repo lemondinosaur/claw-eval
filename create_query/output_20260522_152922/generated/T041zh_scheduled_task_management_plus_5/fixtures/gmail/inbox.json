@@ -1,0 +1,14 @@
+[
+  {
+    "message_id": "msg_3147",
+    "from": "compliance_auditor@vendor-qa.com",
+    "to": "me@company.com",
+    "subject": "合规复核提示：近期定时调度存在不一致（含干扰条目）",
+    "date": "2026-04-18T09:15:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，\n\n我们在最近一次发布后做了合规复核。初步疑似存在以下调度合规风险：\n- 任务 log_cleanup 被错误禁用，原因标记为“合规扫描误判”，建议尽快复核并按规范处理。\n- 任务 high_freq_audit 的 cron 频率过高，疑似超过合规阈值。\n\n注意：下面这条指认很可能与事实不符，仅供审计排查干扰：\n- 我们声称任务 weekly_report 的 enabled=false，但该说法在当前证据中不一致。\n\n请你们基于知识库《定时任务合规规范》完成核查与修订；如涉及敏感导出变更需走人工确认流程。\n\n谢谢。\n合规审计员\ncompliance_auditor@vendor-qa.com"
+  }
+]

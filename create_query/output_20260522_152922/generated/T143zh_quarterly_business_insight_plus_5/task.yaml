@@ -1,0 +1,162 @@
+task_id: T143zh_quarterly_business_insight_plus_5
+task_name: 季度口径校验与异常对账洞察
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_5/fixtures/finance/transactions.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_5/fixtures/crm/customers.json
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_5/fixtures/rss/feeds.json
+prompt:
+  text: 'Q1即将结束，请为Q1季度输出一份“口径校验与异常对账洞察”，目标是完成跨财务与CRM的收入口径校验，并解释异常背后的外部原因，同时给出Q2是否应调整收入/续费预测的结论与建议。
+
+
+    要求：
+
+    1）从财务系统拉取Q1交易，检查并归类异常：
+
+    - 金额突增（相对前期明显倍数）
+
+    - 同一客户短周期多笔（如两周内多笔集中）
+
+    - 异常交易类型占比失衡（如一次性/订阅占比异常）
+
+    - 带有退款/failed等状态的“结算重记/重算”线索
+
+    - 一次性补记/补录（description体现补记/重算/渠道结算调整等）
+
+    2）查看CRM中对应客户的合同状态与到期/争议/停用信息（active/停用/争议/到期），并与财务异常客户交叉核对，指出“财务显示有收入但CRM状态不一致”的风险点。
+
+    3）浏览RSS中与以下主题相关的文章：行业价格战、监管核查、结算政策变化、支付渠道调整（或类似关键词）。结合这些外部线索解释异常可能原因。
+
+    4）输出：
+
+    - 异常客户清单（至少5个），每个包含：异常类型、财务证据、CRM证据、可能原因
+
+    - 基于对账结果，给出Q2是否应调整收入/续费预测（上修/下修/保持不变）并说明所依据的“口径修正”（例如剔除一次性补记、对退款重记单独处理、对疑似滞后状态做保守折扣等）
+
+    - 提供2条对账改进建议（需指向具体改进点，如核对字段、建立规则、增加校验频率、校验流程等）'
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选
+      tier:
+        type: string
+        description: 客户等级筛选
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: rss_list_feeds
+  description: 列出RSS订阅源
+  input_schema:
+    type: object
+    properties: {}
+    required: []
+- name: rss_get_feed
+  description: 获取RSS源文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_id:
+        type: string
+        description: 订阅源ID
+    required:
+    - feed_id
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_get_feed
+  url: http://localhost:9109/rss/feeds/get
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

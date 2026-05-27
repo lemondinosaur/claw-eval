@@ -1,0 +1,120 @@
+[
+  {
+    "task_id": "TK-6101",
+    "title": "撰写发布说明草稿",
+    "description": "基于冻结版本整理发布说明草稿（预计4小时，high）。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-05-04",
+    "assignee": "我",
+    "tags": [
+      "发布说明"
+    ],
+    "estimated_hours": 4
+  },
+  {
+    "task_id": "TK-6102",
+    "title": "整理评审问答",
+    "description": "把评审反馈整理为Q&A并完成可读性润色（预计3小时，medium）。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-05",
+    "assignee": "我",
+    "tags": [
+      "评审",
+      "问答"
+    ],
+    "estimated_hours": 3
+  },
+  {
+    "task_id": "TK-6103",
+    "title": "补充FAQ示例",
+    "description": "补充FAQ示例与常见问题说明（预计2小时，low）。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-05-06",
+    "assignee": "我",
+    "tags": [
+      "FAQ"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TK-6104",
+    "title": "边界优化：界面微调清单",
+    "description": "基于已完成内容做一小时微调与检查（允许挤入，high）。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-05-04",
+    "assignee": "我",
+    "tags": [
+      "微调"
+    ],
+    "estimated_hours": 1
+  },
+  {
+    "task_id": "TK-6105",
+    "title": "跟进：异常需求澄清",
+    "description": "待定事项跟进（估时异常：estimated_hours=0，要求鲁棒处理）。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-04",
+    "assignee": "我",
+    "tags": [
+      "澄清"
+    ],
+    "estimated_hours": 0
+  },
+  {
+    "task_id": "TK-6106",
+    "title": "准备演示口径",
+    "description": "整理演示口径与讲解要点（due 5/5，medium）。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-05",
+    "assignee": "我",
+    "tags": [
+      "演示"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TK-6107",
+    "title": "复核发布前检查表",
+    "description": "完成发布前检查表的最后复核（due 5/4，low）。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-05-04",
+    "assignee": "我",
+    "tags": [
+      "检查表"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TK-6108",
+    "title": "整理训练营签到材料",
+    "description": "准备训练营所需签到材料与分发清单（due 5/6，medium）。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-06",
+    "assignee": "我",
+    "tags": [
+      "训练营"
+    ],
+    "estimated_hours": 1
+  },
+  {
+    "task_id": "TK-6109",
+    "title": "归档：会议纪要与链接",
+    "description": "把相关会议纪要整理并归档到共享位置（due 5/5，low）。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-05-05",
+    "assignee": "我",
+    "tags": [
+      "归档"
+    ],
+    "estimated_hours": 1
+  }
+]

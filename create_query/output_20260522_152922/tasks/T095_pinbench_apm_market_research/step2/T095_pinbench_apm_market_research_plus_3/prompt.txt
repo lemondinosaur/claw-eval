@@ -1,0 +1,214 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T095_pinbench_apm_market_research_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/kb/articles.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T095_pinbench_apm_market_research_plus_3",
+  "new_task_name": "开源生态优先：LGTM与OTel路线对比",
+  "task_goal": "面向偏工程自治与开源采用的团队，生成以“OpenTelemetry友好架构、仪表盘与工作流、以及LGTM/平台整合深度”为核心的竞争研究：至少5个厂商（包含能与OTel相关的描述），每家输出差异化与适配工程团队的理由、定价模式的关键计费维度；最后给出一段200字以内的“路线选择建议”，并附比较表与3条趋势。",
+  "user_request": "请从“开源生态与OTel路线优先”的视角，做一份APM/可观测市场竞争研究。要求至少5家厂商：对每家说明其与OpenTelemetry相关的差异化/架构取向、其仪表盘/工作流或平台整合能力概述、常见定价模式的计费维度（描述即可）。输出：1）比较表；2）3条市场趋势；3）不超过200字的路线选择建议。",
+  "scenario": "团队自建开发平台，强调可观测平台需要快速融入CI/CD与工程工作流；他们倾向于通过标准协议（如OTel）降低供应商锁定，并希望通过灵活的可视化与可扩展能力提升可维护性。数据量增长平缓但追踪覆盖面逐步扩大，因此更关心“计费维度是否与工程扩展成正比”以及是否能在平台化后保持成本效率。",
+  "difference_from_source": "原任务是通用执行级竞品分析。本任务将视角改为“工程自治与开源/OTel路线”，要求对每家明确对应到OTel友好与工作流/可视化等工程侧差异化，并新增“路线选择建议”且有字数限制。",
+  "service_and_tool_plan": "使用kb_search检索包含OpenTelemetry、LGTM、dashboards、open-source、workflow automation等关键词的文章；对选中的厂商与趋势文章逐篇kb_get_article获取content后组织成工程路线研究。",
+  "fixture_generation_plan": "继续使用fixtures/kb/articles.json中的内容；需要保证至少5家厂商中有至少2家能从content抽取到与OTel/open-source/仪表盘或工作流相关的表述；趋势部分需覆盖OTel与平台整合趋势。记录条数保持不变即可，但grader应按抽取到的主题关键词判断覆盖度。",
+  "expected_behavior": "智能体应：1）至少检索并读取5家厂商文章与1条趋势文章；2）比较表列至少包含：OTel/标准兼容取向、工作流/可视化或平台整合要点、定价计费维度（例如按资源/摄入/席位等）、适合的团队特征；3）输出3条趋势并能体现OTel标准化与平台整合/AI相关；4）路线选择建议≤200字，明确给出建议偏好（如更重视标准化与扩展性的如何权衡定价维度）。",
+  "grading_plan": "grader.py应检查：是否有比较表且至少5行；是否每家至少包含OTel或标准兼容相关描述（若文章未直接说OTel也要基于内容语义说明其在平台架构或集成方面的取向，允许合理解释但需来自KB）；趋势≥3且与OTel相关；路线建议字数≤200字；输出语言为中文。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T095_pinbench_apm_market_research",
+  "task_name": "Pinbench APM Market Research",
+  "task_type": "research",
+  "category": "research",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "en",
+  "services": [
+    "kb"
+  ],
+  "tools": [
+    "kb_search",
+    "kb_get_article"
+  ],
+  "fixture_paths": [
+    "fixtures/kb/articles.json"
+  ],
+  "sandbox_files": [
+    "fixtures/kb/articles.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "research"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T095_pinbench_apm_market_research
+task_name: Pinbench APM Market Research
+version: '1.0'
+category: research
+difficulty: easy
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T095_pinbench_apm_market_research/fixtures/kb/articles.json
+prompt:
+  text: 'Use the knowledge base to create a competitive landscape analysis of the
+
+    enterprise observability and APM market. Identify at least five competitors,
+
+    their differentiators, typical pricing models, and key market trends. Include
+    a
+
+    comparison table and a short executive summary.
+
+    '
+  language: en
+tools:
+- name: kb_search
+  description: Search the KB
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+      category:
+        type: string
+      max_results:
+        type: integer
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: Get one KB article
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+sandbox_files:
+- fixtures/kb/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 16
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "pb19_001",
+    "title": "Datadog profile for observability buyers",
+    "content": "Datadog is one of the category leaders in cloud-native observability. Its differentiators include broad infrastructure coverage, strong APM plus logs plus security integration, and fast time to value for engineering teams. Pricing typically mixes per-host, per-GB ingestion, and modular add-ons. Strengths include breadth and ecosystem integrations. Weaknesses include cost sprawl at scale.",
+    "category": "market_research",
+    "last_updated": "2026-02-20",
+    "views": 120,
+    "tags": ["Datadog", "APM", "pricing"]
+  },
+  {
+    "article_id": "pb19_002",
+    "title": "New Relic competitive notes",
+    "content": "New Relic positions itself around a unified telemetry platform with usage-based pricing and a large free tier. Differentiators include a broad full-stack view and a familiar workflow for application teams. Pricing is commonly tied to user seats and data ingest. Strengths include accessibility and platform breadth. Weaknesses include budget sensitivity when ingest grows quickly.",
+    "category": "market_research",
+    "last_updated": "2026-02-20",
+    "views": 95,
+    "tags": ["New Relic", "APM", "pricing"]
+  },
+  {
+    "article_id": "pb19_003",
+    "title": "Dynatrace market positioning",
+    "content": "Dynatrace is often chosen for enterprise-scale observability with strong automation, topology mapping, and AI-assisted root cause analysis. Pricing is generally based on host units or monitored resources with enterprise contracts. Strengths include automation and large-environment observability. Weaknesses include procurement complexity and premium pricing.",
+    "category": "market_research",
+    "last_updated": "2026-02-21",
+    "views": 88,
+    "tags": ["Dynatrace", "enterprise", "AI"]
+  },
+  {
+    "article_id": "pb19_004",
+    "title": "Grafana Labs in the observability market",
+    "content": "Grafana Labs differentiates through strong dashboards, open-source adoption, LGTM positioning, and an OpenTelemetry-friendly architecture. Pricing varies across cloud plans and enterprise support, often aligned to metrics, logs, traces, and seats. Strengths include flexibility and open-source credibility. Weaknesses include more self-assembly for buyers seeking an all-in-one managed experience.",
+    "category": "market_research",
+    "last_updated": "2026-02-21",
+    "views": 77,
+    "tags": ["Grafana", "OpenTelemetry", "LGTM"]
+  },
+  {
+    "article_id": "pb19_005",
+    "title": "Splunk Observability buyer summary",
+    "content": "Splunk Observability remains strong in large enterprises, especially where logs, security, and existing Splunk relationships matter. Pricing often depends on data volume and enterprise packaging. Strengths include enterprise footprint and cross-domain analytics. Weaknesses include complexity and a reputation for high cost if telemetry volumes surge.",
+    "category": "market_research",
+    "last_updated": "2026-02-22",
+    "views": 81,
+    "tags": ["Splunk", "enterprise", "pricing"]
+  },
+  {
+    "article_id": "pb19_006",
+    "title": "Observability market trends 2026",
+    "content": "Key trends in 2026 include OpenTelemetry standardization, AI-assisted root cause analysis, platform consolidation across logs metrics traces security, and persistent interest in cloud-native deployment models. Buyers are also scrutinizing consumption-based pricing and data-ingest efficiency more closely. Vendors increasingly differentiate on workflow automation and cost governance.",
+    "category": "market_research",
+    "last_updated": "2026-02-22",
+    "views": 130,
+    "tags": ["market trends", "OpenTelemetry", "AI", "cloud-native"]
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

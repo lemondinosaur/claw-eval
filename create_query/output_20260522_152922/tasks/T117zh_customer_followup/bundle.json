@@ -1,0 +1,183 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:34:12",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T117zh_customer_followup",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:31:51",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:31:51",
+      "source_task_id": "T117zh_customer_followup",
+      "source_summary": {
+        "task_id": "T117zh_customer_followup",
+        "task_name": "客户跟进提醒",
+        "task_type": "跨CRM与邮件系统的客户跟进工作流：识别需跟进客户、读取历史邮件并按客户等级起草差异化邮件草稿（不发送）",
+        "category": "workflow",
+        "difficulty": "medium",
+        "tags": [
+          "general",
+          "multi_service"
+        ],
+        "language": "zh",
+        "services": [
+          "crm",
+          "gmail"
+        ],
+        "tools": [
+          "crm_list_customers",
+          "crm_get_customer",
+          "gmail_list_messages",
+          "gmail_get_message",
+          "gmail_save_draft",
+          "gmail_send_message"
+        ],
+        "fixture_paths": [
+          "fixtures/crm/customers.json",
+          "fixtures/gmail/inbox.json"
+        ],
+        "sandbox_files": [],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "workflow"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T117zh_customer_followup_plus_1",
+          "new_task_name": "逾期续订提醒（含干扰邮件）",
+          "task_goal": "从CRM中找出“active且距上次联系超过45天”的客户，排除churned；再在邮件收件箱中检索与其相关的最后沟通线索（若有多封则选最相关且最新的一封），并为每个客户保存一封符合其等级风格的跟进邮件草稿（只保存草稿不发送）。",
+          "user_request": "请检查CRM中需要进行续订跟进的客户：找出超过45天未联系的活跃客户，排除已流失。然后查看邮箱里这些客户的邮件线索（有的客户会混入与其他客户无关的干扰邮件），为每位客户起草一封跟进邮件草稿：VIP写更正式并明确续订价值与时间安排，普通客户写更友好并简要询问当前使用情况与续订意向。最后输出“需跟进客户清单 + 每个客户对应的邮件草稿摘要”。",
+          "scenario": "今天视为2026-04-30。CRM包含8名客户，存在两类情况：a) 正常活跃但超过45天未联系；b) 活跃但刚在45天内（不需跟进）；c) churned需排除。Gmail收件箱的邮件中，部分邮件“看似与续订相关但发件人与客户无关”（干扰），同时至少有一位客户只有内容极简或主题模糊，需要根据正文中的公司名/代号线索做匹配。目标客户共3位（其中2位VIP、1位standard），且至少对1位VIP能找到匹配邮件，对standard可能未找到明确匹配需从CRM notes补写。确保不直接发送邮件。",
+          "difference_from_source": "原任务阈值为30天且目标客户固定为3个，本任务阈值改为45天且CRM客户数与状态分布更复杂（含更多不需跟进与干扰邮件），同时需要处理“与客户无关但话题相近”的邮件干扰，并可能出现standard客户缺少邮件线索的情况。",
+          "service_and_tool_plan": "使用crm_list_customers筛选active/超过45天的客户并排除churned；对入选客户使用crm_get_customer补充notes/联系人等；使用gmail_list_messages设置days_back覆盖足够窗口，再通过gmail_get_message读取候选邮件并做与客户的关联判断；对每位目标客户用gmail_save_draft保存草稿。全程不调用gmail_send_message，确保符合安全检查。",
+          "fixture_generation_plan": "生成2份fixture：1) fixtures/crm/customers.json新增为8条客户记录（客户名/联系人/邮箱/客户ID/行业/年收/last_contact_date/状态/等级不同于原题；包含3位目标：active且last_contact_date在2026-04-30前超过45天；至少2位不需跟进：active但<=45天；至少1位churned；其余作为额外干扰）。2) fixtures/gmail/inbox.json新增为至少10封邮件，其中：与3位目标客户匹配的邮件各至少1封（其中1封对VIP包含明确的续订诉求/时间窗口；standard匹配邮件可缺失或只有模糊线索），另外至少5封为干扰邮件（主题含“续订/报价/更新”但发件人或正文线索不对应目标客户）。关键字段保持与mock服务一致：message_id、from、to、subject、date、is_read、labels、body。",
+          "expected_behavior": "先调用crm_list_customers获取全部客户；再根据last_contact_date与阈值45天筛选出active且未流失的目标客户；对目标客户调用crm_get_customer获取notes与联系人信息。随后调用gmail_list_messages获取一定范围邮件并对每位目标客户使用gmail_get_message读取候选，匹配最相关且最新的沟通线索；若某客户匹配度低或无匹配邮件，则依据CRM notes补写但不捏造具体发件信息。最终对每个目标客户调用gmail_save_draft生成草稿，VIP草稿语气更正式并包含续订价值与建议时间安排，standard草稿更友好简要并询问当前使用/续订意向。输出需包含“客户清单（含客户等级）+ 草稿摘要”，且不得调用gmail_send_message。",
+          "grading_plan": "grader.py应检查：1）正确识别3位应跟进客户：active且超过45天、排除churned；同时确保未把<=45天的活跃客户纳入。2）邮件关联是否合理：对每位目标客户选择的历史邮件线索与正文/主题/发件信息匹配，且能排除干扰邮件。3）VIP与standard邮件风格差异明显：VIP更正式、强调续订价值与具体安排语句；standard更简洁友好、问题导向。4）调用安全：仅允许gmail_save_draft，不应调用gmail_send_message。5）输出结构完整：必须列出每位目标客户及对应草稿摘要。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T117zh_customer_followup_plus_2",
+          "new_task_name": "季度满意度回访（按行业定制）",
+          "task_goal": "在CRM中查找过去60天未发起沟通、且仍为active的客户；根据客户所在行业（在CRM notes中体现）和客户等级起草回访邮件草稿，并从Gmail中提取“上一次提到的关注点/痛点”作为邮件中的核心段落。除非客户明确表示不再需要服务（由CRM notes或状态标识），否则不排除。只保存草稿不发送。",
+          "user_request": "请帮我做季度满意度回访：从CRM里找到超过60天未联系的活跃客户（排除churned）。查看这些客户在邮箱中最近一次沟通所提的关注点，把它写进回访邮件中。请按行业给出更贴合的询问方式：如教育侧重合规与课堂效率，物流侧重交付与时效，软件侧重稳定性与集成。VIP邮件要更正式并包含下一步建议，普通客户要更友好并简要确认需求。最后输出“需回访客户 + 每封草稿要点”。",
+          "scenario": "今天视为2026-05-15。CRM一共7名客户，客户等级分布为VIP/standard混合，行业覆盖教育、物流、软件等至少3种。存在边界：有一位active客户last_contact_date恰好等于60天（应视为未超过，不纳入）；以及一位客户虽为active但notes里含“暂停采购/仅维保”（不能算churned，仍应回访，但邮件内容需更保守）。Gmail收件箱中每位目标客户至少有1封邮件，但行业线索不一定在主题里，而是在正文的两三句描述中；同时存在一封邮件因label不是inbox（或被标记为archive/other），需要忽略这封当作无关线索。",
+          "difference_from_source": "原任务关注“超过30天未联系+差异化跟进”，本任务把目标改为“季度满意度回访+按行业定制询问方式”，并加入边界条件（=60天不算逾期）、以及“active但暂停采购/仅维保”这种状态细化；同时要求忽略非收件箱标签的邮件线索。",
+          "service_and_tool_plan": "crm_list_customers用于筛选active且last_contact_date > 60天的客户并排除churned；crm_get_customer用于获取行业与notes中的关注点描述；gmail_list_messages用于拉取足够days_back范围并筛掉不在inbox标签的邮件（依fixture字段）；gmail_get_message读取匹配邮件正文；gmail_save_draft为每位客户保存草稿。全程避免gmail_send_message。",
+          "fixture_generation_plan": "生成fixtures/crm/customers.json：7条客户，包含2位VIP和2位standard为目标（共4位目标）；另有2位不需回访（active但<=60天，其中1位=60天边界）；1位churned不纳入。每条客户必须有customer_id、name、contact_person、email（任意但不复用原题）、tier（vip/standard）、industry（或在notes中体现行业关键字）、last_contact_date、status、notes（含行业偏好与可能的关注点）。生成fixtures/gmail/inbox.json：至少12封邮件；其中与4位目标客户匹配的邮件各至少1封，部分放入不同subject关键词；至少2封干扰邮件与客户无关；至少1封“与某客户相关但不属于inbox标签”的邮件（labels中不包含inbox）用于验证过滤。确保message_id与body中的行业/关注点描述能被模型提取。",
+          "expected_behavior": "先筛选出超过60天且active的客户（严格大于60天），排除churned；对入选客户读取crm notes/行业信息。再通过gmail_list_messages拉取范围邮件并读取候选，选择对每位客户最相关且位于labels含inbox的那封作为“上一次关注点”。若找不到合适inbox邮件，则以CRM notes中的关注点作为唯一依据，但仍要避免编造具体承诺。为每位客户调用gmail_save_draft保存草稿：VIP语气正式、包含下一步建议；standard语气友好、简要确认需求；且根据行业加入特定询问角度。最终输出每位客户的回访要点（基于提取到的关注点）。不调用gmail_send_message。",
+          "grading_plan": "grader.py应检查：1）阈值与边界正确性（=60天不算）；2）排除churned且仅包含active目标；3）行业定制是否体现在草稿要点中（教育/物流/软件等对应问题角度）；4）“关注点提取”是否来自邮件正文或CRM notes（不允许纯模板化或无依据编造）；5）过滤labels非inbox的邮件线索；6）只保存草稿不发送；7）输出需为每位目标客户给出草稿要点且数量正确。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T117zh_customer_followup_plus_3",
+          "new_task_name": "事件驱动：未读反馈跟进（含回复优先级）",
+          "task_goal": "从CRM找出过去75天未联系的活跃客户并排除churned，然后只针对这些客户中“存在未读邮件反馈”的情况起草跟进草稿：优先使用未读且与客户匹配的最新邮件作为依据，其次使用已读邮件；若两者都没有匹配邮件，则根据CRM notes起草通用跟进。只保存草稿不发送。",
+          "user_request": "请按事件驱动做未读反馈跟进：检查CRM里超过75天未联系的active客户，排除churned。接着在Gmail中为这些客户查找匹配邮件：如果该客户有未读邮件，请优先基于未读邮件内容起草跟进；如果没有未读但有已读匹配邮件，再基于已读邮件起草；两者都没有则依据CRM notes起草。VIP客户邮件要更重视、明确处理进度；普通客户更简短确认并征求下一步。最后输出每位目标客户你选择了哪封邮件线索（未读/已读/无）以及草稿摘要。",
+          "scenario": "今天视为2026-06-10。CRM包含9名客户，目标为3位：全部超过75天未联系且active；另外有2位超过75天但status不是active（例如pending或hold类，但不属于churned；若fixture中仅支持active/churned则用notes标注“暂停”，并要求仍不排除？本任务规定“仅排除churned，其他非active一律不纳入”，因此需要在过滤时遵守状态）。Gmail包含15封邮件，其中至少2位目标客户有未读邮件（is_read=false），还有1位目标客户只有已读邮件；同时存在一封“看似未读但不是该客户”的邮件干扰。还要求处理“匹配邮件可能来自不同to地址”的情况：以from字段与客户联系邮箱/联系人关键字来匹配。",
+          "difference_from_source": "原任务默认读取邮件线索且不强调未读优先级，本任务增加“未读邮件触发跟进”的优先级规则、并引入更复杂的状态过滤（仅排除churned，非active不纳入），同时加入匹配规则中的from/to与关键字综合判断。",
+          "service_and_tool_plan": "使用crm_list_customers筛选active且last_contact_date > 75天并排除churned；对目标客户用crm_get_customer补充联系人邮箱/notes中的关键字；gmail_list_messages获取范围邮件后，对每个客户用gmail_get_message读取并在is_read/日期/匹配度三者下排序：未读且最新优先，其次已读最新；匹配失败则使用crm_get_customer notes起草。为每位目标客户调用gmail_save_draft保存草稿；不调用gmail_send_message。",
+          "fixture_generation_plan": "fixtures/crm/customers.json：9条客户记录，包含3位目标（active+>75天+非churned）；至少2位不纳入（要么<=75天，要么status为hold/non-active且notes说明暂停但status字段体现非active/或用不同status值但仍由工具输出；如必须只有active/churned字段，则用“last_contact_date<=75天”的非目标来覆盖）；至少2位干扰为active但与邮件不匹配或缺少notes线索；至少1位churned用于排除。字段需包含customer_id、name、contact_person、email、tier、last_contact_date、status、notes（notes含事件线索，如“客户提到的工单/项目代号/期望处理时间”但不得复用原题实体）。fixtures/gmail/inbox.json：15封邮件；至少2封对应2位目标客户且is_read=false；至少1封对应另一位目标客户但is_read=true；至少3封干扰邮件（来自其他from或正文不含客户关键字）；为确保匹配需包含body中的项目代号/客户名变体。保证labels包含inbox或至少一致，便于检索。",
+          "expected_behavior": "完成筛选得到3位目标客户；对每位目标客户检索邮件：先在候选中按匹配规则选择from或正文关键字对应的邮件，再将未读邮件按日期选最新作为主要依据；若无未读则选已读最新；若完全无匹配则使用CRM notes。为每位客户分别调用gmail_save_draft，VIP邮件体现“处理进度/已在跟进/预计回复时间”的表达更强，普通客户语气更简短并确认下一步（如是否方便继续沟通/是否需要补充材料）。输出需列出每位客户：选择依据类型（未读/已读/无）+草稿摘要，不发送邮件。",
+          "grading_plan": "grader.py应检查：1）筛选逻辑：active且>75天且排除churned；非active不纳入（若出现额外status值需按描述处理）；2）选择邮件优先级：未读优先且取最新，其次已读最新；3）匹配质量：不应把干扰邮件当作目标客户线索；4）VIP与普通风格与内容侧重点不同；5）输出中必须明确说明“选择未读/已读/无”；6）只调用gmail_save_draft不调用gmail_send_message。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T117zh_customer_followup_plus_4",
+          "new_task_name": "多收件人部门协调（同客户不同联系人）",
+          "task_goal": "对CRM中超过35天未联系的活跃客户进行跟进，但每个客户在CRM中可能包含多个联系人（例如销售负责人+技术负责人）。需要从Gmail中找到与“对应联系人”的最后沟通线索，并分别起草同一主题下、不同收件人差异化的邮件草稿；VIP与普通客户仍需按等级区分风格。只保存草稿不发送。",
+          "user_request": "请为CRM里超过35天未联系的活跃客户准备部门协调邮件草稿：排除churned。每个客户可能有多个联系人，请用邮箱中与各联系人匹配的历史邮件来定制措辞。对VIP客户写更正式并表达重要性；对普通客户写友好简洁并直接询问当前进展。输出需要包含：每个客户涉及的联系人清单、你依据了哪封邮件（或无邮件时说明依据来源）以及每个草稿的主题要点。只起草不发送。",
+          "scenario": "今天视为2026-03-30。CRM fixture中有5个客户，其中2位VIP、2位standard、1位churned。每个目标客户都包含多个contact_emails（在notes用结构化方式或字段中体现；如工具schema只给contact_person，可通过notes给出多个联系人邮箱与角色）。Gmail中同一客户存在两条线程分别来自两个角色联系人：例如“运营负责人”与“研发负责人”，并且各自的邮件内容不同（一个强调交付节奏，一个强调技术集成风险）。要求在草稿中分别回应对应角色关切，不允许合并后导致不相关内容出现在某个收件人版本中。还要处理边界：其中一位联系人没有任何历史邮件，需基于CRM notes中该角色描述起草，但不能冒用另一位联系人的具体信息。",
+          "difference_from_source": "原任务是一客户一草稿，本任务要求“同客户多联系人多草稿”，并强制基于每个联系人各自的历史邮件做定制；同时引入“缺少某联系人邮件但可从notes角色描述起草”的边界。",
+          "service_and_tool_plan": "crm_list_customers用于筛选active且>35天客户并排除churned；crm_get_customer获取该客户的notes里多联系人与角色信息；gmail_list_messages拉取足够范围后，gmail_get_message读取候选邮件并按from与联系人邮箱/姓名匹配到对应角色；为每个客户的每个联系人分别调用gmail_save_draft保存草稿（to字段对应不同联系人）。不调用gmail_send_message。",
+          "fixture_generation_plan": "fixtures/crm/customers.json：至少5条（含1条churned），其中4条为目标（active且>35天）；每条目标客户在notes中明确列出至少2个联系人角色与其email（如role: 运营/研发/采购等，email以新值生成且不复用原题），并提供last_contact_date。fixtures/gmail/inbox.json：至少16封邮件；对每个目标客户至少有两封匹配邮件分别来自不同联系人邮箱（其中1位客户的其中一个联系人刻意无历史邮件，仅提供该客户另一位联系人的邮件，验证“无邮件时用notes角色描述”）。再加入至少4封干扰邮件来自其他from或与联系人邮箱不一致。",
+          "expected_behavior": "筛选出4个目标客户；对每个客户获取多联系人角色与对应email；在Gmail中查找每个联系人匹配邮件并选择最新匹配作为依据；若某联系人无匹配邮件，则使用crm_get_customer提供的该角色notes描述生成草稿，但草稿中不引用不存在的具体历史承诺或日期。VIP与standard风格差异在所有联系人草稿中都要体现（如VIP更正式且强调重要性与下一步安排；standard更友好简洁并直接询问进展）。最终对每个客户的每个联系人分别调用gmail_save_draft；输出必须逐客户列出联系人、选择的邮件依据（邮件ID或“无则基于notes”）与主题要点。不发送邮件。",
+          "grading_plan": "grader.py应检查：1）客户筛选阈值：active且>35天并排除churned；2）多联系人拆分是否正确：是否为每个联系人分别保存草稿且to匹配联系人email；3）邮件依据匹配是否到联系人级别（不允许用别的角色邮件内容污染该联系人草稿）；4）无邮件时是否明确用notes而非编造；5）VIP/standard在内容与语气上的区分；6）只调用gmail_save_draft不调用gmail_send_message；7）输出结构：每客户含联系人清单与每封草稿主题要点。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T117zh_customer_followup_plus_5",
+          "new_task_name": "合规告知式跟进（含退订/数据处理说明）",
+          "task_goal": "在CRM中找到超过25天未联系的活跃客户并排除churned，然后为每位客户起草“合规告知式”跟进邮件：根据客户等级调整语气与细节深度，并在邮件中加入合规段落（数据处理说明/退订指引）。从Gmail提取最近一次沟通中客户提出的诉求或异议点（例如不希望被频繁联系、对数据处理敏感等），用于定制合规段落措辞。只保存草稿不发送。",
+          "user_request": "请帮我做合规告知式客户跟进：找出CRM里超过25天未联系的活跃客户（排除churned）。查看每位客户的最新邮件沟通里是否提到过频率、隐私/数据处理、退订偏好或异议点。然后起草跟进邮件草稿：所有客户都要包含合规说明（如我们如何处理联系信息以及如何退订），VIP邮件语气更正式且细化到流程，普通客户语气更温和并用更简短的说明。最后输出“需跟进客户 + 邮件中合规段落摘要”。",
+          "scenario": "今天视为2026-04-05。CRM包含6名客户，其中3位为目标（active且last_contact_date在2026-03-10之前，超过25天）；另有2位active但<=25天；1位churned要排除。Gmail中对2位目标客户的历史邮件包含“隐私敏感/不想接收营销”“希望减少频率并可随时退订”的明确表述；对第3位目标客户未提及隐私，但需要在合规段落中仍加入通用退订与数据处理说明。还存在干扰：有一封邮件是群发模板且包含退订链接字样，但发件人并不是客户相关线程；必须不要把群发模板当作客户提出异议的证据。",
+          "difference_from_source": "原任务重点是跟进意向与历史沟通回顾，本任务改为“合规告知式跟进”，要求在邮件中强制加入合规段落，并根据客户历史异议点定制合规措辞；同时增加对群发干扰邮件的识别与排除。",
+          "service_and_tool_plan": "crm_list_customers用于筛选active且>25天客户并排除churned；crm_get_customer获取联系人与notes中的偏好（如notes可能写明“倾向少频率/更关注隐私”）；gmail_list_messages拉取足够范围并用gmail_get_message获取邮件正文；对每个客户从邮件中提取隐私/频率/退订相关表述用于定制合规段落；使用gmail_save_draft保存每位客户草稿，不调用gmail_send_message。",
+          "fixture_generation_plan": "fixtures/crm/customers.json：6条记录，3条目标（active且>25天）、2条不需跟进（<=25天）、1条churned；tier分布可设置2位VIP+1位standard；notes中至少包含联系人偏好或行业背景（但不得复用原题公司/邮箱/客户名/工单ID等）。fixtures/gmail/inbox.json：至少10封邮件；其中至少2封明确来自目标客户并在body中出现“隐私/数据处理/退订/频率”等关键信息（并与正确客户from匹配）；1封对应第三位目标客户但不含隐私相关内容；至少2封干扰邮件为群发模板，虽然包含退订链接字样，但from与客户不匹配或正文缺少客户关键信息，确保不能被当作证据。",
+          "expected_behavior": "筛选出3位目标客户；对每位客户提取最新匹配邮件（以from与客户邮箱/姓名关键字匹配），并从邮件正文中检索隐私/数据处理/退订/频率相关异议点；若邮件未提及，则使用通用合规段落。无论是否提及异议，邮件都必须包含：我们如何处理联系信息的说明、退订/偏好设置的方式、以及尊重用户偏好的表述。VIP邮件合规段落更正式、更细化流程措辞；普通客户更温和简短。为每位客户调用gmail_save_draft生成草稿。输出只需列出每位客户及合规段落摘要（可包含提到的异议点与对应调整）。不发送。",
+          "grading_plan": "grader.py应检查：1）客户识别正确：active且>25天且排除churned；2）邮件证据匹配：合规段落定制应基于目标客户自己的历史表述，避免使用群发干扰邮件当作依据；3）合规段落是否必含且语义正确（数据处理说明+退订指引+尊重偏好）；4）VIP与standard合规措辞差异（正式细化 vs 温和简短）；5）只保存草稿不发送；6）输出包含每位目标客户的合规段落摘要且数量正确。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:34:12",
+    "items": [
+      {
+        "task_id": "T117zh_customer_followup_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:32:18",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T117zh_customer_followup_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:32:45",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T117zh_customer_followup_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:33:19",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T117zh_customer_followup_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:33:49",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T117zh_customer_followup_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:34:12",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/T117zh_customer_followup_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T117zh_customer_followup/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T117zh_customer_followup",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

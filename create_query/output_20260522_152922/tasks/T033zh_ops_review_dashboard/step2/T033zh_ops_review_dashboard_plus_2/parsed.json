@@ -1,0 +1,586 @@
+{
+  "task_id": "T033zh_ops_review_dashboard_plus_2",
+  "task_name": "周报：搜索索引失活与舆情工单",
+  "prompt_text": "请帮我准备一份本周运营周报（只读审查与分析）。需要综合以下系统模块的数据：系统集成状态、工单系统、库存状况、CRM客户动态、知识库文章与定时任务状态。\n\n重点围绕“站内搜索结果长时间不更新/检索失败”的跨系统关联进行排查与归因：\n1) 集成侧需重点解释“搜索索引/内容分发相关集成 error_rate 为 0 或极低但调用量本周显著骤降”的指标悖论，结合 integration notes 给出可能原因；\n2) 工单侧需要按类别聚类“搜索结果滞后/索引缺失/类目索引不生效/商品无法被搜索到/排序异常”等线索，并在报告中量化聚簇结果（如数量与比例）；\n3) 调度侧需要确认“索引回填/增量同步/重建索引”等任务 enabled=true 但最近一次运行异常久、或历史显示失败/跳过/被锁导致间隔异常，并与工单时间点相互印证；\n4) 库存与CRM仅用于排除误判（例如避免把用户体验问题误归因库存或客户数据源本身故障）；\n5) 知识库侧请检查是否存在关于“索引回填/重建/增量同步规则”的文章最后更新时间过久，提示流程或字段映射可能已不适配。\n\n约束：不要修改任何数据、不要发送邮件、不要更新或创建工单；最终仅输出报告与可执行的只读行动建议。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-201",
+        "name": "search_indexer_v2",
+        "display_name": "站内搜索索引器V2",
+        "status": "active",
+        "error_rate": 0.0,
+        "base_url": "https://search-v2.example.com",
+        "call_volume_previous_week": 8200,
+        "service": "api",
+        "monthly_calls": 190,
+        "last_verified": "2026-05-15T23:30:00+08:00",
+        "notes": "接口错误率为0%但调用量从上周8200骤降至本周190（下降97.7%）。疑似上游触发链路中断或未按预期触发增量同步。"
+      },
+      {
+        "integration_id": "INT-202",
+        "name": "content_distribution",
+        "display_name": "内容分发与索引触发",
+        "status": "active",
+        "error_rate": 0.3,
+        "base_url": "https://content-dist.example.com",
+        "call_volume_previous_week": 6100,
+        "service": "batch",
+        "monthly_calls": 5300,
+        "last_verified": "2026-05-15T21:10:00+08:00",
+        "notes": "整体 error_rate 低，但notes显示部分批次在“索引触发事件”阶段耗时显著增加，可能导致增量未及时落库。"
+      },
+      {
+        "integration_id": "INT-203",
+        "name": "category_taxonomy_map",
+        "display_name": "类目映射服务",
+        "status": "active",
+        "error_rate": 1.1,
+        "base_url": "https://taxonomy.example.com",
+        "call_volume_previous_week": 2400,
+        "service": "api",
+        "monthly_calls": 2600,
+        "last_verified": "2026-05-15T23:10:00+08:00"
+      },
+      {
+        "integration_id": "INT-204",
+        "name": "media_thumbnail_sync",
+        "display_name": "媒体缩略图同步",
+        "status": "degraded",
+        "error_rate": 6.8,
+        "base_url": "https://media-sync.example.com",
+        "call_volume_previous_week": 940,
+        "service": "batch",
+        "monthly_calls": 880,
+        "last_verified": "2026-05-15T18:40:00+08:00",
+        "notes": "degraded干扰项：错误率偏高但不直接指向搜索索引更新；需避免误判。"
+      },
+      {
+        "integration_id": "INT-205",
+        "name": "user_event_ingest",
+        "display_name": "用户行为事件摄取",
+        "status": "active",
+        "error_rate": 0.9,
+        "base_url": "https://events.example.com",
+        "call_volume_previous_week": 15000,
+        "service": "api",
+        "monthly_calls": 15200,
+        "last_verified": "2026-05-15T23:00:00+08:00"
+      },
+      {
+        "integration_id": "INT-206",
+        "name": "recommendation_cache_populate",
+        "display_name": "推荐缓存填充",
+        "status": "active",
+        "error_rate": 0.2,
+        "base_url": "https://reco-cache.example.com",
+        "call_volume_previous_week": 3300,
+        "service": "batch",
+        "monthly_calls": 3400,
+        "last_verified": "2026-05-15T19:30:00+08:00",
+        "notes": "调用量与上周相近；若出现排序异常，优先关注索引回填链路而非推荐缓存本身。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-401",
+        "name": "星澜云采",
+        "tier": "vip",
+        "status": "active",
+        "annual_revenue": 16800000,
+        "contact_person": "周总",
+        "contact_email": "zhou.zlcloud@example.com",
+        "contact_phone": "186-0001-4401",
+        "industry": "内容分发与SaaS",
+        "contract_end_date": "2027-02-28",
+        "recent_interactions": [
+          {
+            "date": "2026-05-16",
+            "type": "complaint",
+            "channel": "工单",
+            "notes": "合作内容在站内搜索中长时间无法被检索到；对方认为是“索引回填触发”延迟。非库存问题，内容本身可正常访问但检索入口缺失。"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-402",
+        "name": "北桥零售联盟",
+        "tier": "standard",
+        "status": "active",
+        "annual_revenue": 5400000,
+        "contact_person": "沈经理",
+        "contact_email": "shen@qiaoretail.example.com",
+        "contact_phone": "186-0001-4402",
+        "industry": "零售渠道",
+        "contract_end_date": "2026-11-30",
+        "recent_interactions": [
+          {
+            "date": "2026-05-10",
+            "type": "inquiry",
+            "channel": "邮件",
+            "notes": "询问某类目商品是否支持“增量同步后立即可搜”。本周无明显下单异常。"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-403",
+        "name": "金鼎数码贸易",
+        "tier": "standard",
+        "status": "active",
+        "annual_revenue": 7200000,
+        "contact_person": "顾工",
+        "contact_email": "gu@gindigital.example.com",
+        "contact_phone": "186-0001-4403",
+        "industry": "电子产品贸易",
+        "contract_end_date": "2026-08-15",
+        "recent_interactions": [
+          {
+            "date": "2026-05-17",
+            "type": "meeting",
+            "channel": "视频会议",
+            "notes": "对比发现在相同关键词下排序回退到旧内容；怀疑索引版本未刷新。"
+          }
+        ]
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2401",
+        "title": "站内搜索结果滞后：同类内容无法更新",
+        "description": "用户反馈“同一类目下最新商品/内容无法出现在搜索结果”。刷新后仍显示上周旧内容，排序也与预期不一致。影响关键词：品牌词+类目词组合。",
+        "department": "舆情与体验",
+        "priority": "high",
+        "status": "open",
+        "category": "search_related",
+        "product": "平台站内搜索",
+        "channel": "web_chat",
+        "created_at": "2026-05-14T09:20:00+08:00",
+        "assigned_to": "客服体验官",
+        "updated_at": "2026-05-18T10:05:00+08:00",
+        "reporter": "web_chat用户"
+      },
+      {
+        "ticket_id": "TK-2402",
+        "title": "类目索引不生效：搜索返回为空",
+        "description": "某类目（例：收纳/整理类）在搜索中返回空结果。人工站内导航可见，但检索不到子类目下的商品卡片。",
+        "department": "舆情与体验",
+        "priority": "high",
+        "status": "open",
+        "category": "index_missing",
+        "product": "平台站内搜索",
+        "channel": "app_feedback",
+        "created_at": "2026-05-15T15:40:00+08:00",
+        "assigned_to": "索引值班",
+        "updated_at": "2026-05-19T09:30:00+08:00",
+        "reporter": "app_feedback用户"
+      },
+      {
+        "ticket_id": "TK-2403",
+        "title": "商品详情可访问但关键词检索失败",
+        "description": "商品详情页可直接打开，但通过关键词搜索无法命中。疑似商品索引回填未完成或字段映射变化导致不可检索。",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "category": "search_related",
+        "product": "平台商品索引",
+        "channel": "email",
+        "created_at": "2026-05-16T11:10:00+08:00",
+        "assigned_to": "内容索引组",
+        "updated_at": "2026-05-20T13:00:00+08:00",
+        "reporter": "合作方支持邮箱"
+      },
+      {
+        "ticket_id": "TK-2404",
+        "title": "排序异常：搜索结果回到旧版本",
+        "description": "用户报告搜索结果排序与实际库存/上架时间不一致，疑似索引版本未刷新导致旧数据仍被索引。多名用户在同时间段反馈。",
+        "department": "舆情与体验",
+        "priority": "medium",
+        "status": "open",
+        "category": "ranking_anomaly",
+        "product": "平台站内搜索",
+        "channel": "web_chat",
+        "created_at": "2026-05-17T08:55:00+08:00",
+        "assigned_to": "索引值班",
+        "updated_at": "2026-05-21T16:20:00+08:00",
+        "reporter": "web_chat用户"
+      },
+      {
+        "ticket_id": "TK-2405",
+        "title": "复现条件：增量同步后超过2小时仍不可搜索",
+        "description": "合作方称更新内容后超过2小时仍无法在站内检索到。多次刷新无变化。初步怀疑“增量同步触发事件”未被正确投递。",
+        "department": "技术支持",
+        "priority": "high",
+        "status": "open",
+        "category": "index_missing",
+        "product": "内容增量同步",
+        "channel": "api_feedback",
+        "created_at": "2026-05-17T14:25:00+08:00",
+        "assigned_to": "触发链路排查",
+        "updated_at": "2026-05-21T11:40:00+08:00",
+        "reporter": "api_feedback集成方"
+      },
+      {
+        "ticket_id": "TK-2406",
+        "title": "账号权限异常导致部分用户无法登录",
+        "description": "少量用户反馈登录失败，需重新授权后恢复。与搜索索引现象时间可能重叠，但影响人群不同。",
+        "department": "账号与权限",
+        "priority": "low",
+        "status": "open",
+        "category": "auth_issue",
+        "product": "账号系统",
+        "channel": "app_feedback",
+        "created_at": "2026-05-16T18:10:00+08:00",
+        "assigned_to": "权限工程师",
+        "updated_at": "2026-05-18T20:00:00+08:00",
+        "reporter": "app_feedback用户"
+      },
+      {
+        "ticket_id": "TK-2407",
+        "title": "登录超时：偶发请求失败（干扰项）",
+        "description": "偶发登录超时，未观测到与站内搜索结果滞后直接关联。建议在报告中避免误判为索引问题根因。",
+        "department": "运维平台",
+        "priority": "low",
+        "status": "open",
+        "category": "performance_issue",
+        "product": "网关",
+        "channel": "web_chat",
+        "created_at": "2026-05-18T12:00:00+08:00",
+        "assigned_to": "平台值班",
+        "updated_at": "2026-05-18T14:35:00+08:00",
+        "reporter": "web_chat用户"
+      },
+      {
+        "ticket_id": "TK-2408",
+        "title": "搜索API返回空：同一关键词跨渠道均失败",
+        "description": "多渠道（网页/APP）调用搜索API返回空结果。错误码无明显上升，但返回集合为空。疑似索引层数据过期或未回填。",
+        "department": "技术支持",
+        "priority": "high",
+        "status": "open",
+        "category": "search_related",
+        "product": "搜索API",
+        "channel": "api_feedback",
+        "created_at": "2026-05-19T09:40:00+08:00",
+        "assigned_to": "搜索服务",
+        "updated_at": "2026-05-21T10:10:00+08:00",
+        "reporter": "api_feedback集成方"
+      },
+      {
+        "ticket_id": "TK-2409",
+        "title": "商品上架后仅详情可见，搜索不可见",
+        "description": "本周多起上架商品反馈仅详情页可见，搜索不可见。疑似映射字段（如类目ID/标题摘要字段）与索引schema不一致。",
+        "department": "内容治理",
+        "priority": "medium",
+        "status": "open",
+        "category": "index_missing",
+        "product": "商品索引",
+        "channel": "email",
+        "created_at": "2026-05-20T16:05:00+08:00",
+        "assigned_to": "内容治理组",
+        "updated_at": "2026-05-22T09:00:00+08:00",
+        "reporter": "合作方支持邮箱"
+      },
+      {
+        "ticket_id": "TK-2410",
+        "title": "通知服务延迟（干扰项）",
+        "description": "通知延迟导致部分用户未及时收到站内更新提醒，但并不解释“搜索结果为空/旧数据”。",
+        "department": "运维平台",
+        "priority": "low",
+        "status": "open",
+        "category": "notification_issue",
+        "product": "通知服务",
+        "channel": "web_chat",
+        "created_at": "2026-05-21T13:30:00+08:00",
+        "assigned_to": "通知值班",
+        "updated_at": "2026-05-22T11:10:00+08:00",
+        "reporter": "web_chat用户"
+      },
+      {
+        "ticket_id": "TK-2411",
+        "title": "搜索结果页缓存未刷新（疑似缓存而非索引）",
+        "description": "用户认为可能是搜索页缓存未刷新。需要结合集成调用量与调度任务历史判断是否为索引层数据滞后。",
+        "department": "舆情与体验",
+        "priority": "medium",
+        "status": "open",
+        "category": "ranking_anomaly",
+        "product": "搜索结果页",
+        "channel": "app_feedback",
+        "created_at": "2026-05-13T20:15:00+08:00",
+        "assigned_to": "体验分析",
+        "updated_at": "2026-05-19T08:45:00+08:00",
+        "reporter": "app_feedback用户"
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "PRD-601",
+        "name": "极光充电座 A9",
+        "category": "配件",
+        "current_stock": 320,
+        "min_stock": 120,
+        "status": "normal",
+        "return_rate": 2.3,
+        "return_count": 12,
+        "units_sold_this_month": 610,
+        "supplier": "青岚供应链",
+        "last_restock_date": "2026-05-01",
+        "notes": "轻微退货但不指向搜索索引更新。"
+      },
+      {
+        "product_id": "PRD-602",
+        "name": "星栈收纳盒 M",
+        "category": "家居收纳",
+        "current_stock": 86,
+        "min_stock": 90,
+        "status": "low_stock",
+        "return_rate": 1.2,
+        "return_count": 4,
+        "units_sold_this_month": 180,
+        "supplier": "澄海家居",
+        "last_restock_date": "2026-04-20",
+        "notes": "库存略低可能带来部分缺货体验，但与“无法被搜索到/旧数据排序”不完全一致。"
+      },
+      {
+        "product_id": "PRD-603",
+        "name": "海风香薰机 F2",
+        "category": "家居香氛",
+        "current_stock": 540,
+        "min_stock": 200,
+        "status": "overstocked",
+        "return_rate": 3.6,
+        "return_count": 18,
+        "units_sold_this_month": 740,
+        "supplier": "海风日化",
+        "last_restock_date": "2026-04-28"
+      },
+      {
+        "product_id": "PRD-604",
+        "name": "云巢桌面支架 S3",
+        "category": "办公设备",
+        "current_stock": 145,
+        "min_stock": 120,
+        "status": "normal",
+        "return_rate": 1.8,
+        "return_count": 6,
+        "units_sold_this_month": 260,
+        "supplier": "云巢制造",
+        "last_restock_date": "2026-05-05"
+      },
+      {
+        "product_id": "PRD-605",
+        "name": "鲸跃显示支臂 P7",
+        "category": "办公设备",
+        "current_stock": 60,
+        "min_stock": 60,
+        "status": "normal",
+        "return_rate": 2.9,
+        "return_count": 9,
+        "units_sold_this_month": 140,
+        "supplier": "鲸跃五金",
+        "last_restock_date": "2026-04-15"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-401",
+        "title": "索引增量同步规则（历史版本，字段映射需复核）",
+        "category": "搜索与索引",
+        "tags": [
+          "索引",
+          "增量同步",
+          "回填",
+          "schema",
+          "字段映射"
+        ],
+        "content": "## 索引增量同步规则（历史版本，字段映射需复核）\n\n### 适用前提\n- 适用于“旧内容模型”：content_id 对应 index_doc_id\n- 类目维度使用 old_category_id 字段\n\n### 回填/重建触发\n1) 当接收到 content_updated 事件时，执行增量同步\n2) 若累计失败达到 3 次，触发全量重建（index_rebuild）\n3) 对于跳过的文档，使用 index_backfill_by_category 拉取\n\n### 关键字段\n- title 摘要字段：summary_text\n- 类目字段：old_category_id\n\n**注意**：当前平台若已迁移到新内容模型，请先更新字段映射再继续使用本规则。\n\n文档版本：v0.8\n",
+        "last_updated": "2025-09-03",
+        "author": "搜索中台团队",
+        "status": "published",
+        "views": 1220
+      },
+      {
+        "article_id": "KB-402",
+        "title": "搜索结果排序异常排查清单",
+        "category": "排障",
+        "tags": [
+          "排序",
+          "缓存",
+          "索引版本"
+        ],
+        "content": "## 搜索结果排序异常排查清单\n- 先确认索引版本时间戳是否更新\n- 再检查搜索页缓存 TTL\n- 最后回溯增量同步触发是否投递成功\n- 若 error_rate 为 0 但调用量骤降，优先排查上游触发链路\n",
+        "last_updated": "2026-01-20",
+        "author": "体验运维",
+        "status": "published",
+        "views": 610
+      },
+      {
+        "article_id": "KB-403",
+        "title": "索引回填任务运维操作手册（仅供参考）",
+        "category": "运维",
+        "tags": [
+          "index_backfill",
+          "重建",
+          "任务"
+        ],
+        "content": "## 索引回填任务运维操作手册（仅供参考）\n\n- backfill_by_category：按类目回填\n- rebuild_all：全量重建\n\n建议在执行前确认：\n1) schema_version 与任务参数一致\n2) 是否存在分布式锁导致任务跳过\n3) upstream 服务是否返回 503/超时\n\n（本手册不涉及写操作；仅列出观察与核对步骤）\n",
+        "last_updated": "2026-02-12",
+        "author": "运维值班",
+        "status": "published",
+        "views": 340
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-201",
+        "name": "index_incremental_sync",
+        "description": "增量同步：content_updated 触发后将增量文档写入索引",
+        "cron_expression": "*/10 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-05-12T02:10:00+08:00",
+        "next_run": "2026-05-22T02:10:00+08:00",
+        "average_duration_seconds": 38,
+        "tags": [
+          "search",
+          "index_incremental"
+        ]
+      },
+      {
+        "job_id": "JOB-202",
+        "name": "index_backfill_by_category",
+        "description": "索引回填：按类目回填漏斗文档，防止索引缺失",
+        "cron_expression": "0 */2 * * *",
+        "enabled": true,
+        "last_status": "failed",
+        "last_run": "2026-05-03T18:00:00+08:00",
+        "next_run": "2026-05-22T20:00:00+08:00",
+        "average_duration_seconds": 120,
+        "error": "schema mismatch: index_doc_id 字段缺失（可能映射到旧字段）",
+        "tags": [
+          "index_backfill",
+          "search"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-03T18:00:00+08:00",
+            "status": "failed",
+            "error": "schema mismatch: index_doc_id 字段缺失（可能映射到旧字段）",
+            "duration_seconds": 33
+          },
+          {
+            "run_at": "2026-05-01T18:00:00+08:00",
+            "status": "skipped",
+            "error": "distributed lock held by previous run（上次任务未释放锁）",
+            "duration_seconds": 0
+          },
+          {
+            "run_at": "2026-04-29T18:00:00+08:00",
+            "status": "failed",
+            "error": "upstream 503 from content_distribution during batch trigger",
+            "duration_seconds": 41
+          },
+          {
+            "run_at": "2026-04-27T18:00:00+08:00",
+            "status": "failed",
+            "error": "timeout waiting for taxonomy map response",
+            "duration_seconds": 70
+          }
+        ],
+        "notes": "enabled=true 但最近多次运行失败/跳过，容易导致按类目回填链路失效，解释“类目索引不生效/搜索为空”。"
+      },
+      {
+        "job_id": "JOB-203",
+        "name": "index_rebuild_all",
+        "description": "重建索引：当增量同步失败达到阈值时触发全量重建",
+        "cron_expression": "0 3 * * *",
+        "enabled": false,
+        "last_status": "success",
+        "last_run": "2026-02-18T03:00:00+08:00",
+        "next_run": "2026-05-22T03:00:00+08:00",
+        "average_duration_seconds": 5400,
+        "tags": [
+          "index_rebuild",
+          "search"
+        ],
+        "notes": "该任务近期处于 disabled= false 之外的停用状态；若需要全量重建需重新启用并确认schema版本。"
+      },
+      {
+        "job_id": "JOB-204",
+        "name": "notification_pipeline_health",
+        "description": "通知管道健康检查",
+        "cron_expression": "*/15 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-05-21T10:15:00+08:00",
+        "next_run": "2026-05-22T10:30:00+08:00",
+        "average_duration_seconds": 8,
+        "tags": [
+          "monitoring",
+          "notification"
+        ]
+      },
+      {
+        "job_id": "JOB-205",
+        "name": "content_event_deadletter_replay",
+        "description": "内容事件死信重放（用于补偿丢失的索引触发事件）",
+        "cron_expression": "0 */6 * * *",
+        "enabled": true,
+        "last_status": "failed",
+        "last_run": "2026-05-08T04:00:00+08:00",
+        "next_run": "2026-05-22T10:00:00+08:00",
+        "average_duration_seconds": 180,
+        "error": "upstream 504 during deadletter scan",
+        "tags": [
+          "replay",
+          "search"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-08T04:00:00+08:00",
+            "status": "failed",
+            "error": "upstream 504 during deadletter scan",
+            "duration_seconds": 77
+          },
+          {
+            "run_at": "2026-05-07T04:00:00+08:00",
+            "status": "skipped",
+            "error": "no deadletter backlog (based on last watermark)",
+            "duration_seconds": 0
+          },
+          {
+            "run_at": "2026-05-05T04:00:00+08:00",
+            "status": "failed",
+            "error": "timeout while reading event cursor",
+            "duration_seconds": 95
+          }
+        ],
+        "notes": "死信重放也发生失败/跳过，可能导致索引触发事件未被补偿，进一步造成搜索数据滞后。"
+      },
+      {
+        "job_id": "JOB-206",
+        "name": "inventory_to_index_consistency_check",
+        "description": "库存与索引一致性检查（干扰项）",
+        "cron_expression": "0 */3 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-05-21T09:00:00+08:00",
+        "next_run": "2026-05-22T12:00:00+08:00",
+        "average_duration_seconds": 25,
+        "tags": [
+          "consistency",
+          "inventory"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原主线从硬件质量异常改为“搜索索引失活/数据未更新”并强调error_rate=0但调用量骤降的矛盾，同时用调度任务失败/跳过与多渠道舆情工单做跨系统关联。",
+    "fixture_design_summary": [
+      "integrations.json 含INT-201：error_rate=0但call_volume_previous_week大幅下降，用于解释“零错误但疑似中断”。",
+      "helpdesk/tickets.json 新增多条search相关工单（search_related/index_missing/ranking_anomaly），并夹杂auth/performance/notification干扰项以避免误判。",
+      "scheduler/jobs.json 提供enabled=true但最近运行过久的增量/回填任务，并包含失败原因（schema mismatch、lock held、503/timeout）用于与工单时间点印证。",
+      "inventory/products.json 仅轻微库存波动，避免与搜索主因强绑定。",
+      "crm/customers.json 包含1位VIP交互备注明确指向“检索不到合作内容/旧排序”，其余为标准客户噪声。",
+      "kb/articles.json 至少一篇关于“索引增量同步规则”的文档last_updated超过6个月（字段映射可能过时），用于提出流程/映射不适配风险。"
+    ]
+  }
+}

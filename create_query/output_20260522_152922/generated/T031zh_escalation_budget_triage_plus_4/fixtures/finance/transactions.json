@@ -1,0 +1,41 @@
+[
+  {
+    "transaction_id": "TXN-2401",
+    "date": "2026-02-01",
+    "amount": 60000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-107",
+    "customer_name": "彩虹零售",
+    "type": "客户豁免/抵扣",
+    "category": "费用抵扣",
+    "description": "服务费抵扣已完成（用于折抵违约金等价赔付）",
+    "approved_by": "周雪",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-2402",
+    "date": "2026-02-10",
+    "amount": 95000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-101",
+    "customer_name": "北方航联",
+    "type": "客户豁免/抵扣",
+    "category": "违约金豁免",
+    "description": "违约金豁免额度使用记录（部分已入账）",
+    "approved_by": "周雪",
+    "status": "open"
+  },
+  {
+    "transaction_id": "TXN-2403",
+    "date": "2026-02-18",
+    "amount": 120000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-102",
+    "customer_name": "青橙金融",
+    "type": "客户补偿",
+    "category": "补偿支出",
+    "description": "等效赔付已核验（基于费用减免条款）",
+    "approved_by": "陈涛",
+    "status": "completed"
+  }
+]

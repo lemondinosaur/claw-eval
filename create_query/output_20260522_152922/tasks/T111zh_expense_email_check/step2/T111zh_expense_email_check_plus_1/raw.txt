@@ -1,0 +1,170 @@
+{
+  "task_id": "T111zh_expense_email_check_plus_1",
+  "task_name": "报销邮件核对增强版",
+  "prompt_text": "请帮我核对邮箱中的报销申请：\n1) 从收件箱筛选所有“报销申请”邮件（注意：行政公告/通知类邮件、以及非报销咨询邮件不要纳入核对范围）。\n2) 对每封报销邮件从正文提取发票号与报销金额（发票号形如INV-XXX；金额以邮件正文为准，精确到两位小数对比）。\n3) 在财务系统中拉取对应日期范围的交易，并按发票号/交易描述交叉匹配。\n4) 核对每笔：\n   - 金额一致且交易状态为completed => 归类为“匹配正常”\n   - 金额不一致 => 归类为“金额不符”\n   - 金额一致但交易状态非completed（例如pending/canceled）=> 归类为“状态异常”\n5) 输出核对报告：分别列出三类结果，并清晰给出每个发票号对应的邮件ID与交易ID，以及差异原因（如金额差异/状态异常）。",
+  "files": {
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXA-101",
+        "date": "2026-04-05",
+        "amount": 2590.00,
+        "currency": "CNY",
+        "type": "差旅费报销",
+        "category": "费用报销",
+        "description": "李娜差旅费结算，发票号INV-104",
+        "status": "completed",
+        "approved_by": "财务主管"
+      },
+      {
+        "transaction_id": "TXA-102",
+        "date": "2026-04-05",
+        "amount": 799.99,
+        "currency": "CNY",
+        "type": "办公用品报销",
+        "category": "费用报销",
+        "description": "周磊采购办公用品，发票号INV-105（含税）",
+        "status": "completed",
+        "approved_by": "财务主管"
+      },
+      {
+        "transaction_id": "TXA-103",
+        "date": "2026-04-06",
+        "amount": 980.00,
+        "currency": "CNY",
+        "type": "软件服务费",
+        "category": "运营成本",
+        "description": "云服务订阅费用，发票号INV-106",
+        "status": "completed",
+        "approved_by": "成本经理"
+      },
+      {
+        "transaction_id": "TXA-104",
+        "date": "2026-04-06",
+        "amount": 1234.56,
+        "currency": "CNY",
+        "type": "培训费报销",
+        "category": "费用报销",
+        "description": "外部培训结算，发票号INV-107",
+        "status": "pending",
+        "approved_by": "HR经理"
+      },
+      {
+        "transaction_id": "TXA-105",
+        "date": "2026-04-04",
+        "amount": 320.00,
+        "currency": "CNY",
+        "type": "餐饮招待",
+        "category": "费用报销",
+        "description": "客户招待餐费，发票号INV-108",
+        "status": "canceled",
+        "approved_by": "财务主管"
+      },
+      {
+        "transaction_id": "TXA-106",
+        "date": "2026-04-06",
+        "amount": 4500.00,
+        "currency": "CNY",
+        "type": "水电费",
+        "category": "运营成本",
+        "description": "办公楼水电费（无对应发票）",
+        "status": "completed",
+        "approved_by": "行政部"
+      },
+      {
+        "transaction_id": "TXA-107",
+        "date": "2026-04-05",
+        "amount": 56000.00,
+        "currency": "CNY",
+        "type": "员工工资",
+        "category": "人力成本",
+        "description": "2026年4月员工工资发放（不含发票）",
+        "status": "completed",
+        "approved_by": "财务总监"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_a01",
+        "from": "lina@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：差旅费 2590.00元",
+        "date": "2026-04-05T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "财务部您好，我的差旅费用合计2590.00元，发票号INV-104。请核对并尽快处理。"
+      },
+      {
+        "message_id": "msg_a02",
+        "from": "zhoulei@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：办公用品 800.00元",
+        "date": "2026-04-05T11:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，本次办公用品报销金额为800.00元，发票号INV-105。注意：本次报销金额以最终核准为准，但仍以本邮件正文的金额与发票号为准。"
+      },
+      {
+        "message_id": "msg_a03",
+        "from": "chenqi@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：软件服务费 980.00元",
+        "date": "2026-04-06T10:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "管理员您好，软件服务费报销合计980.00元，发票号INV-106。请安排入账。"
+      },
+      {
+        "message_id": "msg_a04",
+        "from": "wumeng@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：培训费 1234.56元",
+        "date": "2026-04-06T15:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位好，我参加外部培训费用共1234.56元，发票号INV-107。该笔已完成部门流程，请财务核对。"
+      },
+      {
+        "message_id": "msg_a05",
+        "from": "sarah@vendor.com",
+        "to": "finance@company.com",
+        "subject": "发票问题咨询：对账明细需要确认",
+        "date": "2026-04-06T17:30:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，我们收到一张发票的对账明细后有疑问，想确认是否已入账。请协助核对“发票问题”对应的交易信息。"
+      },
+      {
+        "message_id": "msg_a06",
+        "from": "renwu@company.com",
+        "to": "all@company.com",
+        "subject": "制度通知：报销流程调整说明",
+        "date": "2026-04-04T16:45:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "通知各部门：从下周起报销流程将调整。与本制度通知相关的事项请参考附件，不涉及具体报销金额。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题共6封邮件，其中4封“报销申请”+2封干扰（发票问题咨询/制度通知），并在财务侧设置了金额匹配但pending与canceled的状态异常，同时包含正文“以最终核准为准”的干扰措辞与两位小数金额对比场景。",
+    "fixture_design_summary": [
+      "gmail/inbox.json：message_id 采用 msg_a01~msg_a06，4封报销邮件均以“报销申请：”开头且正文给出INV-104/105/106/107对应金额。",
+      "加入干扰：一封“发票问题咨询”与一封“制度通知”不应被纳入核对范围。",
+      "金额对比：邮件 INV-105 为800.00元，对应交易TXA-102为799.99，以触发“金额不符”（精确两位小数）。",
+      "状态异常：INV-107 对应TXA-104 为 pending；另有INV-108 的交易 TXA-105 为 canceled（在财务侧提供canceled异常交易）。",
+      "finance/transactions.json：TXA-101~TXA-105 与4张发票对齐/用于异常；TXA-106~TXA-107为无对应报销的交易噪声。"
+    ]
+  }
+}

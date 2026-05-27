@@ -1,0 +1,96 @@
+task_id: T021zh_newsletter_curation_plus_4
+task_name: 多语言内容编排精选
+version: '1.0'
+category: content
+difficulty: easy
+tags:
+- general
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T021zh_newsletter_curation_plus_4/fixtures/rss/articles.json
+prompt:
+  text: '请为团队整理《多语言内容编排精选》newsletter并发布。请从RSS中挑选与机器翻译/同声传译/本地化策略/术语一致性/内容治理流程/评估指标相关的内容（仅限“语言处理技术或本地化工程流程”，不选娱乐八卦）。Newsletter需要：标题；导读（中文）；精选要点（至少6条，中文，每条对应一条可追溯的文章洞察）；并附上“中英对照小结”至少3段（每段给出中文一句
+    + 英文一句，英文要求自然且不生硬翻译）；最后给出‘术语与风格指南’建议（至少5条，需与入选文章提到的方法/流程一致）。
+
+    另外，对于至少1篇“看似与语言相关但其实与翻译/本地化技术无关”的干扰文章，必须解释为什么排除：说明其正文缺失哪些关键可用于技术/本地化工程的要素（例如缺少术语治理、缺少翻译流程、缺少质量评估指标、缺少同声传译/本地化策略细节等）。'
+  language: zh
+tools:
+- name: rss_list_feeds
+  description: 获取所有RSS订阅源
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: rss_list_articles
+  description: 获取文章列表
+  input_schema:
+    type: object
+    properties:
+      source:
+        type: string
+        description: 按来源筛选
+      category:
+        type: string
+        description: 按类别筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章完整内容
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: rss_publish
+  description: 发布Newsletter
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: Newsletter标题
+      content:
+        type: string
+        description: Newsletter内容
+      recipients:
+        type: array
+        items:
+          type: string
+        description: 接收者列表
+    required:
+    - title
+    - content
+tool_endpoints:
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: rss_publish
+  url: http://localhost:9109/rss/publish
+  method: POST
+sandbox_files:
+- fixtures/rss/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

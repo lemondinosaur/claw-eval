@@ -1,0 +1,87 @@
+task_id: T013zh_meeting_notes_plus_5
+task_name: 应急响应复盘行动项
+version: '1.0'
+category: productivity
+difficulty: easy
+tags:
+- general
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T013zh_meeting_notes_plus_5/fixtures/notes/meetings.json
+prompt:
+  text: '请整理一次“应急响应复盘会”的行动项，并分享给应急小组的执行者（仅限 participants 中未标注为“列席但非执行”的成员）。
+
+
+    从纪要中提取并输出行动项，必须覆盖三大分组：
+
+    1）流程改进（包括负责人及需要更新的SOP/制度变更事项）；
+
+    2）可观测性（包括告警阈值/告警路由/仪表盘等需要谁配置）；
+
+    3）演练（包括谁要安排演练脚本与复盘复测）。
+
+
+    对跨团队/跨工具的依赖要明确标注；涉及供应商/第三方这类外部对接时，只写“对接对象类型（第三方/供应商）+内部负责人+‘对接对象确认后执行’”，不要要求具体外部实体名称。
+
+
+    忽略仅用于事故叙述或合规口径讨论、但不构成承诺的内容。若纪要提到“演练脚本在另一份note”，需要同时读取该补充note以补全演练行动，并在输出中使用其中的节点/区间信息（不能凭空杜撰日期）。'
+  language: zh
+tools:
+- name: notes_list
+  description: 获取会议记录列表
+  input_schema:
+    type: object
+    properties:
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 10
+    required: []
+- name: notes_get
+  description: 根据ID获取会议记录详细内容
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 会议记录ID
+    required:
+    - note_id
+- name: notes_share
+  description: 将会议记录分享给其他人
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 会议记录ID
+      recipients:
+        type: array
+        items:
+          type: string
+        description: 接收人列表
+    required:
+    - note_id
+    - recipients
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: notes_share
+  url: http://localhost:9105/notes/share
+  method: POST
+sandbox_files:
+- fixtures/notes/meetings.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

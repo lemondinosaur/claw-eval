@@ -1,0 +1,191 @@
+[
+  {
+    "ticket_id": "TK-8081",
+    "title": "中间件索引构建延迟",
+    "subject": "中间件索引构建延迟",
+    "customer_id": "CUS-808",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-20T09:10:00",
+    "first_response_at": "2026-05-20T17:00:00",
+    "upgrade_at": "2026-05-20T09:35:00",
+    "tags": [
+      "sla:upgraded",
+      "sla:priority_medium",
+      "escalation:triggered"
+    ],
+    "assigned_to": "周琦",
+    "category": "后端",
+    "description": "索引构建耗时异常波动但用户未见明显中断",
+    "reporter": "周琦",
+    "department": "后端",
+    "internal": false
+  },
+  {
+    "ticket_id": "TK-8082",
+    "title": "API 网关偶发 502",
+    "subject": "API 网关偶发 502",
+    "customer_id": "CUS-808",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-20T12:00:00",
+    "first_response_at": "2026-05-20T20:10:00",
+    "upgrade_at": "2026-05-20T12:25:00",
+    "tags": [
+      "sla:upgraded",
+      "sla:priority_medium"
+    ],
+    "assigned_to": "林薇",
+    "category": "后端",
+    "description": "短时间返回 502，重试后恢复",
+    "reporter": "林薇",
+    "department": "后端",
+    "internal": false
+  },
+  {
+    "ticket_id": "TK-8083",
+    "title": "权限系统角色同步延迟",
+    "subject": "权限系统角色同步延迟",
+    "customer_id": "CUS-808",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-20T10:30:00",
+    "first_response_at": "2026-05-20T11:35:00",
+    "upgrade_at": "2026-05-20T11:30:00",
+    "tags": [
+      "sla:upgraded",
+      "sla:priority_high"
+    ],
+    "assigned_to": "赵航",
+    "category": "权限",
+    "description": "角色同步延迟但影响范围有限",
+    "reporter": "赵航",
+    "department": "权限",
+    "internal": false
+  },
+  {
+    "ticket_id": "TK-8084",
+    "title": "日志平台采集不完整",
+    "subject": "日志平台采集不完整",
+    "customer_id": "CUS-809",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-20T08:20:00",
+    "first_response_at": "2026-05-20T08:50:00",
+    "upgrade_at": "2026-05-20T08:35:00",
+    "tags": [
+      "sla:upgraded",
+      "sla:priority_critical"
+    ],
+    "assigned_to": "陈晨",
+    "category": "运维",
+    "description": "采集链路间歇性丢包，需尽快恢复",
+    "reporter": "陈晨",
+    "department": "运维",
+    "internal": false
+  },
+  {
+    "ticket_id": "TK-8085",
+    "title": "低优先级文档错误申诉",
+    "subject": "低优先级文档错误申诉",
+    "customer_id": "CUS-810",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-20T13:40:00",
+    "first_response_at": null,
+    "tags": [
+      "sla:priority_low"
+    ],
+    "assigned_to": "周琦",
+    "category": "咨询",
+    "description": "文档中某段示例与实际产品不符",
+    "reporter": "周琦",
+    "department": "咨询",
+    "internal": false
+  },
+  {
+    "ticket_id": "TK-8086",
+    "title": "内部压测环境重置请求",
+    "subject": "内部压测环境重置请求",
+    "customer_id": "internal",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-20T11:10:00",
+    "first_response_at": "2026-05-20T12:30:00",
+    "upgrade_at": "2026-05-20T11:35:00",
+    "tags": [
+      "sla:upgraded",
+      "sla:priority_medium"
+    ],
+    "assigned_to": "林薇",
+    "category": "内部",
+    "description": "请求重置压测环境，非对外SLA业务",
+    "reporter": "林薇",
+    "department": "内部",
+    "internal": true
+  },
+  {
+    "ticket_id": "TK-8087",
+    "title": "中等优先级缓存策略调整",
+    "subject": "中等优先级缓存策略调整",
+    "customer_id": "CUS-811",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-20T15:05:00",
+    "first_response_at": "2026-05-20T23:40:00",
+    "upgrade_at": "2026-05-20T15:35:00",
+    "tags": [
+      "sla:upgraded",
+      "sla:priority_medium"
+    ],
+    "assigned_to": "刘洋",
+    "category": "平台",
+    "description": "缓存命中率下降，需要调整策略参数",
+    "reporter": "刘洋",
+    "department": "平台",
+    "internal": false
+  },
+  {
+    "ticket_id": "TK-8088",
+    "title": "关键告警未触达（对照组）",
+    "subject": "关键告警未触达（对照组）",
+    "customer_id": "CUS-812",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-20T07:50:00",
+    "first_response_at": "2026-05-20T08:15:00",
+    "upgrade_at": "2026-05-20T08:05:00",
+    "tags": [
+      "sla:upgraded",
+      "sla:priority_critical"
+    ],
+    "assigned_to": "陈晨",
+    "category": "运维",
+    "description": "告警渠道延迟但最终仍在阈值内完成首次响应",
+    "reporter": "陈晨",
+    "department": "运维",
+    "internal": false
+  },
+  {
+    "ticket_id": "TK-8089",
+    "title": "中等优先级队列积压（边界测试）",
+    "subject": "中等优先级队列积压（边界测试）",
+    "customer_id": "CUS-813",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-20T16:20:00",
+    "first_response_at": "2026-05-20T23:45:00",
+    "upgrade_at": "2026-05-20T16:45:00",
+    "tags": [
+      "sla:upgraded",
+      "sla:priority_medium",
+      "escalation:triggered"
+    ],
+    "assigned_to": "赵航",
+    "category": "消息队列",
+    "description": "队列积压短时增大，首次响应在较晚但仍达标窗口内",
+    "reporter": "赵航",
+    "department": "消息队列",
+    "internal": false
+  }
+]

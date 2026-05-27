@@ -1,0 +1,148 @@
+[
+  {
+    "ticket_id": "HD-8129",
+    "title": "支付对账单未生成（商户A）",
+    "description": "商户A的对账单在每天 23:55Z 后仍未生成。系统侧查询显示对账汇总流水为空，疑似日终资金对账链路异常导致。首次发现时间：次日00:08Z，提交上报：00:12Z。",
+    "reporter": "商户支持-姚岚",
+    "department": "商户支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-16T00:12:00Z",
+    "tags": [
+      "payment",
+      "accounting",
+      "reconciliation",
+      "report-missing"
+    ],
+    "category": "支付对账"
+  },
+  {
+    "ticket_id": "HD-8130",
+    "title": "对账单延迟入库（内部台账缺失）",
+    "description": "内部财务台账显示对账结果未入库：到 00:22Z 仍未出现当日对账记录。推测与日终资金对账任务超时/锁等待有关。上报时间：00:26Z。",
+    "reporter": "财务结算-沈博",
+    "department": "财务部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-16T00:26:00Z",
+    "tags": [
+      "payment",
+      "accounting",
+      "ledger-delay"
+    ],
+    "category": "财务入账"
+  },
+  {
+    "ticket_id": "HD-8131",
+    "title": "结算单待处理超时（回写失败）",
+    "description": "多笔结算单处于“待处理”超过阈值，处理队列持续重试但未成功回写。日志提示获取结算材料时依赖对象存储下载失败，导致状态回写未完成。首次告警时间：次日00:05Z，工单创建：00:18Z。",
+    "reporter": "结算平台-邹凯",
+    "department": "结算平台",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-16T00:18:00Z",
+    "tags": [
+      "payment",
+      "settlement",
+      "object-storage",
+      "callback-failed"
+    ],
+    "category": "结算回写"
+  },
+  {
+    "ticket_id": "HD-8132",
+    "title": "结算状态回写明显滞后（部分商户受影响）",
+    "description": "到 00:35Z 仍有部分商户结算状态未回写到账务系统，表现为“已发起但未入账”。与上一轮失败回写的时间段一致，需排查回写依赖链是否异常。上报时间：00:40Z。",
+    "reporter": "平台值班-陈曦",
+    "department": "平台运维",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-16T00:40:00Z",
+    "tags": [
+      "payment",
+      "settlement",
+      "writeback-delay"
+    ],
+    "category": "结算回写"
+  },
+  {
+    "ticket_id": "HD-8133",
+    "title": "商户通知内容空白（对账异常后）",
+    "description": "对账流程触发后应生成并推送商户通知，但收到的通知内容为空白，仅包含标题与无正文。模板渲染阶段报错疑似变量缺失或渲染异常。首次反馈：00:09Z，工单创建：00:21Z。",
+    "reporter": "风控&通知-林静",
+    "department": "风控团队",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-16T00:21:00Z",
+    "tags": [
+      "payment",
+      "notification",
+      "template-render"
+    ],
+    "category": "风控通知"
+  },
+  {
+    "ticket_id": "HD-8134",
+    "title": "入账延迟但未明确到具体链路",
+    "description": "多家商户反映“入账延迟”，但目前缺少可定位到对账/结算/通知的明确日志。建议先确认对账与回写是否在 23:50Z-00:20Z 窗口内失败，然后再做进一步排查。",
+    "reporter": "商户支持-周然",
+    "department": "商户支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-16T00:30:00Z",
+    "tags": [
+      "payment",
+      "ingestion-delay",
+      "unclear"
+    ],
+    "category": "支付影响"
+  },
+  {
+    "ticket_id": "HD-8135",
+    "title": "通知发送通道可用性检查（待确认）",
+    "description": "通知发送通道整体可用，但部分通知出现空白或缺失。当前缺少模板渲染日志，只能确认推送成功但内容异常。希望结合调度任务失败记录定位根因。",
+    "reporter": "风控&通知-余昊",
+    "department": "风控团队",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-16T00:47:00Z",
+    "tags": [
+      "payment",
+      "notification",
+      "unknown-root"
+    ],
+    "category": "风控通知"
+  },
+  {
+    "ticket_id": "HD-8136",
+    "title": "人事系统权限变更失败",
+    "description": "人事系统进行批量权限变更时发生失败回滚，当前用户无法登录HR系统。该问题与支付对账无明显关联，但需要确认是否为同一时间窗口的共性故障。",
+    "reporter": "IT-何文",
+    "department": "IT运维",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-16T00:24:00Z",
+    "tags": [
+      "hr",
+      "permissions",
+      "batch-fail"
+    ],
+    "category": "权限/访问"
+  },
+  {
+    "ticket_id": "HD-8137",
+    "title": "CSV 导入失败（批量结算数据）",
+    "description": "部分批量导入文件格式不符合要求导致导入失败，影响结算数据落地。注意：目前工单仅能确认导入环节异常，尚未能判断是否与对象存储依赖或回写任务失败相同根因。",
+    "reporter": "数据平台-孙薇",
+    "department": "数据平台",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-16T00:33:00Z",
+    "tags": [
+      "import",
+      "csv",
+      "settlement-data"
+    ],
+    "category": "数据导入"
+  }
+]

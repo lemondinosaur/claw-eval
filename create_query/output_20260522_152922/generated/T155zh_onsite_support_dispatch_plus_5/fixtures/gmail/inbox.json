@@ -1,0 +1,44 @@
+[
+  {
+    "message_id": "msg_2101",
+    "from": "ops@orangesea-power.com",
+    "to": "support@company.com",
+    "subject": "橙海电力：主站/备站SLA确认与现场要求（请按时间线执行）",
+    "date": "2026-04-20T13:25:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important",
+      "urgent"
+    ],
+    "body": "您好，\n\n橙海电力集团变电站监控平台出现“告警风暴”并引发数据库写入阻塞。合同条款要求：\n1）主站：南京主站需在45分钟内到达并开始故障定位；\n2）备站：若主站在90分钟内仍无法确认原因，则需转场备站。\n\n主站位置：南京·江北新区运维机房（主站）。\n备站位置：南京·建邺区第二运维机房（备站）。\n\n请在给工程师的通知草稿中写清时间线与转场触发条件，我们用于内部留档。\n\n谢谢。\n橙海电力运维团队"
+  },
+  {
+    "message_id": "msg_2102",
+    "from": "sunjing@company.com",
+    "to": "support@company.com",
+    "subject": "[内部提醒] VIP critical现场草稿必须包含备站转场条件与预计时间",
+    "date": "2026-04-20T13:18:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "internal",
+      "urgent"
+    ],
+    "body": "内部提醒：这次是VIP critical现场支持。\n\n请你起草给工程师与客户经理的邮件草稿时，务必：\n- 明确写出“备站转场触发条件”：主站在90分钟内未能确认原因/根因定位失败时转场；\n- 明确写出“预计转场时间”：从主站确认失败后起算的预计到达时间（需结合交通与SLA换算）；\n- 同时复述主站45分钟开始定位的SLA时间线。\n\n不要发送邮件，只保存草稿，便于后续审核。",
+    "from_name": "技术总监孙静"
+  },
+  {
+    "message_id": "msg_2103",
+    "from": "alerts@monitoring-system.com",
+    "to": "support@company.com",
+    "subject": "自动告警：数据库写入延迟（非VIP噪声）",
+    "date": "2026-04-20T09:40:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox",
+      "auto"
+    ],
+    "body": "数据库写入延迟已连续出现，请检查连接池与写入队列。此邮件为系统自动告警通知，不代表VIP工单。"
+  }
+]

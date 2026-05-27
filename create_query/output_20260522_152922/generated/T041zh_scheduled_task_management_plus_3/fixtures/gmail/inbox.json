@@ -1,0 +1,14 @@
+[
+  {
+    "message_id": "msg_3087",
+    "from": "oncall-ops@company.com",
+    "to": "me@company.com",
+    "subject": "【运维记录】昨天的 UTC 意图任务触发过早",
+    "date": "2026-03-08T10:12:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "Hi 团队，\n\n昨晚发现有一个标注了 [timezone:utc] 的同步任务比预期提前触发（大约提前 35 分钟），随后下游接口出现排队与超时告警。请你们排查调度器的时区/cron 解析与可能的延迟漂移修复策略。\n\n谢谢！\n运维值班\noncall-ops@company.com"
+  }
+]

@@ -1,0 +1,134 @@
+task_id: T137zh_restock_chain_check_plus_3
+task_name: 禁用任务导致的库存断档
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: create_query/output_20260522_152922/generated/T137zh_restock_chain_check_plus_3/fixtures/scheduler/jobs.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: create_query/output_20260522_152922/generated/T137zh_restock_chain_check_plus_3/fixtures/config/integrations.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T137zh_restock_chain_check_plus_3/fixtures/inventory/items.json
+prompt:
+  text: '补货系统近期出现疑似断档。请你做链路排查报告：
+
+    1）列出所有补货定时任务，筛查出 enabled=false 或 last_status 异常的任务；
+
+    2）对所有异常任务逐个获取详情，确认它们是执行失败还是仅被禁用；
+
+    3）检查对应API集成是否 inactive/凭证过期/高错误率；
+
+    4）查看库存，找出哪些产品低于安全线，并判断这些低库存是否与上述任务链路一致；
+
+    5）输出两条“真实故障链”（任务→集成→低库存）以及一条“表面告警但并未形成故障链”的解释（说明为什么不计入真实链）。
+
+    要求：真实故障链要能由数据支撑（任务状态/失败原因 + 集成状态 + 至少2个低于安全线的产品之间的一致性）。第三条干扰需要基于库存与集成/覆盖情况给出排除理由。'
+  language: zh
+tools:
+- name: scheduler_list_jobs
+  description: 列出定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(all/enabled/disabled)
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: config_list_integrations
+  description: 查看集成配置列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(active/inactive/all)
+    required: []
+- name: config_get_integration
+  description: 获取集成配置详情
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: inventory_list_items
+  description: 查看库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取库存品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+tool_endpoints:
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

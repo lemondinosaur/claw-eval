@@ -1,0 +1,93 @@
+task_id: T127zh_ticket_assignment_plus_5
+task_name: 基于故障现象与根因猜测的分派
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T127zh_ticket_assignment_plus_5/fixtures/contacts/contacts.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T127zh_ticket_assignment_plus_5/fixtures/helpdesk/tickets.json
+prompt:
+  text: '当前有5个未分配工单需要分配建议：请你逐个读取工单详情，从描述的故障现象推断根因类型（认证、权限、缓存、依赖服务、数据同步/ETL 等），再到通讯录中查找能处理该根因类型的负责人。要求：同一根因类型的工单分配给同一位负责人（以体现一致性）。
+
+
+    输出分配建议表（5行），格式为：工单ID → 建议处理人 → 分配理由。理由必须写明“现象→推断根因→为何由该负责人负责”，并明确说明为何忽略误导性的 category/tags（例如泛化标签或错误/相反的分类）。'
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

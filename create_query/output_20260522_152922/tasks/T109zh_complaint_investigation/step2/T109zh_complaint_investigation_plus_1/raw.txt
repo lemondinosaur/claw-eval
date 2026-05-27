@@ -1,0 +1,241 @@
+{
+  "task_id": "T109zh_complaint_investigation_plus_1",
+  "task_name": "账单重复扣款核验与停扣建议",
+  "prompt_text": "收件箱里有几封关于“扣款重复/冲正失败”的客户投诉邮件，请你逐一调查并给出处理建议。\n\n请对每封邮件：\n1) 阅读邮件，提取扣款时间、金额、银行摘要/交易线索、客户自述的关键字段（如客户ID、是否称已提交冲正等）。\n2) 在CRM中核实该客户状态、合同计费周期/账期与是否处于暂停或逾期等情形。\n3) 在财务系统中核验同一时间点是否存在重复交易或冲正/撤销链路（例如 void/failed/pending）。\n4) 在通讯录中定位负责“计费/应收”与“风控/对账”的负责人联系方式。\n5) 给出结论：判断为系统重复扣款、冲正失败导致再次扣款、还是疑似仿冒/与我方账单无关（干扰项）。\n\n最后，请为最紧急的那封（通常满足：已产生重复扣款且冲正仍处于pending/失败状态，或客户账户被标记为暂停/逾期）起草一封回复邮件草稿（仅保存草稿不发送）。回复需包含：确认收到、证据摘要（时间/金额/交易状态）、处理路径与预计时间、以及客户需要补充的最少材料。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-701",
+        "name": "周凯",
+        "department": "应收与计费部",
+        "title": "计费对账负责人",
+        "email": "zhoukai@company.com",
+        "phone": "13900701001",
+        "location": "上海总部",
+        "notes": "负责账单扣款、重复交易识别与对账SLA"
+      },
+      {
+        "contact_id": "CT-702",
+        "name": "沈怡",
+        "department": "风控与合规部",
+        "title": "风控对账专员",
+        "email": "shenyi@company.com",
+        "phone": "13900701002",
+        "location": "上海总部",
+        "notes": "负责冲正链路核验、异常扣款风控处理"
+      },
+      {
+        "contact_id": "CT-703",
+        "name": "郑博",
+        "department": "客户运营部",
+        "title": "客户运营经理",
+        "email": "zhengbo@company.com",
+        "phone": "13900701003",
+        "location": "杭州分部",
+        "notes": "负责VIP客户紧急沟通与工单升级"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-701",
+        "name": "北辰供应链",
+        "contact_person": "许宁",
+        "email": "xuning@beichen-scm.com",
+        "phone": "13900811001",
+        "industry": "物流供应链",
+        "tier": "vip",
+        "annual_revenue": 1680000,
+        "last_contact_date": "2026-03-22",
+        "status": "active",
+        "notes": "合同计费周期为月初扣款；近期疑似同摘要重复扣款，需核对冲正pending记录"
+      },
+      {
+        "customer_id": "CUS-702",
+        "name": "青石咨询",
+        "contact_person": "陈静",
+        "email": "chenjing@qingshi-consult.com",
+        "phone": "13900811002",
+        "industry": "咨询服务",
+        "tier": "standard",
+        "annual_revenue": 420000,
+        "last_contact_date": "2026-03-18",
+        "status": "active",
+        "notes": "合同按自然月计费；客户称上月提交冲正但仍再次扣款，需核验void/failed链路"
+      },
+      {
+        "customer_id": "CUS-703",
+        "name": "星云贸易（仿冒疑似）",
+        "contact_person": "未知",
+        "email": "billing@staryun-trade.example",
+        "phone": "13900811003",
+        "industry": "贸易",
+        "tier": "standard",
+        "annual_revenue": 0,
+        "last_contact_date": "2026-02-01",
+        "status": "inactive",
+        "notes": "疑似非我方客户/仿冒渠道；CRM状态为inactive，财务侧也不应存在匹配交易"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-70101",
+        "date": "2026-03-05",
+        "amount": 98000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰供应链",
+        "type": "月度服务费",
+        "category": "服务收入",
+        "description": "北辰供应链 2026年3月 服务费（账期扣款）摘要:A3K-9F2C",
+        "status": "completed",
+        "bank_reference": "A3K-9F2C"
+      },
+      {
+        "transaction_id": "TXN-70102",
+        "date": "2026-03-05",
+        "amount": 98000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰供应链",
+        "type": "月度服务费（重复触发）",
+        "category": "服务收入",
+        "description": "北辰供应链 2026年3月 服务费重复扣款摘要:A3K-9F2C",
+        "status": "completed",
+        "bank_reference": "A3K-9F2C"
+      },
+      {
+        "transaction_id": "TXN-70103",
+        "date": "2026-03-06",
+        "amount": -98000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰供应链",
+        "type": "冲正申请",
+        "category": "冲正/撤销",
+        "description": "针对重复扣款摘要:A3K-9F2C 的冲正申请，待银行受理",
+        "status": "pending",
+        "related_bank_reference": "A3K-9F2C",
+        "failure_reason": null
+      },
+      {
+        "transaction_id": "TXN-70201",
+        "date": "2026-02-05",
+        "amount": 52000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "青石咨询",
+        "type": "月度服务费",
+        "category": "服务收入",
+        "description": "青石咨询 2026年2月 服务费摘要:B2S-1A77",
+        "status": "completed",
+        "bank_reference": "B2S-1A77"
+      },
+      {
+        "transaction_id": "TXN-70202",
+        "date": "2026-02-05",
+        "amount": 52000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "青石咨询",
+        "type": "月度服务费（重复扣款）",
+        "category": "服务收入",
+        "description": "青石咨询 2026年2月 服务费重复扣款摘要:B2S-1A77",
+        "status": "completed",
+        "bank_reference": "B2S-1A77"
+      },
+      {
+        "transaction_id": "TXN-70203",
+        "date": "2026-02-06",
+        "amount": -52000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "青石咨询",
+        "type": "冲正失败记录",
+        "category": "冲正/撤销",
+        "description": "对重复扣款摘要:B2S-1A77 的冲正尝试失败（银行拒绝）",
+        "status": "failed",
+        "related_bank_reference": "B2S-1A77",
+        "failure_reason": "银行拒绝：原交易已被记账且无法撤销"
+      },
+      {
+        "transaction_id": "TXN-70301",
+        "date": "2026-03-07",
+        "amount": 33000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰供应链",
+        "type": "第三方收款（干扰）",
+        "category": "其他收入",
+        "description": "渠道聚合平台代收款（与投诉不匹配）摘要:ZZ9-CHN-31",
+        "status": "completed",
+        "bank_reference": "ZZ9-CHN-31",
+        "notes": "用于干扰识别：摘要不对应邮件提及的交易线索"
+      },
+      {
+        "transaction_id": "TXN-70401",
+        "date": "2026-03-08",
+        "amount": 75000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "青石咨询",
+        "type": "其他账单（干扰）",
+        "category": "服务收入",
+        "description": "青石咨询 2026年3月 计量服务费摘要:C3M-77B0",
+        "status": "void",
+        "bank_reference": "C3M-77B0",
+        "notes": "该交易为已冲正/作废，避免与重复扣款链路混淆"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_701",
+        "from": "xuning@beichen-scm.com",
+        "to": "support@company.com",
+        "subject": "紧急：同一天同摘要重复扣款（冲正仍pending）",
+        "date": "2026-03-07T09:15:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "important"],
+        "body": "你好，我是北辰供应链的许宁（客户ID：CUS-701）。3月5日我们被扣款两次，金额同为98000元，银行回单摘要相同：A3K-9F2C。\n我们看到你们已发起冲正，但目前仍显示pending。\n请尽快核验：是否为系统重复记账？如果可以，请先确认是否需要对冲/停扣后续批次。我们希望在今天给到明确时间表。"
+      },
+      {
+        "message_id": "msg_702",
+        "from": "chenjing@qingshi-consult.com",
+        "to": "support@company.com",
+        "subject": "关于冲正失败后再次扣款的核验请求",
+        "date": "2026-03-06T14:40:00+08:00",
+        "is_read": false,
+        "labels": ["inbox"],
+        "body": "您好，我是青石咨询的陈静（客户ID：CUS-702）。上个月（2月）我们提交过冲正申请，但仍在2月5日同金额被再次扣款。\n相关摘要：B2S-1A77。\n麻烦帮我们核对财务侧是否存在冲正failed记录，以及是否会影响后续账期扣款。谢谢。"
+      },
+      {
+        "message_id": "msg_703",
+        "from": "billing@staryun-trade.example",
+        "to": "support@company.com",
+        "subject": "（疑似仿冒）账单重复扣款告知：请立刻退款",
+        "date": "2026-03-07T18:05:00+08:00",
+        "is_read": false,
+        "labels": ["inbox"],
+        "body": "亲爱的客服团队：\n我是星云贸易的负责人（客户ID：CUS-999）。我们声称在3月5日因“系统重复扣款”被扣了100000元，并要求立刻退款。\n但该邮件并未提供任何与贵司合同一致的编号/回单，请你们立即处理，否则我们将报警。\n（本邮件疑似钓鱼仿冒，请你们核验）"
+      },
+      {
+        "message_id": "msg_704",
+        "from": "archive@company.com",
+        "to": "support@company.com",
+        "subject": "月度对账说明（不相关）",
+        "date": "2026-03-06T07:05:00+08:00",
+        "is_read": true,
+        "labels": ["inbox"],
+        "body": "本邮件为内部通知，不涉及客户扣款投诉。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的“账单金额异常/退款未到账/功能降级”替换为“重复扣款与冲正链路核验”，并加入一封CRM找不到或不匹配的疑似仿冒干扰邮件，最后对最紧急案例起草草稿。",
+    "fixture_design_summary": [
+      "Gmail 共4封：msg_701（真实，重复扣款且冲正pending）、msg_702（真实，冲正failed后再次扣款）、msg_703（疑似仿冒/CRM inactive或找不到）、msg_704（不相关干扰）。",
+      "CRM 共3个客户：CUS-701 vip active、CUS-702 standard active、CUS-703 inactive 用于仿冒识别（邮件中填CUS-999以确保找不到）。",
+      "Finance 交易覆盖状态：completed（重复扣款两笔）、pending（冲正申请）、failed（冲正失败）、void（额外作废干扰）；并加入不匹配摘要的第三方收款干扰TXN-70301。",
+      "跨文件关键引用自洽：邮件中的客户ID（CUS-701/CUS-702）与finance customer_id一致，且银行摘要（A3K-9F2C/B2S-1A77）能匹配对应交易的bank_reference/related_bank_reference。"
+    ]
+  }
+}

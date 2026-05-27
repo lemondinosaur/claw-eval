@@ -1,0 +1,69 @@
+[
+  {
+    "product_id": "PRD-601",
+    "name": "极光充电座 A9",
+    "category": "配件",
+    "current_stock": 320,
+    "min_stock": 120,
+    "status": "normal",
+    "return_rate": 2.3,
+    "return_count": 12,
+    "units_sold_this_month": 610,
+    "supplier": "青岚供应链",
+    "last_restock_date": "2026-05-01",
+    "notes": "轻微退货但不指向搜索索引更新。"
+  },
+  {
+    "product_id": "PRD-602",
+    "name": "星栈收纳盒 M",
+    "category": "家居收纳",
+    "current_stock": 86,
+    "min_stock": 90,
+    "status": "low_stock",
+    "return_rate": 1.2,
+    "return_count": 4,
+    "units_sold_this_month": 180,
+    "supplier": "澄海家居",
+    "last_restock_date": "2026-04-20",
+    "notes": "库存略低可能带来部分缺货体验，但与“无法被搜索到/旧数据排序”不完全一致。"
+  },
+  {
+    "product_id": "PRD-603",
+    "name": "海风香薰机 F2",
+    "category": "家居香氛",
+    "current_stock": 540,
+    "min_stock": 200,
+    "status": "overstocked",
+    "return_rate": 3.6,
+    "return_count": 18,
+    "units_sold_this_month": 740,
+    "supplier": "海风日化",
+    "last_restock_date": "2026-04-28"
+  },
+  {
+    "product_id": "PRD-604",
+    "name": "云巢桌面支架 S3",
+    "category": "办公设备",
+    "current_stock": 145,
+    "min_stock": 120,
+    "status": "normal",
+    "return_rate": 1.8,
+    "return_count": 6,
+    "units_sold_this_month": 260,
+    "supplier": "云巢制造",
+    "last_restock_date": "2026-05-05"
+  },
+  {
+    "product_id": "PRD-605",
+    "name": "鲸跃显示支臂 P7",
+    "category": "办公设备",
+    "current_stock": 60,
+    "min_stock": 60,
+    "status": "normal",
+    "return_rate": 2.9,
+    "return_count": 9,
+    "units_sold_this_month": 140,
+    "supplier": "鲸跃五金",
+    "last_restock_date": "2026-04-15"
+  }
+]

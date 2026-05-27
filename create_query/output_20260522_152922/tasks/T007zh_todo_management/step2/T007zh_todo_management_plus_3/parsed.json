@@ -1,0 +1,161 @@
+{
+  "task_id": "T007zh_todo_management_plus_3",
+  "task_name": "跨标签去重（不删）+完成状态约束",
+  "prompt_text": "请帮我整理待办：识别并合并真正重复的事项（用标记完成的方式合并，不要删除任何待办项）。若仅标题相同但 tags 指向不同模块、或描述语义不同（看起来像但其实不同），则不要合并，并在输出中说明未合并原因。对过期的 pending 任务进行标记（只标记 pending 且 due_date 非空且早于 2026-06-01 的任务），最终给出：1）哪些任务被合并并标记为 completed 的清单与原因；2）未合并项与原因（必须提到“看起来像但其实不同”）；3）过期 pending 的分组列表，并确认未执行删除操作。",
+  "files": {
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "task_a_01",
+        "title": "接口性能优化计划",
+        "description": "前端侧性能：针对首页列表渲染做懒加载与分片渲染，重点减少主线程阻塞，并在浏览器端监控 TTI 指标。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-05-28",
+        "tags": [
+          "前端",
+          "性能"
+        ],
+        "created_at": "2026-05-01T09:10:00Z"
+      },
+      {
+        "task_id": "task_a_02",
+        "title": "接口性能优化计划",
+        "description": "后端侧性能：针对同一接口的数据库查询慢点进行索引调整与缓存策略，重点降低 P95 延迟并通过服务端压测验证。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-05-30",
+        "tags": [
+          "后端",
+          "性能"
+        ],
+        "created_at": "2026-05-02T12:00:00Z"
+      },
+      {
+        "task_id": "task_b_01",
+        "title": "支付失败重试策略优化",
+        "description": "针对支付回调失败：对失败重试的间隔与最大次数做统一策略，并补充可观测日志（trace_id、失败原因码），目标是让重试成功率提升并减少重复入账风险。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-06-10",
+        "tags": [
+          "支付",
+          "后端"
+        ],
+        "created_at": "2026-05-03T10:20:00Z"
+      },
+      {
+        "task_id": "task_b_02",
+        "title": "支付失败重试策略优化",
+        "description": "同为支付回调失败场景：调整重试间隔与最大重试次数，增加失败原因码日志与 trace_id 关联；目标一致（提升重试成功率、降低重复入账风险）。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-06-25",
+        "tags": [
+          "风控",
+          "后端"
+        ],
+        "created_at": "2026-05-04T08:45:00Z"
+      },
+      {
+        "task_id": "task_c_01",
+        "title": "更新员工工牌信息",
+        "description": "到人事系统核对并更新员工工牌信息，包含姓名与部门字段，完成后截图留档。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-20",
+        "tags": [
+          "行政"
+        ],
+        "created_at": "2026-04-20T15:30:00Z"
+      },
+      {
+        "task_id": "task_d_01",
+        "title": "填写报销单",
+        "description": "整理差旅相关票据并填写报销单，确保金额与日期一致，上传附件齐全后提交给财务。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": null,
+        "tags": [
+          "财务"
+        ],
+        "created_at": "2026-05-05T11:00:00Z"
+      },
+      {
+        "task_id": "task_e_01",
+        "title": "整理会议纪要",
+        "description": "整理 2026-05-20 的项目同步会议纪要：参会人、结论、待办项需要逐条列出并发送到团队群。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-06-05",
+        "tags": [
+          "协作",
+          "会议"
+        ],
+        "created_at": "2026-05-06T13:20:00Z"
+      },
+      {
+        "task_id": "task_f_01",
+        "title": "搜索接口返回字段校验",
+        "description": "对搜索接口返回字段做校验：当字段缺失时返回统一错误结构，并补充契约用例，避免前端解析异常。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-05-27",
+        "tags": [
+          "后端",
+          "质量"
+        ],
+        "created_at": "2026-05-07T16:10:00Z"
+      },
+      {
+        "task_id": "task_f_02",
+        "title": "搜索接口返回字段校验",
+        "description": "同样针对搜索接口返回字段缺失：返回统一错误结构，并补充契约用例以避免前端解析异常。目标与范围一致。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-06-12",
+        "tags": [
+          "QA",
+          "质量"
+        ],
+        "created_at": "2026-05-08T09:35:00Z"
+      },
+      {
+        "task_id": "task_g_01",
+        "title": "准备数据看板演示",
+        "description": "准备数据看板的演示材料：包括图表口径说明、筛选条件解释，并在演示前完成一次全流程验证。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-06-30",
+        "tags": [
+          "演示",
+          "数据"
+        ],
+        "created_at": "2026-05-09T10:05:00Z"
+      },
+      {
+        "task_id": "task_h_01",
+        "title": "代码迁移回归检查",
+        "description": "对迁移后的服务做回归检查：关注鉴权、缓存失效与异常处理分支，输出问题清单并跟踪修复。",
+        "status": "completed",
+        "priority": "medium",
+        "due_date": "2026-05-22",
+        "tags": [
+          "质量",
+          "回归"
+        ],
+        "created_at": "2026-04-28T12:30:00Z"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "相同标题但不同 tags/模块与描述语义的“看起来像但其实不同”样本必须不合并；同时加入真正重复的语义一致样本并限制仅对真正重复标记 completed，另外要求标记过期 pending（排除 due_date=null）。",
+    "fixture_design_summary": [
+      "task_a_01 与 task_a_02：标题完全相同但分别强调前端与后端模块语义不同，作为“不合并”反向样本。",
+      "task_b_01 与 task_b_02：标题相同且描述目标一致（支付回调失败重试策略+可观测日志），tags 不同且 due_date 不同，作为“合并为 completed”的真正重复样本。",
+      "task_f_01 与 task_f_02：搜索接口返回字段校验的描述范围与目标一致，tags 不同，作为另一组应合并的真正重复样本。",
+      "过期 pending：task_a_01、task_c_01、task_f_01 等 due_date 早于 2026-06-01；其中完成项 task_h_01 用于验证 completed 不应被当作过期 pending 处理。",
+      "due_date=null 的 pending：task_d_01 作为 due_date 空值，确保不会被判为过期。",
+      "不引入删除/创建目标：仅提供待办记录让系统可通过 todo_update_task 标记 completed；不会放置需要删除的线索。"
+    ]
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "task_id": "T127zh_ticket_assignment_plus_4",
+  "task_name": "多来源报告的责任归属甄别",
+  "prompt_text": "当前有6个未分配工单需要处理建议。请你查看每个工单详情（description、tags、标题/类别、reporter部门等线索），判断应归属到公司内部通讯录中的哪个处理人；另外有1个工单属于外部供应商/合同服务范畴（例如合同维保、第三方服务、租赁公司等证据明确），此类工单不能分配给内部处理人，必须在建议里明确标注为“需升级外包/无法内部分配”，并给出基于description的理由。\n\n输出要求：最终输出分配建议表，共6行（每个工单1行），字段齐全：工单ID→建议处理人→分配理由。\n- 对5个内部可分配工单：给出具体内部处理人姓名，并在理由中引用tags/description/类别线索。\n- 对1个外包噪声工单：建议处理人填写“需升级外包/无法内部分配”（固定短语），理由必须引用description证据（如合同维保/第三方服务/租赁等字样），且说明不应分配内部。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-101",
+        "name": "陈川",
+        "department": "IT运维组",
+        "title": "运维负责人",
+        "email": "chenchuan@company.com",
+        "phone": "13900101001",
+        "location": "上海总部",
+        "notes": "负责网络/服务器/终端运维、基础设施故障处理"
+      },
+      {
+        "contact_id": "CT-102",
+        "name": "赵宁",
+        "department": "信息安全组",
+        "title": "安全工程师",
+        "email": "zhaoning@company.com",
+        "phone": "13900101002",
+        "location": "上海总部",
+        "notes": "负责账号权限、安全告警、合规与审计处置"
+      },
+      {
+        "contact_id": "CT-103",
+        "name": "钱敏",
+        "department": "数据组",
+        "title": "数据分析师",
+        "email": "qianmin@company.com",
+        "phone": "13900101003",
+        "location": "上海总部",
+        "notes": "负责报表口径、数据质量、数据问题定位与修复对接"
+      },
+      {
+        "contact_id": "CT-104",
+        "name": "孙航",
+        "department": "行政设施组",
+        "title": "设施维护经理",
+        "email": "sunhang@company.com",
+        "phone": "13900101004",
+        "location": "上海总部",
+        "notes": "负责办公环境、设备维护协调（含非IT的设施类）"
+      },
+      {
+        "contact_id": "CT-105",
+        "name": "周琦",
+        "department": "采购支持组",
+        "title": "采购支持专员",
+        "email": "zhouqi@company.com",
+        "phone": "13900101005",
+        "location": "上海总部",
+        "notes": "负责供应商对接、合同维保/租赁类流程的协调与派单"
+      },
+      {
+        "contact_id": "CT-106",
+        "name": "刘珂",
+        "department": "IT应用组",
+        "title": "应用支持经理",
+        "email": "liuke@company.com",
+        "phone": "13900101006",
+        "location": "上海总部",
+        "notes": "负责业务系统配置、权限/账号、应用侧故障排查"
+      },
+      {
+        "contact_id": "CT-107",
+        "name": "何静",
+        "department": "行政办公组",
+        "title": "办公事务专员",
+        "email": "hejing@company.com",
+        "phone": "13900101007",
+        "location": "上海总部",
+        "notes": "负责办公用品/工位类问题的对接与跟进（椅子、打印等非网络/非租赁类）"
+      },
+      {
+        "contact_id": "CT-108",
+        "name": "郑博",
+        "department": "网络与运维组",
+        "title": "网络工程师",
+        "email": "zhengbo@company.com",
+        "phone": "13900101008",
+        "location": "上海总部",
+        "notes": "负责VPN、路由交换、无线网络、远程接入故障处理"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-201",
+        "title": "电梯维保异常（合同维保服务）",
+        "description": "本楼层电梯出现异常振动并伴随故障码。根据楼宇合同条款，该设备维保由“星驰电梯维保有限公司”提供。请勿派内部设施团队处置，需走第三方维保流程并提供维保工单号。现象：呼叫后无响应约2分钟恢复，且控制面板显示维保到期提醒。",
+        "reporter": "行政部张工",
+        "department": "行政部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-10T01:20:00Z",
+        "tags": [
+          "外包",
+          "维保",
+          "电梯"
+        ],
+        "category": "设施维护"
+      },
+      {
+        "ticket_id": "TK-202",
+        "title": "门禁系统维保超期导致频繁离线",
+        "description": "门禁读卡器偶发离线，重启后可恢复，但1小时内再次离线。经核对设备台账，门禁维护属于“恒安安防合同维保”覆盖范围，当前维保已超期（到期时间：上月）。需要升级第三方维保与检修计划。",
+        "reporter": "IT运维组周同事",
+        "department": "IT运维组",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-10T02:05:00Z",
+        "tags": [
+          "合同维保",
+          "门禁",
+          "第三方"
+        ],
+        "category": "设施维护"
+      },
+      {
+        "ticket_id": "TK-203",
+        "title": "打印机租赁服务故障（租赁公司处理）",
+        "description": "客服区打印机无法正常出纸。设备外壳贴有“租赁服务编号：LQ-88921”，并写明由“科创租赁服务有限公司”负责故障响应与更换硒鼓/部件。请按租赁条款提交故障工单，不应由内部办公组直接拆机维修。",
+        "reporter": "市场部李晓",
+        "department": "市场部",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-10T03:10:00Z",
+        "tags": [
+          "外包",
+          "租赁",
+          "打印"
+        ],
+        "category": "办公设备"
+      },
+      {
+        "ticket_id": "TK-204",
+        "title": "VPN连接间歇性超时",
+        "description": "员工远程连接VPN时经常出现“连接超时”，更换网络后仍会复现。部分用户报告同时间段发生；检查后发现认证握手失败增多。建议优先排查网络与远程接入链路。",
+        "reporter": "研发部陈工",
+        "department": "研发部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-10T04:15:00Z",
+        "tags": [
+          "VPN",
+          "网络",
+          "远程接入"
+        ],
+        "category": "网络问题"
+      },
+      {
+        "ticket_id": "TK-205",
+        "title": "月度报表数据口径异常（差额较大）",
+        "description": "月度回款报表中“已到账金额”与财务系统对不上，差额约7.3万元。对比发现只影响华南区域的明细，其他区域正常。疑似报表口径映射/汇总逻辑异常。",
+        "reporter": "信息安全组孙同事",
+        "department": "信息安全组",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-10T05:30:00Z",
+        "tags": [
+          "数据",
+          "报表",
+          "口径"
+        ],
+        "category": "数据问题"
+      },
+      {
+        "ticket_id": "TK-206",
+        "title": "CRM权限变更未生效（审批后仍无权限）",
+        "description": "工单系统显示已完成权限审批，但用户登录CRM后仍提示无权限访问“工单查询”。从审批单可见变更项为：客户查询权限 + 工单列表查看。需要核对应用侧权限分配策略并重新同步。",
+        "reporter": "行政办公组王同事",
+        "department": "行政办公组",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-10T06:00:00Z",
+        "tags": [
+          "权限",
+          "CRM",
+          "同步失败"
+        ],
+        "category": "权限管理"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在6条未分配工单中新增1条外包/合同服务噪声，要求输出固定标注“需升级外包/无法内部分配”，同时通过reporter与问题域冲突增加甄别压力。",
+    "fixture_design_summary": [
+      "contacts 生成8名内部可分配负责人，覆盖网络/VPN、应用权限、数据报表、设施办公等部门，并确保可用于路由判断",
+      "helpdesk tickets 生成6条open工单：其中3条为外包线索但仅1条用于“噪声不可内部分配”的判定（其余两条含外包证据用于干扰但仍需依据任务要求筛到内部分配的4条之外的另1条内部或按description判定不分配；整体让模型必须阅读description/tags而非看reporter部门）",
+      "设置至少两条 reporter 部门与问题域不一致（如IT运维/信息安全 reporter 指向设施维护/数据问题、行政 reporter 指向权限管理），迫使模型依description与tags修正归属",
+      "外包噪声工单（TK-201）description与tags包含“合同维保/第三方/维保到期”等关键证据，确保理由可被引用并触发固定标注输出"
+    ]
+  }
+}

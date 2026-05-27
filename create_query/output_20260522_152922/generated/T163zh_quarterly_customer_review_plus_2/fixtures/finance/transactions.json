@@ -1,0 +1,137 @@
+[
+  {
+    "transaction_id": "TXN-2201",
+    "customer_id": "CUS-2201",
+    "amount": 98000,
+    "type": "subscription",
+    "date": "2026-07-10",
+    "status": "completed",
+    "description": "Q3订阅费（含云治理模块）"
+  },
+  {
+    "transaction_id": "TXN-2202",
+    "customer_id": "CUS-2201",
+    "amount": 102000,
+    "type": "subscription",
+    "date": "2026-08-12",
+    "status": "completed",
+    "description": "Q3订阅费+扩展席位"
+  },
+  {
+    "transaction_id": "TXN-2203",
+    "customer_id": "CUS-2201",
+    "amount": 106000,
+    "type": "subscription",
+    "date": "2026-09-14",
+    "status": "completed",
+    "description": "Q3订阅费（SLA增强）"
+  },
+  {
+    "transaction_id": "TXN-2204",
+    "customer_id": "CUS-2202",
+    "amount": 52000,
+    "type": "subscription",
+    "date": "2026-07-18",
+    "status": "completed",
+    "description": "Q3订阅费（零售促销场景）"
+  },
+  {
+    "transaction_id": "TXN-2205",
+    "customer_id": "CUS-2202",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-08-20",
+    "status": "completed",
+    "description": "补录：8月对账差异（金额暂为空）"
+  },
+  {
+    "transaction_id": "TXN-2206",
+    "customer_id": "CUS-2203",
+    "amount": 74000,
+    "type": "subscription",
+    "date": "2026-07-22",
+    "status": "completed",
+    "description": "Q3订阅费（电商订单履约）"
+  },
+  {
+    "transaction_id": "TXN-2207",
+    "customer_id": "CUS-2203",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-08-25",
+    "status": "completed",
+    "description": "8月条目 completed=0（预付转结/结算延后）"
+  },
+  {
+    "transaction_id": "TXN-2208",
+    "customer_id": "CUS-2204",
+    "amount": 36000,
+    "type": "subscription",
+    "date": "2026-07-05",
+    "status": "completed",
+    "description": "Q3订阅费（基础教育门户）"
+  },
+  {
+    "transaction_id": "TXN-2209",
+    "customer_id": "CUS-2205",
+    "amount": 61000,
+    "type": "subscription",
+    "date": "2026-08-01",
+    "status": "completed",
+    "description": "Q3订阅费（设备运维）"
+  },
+  {
+    "transaction_id": "TXN-2210",
+    "customer_id": "CUS-2206",
+    "amount": 120000,
+    "type": "subscription",
+    "date": "2026-07-08",
+    "status": "completed",
+    "description": "Q3订阅费（物流数字化）"
+  },
+  {
+    "transaction_id": "TXN-2211",
+    "customer_id": "CUS-2206",
+    "amount": 118000,
+    "type": "subscription",
+    "date": "2026-08-09",
+    "status": "completed",
+    "description": "Q3订阅费（仓配协同）"
+  },
+  {
+    "transaction_id": "TXN-2212",
+    "customer_id": "CUS-2206",
+    "amount": 125000,
+    "type": "subscription",
+    "date": "2026-09-10",
+    "status": "completed",
+    "description": "Q3订阅费（干线调度）"
+  },
+  {
+    "transaction_id": "TXN-2213",
+    "customer_id": "CUS-2207",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-07-29",
+    "status": "completed",
+    "description": "Q3条目仅一笔 completed=0（预付转结/结算延后）"
+  },
+  {
+    "transaction_id": "TXN-2214",
+    "customer_id": "CUS-2208",
+    "amount": 83000,
+    "type": "subscription",
+    "date": "2026-07-11",
+    "status": "completed",
+    "description": "Q3订阅费（制造运营看板）"
+  },
+  {
+    "transaction_id": "TXN-2215",
+    "customer_id": "CUS-2208",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-08-30",
+    "status": "completed",
+    "description": "8月条目 completed=0（预付转结/结算延后）"
+  }
+]

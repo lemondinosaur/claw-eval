@@ -1,0 +1,79 @@
+[
+  {
+    "customer_id": "CUS-201",
+    "name": "星桥金融科技",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-05-26",
+    "annual_revenue": 1280000,
+    "industry": "金融科技",
+    "sales_rep": "周潇",
+    "notes": "宽限期中。客户表示正在走内部付款审批，担心系统在款项未到时中断。需要确认宽限期续约与服务不中断安排。"
+  },
+  {
+    "customer_id": "CUS-202",
+    "name": "云栈零售云",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-06-02",
+    "annual_revenue": 740000,
+    "industry": "零售",
+    "sales_rep": "周潇",
+    "notes": "宽限期中。账单/付款备注：计划在宽限期内分两次付款；客户关切发票与付款时间不确定对服务连续性的影响。"
+  },
+  {
+    "customer_id": "CUS-203",
+    "name": "极光教育平台",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-06-05",
+    "annual_revenue": 210000,
+    "industry": "教育",
+    "sales_rep": "徐澄",
+    "notes": "标准客户。已联系记录：对续约条款表示理解，希望继续使用并按约启动下一周期。无明确付款疑虑。"
+  },
+  {
+    "customer_id": "CUS-204",
+    "name": "北域能源集团",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-04-22",
+    "annual_revenue": 1560000,
+    "industry": "能源",
+    "sales_rep": "周潇",
+    "notes": "超宽限期需升级处理。当前仍为active但逾期超过15天，建议走升级通道与法务/风控联动。"
+  },
+  {
+    "customer_id": "CUS-205",
+    "name": "禾风制造",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-04-30",
+    "annual_revenue": 320000,
+    "industry": "制造",
+    "sales_rep": "徐澄",
+    "notes": "超宽限期需升级处理。已逾期超过15天，需评估暂停风险与付款条件后再决定续约节奏。"
+  },
+  {
+    "customer_id": "CUS-206",
+    "name": "金陵物流云",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-07-18",
+    "annual_revenue": 185000,
+    "industry": "物流",
+    "sales_rep": "徐澄",
+    "notes": "未到期客户，暂不触发宽限期续约预警。"
+  },
+  {
+    "customer_id": "CUS-207",
+    "name": "珊瑚医疗信息",
+    "tier": "vip",
+    "status": "inactive",
+    "contract_end": "2026-05-29",
+    "annual_revenue": 510000,
+    "industry": "医疗",
+    "sales_rep": "周潇",
+    "notes": "非活跃客户，不参与本次宽限期筛选。"
+  }
+]

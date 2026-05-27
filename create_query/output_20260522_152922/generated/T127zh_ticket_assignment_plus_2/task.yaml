@@ -1,0 +1,104 @@
+task_id: T127zh_ticket_assignment_plus_2
+task_name: 按系统模块分派（多域共用）
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T127zh_ticket_assignment_plus_2/fixtures/contacts/contacts.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T127zh_ticket_assignment_plus_2/fixtures/helpdesk/tickets.json
+prompt:
+  text: '目前有5个未分配工单，请你做模块级分派建议：
+
+
+    1. 查看每个工单详情（标题+描述+标签），识别其主要影响的“业务系统模块”（同一系统域内也要细分，如“CRM/审批流/消息通知/账户同步/导出报表”等）。
+
+    2. 不能用简单的IT vs 非IT二分；必须在IT内部按模块归属到对应子岗/负责人。
+
+    3. 在通讯录中搜索与该模块匹配的子岗/处理团队负责人，并完成分配。
+
+    4. 注意：其中可能有“非IT但伪装成系统异常/平台故障”的工单。需结合描述证据判断并归为行政支持/设备资产等，而非误分到IT模块运维。
+
+    5. 输出分配建议表（工单→建议处理人→分配理由）。
+
+
+    要求：分配理由必须明确写出“模块关键词/现象证据 → 对应负责人职责”的映射关系，并解释非IT伪装工单为什么不分给IT模块。'
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

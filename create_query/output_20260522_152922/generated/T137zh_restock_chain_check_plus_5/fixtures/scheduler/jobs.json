@@ -1,0 +1,262 @@
+[
+  {
+    "job_id": "JOB-911",
+    "name": "餐饮耗材补货-夜间批次",
+    "cron_expression": "15 2 * * *",
+    "action": "restock_catering_consumables",
+    "enabled": true,
+    "last_run": "2026-04-18T02:15:00Z",
+    "next_run": "2026-04-19T02:15:00Z",
+    "last_status": "failed",
+    "created_by": "供应链运营",
+    "tags": [
+      "补货",
+      "餐饮耗材",
+      "缓存降级"
+    ],
+    "created_at": "2026-02-20T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-18T02:15:00Z",
+        "status": "failed",
+        "duration_s": 38,
+        "error": "CacheExpiredError: upstream cache expired; supplier responded degraded_mode"
+      },
+      {
+        "run_at": "2026-04-18T02:12:00Z",
+        "status": "failed",
+        "duration_s": 32,
+        "error": "RateLimitError: 429 Too Many Requests due to rate_limit protection"
+      },
+      {
+        "run_at": "2026-04-18T02:09:00Z",
+        "status": "failed",
+        "duration_s": 35,
+        "error": "CacheExpiredError: cache expired; fallback degraded_mode enabled"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-912",
+    "name": "维修工具补货-周一早盘",
+    "cron_expression": "0 9 * * 1",
+    "action": "restock_maintenance_tools",
+    "enabled": true,
+    "last_run": "2026-04-18T09:00:00Z",
+    "next_run": "2026-04-25T09:00:00Z",
+    "last_status": "failed",
+    "created_by": "仓配计划",
+    "tags": [
+      "补货",
+      "维修工具",
+      "降级限流"
+    ],
+    "created_at": "2026-02-25T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-18T09:00:00Z",
+        "status": "failed",
+        "duration_s": 41,
+        "error": "CacheExpiredError: supplier cache stale; degraded_mode active"
+      },
+      {
+        "run_at": "2026-04-18T08:57:00Z",
+        "status": "failed",
+        "duration_s": 44,
+        "error": "RateLimitError: 429 returned; retrying with backoff"
+      },
+      {
+        "run_at": "2026-04-11T09:00:00Z",
+        "status": "failed",
+        "duration_s": 39,
+        "error": "DegradedModeError: degraded_mode triggered after cache refresh timeout"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-913",
+    "name": "办公耗材补货-日间快补",
+    "cron_expression": "30 11 * * *",
+    "action": "restock_office_consumables",
+    "enabled": true,
+    "last_run": "2026-04-18T11:30:00Z",
+    "next_run": "2026-04-19T11:30:00Z",
+    "last_status": "failed",
+    "created_by": "采购中心",
+    "tags": [
+      "补货",
+      "办公耗材",
+      "缓存过期降级"
+    ],
+    "created_at": "2026-03-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-18T11:30:00Z",
+        "status": "failed",
+        "duration_s": 26,
+        "error": "CacheExpiredError: expired cache; entering degraded_mode"
+      },
+      {
+        "run_at": "2026-04-18T11:27:00Z",
+        "status": "failed",
+        "duration_s": 29,
+        "error": "HighErrorRateError: upstream error rate high during degraded window"
+      },
+      {
+        "run_at": "2026-04-18T11:24:00Z",
+        "status": "failed",
+        "duration_s": 24,
+        "error": "RateLimitError: 429 from supplier when degraded_mode=true"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-914",
+    "name": "办公设备补货-巡检后补",
+    "cron_expression": "0 13 * * 2",
+    "action": "restock_office_devices",
+    "enabled": true,
+    "last_run": "2026-04-18T13:00:00Z",
+    "next_run": "2026-04-22T13:00:00Z",
+    "last_status": "success",
+    "created_by": "采购中心",
+    "tags": [
+      "补货",
+      "边界对比",
+      "成功但库存未破线/或非同源异常"
+    ],
+    "created_at": "2026-03-08T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-18T13:00:00Z",
+        "status": "success",
+        "duration_s": 18,
+        "error": null
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-915",
+    "name": "日用清洁补货-延迟容忍策略",
+    "cron_expression": "10 15 * * *",
+    "action": "restock_daily_cleaning",
+    "enabled": true,
+    "last_run": "2026-04-18T15:10:00Z",
+    "next_run": "2026-04-19T15:10:00Z",
+    "last_status": "success",
+    "created_by": "运营值班",
+    "tags": [
+      "补货",
+      "仅延迟",
+      "边界对比"
+    ],
+    "created_at": "2026-03-15T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-18T15:10:00Z",
+        "status": "success",
+        "duration_s": 26,
+        "error": "TimeoutWarning: upstream slow response; no degraded_mode triggered"
+      },
+      {
+        "run_at": "2026-04-18T15:06:00Z",
+        "status": "success",
+        "duration_s": 22,
+        "error": null
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-916",
+    "name": "家庭清洁补货-周末平衡",
+    "cron_expression": "0 8 * * 7",
+    "action": "restock_home_cleaning",
+    "enabled": true,
+    "last_run": "2026-04-14T08:00:00Z",
+    "next_run": "2026-04-21T08:00:00Z",
+    "last_status": "success",
+    "created_by": "仓配计划",
+    "tags": [
+      "补货",
+      "边界对比",
+      "稳定集成"
+    ],
+    "created_at": "2026-03-20T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-14T08:00:00Z",
+        "status": "success",
+        "duration_s": 19,
+        "error": null
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-917",
+    "name": "餐饮耗材补货-白天补量(备用)",
+    "cron_expression": "5 10 * * 3",
+    "action": "restock_catering_consumables_backup",
+    "enabled": false,
+    "last_run": "2026-04-15T10:05:00Z",
+    "next_run": null,
+    "last_status": "failed",
+    "created_by": "供应链运营",
+    "tags": [
+      "补货",
+      "备用",
+      "缓存过期降级"
+    ],
+    "created_at": "2026-02-28T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-15T10:05:00Z",
+        "status": "failed",
+        "duration_s": 12,
+        "error": "IntegrationDegradedError: degraded_mode=true in supplier gateway"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-918",
+    "name": "维修工具补货-临时加单",
+    "cron_expression": "25 6 * * *",
+    "action": "restock_maintenance_tools_on_demand",
+    "enabled": true,
+    "last_run": "2026-04-18T06:25:00Z",
+    "next_run": "2026-04-19T06:25:00Z",
+    "last_status": "failed",
+    "created_by": "仓配计划",
+    "tags": [
+      "补货",
+      "临时加单",
+      "重试频繁"
+    ],
+    "created_at": "2026-03-25T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-18T06:25:00Z",
+        "status": "failed",
+        "duration_s": 33,
+        "error": "CacheExpiredError: cache expired; degraded_mode response"
+      },
+      {
+        "run_at": "2026-04-18T06:21:00Z",
+        "status": "failed",
+        "duration_s": 29,
+        "error": "RateLimitError: 429 from supplier after degraded window"
+      },
+      {
+        "run_at": "2026-04-18T06:18:00Z",
+        "status": "failed",
+        "duration_s": 31,
+        "error": "HighErrorRateError: elevated error rate detected; retry attempt failed"
+      },
+      {
+        "run_at": "2026-04-18T06:15:00Z",
+        "status": "failed",
+        "duration_s": 30,
+        "error": "CacheExpiredError: cache expired; fallback degraded_mode enabled"
+      }
+    ]
+  }
+]

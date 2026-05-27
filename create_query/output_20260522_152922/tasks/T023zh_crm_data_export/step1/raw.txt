@@ -1,0 +1,85 @@
+{
+  "source_task_id": "T023zh_crm_data_export",
+  "source_summary": {
+    "task_type": "从CRM系统按条件筛选客户、逐一获取详情并导出汇总报告，要求在服务不稳定时进行错误重试与结果核对",
+    "services": [
+      "crm"
+    ],
+    "tools": [
+      "crm_list_customers",
+      "crm_get_customer",
+      "crm_export_report"
+    ],
+    "fixture_paths": [
+      "fixtures/crm/customers.json"
+    ],
+    "core_capability": "CRM数据检索+汇总导出，具备对错误/不稳定接口的重试鲁棒性"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T023zh_crm_data_export_plus_1",
+      "new_task_name": "Reactivation VIP名单导出",
+      "task_goal": "导出“可能需要唤回(reactivation)”的VIP客户汇总报告：只包含active状态下的VIP客户，并在报告摘要中标注其notes里是否提到“续签/评估/升级”等触发词。",
+      "user_request": "请从CRM系统导出一份“VIP客户唤回(reactivation)跟进清单”报告。要求：1）只列出状态为active的VIP客户；2）对每位客户获取详细信息；3）生成汇总报告，包含客户名称、行业、年收入、最近联系日期，并在摘要中基于客户notes判断是否存在“续签/评估/升级”等触发信息；注意系统可能不稳定，若发生错误请重试。",
+      "scenario": "CRM中同时存在VIP与standard客户；其中VIP客户里有的notes包含续签/评估/升级等词，代表适合唤回跟进；还有少量VIP客户notes为空或不含触发词。需要严格按“tier=VIP且status=active”筛选，避免把inactive/churned的VIP混入。",
+      "difference_from_source": "原题是导出所有VIP客户并汇总必需字段；新题增加了更细的筛选条件（只取active的VIP）以及摘要里的触发词判定要求，从“纯导出”升级为“带业务标记的导出”。",
+      "service_and_tool_plan": "使用crm服务；先调用crm_list_customers按tier=VIP筛出，再在结果上按status=active进行包含；然后对每个筛选客户调用crm_get_customer获取notes与字段；最后调用crm_export_report用筛选后的customer_id列表导出，并在summary里体现触发词标记逻辑。需要重试以应对不稳定接口。",
+      "fixture_generation_plan": "生成fixtures/crm/customers.json：共8-12条记录，包含VIP与standard、active/inactive/churned多种状态。确保VIP active至少3条；其中至少2条notes包含“续签/评估/升级”任一词，至少1条notes不包含或为空。字段要求：customer_id唯一、name/industry/annual_revenue/last_contact_date/status/tier/notes均存在，且客户ID不与原题重名（用新的前缀如CUZ-xxx）。",
+      "expected_behavior": "1）调用crm_list_customers筛出tier=VIP（可不设status筛选但必须在agent侧按status=active过滤）；2）若crm_list_customers或crm_get_customer失败（如超时/500），重试同一请求；3）对每个最终入选的客户调用crm_get_customer获取名称/行业/年收入/最近联系日期/notes；4）汇总输出表格或结构化列表，且在报告summary中对每位客户标注“触发词命中/未命中”；5）调用crm_export_report，title使用与本任务一致的中文标题，customer_ids传入全部入选客户ID列表，summary包含触发判断结果。",
+      "grading_plan": "检查：是否至少调用一次crm_list_customers；是否对最终入选的每位客户都调用crm_get_customer（数量与入选客户数一致，且不包含inactive/churned的VIP）；是否调用crm_export_report且其customer_ids只包含筛选后的客户ID；LLM评审报告内容是否包含必需字段（名称、行业、年收入、最近联系日期）并在summary/摘要中体现触发词命中情况；若接口报错，输出或行为上体现了重试。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T023zh_crm_data_export_plus_2",
+      "new_task_name": "Industry Slice 报表导出",
+      "task_goal": "按行业导出“高价值行业(customer value)切片”报告：筛选指定行业的VIP客户，汇总并在summary中计算(或描述)年收入最高的前两名客户。",
+      "user_request": "帮我从CRM系统导出一份“高价值行业切片报告”。要求：1）筛选行业为“金融服务”的VIP客户；2）获取每位客户详细信息；3）生成汇总报告，包含客户名称、行业、年收入和最近联系日期；4）在摘要中指出年收入最高的前两名客户（列出其名称和年收入）。系统可能偶发错误，出错请重试。",
+      "scenario": "CRM里“金融服务”行业同时包含active/inactive/churned以及VIP/standard。任务明确只取“tier=VIP且industry=金融服务”，不要求status限定；同时要处理年收入可能存在并列或缺失的边界：数据中设定至少两位VIP金融客户的年收入不同，且最高两名不发生并列。",
+      "difference_from_source": "原题聚焦tier=VIP全量；新题引入行业筛选并要求在summary里进行排序与Top2提取（带业务计算/推断），而不仅是字段罗列。",
+      "service_and_tool_plan": "使用crm_list_customers设置industry=金融服务、tier=VIP筛选；对返回的每个客户调用crm_get_customer拉取annual_revenue用于排序；最后crm_export_report导出并在summary中写Top2结果。重试用于处理crm列表/详情接口的不稳定。",
+      "fixture_generation_plan": "生成fixtures/crm/customers.json：10-14条记录，至少包含3条“金融服务”行业的VIP客户；另含若干其他行业的VIP/standard作为干扰。保证至少两位金融服务VIP客户年收入最高且无并列；所有参与的客户都提供annual_revenue、last_contact_date。客户ID使用新的格式如FIN-001等，且不复用原CUS-xxx。",
+      "expected_behavior": "调用crm_list_customers传入tier=VIP与industry=金融服务以获得候选集合；对候选集合中每个客户调用crm_get_customer并汇总字段；按annual_revenue降序排序，取前两名写入summary（名称与年收入）；输出结构化汇总（表格/条目均可）；调用crm_export_report时customer_ids应等于所有筛选到的VIP金融服务客户ID列表，title按本任务命名。",
+      "grading_plan": "检查：工具调用次数与筛选结果一致；crm_export_report的customer_ids集合应与金融服务VIP匹配；最终文本中summary包含Top2客户名称与年收入且与annual_revenue排序一致；报告包含必需字段；若发生错误，agent行为体现重试逻辑。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T023zh_crm_data_export_plus_3",
+      "new_task_name": "Two-Stage Recovery 导出",
+      "task_goal": "在“分批导出”场景中导出VIP客户：先导出最近联系日期在近30天内的VIP客户，若导出失败则自动改为导出“最近联系日期最早的VIP客户”作为兜底批次，并在报告标题/summary中说明采用的兜底策略。",
+      "user_request": "请从CRM系统导出VIP客户报告，但需要考虑系统导出接口可能失败。要求：1）先筛选VIP客户中最近联系日期在最近30天内的客户；2）生成汇总报告（名称、行业、年收入、最近联系日期）；3）如果在导出步骤crm_export_report报错，请改为导出“最近联系日期最早的两位VIP客户”作为兜底，并在摘要里说明你为什么切换了策略；4）如查询或导出失败请重试。",
+      "scenario": "测试数据中VIP客户不少，但“最近30天内”只有2-4位；同时准备了导出接口触发错误的情形（由grader/fixtures模拟），要求agent体现策略切换。还存在边界：部分VIP的last_contact_date为同一天，最早值存在并列时应只取两位（任意两位但需在summary声明存在并列）。",
+      "difference_from_source": "原题是一次性导出所有VIP；新题把导出拆成分批并加入失败兜底策略（根据导出失败切换为另一批次），同时要求在summary里记录策略切换原因。",
+      "service_and_tool_plan": "使用crm_list_customers筛选tier=VIP；对候选调用crm_get_customer获取last_contact_date后在agent侧按“近30天”筛出第一批；调用crm_export_report导出第一批；若crm_export_report失败则使用同一套数据选择“最早的两位VIP”调用crm_export_report第二次。必要时对列表/详情调用重试。",
+      "fixture_generation_plan": "生成fixtures/crm/customers.json：12-16条，VIP至少5条；last_contact_date覆盖近期与较早日期（以固定日期字段即可，无需真实系统时钟），保证“近30天内”的VIP数量为2-4。最早日期在至少两位VIP间出现并列。notes可有可无，但不要作为判定依据。customer_id用新前缀如VIPR-01等。",
+      "expected_behavior": "1）调用crm_list_customers筛出VIP；2）对所有VIP或至少对用于筛选的候选调用crm_get_customer以获取last_contact_date；3）选择第一批（近30天内）并调用crm_export_report；4）若crm_export_report失败，重试导出；若仍失败，切换为最早两位VIP并再次调用crm_export_report；5）最终用户看到的报告summary必须明确写出“使用第一批/使用兜底批次”的原因与选择依据；输出必需字段齐全。",
+      "grading_plan": "检查：agent是否实现了“先按近30天导出、导出失败则切换兜底”的逻辑；是否在summary中说明切换原因；是否第二次导出使用的是最早两位VIP（或在并列情况下说明）；工具调用顺序合理，且对可能失败的调用进行了重试。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T023zh_crm_data_export_plus_4",
+      "new_task_name": "Churned VIP风控名单导出",
+      "task_goal": "导出“疑似流失”VIP客户报告：仅选择status=churned的VIP客户，并对每位客户提取notes中的关键风险点（从notes原文提炼为1-2条短要点），写入汇总报告摘要。",
+      "user_request": "请从CRM系统导出一份“疑似流失VIP客户风控名单”。要求：1）只列出状态为churned的VIP客户；2）获取每位客户详细信息；3）生成汇总报告，包含客户名称、行业、年收入、最近联系日期；4）在摘要中对每个客户从notes中提炼1-2条风险要点（用短语列出）；系统可能不稳定，出错请重试。",
+      "scenario": "CRM中存在VIP churned客户2-3条，notes包含不同类型原因，如预算缩减、竞品迁移、服务中断等。干扰信息包括：也有standard客户 churned，以及VIP active/inactive存在notes但不应被纳入。",
+      "difference_from_source": "原题只是导出VIP全量并做字段汇总；新题聚焦于churned状态并要求从notes进行“风险要点提炼”，使得summary存在更强的文本理解/抽取约束。",
+      "service_and_tool_plan": "使用crm_list_customers设置tier=VIP并在筛选时仅保留status=churned；对入选客户调用crm_get_customer获得notes；调用crm_export_report导出并在summary里对每位客户列出1-2条风险要点。重试用于不稳定接口。",
+      "fixture_generation_plan": "生成fixtures/crm/customers.json：10-13条，VIP至少4条，其中churned至少2条；包含若干standard churned与VIP active/inactive作为干扰。确保churned VIP的notes内容多样且能被提炼为不同风险点。客户ID替换为新格式如CHN-1001等，且不复用原有客户实体名。",
+      "expected_behavior": "调用crm_list_customers获取VIP候选；按status=churned过滤后对每位客户调用crm_get_customer；汇总输出必需字段，并在summary中对每个客户给出1-2条由notes提炼的风险要点（短语而非整段复制）；最后调用crm_export_report并传入全部churned VIP客户ID。",
+      "grading_plan": "检查：筛选准确性（只含VIP且status=churned）；工具调用覆盖全部入选客户；crm_export_report的customer_ids与入选集合一致；报告摘要中每个客户至少1条风险要点且合理来源于notes；如出现接口错误，agent尝试重试。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T023zh_crm_data_export_plus_5",
+      "new_task_name": "Status Mixed 重连导出",
+      "task_goal": "导出“混合状态VIP回访清单”报告：先获取所有VIP客户；对每位客户调用详情时遇到错误需重试；最终在报告中按status分组展示（active/inactive/churned），并在summary中给出各组客户数量。",
+      "user_request": "请从CRM系统导出一份“混合状态VIP回访清单”。要求：1）列出所有VIP客户（不区分状态）；2）获取每位VIP客户详细信息；3）生成汇总报告，并按客户状态分组展示（active、inactive、churned三组）；4）在摘要中统计三组各自的客户数量；系统有时会报错，遇到错误请重试。",
+      "scenario": "VIP客户覆盖active/inactive/churned三种状态，且每组数量不均衡（例如active多、churned少）。详情接口对部分客户可能间歇性失败，需要在重试后仍能拿到其关键字段。边界：某些客户notes字段为空，但不影响分组统计。",
+      "difference_from_source": "原题未要求按status分组与统计；新题增加分组展示和数量统计要求，且把“获取所有VIP”同时要求结果结构化组织，体现更强的数据汇总能力。",
+      "service_and_tool_plan": "先crm_list_customers筛选tier=VIP获取全部VIPID；然后逐个crm_get_customer拉取详情（失败则重试）；在agent侧按status分组组织输出；最后调用crm_export_report，customer_ids传入全部VIP客户ID，summary包含每组数量统计。重试用于列表/详情可能失败。",
+      "fixture_generation_plan": "生成fixtures/crm/customers.json：14-18条，VIP至少7条，确保active/inactive/churned三组均出现；其中churned至少1条，inactive至少1条。不同组的customer_id、name、industry、annual_revenue、last_contact_date均填充；notes可为空但保持字段存在。客户ID使用新前缀如MXV-700等。",
+      "expected_behavior": "调用crm_list_customers得到所有VIP客户列表；对每个VIP调用crm_get_customer并在失败时重试直到成功或达到系统允许次数；汇总报告中必须有三组分区（active/inactive/churned），每组列出客户名称、行业、年收入、最近联系日期；summary统计三组数量并与输出一致；调用crm_export_report用全部VIP customer_ids导出。",
+      "grading_plan": "检查：crm_list_customers调用后是否覆盖所有VIP；crm_get_customer调用次数与VIP数量匹配（考虑重试但最终需取全字段）；报告内容是否按status正确分组且三组数量统计准确；crm_export_report customer_ids应包含全部VIP而不包含其他tier；摘要与分组表一致。"
+    }
+  ]
+}

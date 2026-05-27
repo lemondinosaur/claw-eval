@@ -1,0 +1,26 @@
+[
+  {
+    "task_id": "TODO-521",
+    "title": "整理资产盘点表（本周）",
+    "description": "对仓库外设数量进行核对，完成盘点表。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-03-09",
+    "tags": [
+      "资产管理"
+    ],
+    "created_at": "2026-03-02T11:20:00+08:00"
+  },
+  {
+    "task_id": "TODO-522",
+    "title": "更新培训材料版本v3",
+    "description": "同步新员工入职培训PPT与讲义，确认编号无误。",
+    "status": "in_progress",
+    "priority": "low",
+    "due_date": "2026-03-10",
+    "tags": [
+      "培训"
+    ],
+    "created_at": "2026-03-03T15:10:00+08:00"
+  }
+]

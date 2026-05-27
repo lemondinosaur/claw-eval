@@ -1,0 +1,179 @@
+[
+  {
+    "job_id": "JOB-3201",
+    "name": "对账汇总任务（支付差异生成）",
+    "schedule": "*/15 * * * *",
+    "status": "failed",
+    "last_run": "2026-04-19T09:30:00Z",
+    "last_status": "failed",
+    "description": "每15分钟聚合支付与退款明细生成对账差异报告",
+    "tags": [
+      "recon",
+      "summary",
+      "payment"
+    ],
+    "cron_expression": "*/15 * * * *",
+    "failure_count": 8,
+    "first_failure": "2026-04-18T11:00:00Z",
+    "error_message": "验签失败导致数据行数为 0，已跳过差异生成",
+    "enabled": true,
+    "action": "对账数据汇聚完成后生成差异报告",
+    "next_run": null,
+    "created_at": "2025-08-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-04-19T09:30:00Z",
+        "status": "failed",
+        "duration_s": 58
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-3202",
+    "name": "对账数据汇聚任务（回调明细拉取）",
+    "schedule": "*/10 * * * *",
+    "status": "failed",
+    "last_run": "2026-04-19T09:20:00Z",
+    "last_status": "failed",
+    "description": "拉取支付回调明细并进行预聚合，供对账汇总使用",
+    "tags": [
+      "recon",
+      "aggregation",
+      "callback"
+    ],
+    "cron_expression": "*/10 * * * *",
+    "failure_count": 5,
+    "first_failure": "2026-04-18T13:15:00Z",
+    "error_message": "回调验签失败：明细入库数为 0，预聚合中止",
+    "enabled": true,
+    "action": "从回调明细表拉取并进行窗口聚合",
+    "next_run": null,
+    "created_at": "2025-08-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-04-19T09:20:00Z",
+        "status": "failed",
+        "duration_s": 44
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-3203",
+    "name": "退款风控规则同步",
+    "schedule": "0 */6 * * *",
+    "status": "disabled",
+    "last_run": "2026-04-16T00:00:00Z",
+    "last_status": "success",
+    "description": "定期同步退款风控规则版本供线上退款决策使用",
+    "tags": [
+      "refund",
+      "risk",
+      "rulesync"
+    ],
+    "cron_expression": "0 */6 * * *",
+    "failure_count": 0,
+    "first_failure": null,
+    "disabled_reason": "变更后未自动启用 - 维护窗口结束后任务未恢复",
+    "disabled_by": "ops-admin",
+    "disabled_at": "2026-04-16T09:10:00Z",
+    "enabled": false,
+    "action": "同步退款风控规则并刷新缓存",
+    "next_run": null,
+    "created_at": "2025-07-15T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-04-16T00:00:00Z",
+        "status": "success",
+        "duration_s": 76
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-3204",
+    "name": "退款处理延迟补偿任务",
+    "schedule": "*/20 * * * *",
+    "status": "enabled",
+    "last_run": "2026-04-19T09:40:00Z",
+    "last_status": "failed",
+    "description": "扫描退款延迟处理队列并触发重试（间歇失败）",
+    "tags": [
+      "refund",
+      "retry"
+    ],
+    "cron_expression": "*/20 * * * *",
+    "failure_count": 3,
+    "first_failure": "2026-04-18T18:00:00Z",
+    "error_message": "风控规则版本未就绪：当前规则版本号与期望不一致",
+    "enabled": true,
+    "action": "触发退款延迟记录重试",
+    "next_run": null,
+    "created_at": "2025-09-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-04-19T09:40:00Z",
+        "status": "failed",
+        "duration_s": 63
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-3205",
+    "name": "支付对账对样校验任务（抽样一致性）",
+    "schedule": "0 */2 * * *",
+    "status": "enabled",
+    "last_run": "2026-04-19T08:00:00Z",
+    "last_status": "success",
+    "description": "对抽样订单进行对账结果一致性校验，健康度参考指标",
+    "tags": [
+      "recon",
+      "validation"
+    ],
+    "cron_expression": "0 */2 * * *",
+    "failure_count": 0,
+    "first_failure": null,
+    "enabled": true,
+    "action": "抽样校验差异报告与订单支付状态一致性",
+    "next_run": null,
+    "created_at": "2025-09-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-04-19T08:00:00Z",
+        "status": "success",
+        "duration_s": 51
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-3206",
+    "name": "日志归档与索引维护",
+    "schedule": "0 2 * * *",
+    "status": "enabled",
+    "last_run": "2026-04-19T02:00:00Z",
+    "last_status": "success",
+    "description": "每天归档对账/退款相关日志并维护索引",
+    "tags": [
+      "maintenance",
+      "logs"
+    ],
+    "cron_expression": "0 2 * * *",
+    "failure_count": 0,
+    "first_failure": null,
+    "enabled": true,
+    "action": "归档并维护索引",
+    "next_run": null,
+    "created_at": "2025-06-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-04-19T02:00:00Z",
+        "status": "success",
+        "duration_s": 40
+      }
+    ]
+  }
+]

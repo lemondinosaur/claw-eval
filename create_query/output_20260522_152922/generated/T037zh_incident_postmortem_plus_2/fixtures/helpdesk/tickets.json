@@ -1,0 +1,130 @@
+[
+  {
+    "ticket_id": "HD-3101",
+    "title": "订单风控异常：部分订单错误放行/拦截并存",
+    "reporter": "电商客服平台",
+    "created_at": "2026-03-02T01:12:00+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "用户反馈：下单后风控判定结果不一致。部分订单显示失败提示/被拦截，另一部分订单却显示可继续下单（与预期策略不符）。日志中 order_id 重复评估 2-4 次。",
+    "tags": [
+      "orders",
+      "risk",
+      "inconsistent-decision"
+    ],
+    "assignee": "风控值班",
+    "department": "风控团队"
+  },
+  {
+    "ticket_id": "HD-3102",
+    "title": "队列出现大量redelivery，Worker重试导致处理延迟",
+    "reporter": "运维值班",
+    "created_at": "2026-03-02T01:18:00+08:00",
+    "priority": "high",
+    "status": "investigating",
+    "description": "消息队列中出现大量 redelivery。Worker对同一 batch 的事件反复拉取并重试，导致 end-to-end latency 从原本 <2s 拉升至 35-70s。初步怀疑与补偿重放任务触发重复有关。",
+    "tags": [
+      "queue",
+      "worker-retry",
+      "redelivery"
+    ],
+    "assignee": "运维值班",
+    "department": "运维"
+  },
+  {
+    "ticket_id": "HD-3103",
+    "title": "风控集成degraded：规则引擎error_rate激增",
+    "reporter": "平台值班",
+    "created_at": "2026-03-02T01:25:00+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "risk_rules_engine 集成在故障窗口进入 degraded。error_rate 从 1.1% 升至 60%+。异常集中在规则评估阶段；同时发现入参缺失字段，伴随默认分支命中。",
+    "tags": [
+      "integration",
+      "risk_rules_engine",
+      "degraded"
+    ],
+    "assignee": "平台值班",
+    "department": "平台"
+  },
+  {
+    "ticket_id": "HD-3104",
+    "title": "幂等去重存储写入失败，导致重复事件无法拦截",
+    "reporter": "数据平台",
+    "created_at": "2026-03-02T01:33:00+08:00",
+    "priority": "high",
+    "status": "resolved",
+    "description": "dedupe_store 出现写入成功率下降。部分 idempotency_key 未落库，造成同一 event_id 的重复投递无法被幂等拦截。与事件补偿重放的重复批次时间窗口一致。",
+    "tags": [
+      "idempotency",
+      "dedupe_store",
+      "write-failure"
+    ],
+    "assignee": "数据平台值班",
+    "department": "数据平台"
+  },
+  {
+    "ticket_id": "HD-3105",
+    "title": "审计链路显示重复批次：batch_id重复发布",
+    "reporter": "审计系统",
+    "created_at": "2026-03-02T01:45:00+08:00",
+    "priority": "medium",
+    "status": "resolved",
+    "description": "审计日志统计：batch_id=BR-88371 在 01:18-02:03 期间被多次发布/处理。重复后续处理表现为状态反复（部分订单回滚后又重新推进）。",
+    "tags": [
+      "audit",
+      "batch-repeat",
+      "state-flap"
+    ],
+    "assignee": "审计系统值班",
+    "department": "审计"
+  },
+  {
+    "ticket_id": "HD-3106",
+    "title": "恢复：人工暂停补偿重放后redelivery下降",
+    "reporter": "运维值班",
+    "created_at": "2026-03-02T02:03:00+08:00",
+    "priority": "high",
+    "status": "done",
+    "description": "在 02:03 人工暂停 event_compensation_replay 后，redelivery 速率明显下降。处理延迟回落至 5-15s；风控集成error_rate逐步恢复，degraded状态结束。",
+    "tags": [
+      "mitigation",
+      "pause-replay",
+      "recovery"
+    ],
+    "assignee": "运维值班",
+    "department": "运维"
+  },
+  {
+    "ticket_id": "HD-3107",
+    "title": "用户侧影响评估：拦截与重复后续占比需要核算",
+    "reporter": "业务分析",
+    "created_at": "2026-03-02T02:20:00+08:00",
+    "priority": "medium",
+    "status": "open",
+    "description": "初步统计（待最终校验）：\n- 错误拦截（失败提示）订单约 1.4k-1.9k 笔\n- 重复后续处理（状态反复/重复推进）约 0.6k-0.9k 笔\n需结合订单状态变更记录与事件批次ID进行交叉验证。",
+    "tags": [
+      "impact",
+      "orders",
+      "estimate"
+    ],
+    "assignee": "业务分析同学",
+    "department": "业务"
+  },
+  {
+    "ticket_id": "HD-3108",
+    "title": "排查工单：是否存在重复触发或游标回退",
+    "reporter": "研发值班",
+    "created_at": "2026-03-02T02:35:00+08:00",
+    "priority": "high",
+    "status": "resolved",
+    "description": "结合补偿重放任务历史：发现 cursor 回退/未提交导致同一 cursor 区间重复处理。并观察到重试策略使得重复放大（同一批次在短时间触发多次）。",
+    "tags": [
+      "cursor",
+      "replay",
+      "duplicate-trigger"
+    ],
+    "assignee": "研发值班",
+    "department": "研发"
+  }
+]

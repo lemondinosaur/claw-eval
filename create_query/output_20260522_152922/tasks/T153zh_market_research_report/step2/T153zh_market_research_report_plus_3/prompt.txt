@@ -1,0 +1,827 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T153zh_market_research_report_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/contacts/contacts.json",
+  "fixtures/crm/customers.json",
+  "fixtures/gmail/inbox.json",
+  "fixtures/kb/articles.json",
+  "fixtures/rss/feeds.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T153zh_market_research_report_plus_3",
+  "new_task_name": "客户流失预警与挽回策略（半月）",
+  "task_goal": "在半个月内完成《客户流失预警与挽回策略》：从CRM识别高风险客户并结合RSS/KB找出外部原因线索（价格压力、合规变化、行业预算收缩、竞品功能升级等），输出优先挽回清单与针对性行动方案；同时起草给客户成功负责人邮件草稿。",
+  "user_request": "请生成《客户流失预警与挽回策略（半月）》并起草邮件草稿：需要先从CRM抓取过去6个月里出现“使用下降/到期/流失类”信号的客户（依据fixtures中的字段与notes描述），然后用RSS与KB解释可能的外部触发因素与行业趋势，最后给出按优先级排序的挽回方案（至少5条行动），包括需要何种产品/交付动作与预期收益。邮件草稿发给客户成功负责人（从通讯录检索关键词“客户成功”），并抄送支持销售（从通讯录检索department=“销售支持”）。不要直接发送。",
+  "scenario": "公司观察到客户成功工单量突然上升与续约谈判变得更困难。内部希望不要只写“要加强沟通”，而是用外部市场动态（如监管合规成本、行业预算紧缩、同质化竞争加剧）与内部知识（如挽回话术、交付补丁、替代方案与升级路径）来给出可落地的行动。邮件中明确要求“至少5条行动”并要求每条行动关联一个风险原因（来自RSS/KB或CRM notes）。同时，通讯录检索要用两个关键词，且收件人与抄送不一定同一人。",
+  "difference_from_source": "原题是面向管理层的Q1综合市场研究并分析行业趋势；本任务聚焦“客户流失预警与挽回”，以CRM风险识别为主轴，输出为优先级挽回清单与行动方案，并把RSS/KB用于解释外部触发因素而非宏观趋势；邮件收件人改为“客户成功负责人+销售支持”检索规则。",
+  "service_and_tool_plan": "优先用crm_list_customers拉取并筛选疑似高风险客户，再用crm_get_customer读取notes与关键线索；用gmail获取半月研究要求与收件人规则；用contacts_search/contacts_get定位“客户成功负责人”和“销售支持”；用kb_search检索挽回策略、续约谈判、交付改进与流失原因库，再用kb_get_article提炼可执行动作；用rss_list_articles读取与“预算收缩、合规变化、竞品功能升级、价格竞争”相关的外部报道并用rss_get_article作为外部触发依据。",
+  "fixture_generation_plan": "生成fixtures：1）gmail/inbox.json：2封（msg_req包含时间窗口“半月”、行动数量要求与发送规则；msg_hint提供一个具体外部触发方向例如“合规成本上升导致延期”）；2）contacts/contacts.json：至少7位联系人，确保“客户成功”能命中1人、“销售支持”部门能命中至少2人；3）crm/customers.json：至少15个客户，status需包含active与churned，包含vip/standard两档；notes里要有可判定的风险信号（如“使用下降”“未登录”“合同到期后未续”“迁移到竞品”等），且contract_end覆盖“未来3个月内到期”和“已流失”；4）rss/feeds.json：至少10篇，类别包含预算收缩/监管合规/竞品升级/价格战/部署周期延长等，加入2篇与业务无关噪声；5）kb/articles.json：至少7篇，其中至少4篇与“挽回/续约谈判/交付改进/流失原因”直接相关，其余为辅助（如客户沟通模板或产品升级路径）。所有ID、名称、邮箱、数值均需与原题不同。",
+  "expected_behavior": "1）gmail_list_messages与gmail_get_message提取要求（尤其是“半月”“挽回≥5条行动”与发送禁令）；2）contacts_search定位客户成功负责人和销售支持联系人，contacts_get取邮箱；3）crm_list_customers按status获取active与churned候选，再根据notes/contract_end规则判定高风险并选出至少5个客户进行crm_get_customer核验；4）rss_list_articles按“合规/预算/价格/竞品升级/部署周期”筛选，获取至少5篇关键文章；5）kb_search覆盖“续约挽回、交付补丁、谈判策略、流失原因对策”等，读取至少4篇kb并提炼“可执行动作”；6）输出：优先级挽回清单（至少5条行动），每条包含：适用客户分层/触发信号、对应外部原因（RSS/KB要点或notes归因）、建议的产品/交付/沟通动作、预期收益与验证指标；7）调用gmail_save_draft保存邮件草稿：to包含客户成功负责人，抄送用正文或单独字段按grader约定组织（若仅支持to字段，则将所有收件人合并到to列表），不调用gmail_send_message。",
+  "grading_plan": "检查1）是否基于CRM识别出高风险客户并至少核验5个客户（有crm_get_customer）；2）行动清单是否≥5条且每条行动关联至少一个风险原因（来自RSS/KB或notes）；3）是否使用RSS解释外部触发因素、使用KB提供内部对策；4）收件人是否通过contacts检索得到（客户成功负责人+销售支持）；5）未发送邮件且仅保存草稿。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T153zh_market_research_report",
+  "task_name": "综合市场研究报告",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "hard",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "rss",
+    "kb",
+    "crm",
+    "gmail",
+    "contacts"
+  ],
+  "tools": [
+    "rss_list_articles",
+    "rss_get_article",
+    "kb_search",
+    "kb_get_article",
+    "crm_list_customers",
+    "crm_get_customer",
+    "contacts_search",
+    "contacts_get",
+    "gmail_list_messages",
+    "gmail_get_message",
+    "gmail_save_draft",
+    "gmail_send_message"
+  ],
+  "fixture_paths": [
+    "fixtures/contacts/contacts.json",
+    "fixtures/crm/customers.json",
+    "fixtures/gmail/inbox.json",
+    "fixtures/kb/articles.json",
+    "fixtures/rss/feeds.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T153zh_market_research_report
+task_name: 综合市场研究报告
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/articles
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: tasks/T153zh_market_research_report/fixtures/rss/feeds.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T153zh_market_research_report/fixtures/kb/articles.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: tasks/T153zh_market_research_report/fixtures/crm/customers.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T153zh_market_research_report/fixtures/gmail/inbox.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: tasks/T153zh_market_research_report/fixtures/contacts/contacts.json
+prompt:
+  text: "你是市场研究团队的分析师，需要完成一份综合市场研究报告：\n\n1. 查看邮件，了解报告的具体要求和来自销售团队的市场反馈\n2. 从RSS源收集行业最新动态（AI趋势、行业政策、市场变化）\n\
+    3. 在知识库中查找公司内部的市场分析、竞争力评估和行业策略\n4. 从CRM系统获取客户分布数据，分析各行业客户结构\n5. 综合以上信息，撰写Q1市场研究报告，包括：\n\
+    \   - 三大行业趋势分析（AI对目标行业的影响、政策变化、风险识别）\n   - CRM客户数据与行业趋势的关联分析\n   - 战略建议（结合内部能力和外部趋势）\n\
+    6. 查找管理层联系方式，起草报告邮件草稿发给全体管理层（不要直接发送）\n"
+  language: zh
+tools:
+- name: rss_list_articles
+  description: 获取RSS文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_name:
+        type: string
+        description: 按RSS源筛选
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选(active/churned)
+      tier:
+        type: string
+        description: 客户等级筛选(vip/standard)
+      industry:
+        type: string
+        description: 按行业筛选
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 900
+  max_turns: 40
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/contacts/contacts.json ---
+[
+  {
+    "contact_id": "CON-1201",
+    "name": "张总",
+    "email": "zhangceo@company.com",
+    "phone": "13900001001",
+    "department": "管理层",
+    "title": "CEO",
+    "responsibilities": ["公司战略", "重大决策", "投资者关系"]
+  },
+  {
+    "contact_id": "CON-1202",
+    "name": "李总",
+    "email": "licto@company.com",
+    "phone": "13900001002",
+    "department": "管理层",
+    "title": "CTO",
+    "responsibilities": ["技术战略", "产品研发", "AI能力建设"]
+  },
+  {
+    "contact_id": "CON-1203",
+    "name": "王总",
+    "email": "wangcmo@company.com",
+    "phone": "13900001003",
+    "department": "管理层",
+    "title": "CMO",
+    "responsibilities": ["品牌策略", "市场推广", "行业研究"]
+  },
+  {
+    "contact_id": "CON-1204",
+    "name": "赵总",
+    "email": "zhaovp@company.com",
+    "phone": "13900001004",
+    "department": "管理层",
+    "title": "VP Sales",
+    "responsibilities": ["销售团队管理", "大客户战略", "渠道拓展"]
+  }
+]
+
+--- END FILE: fixtures/contacts/contacts.json ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-1201",
+    "name": "华锐精密制造",
+    "industry": "制造业",
+    "tier": "vip",
+    "annual_revenue": 1200000,
+    "status": "active",
+    "contract_end": "2027-03-31",
+    "sales_rep": "赵总",
+    "notes": "核心大客户，使用高级数据分析+定制模块，对AI质检功能有强烈需求",
+    "contact_person": "赵总"
+  },
+  {
+    "customer_id": "CUS-1202",
+    "name": "鼎盛机械集团",
+    "industry": "制造业",
+    "tier": "vip",
+    "annual_revenue": 960000,
+    "status": "active",
+    "contract_end": "2026-12-31",
+    "sales_rep": "赵总",
+    "notes": "VIP客户，正在评估竞品A的AI功能，续约有风险",
+    "contact_person": "赵总"
+  },
+  {
+    "customer_id": "CUS-1203",
+    "name": "中联自动化",
+    "industry": "制造业",
+    "tier": "standard",
+    "annual_revenue": 420000,
+    "status": "active",
+    "contract_end": "2026-09-30",
+    "sales_rep": "赵总",
+    "notes": "标准客户，有升级意向，关注MES集成",
+    "contact_person": "赵总"
+  },
+  {
+    "customer_id": "CUS-1204",
+    "name": "仁和医院集团",
+    "industry": "医疗",
+    "tier": "vip",
+    "annual_revenue": 880000,
+    "status": "active",
+    "contract_end": "2027-06-30",
+    "sales_rep": "王总",
+    "notes": "三甲医院集团，使用EMR数据分析模块，政策利好下有扩展需求",
+    "contact_person": "王总"
+  },
+  {
+    "customer_id": "CUS-1205",
+    "name": "康宁社区医疗",
+    "industry": "医疗",
+    "tier": "standard",
+    "annual_revenue": 280000,
+    "status": "active",
+    "contract_end": "2026-08-31",
+    "sales_rep": "王总",
+    "notes": "社区医疗机构，标准版用户，关注混合云部署",
+    "contact_person": "王总"
+  },
+  {
+    "customer_id": "CUS-1206",
+    "name": "启航教育科技",
+    "industry": "教育",
+    "tier": "standard",
+    "annual_revenue": 240000,
+    "status": "active",
+    "contract_end": "2026-07-31",
+    "sales_rep": "李总",
+    "notes": "K12教育机构，使用学生数据分析平台",
+    "contact_person": "李总"
+  },
+  {
+    "customer_id": "CUS-1207",
+    "name": "明远大学",
+    "industry": "教育",
+    "tier": "standard",
+    "annual_revenue": 180000,
+    "status": "churned",
+    "contract_end": "2026-02-28",
+    "sales_rep": "李总",
+    "notes": "已流失，原因：预算削减转用免费方案",
+    "contact_person": "李总"
+  },
+  {
+    "customer_id": "CUS-1208",
+    "name": "信达金融控股",
+    "industry": "金融",
+    "tier": "vip",
+    "annual_revenue": 1500000,
+    "status": "active",
+    "contract_end": "2027-12-31",
+    "sales_rep": "赵总",
+    "notes": "最大客户之一，使用全套合规+分析产品，合规认证是关键续约因素",
+    "contact_person": "赵总"
+  }
+]
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_1201",
+    "from": "zhangceo@company.com",
+    "to": "me@company.com",
+    "subject": "请提交Q1市场研究报告",
+    "date": "2026-03-24T09:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox", "important"],
+    "body": "市场团队好，请在本周五前提交Q1市场研究报告。重点关注以下方面：\n1. AI技术对我们目标行业（制造/医疗/教育）的影响\n2. 各目标行业的最新市场动态和政策变化\n3. 结合我们的客户数据，给出下一阶段的市场策略建议\n\n报告需要发给全体管理层（CEO/CTO/CMO/VP Sales），请准备邮件草稿。\n\n张总"
+  },
+  {
+    "message_id": "msg_1202",
+    "from": "zhaovp@company.com",
+    "to": "me@company.com",
+    "subject": "市场报告补充：制造业客户AI需求",
+    "date": "2026-03-25T14:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "补充一下市场报告的参考信息：\n\n最近拜访制造业客户时，多个客户主动询问我们的AI功能规划，尤其是AI质检和预测性维护方面。鼎盛机械（VIP客户）的CTO甚至在评估竞品A的AI模块。\n\n建议市场报告重点关注AI对制造业客户的影响，以及我们的AI能力建设进度能否满足客户需求。这直接关系到下半年的续约。\n\n赵总"
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "KB-1201",
+    "title": "2025年度市场分析报告",
+    "category": "市场分析",
+    "tags": ["年度报告", "市场", "2025"],
+    "content": "## 2025年度市场分析总结\n\n### 整体市场\n- 国内企业SaaS市场规模达到850亿元，同比增长22%\n- 我司市场份额约3.2%，排名行业第6位\n- 主要增长来自制造业和医疗行业客户\n\n### 行业表现\n| 行业 | 客户数 | 营收占比 | 同比增长 |\n|------|--------|----------|----------|\n| 制造业 | 45 | 38% | +28% |\n| 医疗 | 28 | 22% | +35% |\n| 教育 | 20 | 15% | +12% |\n| 金融 | 12 | 18% | +8% |\n| 其他 | 15 | 7% | -5% |\n\n### 关键发现\n1. 制造业客户ARPU最高，但获客成本也最高\n2. 医疗行业增长最快，政策利好\n3. 教育行业客户多但预算小，需要精细化运营\n4. 金融行业合规要求高，我司已通过等保三级认证是竞争优势\n\n### 上次更新：2026年1月",
+    "last_updated": "2026-01-15",
+    "views": 3200
+  },
+  {
+    "article_id": "KB-1202",
+    "title": "产品竞争力分析",
+    "category": "竞品分析",
+    "tags": ["竞争力", "产品", "对比"],
+    "content": "## 我司产品竞争力评估\n\n### 核心优势\n1. **数据分析深度**：支持多维交叉分析，行业领先\n2. **安全合规**：已通过SOC2、ISO27001、等保三级\n3. **API生态**：600+ API接口，集成能力强\n4. **大客户服务**：专属CSM团队，响应速度行业前三\n\n### 待改进\n1. AI功能落后竞品——目前仅有基础报表AI，缺乏智能预测和自然语言查询\n2. 中小客户产品线薄弱\n3. 移动端体验一般\n\n### 竞争格局\n- 竞品A：AI能力领先，但价格高，中小客户覆盖不足\n- 竞品B：价格低，部署快，但安全合规差\n- 竞品C：垂直行业深耕（医疗），功能全面性不足\n\n### AI能力建设计划\n- 2026Q2：上线AI分析助手（智能报表生成）\n- 2026Q3：上线AI预测功能\n- 2026Q4：上线自然语言查询\n\n### 上次更新：2026年2月",
+    "last_updated": "2026-02-20",
+    "views": 2800
+  },
+  {
+    "article_id": "KB-1203",
+    "title": "目标行业策略",
+    "category": "战略",
+    "tags": ["行业", "策略", "重点"],
+    "content": "## 2026年目标行业策略\n\n### 第一优先级：制造业\n- 目标：新增50家制造业客户，营收增长40%\n- 策略：推出制造业行业版，集成MES/SCM模块\n- 痛点：制造企业需要AI质检、预测性维护的数据分析能力\n- 机会：中型制造企业（年收5-20亿）数字化投入快速增加\n\n### 第二优先级：医疗\n- 目标：新增30家医疗客户，营收增长50%\n- 策略：深耕医院信息化，与HIS/EMR系统对接\n- 痛点：数据合规要求高，需要混合云部署\n- 机会：政策推动三甲医院信息系统升级\n\n### 第三优先级：教育\n- 目标：新增40家教育客户，营收增长25%\n- 策略：推出教育行业轻量版，降低价格门槛\n- 痛点：预算有限，采购流程长\n- 机会：教育信息化2.0推动\n\n### 上次更新：2026年3月",
+    "last_updated": "2026-03-01",
+    "views": 1900
+  },
+  {
+    "article_id": "KB-1204",
+    "title": "客户画像研究",
+    "category": "客户分析",
+    "tags": ["客户画像", "分层", "特征"],
+    "content": "## 客户画像与分层\n\n### VIP客户特征（年合同额>80万）\n- 行业：以制造业和金融为主\n- 需求：高级数据分析、定制化开发、专属服务\n- 决策者：CTO/CIO级别\n- 续约率：92%\n- 平均合同周期：2年\n\n### 标准客户特征（年合同额20-80万）\n- 行业：制造业、医疗、教育均有分布\n- 需求：标准产品功能、快速部署\n- 决策者：IT总监/部门经理\n- 续约率：78%\n- 平均合同周期：1年\n\n### 高风险流失特征\n- 使用率连续3个月下降\n- 超过60天未登录\n- 支持工单数量骤增\n- 合同到期前未主动续约\n\n### 上次更新：2026年2月",
+    "last_updated": "2026-02-15",
+    "views": 2200
+  },
+  {
+    "article_id": "KB-1205",
+    "title": "Q1销售数据摘要",
+    "category": "销售",
+    "tags": ["Q1", "销售", "数据"],
+    "content": "## 2026年Q1销售数据摘要\n\n### 整体表现\n- Q1总营收：2850万元（完成率95%）\n- 新签客户：18家（目标20家）\n- 续约率：85%（同比下降3%）\n- 新签ACV（年合同额）：平均42万元\n\n### 行业分布\n| 行业 | 新签 | 续约 | 流失 |\n|------|------|------|------|\n| 制造业 | 8 | 12 | 1 |\n| 医疗 | 5 | 8 | 0 |\n| 教育 | 3 | 6 | 2 |\n| 金融 | 2 | 4 | 0 |\n\n### 关键指标\n1. 制造业新签最多，AI功能需求是主要驱动力\n2. 医疗续约率100%，政策利好效果显著\n3. 教育行业流失2家，原因：预算削减和竞品低价竞争\n4. 金融行业稳定，合规优势明显\n\n### 销售反馈\n- 制造业客户普遍询问AI质检功能\n- 多个客户对比竞品A的AI能力\n- 混合云部署需求增加\n\n### 上次更新：2026年3月25日",
+    "last_updated": "2026-03-25",
+    "views": 4100
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+--- FILE: fixtures/rss/feeds.json ---
+[
+  {
+    "article_id": "RSS-1201",
+    "title": "AI应用加速落地：企业级AI工具市场增长120%",
+    "category": "AI",
+    "content": "2026年一季度，企业级AI工具市场同比增长120%。其中，制造业和医疗行业成为AI应用增长最快的领域。分析师指出，AI正从概念验证阶段进入大规模部署阶段，预计到2027年将有超过60%的中大型企业部署至少一个AI驱动的核心业务系统。制造业中的智能质检、预测性维护需求尤为突出。",
+    "url": "https://tech-news.example.com/ai-enterprise-growth",
+    "tags": [
+      "AI",
+      "企业级",
+      "市场增长"
+    ],
+    "source": "科技快讯",
+    "published_at": "2026-03-24T08:00:00Z",
+    "summary": "2026年一季度，企业级AI工具市场同比增长120%。其中，制造业和医疗行业成为AI应用增长最快的领域。分析师指出，AI正从概念验证阶段进入大规模部署阶段，预计到2027年将有超过60%的中大型企业部署至少一个AI驱动的核心业务系统。制造业中的智能质检、预测性维护需求尤为突出。",
+    "word_count": 139
+  },
+  {
+    "article_id": "RSS-1202",
+    "title": "云计算市场格局变化：混合云成为企业首选",
+    "category": "云计算",
+    "content": "最新调研显示，78%的企业已采用或计划采用混合云架构。公有云+私有云的组合模式使企业在灵活性和数据安全之间取得平衡。特别是制造业和医疗行业，因数据合规要求对混合云需求强烈。SaaS厂商需要适配混合云部署模式以保持竞争力。",
+    "url": "https://tech-news.example.com/hybrid-cloud-trend",
+    "tags": [
+      "云计算",
+      "混合云",
+      "企业IT"
+    ],
+    "source": "科技快讯",
+    "published_at": "2026-03-23T10:00:00Z",
+    "summary": "最新调研显示，78%的企业已采用或计划采用混合云架构。公有云+私有云的组合模式使企业在灵活性和数据安全之间取得平衡。特别是制造业和医疗行业，因数据合规要求对混合云需求强烈。SaaS厂商需要适配混合云部署模式以保持竞争力。",
+    "word_count": 110
+  },
+  {
+    "article_id": "RSS-1209",
+    "title": "量子计算商业化尚需时日",
+    "category": "前沿技术",
+    "content": "业界专家普遍认为量子计算离大规模商业化还有5-10年距离。目前仅在药物研发和密码学领域有初步应用。",
+    "url": "https://tech-news.example.com/quantum-computing",
+    "tags": [
+      "量子计算",
+      "前沿"
+    ],
+    "source": "科技快讯",
+    "published_at": "2026-03-22T09:00:00Z",
+    "summary": "业界专家普遍认为量子计算离大规模商业化还有5-10年距离。目前仅在药物研发和密码学领域有初步应用。",
+    "word_count": 49
+  },
+  {
+    "article_id": "RSS-1210",
+    "title": "全球芯片产能过剩信号初现",
+    "category": "半导体",
+    "content": "多家芯片代工厂报告产能利用率下降至75%以下，市场担忧供过于求。",
+    "url": "https://tech-news.example.com/chip-oversupply",
+    "tags": [
+      "半导体",
+      "产能"
+    ],
+    "source": "科技快讯",
+    "published_at": "2026-03-25T07:00:00Z",
+    "summary": "多家芯片代工厂报告产能利用率下降至75%以下，市场担忧供过于求。",
+    "word_count": 32
+  },
+  {
+    "article_id": "RSS-1203",
+    "title": "SaaS行业续约率整体下降：客户更关注ROI",
+    "category": "SaaS",
+    "content": "2025年度SaaS行业平均净收入留存率（NRR）从118%降至109%。分析认为主要原因包括：1)企业IT预算收紧；2)客户对SaaS工具的ROI要求更严格；3)同质化竞争加剧导致客户议价能力增强。中小企业客户流失率尤为明显，年化流失率达22%。建议SaaS厂商加强客户成功体系建设，提供差异化价值。",
+    "url": "https://analysis.example.com/saas-nrr-decline",
+    "tags": [
+      "SaaS",
+      "续约率",
+      "NRR",
+      "风险"
+    ],
+    "source": "行业分析",
+    "published_at": "2026-03-24T11:00:00Z",
+    "summary": "2025年度SaaS行业平均净收入留存率（NRR）从118%降至109%。分析认为主要原因包括：1)企业IT预算收紧；2)客户对SaaS工具的ROI要求更严格；3)同质化竞争加剧导致客户议价能力增强。中小企业客户流失率尤为明显，年化流失率达22%。建议SaaS厂商加强客户成功体系建设，提供差异化价值。",
+    "word_count": 151
+  },
+  {
+    "article_id": "RSS-1204",
+    "title": "制造业数字化转型加速：2026年投资增长35%",
+    "category": "制造业",
+    "content": "工信部数据显示，2026年Q1制造业数字化投资同比增长35%。重点投资方向包括：智能制造系统(MES)、供应链管理(SCM)、以及AI质检系统。其中，年收入5亿以上的大型制造企业IT投入占比从2.1%提升至3.4%。中型制造企业也在积极跟进，尤其关注性价比高的SaaS解决方案。",
+    "url": "https://analysis.example.com/manufacturing-digital",
+    "tags": [
+      "制造业",
+      "数字化",
+      "投资"
+    ],
+    "source": "行业分析",
+    "published_at": "2026-03-25T09:00:00Z",
+    "summary": "工信部数据显示，2026年Q1制造业数字化投资同比增长35%。重点投资方向包括：智能制造系统(MES)、供应链管理(SCM)、以及AI质检系统。其中，年收入5亿以上的大型制造企业IT投入占比从2.1%提升至3.4%。中型制造企业也在积极跟进，尤其关注性价比高的SaaS解决方案。",
+    "word_count": 139
+  },
+  {
+    "article_id": "RSS-1205",
+    "title": "中小企业IT支出增长：SaaS渗透率持续提升",
+    "category": "中小企业",
+    "content": "据统计，中小企业平均IT支出同比增长18%，SaaS工具采购占比从35%提升至42%。中小企业更看重产品易用性、快速部署和灵活定价。教育和医疗行业的中小机构是新增SaaS客户的主力军。",
+    "url": "https://analysis.example.com/sme-it-spending",
+    "tags": [
+      "中小企业",
+      "IT支出",
+      "SaaS"
+    ],
+    "source": "行业分析",
+    "published_at": "2026-03-23T14:00:00Z",
+    "summary": "据统计，中小企业平均IT支出同比增长18%，SaaS工具采购占比从35%提升至42%。中小企业更看重产品易用性、快速部署和灵活定价。教育和医疗行业的中小机构是新增SaaS客户的主力军。",
+    "word_count": 92
+  },
+  {
+    "article_id": "RSS-1211",
+    "title": "电商平台大促数据分析",
+    "category": "电商",
+    "content": "某电商平台3月大促GMV同比增长28%，直播电商占比首次超过40%。",
+    "url": "https://analysis.example.com/ecommerce-promo",
+    "tags": [
+      "电商",
+      "直播"
+    ],
+    "source": "行业分析",
+    "published_at": "2026-03-25T16:00:00Z",
+    "summary": "某电商平台3月大促GMV同比增长28%，直播电商占比首次超过40%。",
+    "word_count": 34
+  },
+  {
+    "article_id": "RSS-1212",
+    "title": "新能源汽车保险费率改革",
+    "category": "保险",
+    "content": "银保监会发布新能源汽车保险费率改革方案，预计保费平均下降12%。",
+    "url": "https://analysis.example.com/ev-insurance",
+    "tags": [
+      "新能源",
+      "保险"
+    ],
+    "source": "行业分析",
+    "published_at": "2026-03-22T11:00:00Z",
+    "summary": "银保监会发布新能源汽车保险费率改革方案，预计保费平均下降12%。",
+    "word_count": 32
+  },
+  {
+    "article_id": "RSS-1206",
+    "title": "医疗信息化政策利好：三甲医院信息系统升级全覆盖",
+    "category": "医疗",
+    "content": "卫健委发布最新通知，要求2027年前所有三甲医院完成核心信息系统升级。涉及电子病历(EMR)、医院信息系统(HIS)、以及医疗影像系统(PACS)的全面云化。预计带动市场规模超过500亿元。政策还鼓励民营医院和社区卫生中心的信息化建设，中小型医疗SaaS产品将迎来机遇期。",
+    "url": "https://market.example.com/healthcare-it-policy",
+    "tags": [
+      "医疗",
+      "政策",
+      "信息化"
+    ],
+    "source": "市场动态",
+    "published_at": "2026-03-24T15:00:00Z",
+    "summary": "卫健委发布最新通知，要求2027年前所有三甲医院完成核心信息系统升级。涉及电子病历(EMR)、医院信息系统(HIS)、以及医疗影像系统(PACS)的全面云化。预计带动市场规模超过500亿元。政策还鼓励民营医院和社区卫生中心的信息化建设，中小型医疗SaaS产品将迎来机遇期。",
+    "word_count": 136
+  },
+  {
+    "article_id": "RSS-1207",
+    "title": "教育行业数字化新需求：AI教学辅助成热点",
+    "category": "教育",
+    "content": "教育部推动教育信息化2.0升级，AI教学辅助工具、在线考试系统、学生数据分析平台成为各校采购热点。K12和高等教育领域均有大量需求释放，但教育行业客户预算有限、采购流程长，对SaaS厂商的渠道能力和定价策略提出考验。",
+    "url": "https://market.example.com/education-digital",
+    "tags": [
+      "教育",
+      "数字化",
+      "AI"
+    ],
+    "source": "市场动态",
+    "published_at": "2026-03-25T10:00:00Z",
+    "summary": "教育部推动教育信息化2.0升级，AI教学辅助工具、在线考试系统、学生数据分析平台成为各校采购热点。K12和高等教育领域均有大量需求释放，但教育行业客户预算有限、采购流程长，对SaaS厂商的渠道能力和定价策略提出考验。",
+    "word_count": 108
+  },
+  {
+    "article_id": "RSS-1208",
+    "title": "金融科技监管趋严：合规成本持续上升",
+    "category": "金融",
+    "content": "央行和银保监会联合发布金融科技合规新规，要求所有金融SaaS产品通过等保三级认证。合规成本预计增加20%-30%，中小金融科技公司面临较大压力。但对于已具备合规能力的头部SaaS厂商而言，这反而是一个竞争壁垒。",
+    "url": "https://market.example.com/fintech-regulation",
+    "tags": [
+      "金融",
+      "监管",
+      "合规"
+    ],
+    "source": "市场动态",
+    "published_at": "2026-03-23T16:00:00Z",
+    "summary": "央行和银保监会联合发布金融科技合规新规，要求所有金融SaaS产品通过等保三级认证。合规成本预计增加20%-30%，中小金融科技公司面临较大压力。但对于已具备合规能力的头部SaaS厂商而言，这反而是一个竞争壁垒。",
+    "word_count": 105
+  },
+  {
+    "article_id": "RSS-1213",
+    "title": "房地产市场季度回顾",
+    "category": "房产",
+    "content": "一线城市房价环比微涨0.5%，二三线城市继续调整，整体市场平稳运行。",
+    "url": "https://market.example.com/real-estate",
+    "tags": [
+      "房地产",
+      "市场"
+    ],
+    "source": "市场动态",
+    "published_at": "2026-03-24T13:00:00Z",
+    "summary": "一线城市房价环比微涨0.5%，二三线城市继续调整，整体市场平稳运行。",
+    "word_count": 34
+  },
+  {
+    "article_id": "RSS-1214",
+    "title": "体育产业报告：马拉松经济爆发",
+    "category": "体育",
+    "content": "2026年上半年全国举办马拉松赛事超过600场，带动周边消费超过200亿元。",
+    "url": "https://market.example.com/marathon-economy",
+    "tags": [
+      "体育",
+      "消费"
+    ],
+    "source": "市场动态",
+    "published_at": "2026-03-25T18:00:00Z",
+    "summary": "2026年上半年全国举办马拉松赛事超过600场，带动周边消费超过200亿元。",
+    "word_count": 38
+  },
+  {
+    "article_id": "RSS-1215",
+    "title": "宠物经济持续升温",
+    "category": "消费",
+    "content": "宠物食品和医疗市场规模突破3000亿元，智能宠物设备增长迅猛。",
+    "url": "https://market.example.com/pet-economy",
+    "tags": [
+      "宠物",
+      "消费"
+    ],
+    "source": "市场动态",
+    "published_at": "2026-03-22T14:00:00Z",
+    "summary": "宠物食品和医疗市场规模突破3000亿元，智能宠物设备增长迅猛。",
+    "word_count": 31
+  }
+]
+--- END FILE: fixtures/rss/feeds.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

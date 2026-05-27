@@ -1,0 +1,58 @@
+[
+  {
+    "integration_id": "INT-2101",
+    "name": "上游产品主数据拉取器",
+    "service": "supplier_api",
+    "status": "active",
+    "endpoint": "https://upstream-masterdata.example.com/api/v4/products",
+    "api_key": "sk-upstream-v4-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-03-18T09:10:00Z",
+    "monthly_calls": 9800,
+    "error_rate": 0.18,
+    "notes": "上游对产品主数据契约进行了字段改名/新增（如把 oldSkuName 重命名为 newSkuTitle，并新增字段 marketCode）。当前映射模板仍依赖旧字段名，导致解析阶段缺字段。"
+  },
+  {
+    "integration_id": "INT-2102",
+    "name": "更新后的产品主数据映射模板(待启用)",
+    "service": "supplier_api",
+    "status": "inactive",
+    "endpoint": "https://upstream-masterdata.example.com/api/v4/products",
+    "api_key": "sk-upstream-v4-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": "https://api.ourapp.com/webhooks/masterdata-v4",
+    "last_verified": "2026-03-22T12:00:00Z",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "notes": "新映射模板已就绪：可解析新增 marketCode，并使用 newSkuTitle 替代旧字段。建议切换并开启以恢复解析与写入。"
+  },
+  {
+    "integration_id": "INT-2103",
+    "name": "库存写入服务",
+    "service": "inventory_system",
+    "status": "active",
+    "endpoint": "https://inventory.internal.example.com/api/v2",
+    "api_key": "sk-inv-v2-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-03-21T08:20:00Z",
+    "monthly_calls": 21000,
+    "error_rate": 0.004,
+    "notes": "库存服务健康；写入请求失败主要来自上游解析缺字段导致的上游数据不完整。"
+  },
+  {
+    "integration_id": "INT-2104",
+    "name": "无关订单同步(干扰)",
+    "service": "order_system",
+    "status": "active",
+    "endpoint": "https://orders.internal.example.com/api/v3/orders",
+    "api_key": "sk-ord-v3-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-03-19T16:45:00Z",
+    "monthly_calls": 45000,
+    "error_rate": 0.06,
+    "notes": "最近多次超时失败，但该链路不依赖库存解析链路；用于干扰排查方向。"
+  }
+]

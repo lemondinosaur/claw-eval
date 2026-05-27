@@ -1,0 +1,747 @@
+{
+  "task_id": "T163zh_quarterly_customer_review_plus_5",
+  "task_name": "跨月预警：现金流紧张与沟通断点的季度组合分析",
+  "prompt_text": "当前为2026年10月上旬。请对Q3（2026-07-01至2026-09-30）内的7个客户做“现金流紧张信号 + 邮件沟通断点信号”的季度组合预警分析：\n1）财务端现金流紧张信号：识别退款/冲销、付款延迟、账期调整、订阅中断等异常类型，并给出发生月份与交易状态证据（需要结合交易详情核验）。\n2）邮件端沟通断点信号：统计来自客户域的有效邮件（排除内部通知与非客户域邮件）。沟通断点定义为：连续至少5个工作周无来自客户域的有效邮件；同时提取断点前最后一次有效沟通的主题要点。\n3）交叉解释：明确说明财务异常与邮件断点如何相互指向风险（或为何即使CRM满意度/合同节点看似乐观仍需紧急关注），不要把满意度上升或合同临近当成唯一依据。\n对每个客户输出：异常类型、发生月份、影响推断、以及一段给客户经理直接可用的外呼/邮件跟进脚本要点（结构为：先确认事实→说明影响→提出明确下一步与截止时间；不要要求具体联系方式）。\n最后按“最紧急→较紧急”排序给出干预清单（可用：财务异常强度 + 影响程度推断 + 沟通断点长度/是否接近续约节点等综合）。行业背景可参考RSS总结，但不得替代客户证据。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-2401",
+        "name": "周晨",
+        "email": "zhouchen@company.com",
+        "phone": "13900112401",
+        "department": "销售部",
+        "title": "高级客户经理",
+        "responsibilities": [
+          "VIP客户维护",
+          "续约谈判",
+          "CUS-2401星河云",
+          "CUS-2405耀腾金融"
+        ]
+      },
+      {
+        "contact_id": "CON-2402",
+        "name": "陈曦",
+        "email": "chenxi@company.com",
+        "phone": "13900112402",
+        "department": "销售部",
+        "title": "客户经理",
+        "responsibilities": [
+          "标准客户维护",
+          "扩展机会挖掘",
+          "CUS-2402北极航运",
+          "CUS-2406青岚教育"
+        ]
+      },
+      {
+        "contact_id": "CON-2403",
+        "name": "沈然",
+        "email": "shenran@company.com",
+        "phone": "13900112403",
+        "department": "客户成功部",
+        "title": "客户成功经理",
+        "responsibilities": [
+          "健康度监控",
+          "续约支持",
+          "CUS-2403云栖零售"
+        ]
+      },
+      {
+        "contact_id": "CON-2404",
+        "name": "潘捷",
+        "email": "panjie@company.com",
+        "phone": "13900112404",
+        "department": "客户成功部",
+        "title": "客户成功经理",
+        "responsibilities": [
+          "续约保障",
+          "培训与采用率提升",
+          "CUS-2404皓图制造",
+          "CUS-2407宏景医疗"
+        ]
+      },
+      {
+        "contact_id": "CON-2405",
+        "name": "韩韵",
+        "email": "hanyun@company.com",
+        "phone": "13900112405",
+        "department": "技术部",
+        "title": "支持工程师",
+        "responsibilities": [
+          "运维与故障处理",
+          "账期/对账问题协助",
+          "CUS-2405耀腾金融"
+        ]
+      },
+      {
+        "contact_id": "CON-2406",
+        "name": "赵敏",
+        "email": "zhaomin@company.com",
+        "phone": "13900112406",
+        "department": "财务部",
+        "title": "应收与结算主管",
+        "responsibilities": [
+          "应收管理",
+          "退款/冲销对账协助",
+          "账期调整追踪"
+        ]
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2401",
+        "name": "星河云",
+        "tier": "vip",
+        "status": "active",
+        "industry": "SaaS与云服务",
+        "satisfaction": 4.7,
+        "contract_end": "2026-12-20",
+        "sales_owner": "周晨",
+        "notes": "满意度偏高但Q3财务出现9月退款/冲销，需排查对账差异与交付影响。",
+        "contact_person": "周晨",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2402",
+        "name": "北极航运",
+        "tier": "standard",
+        "status": "active",
+        "industry": "航运物流",
+        "satisfaction": 3.6,
+        "contract_end": "2026-10-31",
+        "sales_owner": "陈曦",
+        "notes": "7-8月付款延迟与账期调整迹象明显，且邮件沟通断点已出现。",
+        "contact_person": "陈曦",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2403",
+        "name": "云栖零售",
+        "tier": "standard",
+        "status": "active",
+        "industry": "零售电商",
+        "satisfaction": 4.1,
+        "contract_end": "2026-11-30",
+        "sales_owner": "沈然",
+        "notes": "Q3订阅中断后在9月底才补回，期间沟通明显降频。",
+        "contact_person": "沈然",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2404",
+        "name": "皓图制造",
+        "tier": "vip",
+        "status": "active",
+        "industry": "工业制造",
+        "satisfaction": 4.3,
+        "contract_end": "2026-09-30",
+        "sales_owner": "潘捷",
+        "notes": "合同节点看似接近/已到期窗口，满意度在CRM里回升，但Q3仍有异常退款与延迟付款信号。",
+        "contact_person": "潘捷",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2405",
+        "name": "耀腾金融",
+        "tier": "vip",
+        "status": "active",
+        "industry": "金融科技",
+        "satisfaction": 4.6,
+        "contract_end": "2026-12-31",
+        "sales_owner": "周晨",
+        "notes": "9月出现冲销且随后无新增补单；同时邮件沟通断点较长，需要跨源纠偏。",
+        "contact_person": "周晨",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2406",
+        "name": "青岚教育",
+        "tier": "standard",
+        "status": "active",
+        "industry": "教育培训",
+        "satisfaction": 3.9,
+        "contract_end": "2026-08-15",
+        "sales_owner": "陈曦",
+        "notes": "8月订阅状态异常（非completed）且9月有账期调整说明，但邮件断点未完全消失。",
+        "contact_person": "陈曦",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2407",
+        "name": "宏景医疗",
+        "tier": "standard",
+        "status": "active",
+        "industry": "医疗健康",
+        "satisfaction": 4.0,
+        "contract_end": "2026-11-15",
+        "sales_owner": "潘捷",
+        "notes": "付款延迟发生在9月中旬；邮件仍有零散联系但整体间隔跨过断点阈值。",
+        "contact_person": "潘捷",
+        "annual_revenue": 0
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2401",
+        "customer_id": "CUS-2401",
+        "amount": 92000,
+        "type": "subscription",
+        "date": "2026-07-14",
+        "status": "completed",
+        "description": "7月订阅费（标准包）"
+      },
+      {
+        "transaction_id": "TXN-2402",
+        "customer_id": "CUS-2401",
+        "amount": 98000,
+        "type": "subscription",
+        "date": "2026-08-15",
+        "status": "completed",
+        "description": "8月订阅费（含数据看板）"
+      },
+      {
+        "transaction_id": "TXN-2403",
+        "customer_id": "CUS-2401",
+        "amount": -45000,
+        "type": "refund",
+        "date": "2026-09-09",
+        "status": "completed",
+        "description": "9月退款/冲销：账期调整-对账差异"
+      },
+      {
+        "transaction_id": "TXN-2404",
+        "customer_id": "CUS-2401",
+        "amount": 0,
+        "type": "subscription",
+        "date": "2026-10-05",
+        "status": "completed",
+        "description": "10月补单：Q3对账差异修正后的新增订阅（用于推断非本Q3归因）"
+      },
+      {
+        "transaction_id": "TXN-2405",
+        "customer_id": "CUS-2402",
+        "amount": 64000,
+        "type": "subscription",
+        "date": "2026-07-18",
+        "status": "completed",
+        "description": "7月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2406",
+        "customer_id": "CUS-2402",
+        "amount": 66000,
+        "type": "subscription",
+        "date": "2026-08-21",
+        "status": "pending",
+        "description": "8月付款延迟：账期调整申请（status非completed）"
+      },
+      {
+        "transaction_id": "TXN-2407",
+        "customer_id": "CUS-2402",
+        "amount": 68000,
+        "type": "subscription",
+        "date": "2026-09-12",
+        "status": "completed",
+        "description": "9月订阅费（补缴后完成）"
+      },
+      {
+        "transaction_id": "TXN-2408",
+        "customer_id": "CUS-2403",
+        "amount": 74000,
+        "type": "subscription",
+        "date": "2026-07-08",
+        "status": "completed",
+        "description": "7月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2409",
+        "customer_id": "CUS-2403",
+        "amount": 76000,
+        "type": "subscription",
+        "date": "2026-08-10",
+        "status": "completed",
+        "description": "8月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2410",
+        "customer_id": "CUS-2403",
+        "amount": 0,
+        "type": "subscription",
+        "date": "2026-09-03",
+        "status": "pending",
+        "description": "9月订阅中断：付款延迟导致服务暂停（status非completed）"
+      },
+      {
+        "transaction_id": "TXN-2411",
+        "customer_id": "CUS-2403",
+        "amount": 78000,
+        "type": "subscription",
+        "date": "2026-09-28",
+        "status": "completed",
+        "description": "9月底补回：订阅恢复（补单）"
+      },
+      {
+        "transaction_id": "TXN-2412",
+        "customer_id": "CUS-2404",
+        "amount": 125000,
+        "type": "subscription",
+        "date": "2026-07-22",
+        "status": "completed",
+        "description": "7月订阅费+产线扩展包"
+      },
+      {
+        "transaction_id": "TXN-2413",
+        "customer_id": "CUS-2404",
+        "amount": -30000,
+        "type": "refund",
+        "date": "2026-08-30",
+        "status": "completed",
+        "description": "8月退款/冲销：交付验收调整"
+      },
+      {
+        "transaction_id": "TXN-2414",
+        "customer_id": "CUS-2404",
+        "amount": 0,
+        "type": "subscription",
+        "date": "2026-09-18",
+        "status": "pending",
+        "description": "9月付款延迟：账期调整（status非completed）"
+      },
+      {
+        "transaction_id": "TXN-2415",
+        "customer_id": "CUS-2404",
+        "amount": 110000,
+        "type": "subscription",
+        "date": "2026-10-02",
+        "status": "completed",
+        "description": "10月续期补单（用于推断，非Q3）"
+      },
+      {
+        "transaction_id": "TXN-2416",
+        "customer_id": "CUS-2405",
+        "amount": 98000,
+        "type": "subscription",
+        "date": "2026-07-11",
+        "status": "completed",
+        "description": "7月订阅费（合规审计模块）"
+      },
+      {
+        "transaction_id": "TXN-2417",
+        "customer_id": "CUS-2405",
+        "amount": 102000,
+        "type": "subscription",
+        "date": "2026-08-13",
+        "status": "completed",
+        "description": "8月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2418",
+        "customer_id": "CUS-2405",
+        "amount": -52000,
+        "type": "refund",
+        "date": "2026-09-21",
+        "status": "completed",
+        "description": "9月退款/冲销：合约条款变更冲正（退款/冲销）"
+      },
+      {
+        "transaction_id": "TXN-2419",
+        "customer_id": "CUS-2406",
+        "amount": 56000,
+        "type": "subscription",
+        "date": "2026-07-05",
+        "status": "completed",
+        "description": "7月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2420",
+        "customer_id": "CUS-2406",
+        "amount": 0,
+        "type": "subscription",
+        "date": "2026-08-18",
+        "status": "pending",
+        "description": "8月订阅状态异常：付款延迟/账期调整（status非completed）"
+      },
+      {
+        "transaction_id": "TXN-2421",
+        "customer_id": "CUS-2406",
+        "amount": 0,
+        "type": "subscription",
+        "date": "2026-09-06",
+        "status": "pending",
+        "description": "9月账期调整中：合同条款修订等待（description含账期调整）"
+      },
+      {
+        "transaction_id": "TXN-2422",
+        "customer_id": "CUS-2406",
+        "amount": 59000,
+        "type": "subscription",
+        "date": "2026-09-25",
+        "status": "completed",
+        "description": "9月补缴完成（部分恢复）"
+      },
+      {
+        "transaction_id": "TXN-2423",
+        "customer_id": "CUS-2407",
+        "amount": 68000,
+        "type": "subscription",
+        "date": "2026-07-25",
+        "status": "completed",
+        "description": "7月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2424",
+        "customer_id": "CUS-2407",
+        "amount": 69000,
+        "type": "subscription",
+        "date": "2026-08-26",
+        "status": "completed",
+        "description": "8月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2425",
+        "customer_id": "CUS-2407",
+        "amount": 70500,
+        "type": "subscription",
+        "date": "2026-09-16",
+        "status": "pending",
+        "description": "9月付款延迟：账期调整（status非completed，description含延迟）"
+      },
+      {
+        "transaction_id": "TXN-2426",
+        "customer_id": "CUS-2407",
+        "amount": 70500,
+        "type": "subscription",
+        "date": "2026-10-08",
+        "status": "completed",
+        "description": "10月补缴完成（用于推断，非Q3）"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2401",
+        "from": "billing-ops@starhollow.cn",
+        "to": "me@company.com",
+        "subject": "Q3对账差异与退款安排（请确认）",
+        "date": "2026-09-10T10:20:00Z",
+        "body": "您好，我们已经提交9月对账差异的解释材料。关于退款/冲销的口径我们希望你们确认：本次差异是否影响到9月交付项？——星河云财务运营团队",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2402",
+        "from": "support@starhollow.cn",
+        "to": "me@company.com",
+        "subject": "关于10月新增模块的预期时间",
+        "date": "2026-09-18T07:45:00Z",
+        "body": "你好，我们这边正在评估10月新增模块的上线节奏。请先给到预计的集成窗口和验收流程。——星河云支持团队",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2403",
+        "from": "admin@company.com",
+        "to": "me@company.com",
+        "subject": "内部通知：季度例会时间调整",
+        "date": "2026-08-05T08:00:00Z",
+        "body": "全体成员：本周季度例会时间调整，请关注后续邮件。——行政部",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2404",
+        "from": "ap-team@arcticfreight.io",
+        "to": "me@company.com",
+        "subject": "关于账期延长与付款节点（8月未完成部分）",
+        "date": "2026-08-22T11:10:00Z",
+        "body": "团队你好：8月付款由于内部审批延后，预计在9月中旬完成。请暂缓对账单出具节奏，避免影响内部流转。——北极航运AP",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2405",
+        "from": "operations@arcticfreight.io",
+        "to": "me@company.com",
+        "subject": "订单变更导致的服务排期说明",
+        "date": "2026-09-03T09:30:00Z",
+        "body": "我们这边有少量订单变更，需要同步服务排期。若你们需要我们提供更新的接口清单，请直接回复邮件。——北极航运运营",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2406",
+        "from": "billing@cloudpalmretail.com",
+        "to": "me@company.com",
+        "subject": "9月订阅暂停原因与恢复计划（已提交补单）",
+        "date": "2026-09-29T13:05:00Z",
+        "body": "你好：9月初因付款延迟导致订阅暂停，补单已提交并预计在月底恢复。恢复后请协助我们核对可用性与数据口径。——云栖零售计费团队",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2407",
+        "from": "platform@cloudpalmretail.com",
+        "to": "me@company.com",
+        "subject": "补回后：需要确认日志导出与对账口径",
+        "date": "2026-09-30T16:40:00Z",
+        "body": "恢复后我们希望确认日志导出范围与对账口径，避免后续退款/冲销争议。请给到操作说明。——云栖零售平台团队",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2408",
+        "from": "admin@company.com",
+        "to": "me@company.com",
+        "subject": "系统通知：登录安全策略更新",
+        "date": "2026-07-28T06:12:00Z",
+        "body": "安全策略更新通知，请勿回复。——系统管理员",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2409",
+        "from": "finance@haotumfg.cn",
+        "to": "me@company.com",
+        "subject": "退款/冲销说明与后续对账里程碑",
+        "date": "2026-08-31T03:10:00Z",
+        "body": "你好：我们对8月退款/冲销的原因已归档。请协助确认9月剩余账款的里程碑与对账节奏。——皓图制造财务",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2410",
+        "from": "pm@haotumfg.cn",
+        "to": "me@company.com",
+        "subject": "关于续期窗口的内部确认（满意度回升）",
+        "date": "2026-09-05T12:20:00Z",
+        "body": "我们目前内部评估完成，整体满意度在提升。关于续期窗口的决定需要财务放款节点配合，请稍等。——皓图制造项目经理",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2411",
+        "from": "contracting@yautengfin.tech",
+        "to": "me@company.com",
+        "subject": "9月冲正退款：合约条款调整后的执行口径",
+        "date": "2026-09-22T09:05:00Z",
+        "body": "你好：9月发生的冲正退款已记录。请按条款调整后的口径继续推进后续执行，并确认我们10-11月的对账模板。——耀腾金融合同团队",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2412",
+        "from": "support@yautengfin.tech",
+        "to": "me@company.com",
+        "subject": "请更新：合规审计模块的验收资料",
+        "date": "2026-09-08T15:30:00Z",
+        "body": "我们需要补充一份验收资料清单，请你们提供最新的合规审计文档要点。——耀腾金融支持",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2413",
+        "from": "notices@company.com",
+        "to": "me@company.com",
+        "subject": "通知：客服工单系统维护窗口",
+        "date": "2026-08-18T02:00:00Z",
+        "body": "客服工单系统将于今晚维护，请预留时间。——通知中心",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2414",
+        "from": "billing@qinglanedu.cn",
+        "to": "me@company.com",
+        "subject": "关于订阅账期调整与付款延迟的说明（8月）",
+        "date": "2026-08-19T08:50:00Z",
+        "body": "团队你好：8月订阅服务暂时处于非完成状态，原因是付款审批延后。我们预计9月下旬补缴完成，请配合暂缓部分变更。——青岚教育财务",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2415",
+        "from": "learnerops@qinglanedu.cn",
+        "to": "me@company.com",
+        "subject": "9月补缴后：希望对齐教学平台的服务边界",
+        "date": "2026-09-26T10:25:00Z",
+        "body": "补缴完成后我们想对齐服务边界与未来两个月的排期，尤其是数据同步策略。请回复建议。——青岚教育运营",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2416",
+        "from": "finance@hongjingmed.com",
+        "to": "me@company.com",
+        "subject": "9月付款延迟：账期调整，麻烦确认对账周期",
+        "date": "2026-09-17T05:40:00Z",
+        "body": "你好：我们9月存在付款延迟与账期调整。能否确认下一次对账周期以及你们系统记录的更新时间点？——宏景医疗财务",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_2417",
+        "from": "admin@company.com",
+        "to": "me@company.com",
+        "subject": "内部通知：模板更新与免责声明",
+        "date": "2026-09-20T12:00:00Z",
+        "body": "本周邮件模板与免责声明更新，请勿回复。——合规团队",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_2418",
+        "from": "it-support@hongjingmed.com",
+        "to": "me@company.com",
+        "subject": "补缴后需要协助：接口同步与回归验证",
+        "date": "2026-10-10T08:30:00Z",
+        "body": "10月补缴后我们计划做接口同步与回归验证，请提供测试用例和建议顺序。——宏景医疗IT支持",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-2401",
+        "title": "SaaS续约波动：9月常见的账期延长与冲正原因",
+        "summary": "多家SaaS企业反馈，季度末账期延长与对账差异在9月更集中，常见原因包括合同条款重述、交付验收口径调整与内部审批延迟。",
+        "tags": [
+          "账期延长",
+          "续约",
+          "对账差异"
+        ],
+        "url": "https://industry-brief.example.com/2401",
+        "content": "多家SaaS企业反馈，季度末账期延长与对账差异在9月更集中，常见原因包括合同条款重述、交付验收口径调整与内部审批延迟。",
+        "category": "SaaS, 续约, 账期",
+        "source": "行业简报",
+        "published_at": "2026-09-25T00:00:00Z",
+        "word_count": 62
+      },
+      {
+        "article_id": "RSS-2402",
+        "title": "金融科技与合规行业：退款/冲正与合同调整的趋势解读",
+        "summary": "合规审计相关合同更容易在季度末出现条款微调，从而引发部分退款或冲正；企业往往在内部审批完成后才补齐后续补单。",
+        "tags": [
+          "合同调整",
+          "冲正",
+          "合规"
+        ],
+        "url": "https://fintech-weekly.example.com/2402",
+        "content": "合规审计相关合同更容易在季度末出现条款微调，从而引发部分退款或冲正；企业往往在内部审批完成后才补齐后续补单。",
+        "category": "金融科技, 合规, 合同",
+        "source": "金融科技周刊",
+        "published_at": "2026-09-19T00:00:00Z",
+        "word_count": 55
+      },
+      {
+        "article_id": "RSS-2403",
+        "title": "物流行业预算收紧：付款延迟与服务降档更常见",
+        "summary": "物流企业在需求波动期会更频繁申请账期延长，同时对非关键模块采取暂缓或降档，导致订阅状态出现非完成记录。",
+        "tags": [
+          "物流",
+          "预算收紧",
+          "付款延迟"
+        ],
+        "url": "https://ops-digest.example.com/2403",
+        "content": "物流企业在需求波动期会更频繁申请账期延长，同时对非关键模块采取暂缓或降档，导致订阅状态出现非完成记录。",
+        "category": "物流, 预算, 付款",
+        "source": "运营观察",
+        "published_at": "2026-08-28T00:00:00Z",
+        "word_count": 58
+      },
+      {
+        "article_id": "RSS-2404",
+        "title": "医疗健康行业沟通断点的信号：从“零散邮件”到“集中爆发”",
+        "summary": "行业内部沟通通常在财务/审批推进阶段减少外部往来，随后在补缴完成或验收节点集中回复，因此邮件间隔拉长并不等同于没有风险。",
+        "tags": [
+          "医疗",
+          "沟通间隔",
+          "审批"
+        ],
+        "url": "https://health-ops.example.com/2404",
+        "content": "行业内部沟通通常在财务/审批推进阶段减少外部往来，随后在补缴完成或验收节点集中回复，因此邮件间隔拉长并不等同于没有风险。",
+        "category": "医疗, 审批, 沟通",
+        "source": "健康运营纪要",
+        "published_at": "2026-09-12T00:00:00Z",
+        "word_count": 49
+      },
+      {
+        "article_id": "RSS-2405",
+        "title": "教育行业续费：8-9月账期调整对订阅中断的影响",
+        "summary": "教育培训机构在开学季前后容易出现预算重排，账期调整导致订阅服务阶段性中断或状态非completed，随后在补缴完成后恢复。",
+        "tags": [
+          "教育",
+          "订阅中断",
+          "账期调整"
+        ],
+        "url": "https://edtech-times.example.com/2405",
+        "content": "教育培训机构在开学季前后容易出现预算重排，账期调整导致订阅服务阶段性中断或状态非completed，随后在补缴完成后恢复。",
+        "category": "教育科技, 订阅, 账期",
+        "source": "教育科技时报",
+        "published_at": "2026-08-26T00:00:00Z",
+        "word_count": 61
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在Q3数据上加入“现金流紧张 + 邮件沟通断点”的交叉预警，并要求对每客户给出外呼/邮件跟进脚本要点与按紧急程度排序的干预清单。",
+    "fixture_design_summary": [
+      "crm/customers.json：新增7个全新客户（CUS-2401~CUS-2407），sales_owner分别覆盖不同联系人姓名；合同到期覆盖10-12月以避免到期成为唯一依据，并设置至少部分满意度较高但同时存在财务/邮件异常以支持纠偏。",
+      "finance/transactions.json：Q3共安排约20余笔交易；其中CUS-2401、CUS-2402、CUS-2403、CUS-2404、CUS-2405、CUS-2406、CUS-2407均包含退款/冲销、付款延迟或订阅中断信号，并确保至少1个客户在Q3末期补回（CUS-2403）。",
+      "gmail/inbox.json：Q3内为每客户至少提供1封来自客户域的有效邮件；并通过刻意减少某些客户在后续周段的有效邮件，形成至少3个客户可满足“连续至少5个工作周无有效邮件”的断点条件；同时加入来自admin/通知域的内部通知邮件用于干扰过滤。",
+      "rss/feeds.json：提供多篇与账期延长/合同调整/退款冲正/付款延迟/订阅中断相关的行业背景，数量适配并用于辅助解释而非替代客户证据。",
+      "contacts/contacts.json：为不同sales_owner提供可匹配的联系人记录，确保后续解析owner归属时能在内部通讯录中对应。"
+    ]
+  }
+}

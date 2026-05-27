@@ -1,0 +1,210 @@
+{
+  "task_id": "T135zh_weekly_meeting_tracking_plus_3",
+  "task_name": "非标准纪要格式的行动项抽取",
+  "prompt_text": "请生成本周会议行动项跟踪报告（重点考察纪要解析）：\n1）查询本周内的日历会议，只处理带有纪要的会议；\n2）对每份纪要：从文本中抽取所有行动项；如果行动项缺少截止日期，在报告中标记为“无 due_date”；\n3）将抽取到的行动项与待办事项匹配，给出 pending/in_progress/completed；\n4）输出按会议分组的进度：每项包含状态与到期判断（逾期/即将到期/正常；当无 due_date 时仅标记“无 due_date”）；\n5）最后列出遗漏行动项（纪要有但待办无）。\n\n要求：不要忽略纪要中用项目符号/不同符号书写的行动项；纪要中的“结论/风险提示/讨论摘要/已完成说明”等干扰段落不应被当成行动项。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_611",
+        "title": "研发周度对齐会",
+        "start_time": "2026-05-29T10:00:00+08:00",
+        "end_time": "2026-05-29T11:00:00+08:00",
+        "location": "会议室D",
+        "organizer": "陈妍",
+        "attendees": [
+          "陈妍",
+          "林凯",
+          "周澄"
+        ],
+        "description": "研发周度对齐，纪要关联NOTE-M1",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_612",
+        "title": "质量改进复盘会",
+        "start_time": "2026-05-31T14:00:00+08:00",
+        "end_time": "2026-05-31T15:30:00+08:00",
+        "location": "B区评审室",
+        "organizer": "周澄",
+        "attendees": [
+          "周澄",
+          "赵志",
+          "陈妍"
+        ],
+        "description": "质量复盘，纪要关联NOTE-M2",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_613",
+        "title": "培训：数据安全与合规",
+        "start_time": "2026-05-30T09:30:00+08:00",
+        "end_time": "2026-05-30T11:00:00+08:00",
+        "location": "线上会议",
+        "organizer": "合规团队",
+        "attendees": [
+          "陈妍",
+          "林凯"
+        ],
+        "description": "不含纪要",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_614",
+        "title": "例行系统巡检",
+        "start_time": "2026-06-01T16:00:00+08:00",
+        "end_time": "2026-06-01T17:00:00+08:00",
+        "location": "机房A",
+        "organizer": "赵志",
+        "attendees": [
+          "赵志"
+        ],
+        "description": "不含纪要",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_615",
+        "title": "客户对接同步（无纪要）",
+        "start_time": "2026-06-02T11:00:00+08:00",
+        "end_time": "2026-06-02T11:30:00+08:00",
+        "location": "会议室C",
+        "organizer": "林凯",
+        "attendees": [
+          "林凯",
+          "周澄"
+        ],
+        "description": "仅对接，不含纪要",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "NOTE-M1",
+        "title": "研发周度对齐会纪要 5/29",
+        "content": "## 研发周度对齐\n\n【讨论结论】本周以稳定性优先，接口冻结窗口维持不变。\n【风险提示】若监控告警激增，需先止血再评审。\n\n### 行动项（非标准格式）\n• 林凯 - 完成告警阈值调参（截止：2026-06-05）\n• 朱敏 - 梳理灰度发布回滚流程（截止：2026-06-02）\n- 陈妍【负责人】- 更新SLO指标口径（截止：2026-06-10）\n* 周澄 - 汇总数据质量问题清单\n\n（已完成说明：对齐了上周的核心度量，以上不属于行动项）\n\n### 其他信息\n- 下一轮评审时间待定\n",
+        "participants": [
+          "陈妍",
+          "林凯",
+          "周澄",
+          "朱敏"
+        ],
+        "tags": [
+          "研发",
+          "稳定性"
+        ],
+        "created_at": "2026-05-29T10:05:00Z",
+        "duration_minutes": 60
+      },
+      {
+        "note_id": "NOTE-M2",
+        "title": "质量改进复盘会纪要 5/31",
+        "content": "## 质量改进复盘\n\n### 行动项\n1. 【赵志】编写缺陷复盘模板与示例（截止：2026-06-01）\n2. 【陈妍】- 梳理回归测试用例覆盖清单（截止：2026-06-07）\n3. 【林凯】完成自动化回归脚本升级（截止：2026-06-01）\n\n【讨论摘要】本次复盘重点在于减少线上回归漏测。\n【结论】按模板落地后下周进行抽查。\n",
+        "participants": [
+          "赵志",
+          "陈妍",
+          "林凯"
+        ],
+        "tags": [
+          "质量",
+          "测试"
+        ],
+        "created_at": "2026-05-31T14:10:00Z",
+        "duration_minutes": 90
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-M1-01",
+        "title": "告警阈值调参",
+        "description": "完成告警阈值调参",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-06-05",
+        "assignee": "林凯",
+        "tags": [
+          "稳定性"
+        ]
+      },
+      {
+        "task_id": "TODO-M1-02",
+        "title": "灰度发布回滚流程梳理",
+        "description": "梳理灰度发布回滚流程",
+        "status": "completed",
+        "priority": "medium",
+        "due_date": "2026-06-02",
+        "assignee": "朱敏",
+        "tags": [
+          "发布"
+        ]
+      },
+      {
+        "task_id": "TODO-M1-03",
+        "title": "更新SLO指标口径",
+        "description": "更新SLO指标口径",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-06-10",
+        "assignee": "陈妍",
+        "tags": [
+          "SLO"
+        ]
+      },
+      {
+        "task_id": "TODO-M2-01",
+        "title": "缺陷复盘模板与示例",
+        "description": "编写缺陷复盘模板与示例",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-06-01",
+        "assignee": "赵志",
+        "tags": [
+          "质量"
+        ]
+      },
+      {
+        "task_id": "TODO-M2-02",
+        "title": "回归测试用例覆盖清单",
+        "description": "梳理回归测试用例覆盖清单",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-06-07",
+        "assignee": "陈妍",
+        "tags": [
+          "测试"
+        ]
+      },
+      {
+        "task_id": "TODO-M2-03",
+        "title": "自动化回归脚本升级",
+        "description": "完成自动化回归脚本升级",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-06-01",
+        "assignee": "林凯",
+        "tags": [
+          "自动化"
+        ]
+      },
+      {
+        "task_id": "TODO-M1-99",
+        "title": "月度采购资料整理（干扰）",
+        "description": "整理月度采购资料与对账单",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-06-20",
+        "assignee": "周澄",
+        "tags": [
+          "行政"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "纪要行动项采用多种非标准符号/写法混排，且包含缺失 due_date 的行动项边界，要求仍能正确抽取并以“无 due_date”标注，同时做逾期/即将到期判断。",
+    "fixture_design_summary": [
+      "calendar/events.json 共5个事件，只有2个事件描述含“纪要关联NOTE-M1/NOTE-M2”，其余为无关活动。",
+      "notes/meetings.json 为NOTE-M1包含4条行动项且混用“• - 【】*”等符号，其中一条缺失截止日期（应抽取但标注无 due_date）；并加入结论/风险/已完成说明干扰段。",
+      "notes/meetings.json 为NOTE-M2包含3条行动项，全部带截止日期且覆盖过去/未来（mock_today=2026-06-03）。",
+      "todo/tasks.json 共7条任务：6条与两份纪要行动项可匹配（覆盖pending/in_progress/completed），并刻意缺失NOTE-M1中“缺 due_date 的行动项（汇总数据质量问题清单）”对应的待办，用于验证遗漏清单输出；再加入1条完全不相关干扰任务。"
+    ]
+  }
+}

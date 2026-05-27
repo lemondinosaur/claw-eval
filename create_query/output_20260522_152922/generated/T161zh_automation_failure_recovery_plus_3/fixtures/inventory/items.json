@@ -1,0 +1,122 @@
+[
+  {
+    "product_id": "SKU-MT-7001",
+    "name": "云办公座机-白色（512F）",
+    "category": "IT通信终端",
+    "quantity": 12,
+    "unit": "台",
+    "reorder_level": 20,
+    "supplier_integration": "INT-SUP-9103",
+    "last_sync": "2026-05-22T08:12:00Z",
+    "sync_status": "blocked",
+    "notes": "该商品状态被写入403链路触发后置为blocked；上游供应抓取正常，但写入到租户隔离层失败导致不可用。"
+  },
+  {
+    "product_id": "SKU-MT-7002",
+    "name": "工业路由器-ERX2000",
+    "category": "网络设备",
+    "quantity": 4,
+    "unit": "台",
+    "reorder_level": 6,
+    "supplier_integration": "INT-SUP-9103",
+    "last_sync": "2026-05-22T08:14:00Z",
+    "sync_status": "partial",
+    "notes": "部分字段更新成功但校验拒绝后无法触发补货；表现为quantity仍显示，但自动补货被安全策略阻断。"
+  },
+  {
+    "product_id": "SKU-MT-7003",
+    "name": "PoE交换机-8口（G2）",
+    "category": "网络设备",
+    "quantity": 7,
+    "unit": "台",
+    "reorder_level": 10,
+    "supplier_integration": "INT-SUP-9103",
+    "last_sync": "2026-05-22T08:10:00Z",
+    "sync_status": "blocked",
+    "notes": "最近一次同步后 last_sync 出现跳变；blocked 与共享缓存置不可用一致性校验拒绝相关。"
+  },
+  {
+    "product_id": "SKU-MT-7004",
+    "name": "无线网卡-AC1200",
+    "category": "网络设备",
+    "quantity": 19,
+    "unit": "个",
+    "reorder_level": 25,
+    "supplier_integration": "INT-SUP-9103",
+    "last_sync": "2026-05-22T08:13:00Z",
+    "sync_status": "partial",
+    "notes": "可见数量但无法用于自动补货计算；原因：租户隔离写入失败导致校验拒绝，补货触发被全局安全保护阻断。"
+  },
+  {
+    "product_id": "SKU-MT-7005",
+    "name": "电源适配器-65W通用",
+    "category": "IT外设",
+    "quantity": 0,
+    "unit": "个",
+    "reorder_level": 15,
+    "supplier_integration": "INT-SUP-9103",
+    "last_sync": "2026-05-22T08:09:00Z",
+    "sync_status": "blocked",
+    "notes": "quantity=0但并非真正耗尽：被 blocked 后无法完成一致性校验重算与补货触发。"
+  },
+  {
+    "product_id": "SKU-MT-7006",
+    "name": "办公椅-人体工学（黑）",
+    "category": "家具",
+    "quantity": 26,
+    "unit": "把",
+    "reorder_level": 8,
+    "supplier_integration": "INT-SUP-9103",
+    "last_sync": "2026-05-22T08:00:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  },
+  {
+    "product_id": "SKU-MT-7007",
+    "name": "A4纸-500张/包",
+    "category": "办公耗材",
+    "quantity": 210,
+    "unit": "包",
+    "reorder_level": 60,
+    "supplier_integration": "INT-SUP-9103",
+    "last_sync": "2026-05-22T08:00:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  },
+  {
+    "product_id": "SKU-MT-7008",
+    "name": "键盘-机械轴（青轴）",
+    "category": "IT外设",
+    "quantity": 52,
+    "unit": "个",
+    "reorder_level": 20,
+    "supplier_integration": "INT-SUP-9103",
+    "last_sync": "2026-05-22T08:00:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  },
+  {
+    "product_id": "SKU-MT-7009",
+    "name": "显示器-24英寸（IPS）",
+    "category": "IT设备",
+    "quantity": 8,
+    "unit": "台",
+    "reorder_level": 10,
+    "supplier_integration": "INT-SUP-9103",
+    "last_sync": "2026-05-22T08:15:00Z",
+    "sync_status": "partial",
+    "notes": "用于解释“看得到但不可用/无法触发补货”：该商品在页面仍显示quantity，但由于共享缓存不可用与校验拒绝，自动补货链路被中断。"
+  },
+  {
+    "product_id": "SKU-MT-7010",
+    "name": "鼠标-静音版（M900）",
+    "category": "IT外设",
+    "quantity": 33,
+    "unit": "个",
+    "reorder_level": 25,
+    "supplier_integration": "INT-SUP-9103",
+    "last_sync": "2026-05-22T08:00:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  }
+]

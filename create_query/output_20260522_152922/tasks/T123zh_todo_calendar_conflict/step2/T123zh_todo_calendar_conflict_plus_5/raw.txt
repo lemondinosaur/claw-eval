@@ -1,0 +1,190 @@
+{
+  "task_id": "T123zh_todo_calendar_conflict_plus_5",
+  "task_name": "跨天边界与临时取消",
+  "prompt_text": "请帮我检测：哪些待办会与日历事件发生真实冲突。\n\n要求：\n1) 先排除日历中标记为“canceled”的事件；\n2) 对跨天事件要严格按边界时间判断占用归属（例如 23:30 开始的会议，只计算其落在 23:30-24:00 与 00:00-对应时段的部分分别占用到对应日期）；\n3) 对 0 分钟异常事件（start_time 与 end_time 相同）不应产生有效占用，必须排除避免误判；\n4) 在输出中：明确列出被排除的事件（canceled/0分钟）；\n5) 对每个冲突的待办给出重排建议：具体到“日期 + 时段”，并保证建议不会安排到已占用时间。\n\n最终输出：每个关键待办的“冲突/非冲突”结论，以及可执行的重排建议。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_610",
+        "title": "夜间值守会议（跨天）",
+        "start_time": "2026-02-21T23:30:00+08:00",
+        "end_time": "2026-02-22T01:00:00+08:00",
+        "location": "远程会议室",
+        "organizer": "值班组",
+        "attendees": [
+          "张三"
+        ],
+        "description": "夜间值班确认事项，跨天占用",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_611",
+        "title": "对齐会（短时）",
+        "start_time": "2026-02-22T09:30:00+08:00",
+        "end_time": "2026-02-22T10:00:00+08:00",
+        "location": "会议室B",
+        "organizer": "运营部",
+        "attendees": [
+          "张三"
+        ],
+        "description": "当天流程对齐，30分钟",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_612",
+        "title": "临时面谈（仅占用标记，已取消）",
+        "start_time": "2026-02-22T15:00:00+08:00",
+        "end_time": "2026-02-22T16:30:00+08:00",
+        "location": "会客室2",
+        "organizer": "HR支持",
+        "attendees": [
+          "张三",
+          "李四"
+        ],
+        "description": "原计划面谈，当前已临时取消但仍保留在数据中",
+        "status": "canceled"
+      },
+      {
+        "event_id": "evt_613",
+        "title": "内部演练（全天）",
+        "start_time": "2026-02-23T00:00:00+08:00",
+        "end_time": "2026-02-23T23:59:59+08:00",
+        "location": "演练场地",
+        "organizer": "安全委员会",
+        "attendees": [
+          "张三",
+          "王五"
+        ],
+        "description": "内部演练，全天不可中断",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_614",
+        "title": "异常占位事件（0分钟干扰）",
+        "start_time": "2026-02-22T13:10:00+08:00",
+        "end_time": "2026-02-22T13:10:00+08:00",
+        "location": "N/A",
+        "organizer": "系统",
+        "attendees": [],
+        "description": "异常数据：开始与结束相同，不应造成占用",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TD-8101",
+        "title": "撰写事故复盘初稿（3小时）",
+        "description": "完成事故复盘初稿，需连续投入3小时",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-02-21",
+        "assignee": "我",
+        "tags": [
+          "事故复盘"
+        ],
+        "estimated_hours": 3
+      },
+      {
+        "task_id": "TD-8102",
+        "title": "提交改版需求（2小时）",
+        "description": "整理并提交改版需求说明，预计2小时产出",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-02-22",
+        "assignee": "我",
+        "tags": [
+          "改版",
+          "需求"
+        ],
+        "estimated_hours": 2
+      },
+      {
+        "task_id": "TD-8103",
+        "title": "完成演练后续工单（2小时）",
+        "description": "根据演练结果完成后续工单的关键修复与闭环，2小时",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-02-23",
+        "assignee": "我",
+        "tags": [
+          "演练",
+          "工单"
+        ],
+        "estimated_hours": 2
+      },
+      {
+        "task_id": "TD-8104",
+        "title": "整理会议材料备份（1小时）",
+        "description": "将相关材料备份并归档到共享盘",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-02-21",
+        "assignee": "我",
+        "tags": [
+          "归档"
+        ],
+        "estimated_hours": 1
+      },
+      {
+        "task_id": "TD-8105",
+        "title": "排查日志异常并写结论（1小时）",
+        "description": "对异常日志进行快速排查并形成结论要点",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-02-22",
+        "assignee": "我",
+        "tags": [
+          "排查"
+        ],
+        "estimated_hours": 1
+      },
+      {
+        "task_id": "TD-8106",
+        "title": "邮件沟通：同步风险点（0.5小时）",
+        "description": "给相关方发送风险点同步邮件并收集反馈",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-02-21",
+        "assignee": "我",
+        "tags": [
+          "邮件"
+        ],
+        "estimated_hours": 0.5
+      },
+      {
+        "task_id": "TD-8107",
+        "title": "完成版本回归清单（1.5小时，干扰）",
+        "description": "更新并核对回归清单，属于低优先级但需处理",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-02-23",
+        "assignee": "我",
+        "tags": [
+          "回归"
+        ],
+        "estimated_hours": 1.5
+      },
+      {
+        "task_id": "TD-8110",
+        "title": "已完成：周报汇总（干扰项）",
+        "description": "已于昨天完成周报汇总与发布",
+        "status": "completed",
+        "priority": "low",
+        "due_date": "2026-02-22",
+        "assignee": "我",
+        "tags": [
+          "周报"
+        ],
+        "estimated_hours": 1
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新增跨天夜间值守事件（需精确分配 2/21 23:30-24:00 与 2/22 00:00-01:00 占用），并加入 canceled 临时面谈与 0 分钟异常事件，要求正确排除它们的影响。",
+    "fixture_design_summary": [
+      "calendar：包含1条跨天 confirmed（evt_610）、1条正常短会 confirmed（evt_611）、1条 canceled（evt_612）、1条全天 confirmed（evt_613）、1条 start=end 的 0分钟异常（evt_614）",
+      "todo：关键待办覆盖 2/21 high（TD-8101）、2/22 medium（TD-8102）、2/23 high（TD-8103），并加入 low（TD-8104）与额外 pending 作为干扰",
+      "通过 estimated_hours 设计：2/21 的 3小时任务需考虑跨天边界与可用白天时段重排；2/22 的 2小时任务避开 09:30-10:00 与夜间跨天占用；2/23 的 2小时任务因全天演练需前置"
+    ]
+  }
+}

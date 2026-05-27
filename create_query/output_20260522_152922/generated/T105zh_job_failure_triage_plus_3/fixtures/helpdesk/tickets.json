@@ -1,0 +1,158 @@
+[
+  {
+    "ticket_id": "TK-9101",
+    "title": "资料库下载返回404：文件不存在",
+    "description": "用户从“资料库-共享文档”下载某文件时返回404，提示文件不存在。该问题在今天10:12集中出现。尝试刷新后仍失败；但同一账号在其他文件页面偶尔能看到链接。",
+    "reporter": "内容团队-赵晨",
+    "department": "内容团队",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-20T10:18:00Z",
+    "tags": [
+      "下载404",
+      "文件不存在",
+      "资料库"
+    ],
+    "category": "内容分发/文件同步"
+  },
+  {
+    "ticket_id": "TK-9102",
+    "title": "下载失败：无法找到对应文件（提示可下载但不存在）",
+    "description": "部分旧版资料的下载链接提示“文件不存在”。界面显示可下载入口，但实际点开报404。该现象在10:20之后明显增加。",
+    "reporter": "市场部-周敏",
+    "department": "市场部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-20T10:25:00Z",
+    "tags": [
+      "下载404",
+      "链接失效"
+    ],
+    "category": "内容分发/文件同步"
+  },
+  {
+    "ticket_id": "TK-9103",
+    "title": "同步任务失败报警：中心仓内容未更新",
+    "description": "平台运维告警显示“内容同步失败”。从告警时间点起，中心仓出现缺失：部分内容在S3侧存在，但下载服务无法拉取到新版本文件。该问题持续重试中。",
+    "reporter": "平台运维-林浩",
+    "department": "平台运维",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-20T10:35:00Z",
+    "tags": [
+      "同步任务失败报警",
+      "中心仓缺失",
+      "重试"
+    ],
+    "category": "平台告警"
+  },
+  {
+    "ticket_id": "TK-9104",
+    "title": "资料中心下载报错：AccessDenied",
+    "description": "当访问某些文件的下载接口时返回权限拒绝错误（AccessDenied）。日志里能看到权限校验失败；尝试多次后仍无法下载。多数受影响文件来自“中心仓-最新发布”目录。",
+    "reporter": "数据运营-孙悦",
+    "department": "数据运营",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-20T10:42:00Z",
+    "tags": [
+      "AccessDenied",
+      "下载失败",
+      "中心仓"
+    ],
+    "category": "权限/访问控制"
+  },
+  {
+    "ticket_id": "TK-9105",
+    "title": "搜索结果缺少部分文件，但能直接通过链接下载",
+    "description": "用户反馈：搜索结果中缺少最近一批文件，但如果用户已知直接下载链接，下载是可以成功的。排查显示索引链路在10:50附近服务异常。",
+    "reporter": "索引查询团队-陈墨",
+    "department": "索引查询团队",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-20T11:03:00Z",
+    "tags": [
+      "搜索缺少",
+      "索引异常",
+      "可下载"
+    ],
+    "category": "搜索体验"
+  },
+  {
+    "ticket_id": "TK-9106",
+    "title": "内容分发：下载失败（证书过期相关）",
+    "description": "部分用户访问CDN分发下载地址时出现TLS证书过期导致的握手失败，间歇性转成404/文件不存在。运维检查到证书在10:05附近失效，之后持续重试。",
+    "reporter": "网络与安全-刘宇",
+    "department": "网络与安全",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-20T10:14:00Z",
+    "tags": [
+      "TLS证书已过期",
+      "CDN",
+      "404"
+    ],
+    "category": "内容分发/文件同步"
+  },
+  {
+    "ticket_id": "TK-9107",
+    "title": "搜索查询超时但无可用文件缺失证据",
+    "description": "用户报告搜索偶发超时，可能与网络抖动有关。对比下载情况：大部分文件仍可下载，未发现明确“可下载但搜不到”的集中模式。",
+    "reporter": "产品支持-郭琪",
+    "department": "产品支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-20T11:12:00Z",
+    "tags": [
+      "搜索超时",
+      "疑似网络"
+    ],
+    "category": "搜索体验"
+  },
+  {
+    "ticket_id": "TK-9108",
+    "title": "会议室预定失败",
+    "description": "用户尝试预定会议室时提示失败，页面显示“可用性不足”。与资料库下载无直接关联。",
+    "reporter": "行政部-周航",
+    "department": "行政部",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-20T10:20:00Z",
+    "tags": [
+      "会议室",
+      "预定失败"
+    ],
+    "category": "办公协作"
+  },
+  {
+    "ticket_id": "TK-9109",
+    "title": "工资发放文件导出失败",
+    "description": "人事系统导出工资文件失败，提示模板参数缺失。用户确认与资料库共享文档无关。",
+    "reporter": "人事-马琳",
+    "department": "人事部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-20T09:55:00Z",
+    "tags": [
+      "导出失败",
+      "模板缺失"
+    ],
+    "category": "人事系统"
+  },
+  {
+    "ticket_id": "TK-9110",
+    "title": "中心仓同步持续失败：S3→仓库权限拒绝",
+    "description": "平台告警显示同步一直失败，错误信息指向权限拒绝（AccessDenied）。部分用户报告“能看到页面但下载不到”。故障窗口从10:28持续至今。",
+    "reporter": "平台运维-林浩",
+    "department": "平台运维",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-20T10:48:00Z",
+    "tags": [
+      "AccessDenied",
+      "S3到中心仓",
+      "同步持续失败"
+    ],
+    "category": "平台告警"
+  }
+]

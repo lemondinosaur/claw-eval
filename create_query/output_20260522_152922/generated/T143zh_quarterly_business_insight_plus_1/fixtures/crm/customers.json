@@ -1,0 +1,79 @@
+[
+  {
+    "customer_id": "CUS-211",
+    "name": "云栈支付",
+    "tier": "enterprise",
+    "status": "active_pending",
+    "industry": "金融科技",
+    "annual_revenue": 1320000,
+    "contract_end": "2026-06-20",
+    "notes": "续约谈判中；近期出现争议工单：对账差异与退款条款分歧，关键联系人反馈“等待监管口径”",
+    "contact_person": "li.wang@yunstack.example"
+  },
+  {
+    "customer_id": "CUS-212",
+    "name": "澄川医疗器械",
+    "tier": "vip",
+    "status": "active",
+    "industry": "医疗器械",
+    "annual_revenue": 980000,
+    "contract_end": "2026-08-05",
+    "notes": "计划续约、但扩量取决于合规审核；当前未出现争议，回款表现稳定",
+    "contact_person": "chen.yan@chengchuan.example"
+  },
+  {
+    "customer_id": "CUS-213",
+    "name": "北星物流科技",
+    "tier": "standard",
+    "status": "active",
+    "industry": "物流地产",
+    "annual_revenue": 560000,
+    "contract_end": "2026-07-15",
+    "notes": "合同正常；运营侧反馈供应链成本上升，可能延后部分批量采购，但目前无争议状态",
+    "contact_person": "zhao.qi@beixinglog.example"
+  },
+  {
+    "customer_id": "CUS-214",
+    "name": "星港制造服务",
+    "tier": "enterprise",
+    "status": "active",
+    "industry": "工业制造",
+    "annual_revenue": 1470000,
+    "contract_end": "2026-05-30",
+    "notes": "到期在即；因预算收紧出现“降级讨论”（从企业版回到标准版）但仍在推进续约",
+    "contact_person": "sun.hao@xinggangmfg.example"
+  },
+  {
+    "customer_id": "CUS-215",
+    "name": "栖谷供应链平台",
+    "tier": "standard",
+    "status": "active_pending",
+    "industry": "供应链平台",
+    "annual_revenue": 410000,
+    "contract_end": "2026-09-10",
+    "notes": "争议处理阶段：部分发票与交付里程碑对不上；承诺将在Q2完成对账后继续采购",
+    "contact_person": "wu.rui@qigu-scm.example"
+  },
+  {
+    "customer_id": "CUS-216",
+    "name": "朝露传媒代理",
+    "tier": "vip",
+    "status": "active",
+    "industry": "传媒广告",
+    "annual_revenue": 720000,
+    "contract_end": "2026-11-25",
+    "notes": "续约节奏快、无争议；但营销预算波动会影响扩量，需关注需求端节拍",
+    "contact_person": "tang.ling@chaoluads.example"
+  },
+  {
+    "customer_id": "CUS-217",
+    "name": "极光教育云",
+    "tier": "standard",
+    "status": "churned",
+    "industry": "教育科技",
+    "annual_revenue": 0,
+    "contract_end": "2026-02-10",
+    "notes": "已流失：与新财政拨付节奏冲突导致项目暂停；虽曾有交易，但后续退款为主",
+    "contact_person": "liang.qi@jiguangedu.example"
+  }
+]

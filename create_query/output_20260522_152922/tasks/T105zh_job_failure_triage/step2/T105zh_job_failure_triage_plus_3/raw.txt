@@ -1,0 +1,403 @@
+{
+  "task_id": "T105zh_job_failure_triage_plus_3",
+  "task_name": "文件同步失败与工单影响面分析",
+  "prompt_text": "近期多个部门反映资料库的文件没有及时同步或下载失败。请你：\n1）查看所有失败的文件同步/内容分发类定时任务及其错误信息（重点关注 file_sync / cdn / content_distribute / index 相关tag）；\n2）查看当前未解决的工单（open）；\n3）分析哪些工单由文件同步失败引起，并区分主要影响面与次要影响面：\n   - 下载404/文件不存在：重点归因 TLS证书过期导致的CDN分发失败，以及与之时间先后相匹配的同步链路问题；\n   - 权限拒绝(AccessDenied)：重点归因 S3→中心仓权限拒绝并持续重试导致的中心仓缺失；\n   - 搜索结果缺少但可下载：若工单描述明确“可下载但找不到/搜索缺少”，可归因索引服务不可用；若描述能解释为“次要体验”，则标注为次要影响面；\n4）输出关联分析报告：对每个故障定时任务，列出关联工单、归因要点（包含失败错误类型+失败窗口与工单created_at时间线先后）、影响范围（外部下载/内部内容索引/搜索体验等）、以及建议处理优先级（先恢复用户可用性）。\n注意：不得把不相关的工单（例如会议室预定失败等）错误归因到文件同步/索引故障。",
+  "files": {
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-9101",
+        "title": "资料库下载返回404：文件不存在",
+        "description": "用户从“资料库-共享文档”下载某文件时返回404，提示文件不存在。该问题在今天10:12集中出现。尝试刷新后仍失败；但同一账号在其他文件页面偶尔能看到链接。",
+        "reporter": "内容团队-赵晨",
+        "department": "内容团队",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-20T10:18:00Z",
+        "tags": [
+          "下载404",
+          "文件不存在",
+          "资料库"
+        ],
+        "category": "内容分发/文件同步"
+      },
+      {
+        "ticket_id": "TK-9102",
+        "title": "下载失败：无法找到对应文件（提示可下载但不存在）",
+        "description": "部分旧版资料的下载链接提示“文件不存在”。界面显示可下载入口，但实际点开报404。该现象在10:20之后明显增加。",
+        "reporter": "市场部-周敏",
+        "department": "市场部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T10:25:00Z",
+        "tags": [
+          "下载404",
+          "链接失效"
+        ],
+        "category": "内容分发/文件同步"
+      },
+      {
+        "ticket_id": "TK-9103",
+        "title": "同步任务失败报警：中心仓内容未更新",
+        "description": "平台运维告警显示“内容同步失败”。从告警时间点起，中心仓出现缺失：部分内容在S3侧存在，但下载服务无法拉取到新版本文件。该问题持续重试中。",
+        "reporter": "平台运维-林浩",
+        "department": "平台运维",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-20T10:35:00Z",
+        "tags": [
+          "同步任务失败报警",
+          "中心仓缺失",
+          "重试"
+        ],
+        "category": "平台告警"
+      },
+      {
+        "ticket_id": "TK-9104",
+        "title": "资料中心下载报错：AccessDenied",
+        "description": "当访问某些文件的下载接口时返回权限拒绝错误（AccessDenied）。日志里能看到权限校验失败；尝试多次后仍无法下载。多数受影响文件来自“中心仓-最新发布”目录。",
+        "reporter": "数据运营-孙悦",
+        "department": "数据运营",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-20T10:42:00Z",
+        "tags": [
+          "AccessDenied",
+          "下载失败",
+          "中心仓"
+        ],
+        "category": "权限/访问控制"
+      },
+      {
+        "ticket_id": "TK-9105",
+        "title": "搜索结果缺少部分文件，但能直接通过链接下载",
+        "description": "用户反馈：搜索结果中缺少最近一批文件，但如果用户已知直接下载链接，下载是可以成功的。排查显示索引链路在10:50附近服务异常。",
+        "reporter": "索引查询团队-陈墨",
+        "department": "索引查询团队",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T11:03:00Z",
+        "tags": [
+          "搜索缺少",
+          "索引异常",
+          "可下载"
+        ],
+        "category": "搜索体验"
+      },
+      {
+        "ticket_id": "TK-9106",
+        "title": "内容分发：下载失败（证书过期相关）",
+        "description": "部分用户访问CDN分发下载地址时出现TLS证书过期导致的握手失败，间歇性转成404/文件不存在。运维检查到证书在10:05附近失效，之后持续重试。",
+        "reporter": "网络与安全-刘宇",
+        "department": "网络与安全",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-20T10:14:00Z",
+        "tags": [
+          "TLS证书已过期",
+          "CDN",
+          "404"
+        ],
+        "category": "内容分发/文件同步"
+      },
+      {
+        "ticket_id": "TK-9107",
+        "title": "搜索查询超时但无可用文件缺失证据",
+        "description": "用户报告搜索偶发超时，可能与网络抖动有关。对比下载情况：大部分文件仍可下载，未发现明确“可下载但搜不到”的集中模式。",
+        "reporter": "产品支持-郭琪",
+        "department": "产品支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-20T11:12:00Z",
+        "tags": [
+          "搜索超时",
+          "疑似网络"
+        ],
+        "category": "搜索体验"
+      },
+      {
+        "ticket_id": "TK-9108",
+        "title": "会议室预定失败",
+        "description": "用户尝试预定会议室时提示失败，页面显示“可用性不足”。与资料库下载无直接关联。",
+        "reporter": "行政部-周航",
+        "department": "行政部",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-20T10:20:00Z",
+        "tags": [
+          "会议室",
+          "预定失败"
+        ],
+        "category": "办公协作"
+      },
+      {
+        "ticket_id": "TK-9109",
+        "title": "工资发放文件导出失败",
+        "description": "人事系统导出工资文件失败，提示模板参数缺失。用户确认与资料库共享文档无关。",
+        "reporter": "人事-马琳",
+        "department": "人事部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T09:55:00Z",
+        "tags": [
+          "导出失败",
+          "模板缺失"
+        ],
+        "category": "人事系统"
+      },
+      {
+        "ticket_id": "TK-9110",
+        "title": "中心仓同步持续失败：S3→仓库权限拒绝",
+        "description": "平台告警显示同步一直失败，错误信息指向权限拒绝（AccessDenied）。部分用户报告“能看到页面但下载不到”。故障窗口从10:28持续至今。",
+        "reporter": "平台运维-林浩",
+        "department": "平台运维",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-20T10:48:00Z",
+        "tags": [
+          "AccessDenied",
+          "S3到中心仓",
+          "同步持续失败"
+        ],
+        "category": "平台告警"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-5201",
+        "name": "CDN文件分发（证书检查）",
+        "cron_expression": "*/10 * * * *",
+        "action": "distribute_files_to_cdn",
+        "enabled": true,
+        "last_run": "2026-05-20T10:26:00Z",
+        "next_run": "2026-05-20T10:30:00Z",
+        "last_status": "failed",
+        "created_by": "deploy_bot",
+        "tags": [
+          "file_sync",
+          "cdn",
+          "content_distribute",
+          "tls"
+        ],
+        "created_at": "2026-02-12T03:10:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T10:05:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "TLSHandshakeError: certificate expired at 2026-05-20T10:03:00Z"
+          },
+          {
+            "run_at": "2026-05-20T10:15:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "TLSHandshakeError: certificate expired at 2026-05-20T10:03:00Z"
+          },
+          {
+            "run_at": "2026-05-20T10:25:00Z",
+            "status": "failed",
+            "duration_s": 11,
+            "error": "TLSHandshakeError: certificate expired at 2026-05-20T10:03:00Z"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-5202",
+        "name": "S3到中心仓内容同步",
+        "cron_expression": "*/15 * * * *",
+        "action": "sync_s3_to_central_repo",
+        "enabled": true,
+        "last_run": "2026-05-20T10:50:00Z",
+        "next_run": "2026-05-20T11:05:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": [
+          "file_sync",
+          "s3",
+          "content_distribute",
+          "access"
+        ],
+        "created_at": "2026-02-28T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T10:28:00Z",
+            "status": "failed",
+            "duration_s": 4,
+            "error": "AccessDenied: s3:GetObject denied for bucket central-source"
+          },
+          {
+            "run_at": "2026-05-20T10:43:00Z",
+            "status": "failed",
+            "duration_s": 4,
+            "error": "AccessDenied: s3:GetObject denied for bucket central-source"
+          },
+          {
+            "run_at": "2026-05-20T10:50:00Z",
+            "status": "failed",
+            "duration_s": 5,
+            "error": "AccessDenied: s3:GetObject denied for bucket central-source"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-5203",
+        "name": "中心仓到下载服务的分发索引刷新",
+        "cron_expression": "0 */30 * * *",
+        "action": "refresh_download_mapping_index",
+        "enabled": true,
+        "last_run": "2026-05-20T11:20:00Z",
+        "next_run": "2026-05-20T11:50:00Z",
+        "last_status": "failed",
+        "created_by": "index_ops",
+        "tags": [
+          "file_sync",
+          "mapping",
+          "index_refresh"
+        ],
+        "created_at": "2026-03-05T09:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T10:40:00Z",
+            "status": "failed",
+            "duration_s": 7,
+            "error": "TimeoutError: mapping index refresh exceeded 30s"
+          },
+          {
+            "run_at": "2026-05-20T10:55:00Z",
+            "status": "success",
+            "duration_s": 12
+          },
+          {
+            "run_at": "2026-05-20T11:20:00Z",
+            "status": "failed",
+            "duration_s": 8,
+            "error": "TimeoutError: mapping index refresh exceeded 30s"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-5204",
+        "name": "清理过期索引（不会直接删除文件）",
+        "cron_expression": "0 1 * * *",
+        "action": "cleanup_expired_search_index",
+        "enabled": true,
+        "last_run": "2026-05-20T01:00:00Z",
+        "next_run": "2026-05-21T01:00:00Z",
+        "last_status": "failed",
+        "created_by": "index_ops",
+        "tags": [
+          "index",
+          "maintenance",
+          "search"
+        ],
+        "created_at": "2026-04-01T12:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T01:00:00Z",
+            "status": "failed",
+            "duration_s": 18,
+            "error": "ServiceUnavailable: index-service is down"
+          },
+          {
+            "run_at": "2026-05-19T01:00:00Z",
+            "status": "success",
+            "duration_s": 16
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-5205",
+        "name": "用户行为日志归档（无关干扰）",
+        "cron_expression": "0 4 * * *",
+        "action": "archive_user_behavior_logs",
+        "enabled": false,
+        "last_run": "2026-05-18T04:00:00Z",
+        "next_run": null,
+        "last_status": "failed",
+        "created_by": "admin",
+        "tags": [
+          "logs",
+          "archive"
+        ],
+        "created_at": "2026-01-10T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-18T04:00:00Z",
+            "status": "failed",
+            "duration_s": 300,
+            "error": "TimeoutError: archive storage latency too high"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-5206",
+        "name": "搜索索引增量构建（可解释为次要影响）",
+        "cron_expression": "*/20 * * * *",
+        "action": "build_incremental_search_index",
+        "enabled": true,
+        "last_run": "2026-05-20T11:00:00Z",
+        "next_run": "2026-05-20T11:20:00Z",
+        "last_status": "failed",
+        "created_by": "search_builder",
+        "tags": [
+          "index",
+          "search"
+        ],
+        "created_at": "2026-04-18T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T10:35:00Z",
+            "status": "success",
+            "duration_s": 22
+          },
+          {
+            "run_at": "2026-05-20T10:50:00Z",
+            "status": "failed",
+            "duration_s": 26,
+            "error": "ServiceUnavailable: index-service unavailable during batch ingestion"
+          },
+          {
+            "run_at": "2026-05-20T11:00:00Z",
+            "status": "failed",
+            "duration_s": 25,
+            "error": "ServiceUnavailable: index-service unavailable during batch ingestion"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-5207",
+        "name": "会议室预定通知发送（无关干扰）",
+        "cron_expression": "*/30 * * * *",
+        "action": "send_meeting_room_notifications",
+        "enabled": true,
+        "last_run": "2026-05-20T10:20:00Z",
+        "next_run": "2026-05-20T10:50:00Z",
+        "last_status": "failed",
+        "created_by": "notify_bot",
+        "tags": [
+          "notification",
+          "meeting"
+        ],
+        "created_at": "2026-01-20T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T10:20:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "error": "HTTPError: 502 Bad Gateway from calendar-gateway"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新任务聚焦多条文件同步/内容分发链路（TLS证书过期、S3→中心仓AccessDenied、索引服务不可用）对工单症状（下载404/同步报警/搜索缺少）的主要影响面与次要影响面区分。",
+    "fixture_design_summary": [
+      "scheduler/jobs.json 共7条job，其中4条failed且至少3条与文件可用性或索引相关：JOB-5201(TLS证书过期→CDN分发)、JOB-5202(AccessDenied→中心仓缺失)、JOB-5206(index-service不可用→搜索缺少)、JOB-5204(清理过期索引失败但不直接删除文件)。",
+      "下载404工单（TK-9101、TK-9102）与TLS失败窗口（10:05、10:15、10:25）保持前后时间先后关系；TLS相关工单（TK-9106）明确点出TLS证书过期。",
+      "AccessDenied相关工单（TK-9103、TK-9104、TK-9110）与S3→中心仓同步失败窗口（10:28、10:43、10:50）对应，并指向中心仓缺失/持续重试。",
+      "搜索缺少但可下载工单（TK-9105）归因索引服务不可用（JOB-5206在10:50、11:00失败），并将索引链路作为次要影响面（用户可下载性保持）。",
+      "加入干扰工单（TK-9108会议室预定失败、TK-9109工资发放文件导出失败、TK-9107搜索超时）以避免错误归因到文件同步根因。",
+      "跨fixture实体在症状层面保持一致：工单描述中的关键字（TLS证书过期/下载404、AccessDenied/中心仓、索引服务不可用/可下载但搜不到）能与job的错误类型与tag对应。"
+    ]
+  }
+}

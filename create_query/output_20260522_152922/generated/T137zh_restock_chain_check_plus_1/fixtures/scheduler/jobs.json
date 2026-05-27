@@ -1,0 +1,139 @@
+[
+  {
+    "job_id": "JOB-91001",
+    "name": "夜间冷链保冷袋补货",
+    "cron_expression": "0 2 * * *",
+    "action": "restock_coldchain_bags",
+    "enabled": true,
+    "last_run": "2026-05-22T02:00:00Z",
+    "next_run": "2026-05-23T02:00:00Z",
+    "last_status": "failed",
+    "created_by": "夜班自动化",
+    "tags": [
+      "补货",
+      "冷链"
+    ],
+    "created_at": "2026-04-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T02:00:00Z",
+        "status": "failed",
+        "duration_s": 120,
+        "error": "APITimeoutError: logistics_api coldchain_910 timed out after 120s"
+      },
+      {
+        "run_at": "2026-05-21T02:00:00Z",
+        "status": "failed",
+        "duration_s": 118,
+        "error": "APITimeoutError: logistics_api coldchain_910 timed out after 118s"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91002",
+    "name": "夜间电商包装材料补货",
+    "cron_expression": "15 2 * * *",
+    "action": "restock_ecom_packaging",
+    "enabled": true,
+    "last_run": "2026-05-22T02:15:00Z",
+    "next_run": "2026-05-23T02:15:00Z",
+    "last_status": "failed",
+    "created_by": "夜班自动化",
+    "tags": [
+      "补货",
+      "电商包装"
+    ],
+    "created_at": "2026-04-05T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T02:15:00Z",
+        "status": "failed",
+        "duration_s": 6,
+        "error": "IntegrationInactiveError: packaging_api integration INT-911 is inactive"
+      },
+      {
+        "run_at": "2026-05-21T02:15:00Z",
+        "status": "failed",
+        "duration_s": 7,
+        "error": "IntegrationInactiveError: packaging_api integration INT-911 is inactive"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91003",
+    "name": "夜间实验室耗材补货",
+    "cron_expression": "30 2 * * *",
+    "action": "restock_lab_consumables",
+    "enabled": true,
+    "last_run": "2026-05-22T02:30:00Z",
+    "next_run": "2026-05-23T02:30:00Z",
+    "last_status": "failed",
+    "created_by": "夜班自动化",
+    "tags": [
+      "补货",
+      "实验室耗材"
+    ],
+    "created_at": "2026-04-08T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T02:30:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "AuthenticationError: access token expired for lab_auth_api INT-912"
+      },
+      {
+        "run_at": "2026-05-21T02:30:00Z",
+        "status": "failed",
+        "duration_s": 10,
+        "error": "AuthenticationError: access token expired for lab_auth_api INT-912"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91004",
+    "name": "夜间餐饮耗材补货（噪声）",
+    "cron_expression": "45 2 * * *",
+    "action": "restock_noise_food_supplies",
+    "enabled": true,
+    "last_run": "2026-05-22T02:45:00Z",
+    "next_run": "2026-05-23T02:45:00Z",
+    "last_status": "success",
+    "created_by": "夜班自动化",
+    "tags": [
+      "补货",
+      "噪声"
+    ],
+    "created_at": "2026-04-10T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T02:45:00Z",
+        "status": "success",
+        "duration_s": 12
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91005",
+    "name": "夜间仓储辅助物料补货",
+    "cron_expression": "0 3 * * *",
+    "action": "restock_warehouse_labels",
+    "enabled": false,
+    "last_run": "2026-05-10T03:00:00Z",
+    "next_run": null,
+    "last_status": "failed",
+    "created_by": "运维临时禁用",
+    "tags": [
+      "补货",
+      "仓储辅助"
+    ],
+    "created_at": "2026-04-12T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-10T03:00:00Z",
+        "status": "failed",
+        "duration_s": 4,
+        "error": "DisabledJobError: job is disabled; skipping pull"
+      }
+    ]
+  }
+]

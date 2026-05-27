@@ -1,0 +1,276 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T003zh_calendar_scheduling_plus_1",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/calendar/events.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务 environment.mock_today = 2026-03-02，如新任务涉及日期，请让 fixture 中的绝对日期与该日期锚点兼容。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 1,
+  "new_task_id": "T003zh_calendar_scheduling_plus_1",
+  "new_task_name": "跨时区并发会议找空档",
+  "task_goal": "为会议组织者与两位参会者在同一自然日内找1小时可用窗口，创建包含地点与参会者的会议，并避免与任何已有事件冲突。",
+  "user_request": "请帮我在2026年3月3日（周二）安排“季度复盘会”1小时，参会者是沈佳、周航、以及我自己（组织者：林川）。要求大家都空闲。会议地点：远程会议室（按时区换算后同一天安排）。",
+  "scenario": "假设系统时区为UTC，但参会者日历事件以各自时区记录。沈佳在当天上午有外部电话会议，周航在中午前后有会议，林川在下午有个人安排。要求算法在3月3日这一天（按UTC换算后）寻找三方共同空闲的1小时，并将会议时间以ISO 8601的UTC时间写入创建请求。",
+  "difference_from_source": "参会人数从2人增加到3人（含组织者），并引入“按时区换算仍需落在同一天”的约束；同时会议标题/地点/可用窗口的冲突结构与原题不同，需重新计算共同空闲。",
+  "service_and_tool_plan": "使用calendar_list_events确认当天整体事件存在情况；使用calendar_get_user_events分别获取沈佳、周航、林川在2026-03-03的事件清单以推断他们各自空闲段；对候选时段用冲突判断后再调用calendar_create_event创建“季度复盘会”。通常不需要calendar_get_event与calendar_delete_event，避免删除。",
+  "fixture_generation_plan": "生成fixtures/calendar/events.json的扩展数据（可在原文件基础上新增记录，且不要复用原来的具体实体名/邮箱/客户名/工单号/SKU/数值）。至少新增：1条全局会议（影响某一时段）、3条分别属于沈佳/周航/林川的当天事件（各自1-2条以制造冲突），外加1-2条与会议不相关但用于干扰的事件。状态分布：确保存在至少一个共同空闲的1小时窗口，但该窗口处于中午或下午边界附近（便于验证边界处理）。事件字段保持与现有schema一致：event_id唯一、start_time/end_time为ISO，attendees用于标识对应用户。",
+  "expected_behavior": "1) 调用calendar_list_events获取2026-03-03当天事件范围线索；2) 分别调用calendar_get_user_events获取沈佳、周航、林川当日事件；3) 从各自空闲段求交集，选择满足1小时且不与任何已存在事件重叠的窗口；4) 调用calendar_create_event创建会议，title为“季度复盘会”，start_time/end_time为选定窗口的ISO 8601 UTC时间，attendees包含沈佳与周航与林川（组织者可包含在attendees中或按实现约定包含在attendees数组），location填“远程会议室”；5) 不调用calendar_delete_event。",
+  "grading_plan": "grader应检查：是否调用了至少1次calendar_list_events与至少3次calendar_get_user_events；是否选择了真正的1小时无冲突窗口（可通过对比fixtures中的事件时间区间交集判定）；是否调用calendar_create_event且创建出的start_time/end_time与选定窗口一致；输出中明确给出选定时间段与参与者列表；且不得调用calendar_delete_event。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T003zh_calendar_scheduling",
+  "task_name": "Calendar Scheduling",
+  "task_type": "productivity",
+  "category": "productivity",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "zh",
+  "services": [
+    "calendar"
+  ],
+  "tools": [
+    "calendar_list_events",
+    "calendar_get_event",
+    "calendar_create_event",
+    "calendar_get_user_events",
+    "calendar_delete_event"
+  ],
+  "fixture_paths": [
+    "fixtures/calendar/events.json"
+  ],
+  "sandbox_files": [
+    "fixtures/calendar/events.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "productivity"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T003zh_calendar_scheduling
+task_name: Calendar Scheduling
+version: '1.0'
+category: productivity
+difficulty: easy
+tags:
+- general
+services:
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+prompt:
+  text: 帮我约李明和王芳2026年3月2日（周一）开个项目同步会，一小时左右，找大家都空的时间。
+  language: zh
+tools:
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取单个事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+- name: calendar_create_event
+  description: 创建新的日历事件
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 事件标题
+      start_time:
+        type: string
+        description: 开始时间 (ISO 8601)
+      end_time:
+        type: string
+        description: 结束时间 (ISO 8601)
+      attendees:
+        type: array
+        items:
+          type: string
+        description: 参加者列表
+      location:
+        type: string
+        description: 地点
+    required:
+    - title
+    - start_time
+    - end_time
+- name: calendar_get_user_events
+  description: 获取指定用户的日历事件
+  input_schema:
+    type: object
+    properties:
+      user:
+        type: string
+        description: 用户姓名
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+    required:
+    - user
+    - date
+- name: calendar_delete_event
+  description: 删除日历事件
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+tool_endpoints:
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+- tool_name: calendar_create_event
+  url: http://localhost:9101/calendar/events/create
+  method: POST
+- tool_name: calendar_get_user_events
+  url: http://localhost:9101/calendar/user_events
+  method: POST
+- tool_name: calendar_delete_event
+  url: http://localhost:9101/calendar/events/delete
+  method: POST
+sandbox_files:
+- fixtures/calendar/events.json
+environment:
+  mock_today: '2026-03-02'
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/calendar/events.json ---
+[
+  {
+    "event_id": "evt_001",
+    "title": "每日站会",
+    "start_time": "2026-03-02T09:00:00Z",
+    "end_time": "2026-03-02T09:30:00Z",
+    "attendees": ["张经理", "李明", "王芳", "赵强"],
+    "location": "会议室A",
+    "recurring": true
+  },
+  {
+    "event_id": "evt_002",
+    "title": "产品评审会",
+    "start_time": "2026-03-02T10:00:00Z",
+    "end_time": "2026-03-02T11:30:00Z",
+    "attendees": ["张经理", "李明", "陈总监"],
+    "location": "大会议室",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_003",
+    "title": "午餐",
+    "start_time": "2026-03-02T12:00:00Z",
+    "end_time": "2026-03-02T13:00:00Z",
+    "attendees": [],
+    "location": "",
+    "recurring": true
+  },
+  {
+    "event_id": "evt_004",
+    "title": "1:1 与张经理",
+    "start_time": "2026-03-02T14:00:00Z",
+    "end_time": "2026-03-02T14:30:00Z",
+    "attendees": ["张经理"],
+    "location": "张经理办公室",
+    "recurring": true
+  },
+  {
+    "event_id": "evt_005",
+    "title": "技术分享会",
+    "start_time": "2026-03-02T16:00:00Z",
+    "end_time": "2026-03-02T17:00:00Z",
+    "attendees": ["全体技术团队"],
+    "location": "大会议室",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_006",
+    "title": "李明 - 外部客户会议",
+    "start_time": "2026-03-02T13:00:00Z",
+    "end_time": "2026-03-02T14:00:00Z",
+    "attendees": ["李明", "外部客户"],
+    "location": "会议室C",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_007",
+    "title": "王芳 - 用户测试会",
+    "start_time": "2026-03-02T17:00:00Z",
+    "end_time": "2026-03-02T18:00:00Z",
+    "attendees": ["王芳", "测试团队"],
+    "location": "测试实验室",
+    "recurring": false
+  }
+]
+
+--- END FILE: fixtures/calendar/events.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

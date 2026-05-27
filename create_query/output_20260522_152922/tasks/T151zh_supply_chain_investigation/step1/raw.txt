@@ -1,0 +1,98 @@
+{
+  "source_task_id": "T151zh_supply_chain_investigation",
+  "source_summary": {
+    "task_type": "跨 finance / inventory / crm / helpdesk 的供应链异常追查，重建从根因到工单影响的完整问题链并给出处置建议",
+    "services": [
+      "finance",
+      "inventory",
+      "crm",
+      "helpdesk"
+    ],
+    "tools": [
+      "helpdesk_list_tickets",
+      "helpdesk_get_ticket",
+      "helpdesk_update_ticket",
+      "helpdesk_close_ticket",
+      "inventory_list_items",
+      "inventory_get_item",
+      "finance_list_transactions",
+      "finance_get_transaction",
+      "crm_list_customers",
+      "crm_get_customer"
+    ],
+    "fixture_paths": [
+      "fixtures/crm/customers.json",
+      "fixtures/finance/transactions.json",
+      "fixtures/helpdesk/tickets.json",
+      "fixtures/inventory/items.json"
+    ],
+    "core_capability": "workflow"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T151zh_supply_chain_investigation_plus_1",
+      "new_task_name": "冷链试剂断供追查",
+      "task_goal": "从客户工单出发，定位到某关键供应商因合规/质检问题触发的供货中断，追溯缺货产品→采购取消/延迟→资金影响→受影响客户与工单，并输出可执行的短期与长期处置方案。",
+      "user_request": "最近多家医院反馈“冷链检测试剂”配送延迟，请你追查原因并还原完整问题链：找出根因供应商、对应缺货试剂、相关采购/支付变更（取消或延期）、受影响的客户与工单，最后给出应急补货与风险控制建议。输出一份结构化分析报告（根因、影响范围、时间线、资金风险、处置方案）。",
+      "scenario": "仓配团队在周一早晨发现冷链运输时效受阻，实际上并非物流车辆故障；系统显示有多笔与“冷链检测试剂”相关的采购单在近期被供应商拉黑或要求重审。库存侧出现两种核心试剂在安全库存以下且其中一种已清零。CRM里某供应商状态为“suspended（合规暂停）”，原因字段为“批次质检报告未通过，需要整改；暂停出货直至放行”。Finance里存在多笔采购交易状态在近两周呈现“cancelled（取消）”与“pending（待处理）”混合。Helpdesk里既有与“配送延迟”直接相关的高优先级工单，也混入一类“包装破损索赔”技术原因工单（与冷链供货中断无关），需要排除干扰。",
+      "difference_from_source": "原题根因是供应商因产品质量问题被暂停合作并导致断供与缺货；本题改为“合规/质检报告未通过导致合规暂停”，且 finance 侧同时包含“取消+待处理延期”两类资金事件；工单里加入“包装破损索赔”作为明显干扰，需要区分其与供货中断的关系。",
+      "service_and_tool_plan": "使用 helpdesk_list_tickets 定位与配送延迟相关的工单集合；helpdesk_get_ticket 逐个读取客户诉求与涉及产品线线索。使用 inventory_list_items + inventory_get_item 找出两种冷链核心试剂的缺货/低于安全库存状态，并确认其供应商来源。使用 finance_list_transactions 按日期窗口筛选采购与支付相关交易，再用 finance_get_transaction 查看取消/待处理原因并将 reference 指向缺货试剂或采购单。使用 crm_list_customers/ crm_get_customer 找出处于 suspended 的供应商与整改原因，交叉验证缺货试剂的共同供应商为唯一根因，并区分与供货无关的其他工单。",
+      "fixture_generation_plan": "生成4个新 fixtures（可复用同路径结构，但新实体名、ID、字段值均不同）。1) helpdesk/tickets：10条记录，其中至少4条为“配送延迟/冷链到货异常”高优先级且指向同一产品线（通过描述字段体现不同医院/不同批次），另1-2条为“包装破损索赔/客户投诉”作为干扰，至少2条为“已排产但仍未到货”以形成边界。状态分布：8条open，2条in_progress。2) inventory/items：至少6个产品；其中2个为冷链检测试剂A/B：quantity分别为0与低于安全库存（给出不同仓库位置），其余为正常或可替代品（充足库存）。确保冷链A/B的supplier相同且为根因供应商。3) finance/transactions：至少10笔交易；包含3-4笔采购交易状态cancelled（取消原因=合规暂停/重审），2-3笔采购交易状态pending（延期原因=等待放行），并包含2-3笔与客户回款相关但不一定同一时期，用于提示资金风险。reference 必须能与 inventory 的 product_id 或约定的“采购参考号”对应。4) crm/customers：至少5个客户/供应商对象；其中1个供应商 status=suspended，notes包含“质检/合规暂停直至放行”；至少2个供应商状态active用于干扰（但其产品对应库存充足），并保证根因供应商名称与缺货产品supplier字段一致。",
+      "expected_behavior": "代理应：a) 通过 helpdesk_list_tickets 找到主要“配送延迟”工单；b) helpdesk_get_ticket 提取每条工单提到的试剂类型/批次/期望到货时间；c) inventory_list_items 找到与冷链试剂相关类别，再 inventory_get_item 确认冷链A/B低于安全库存/清零及其 supplier；d) finance_list_transactions 在覆盖工单创建前后的时间窗检索采购与资金变更，finance_get_transaction 核验对应交易的 cancelled/pending 与 cancel/延期原因；e) crm_list_customers(status=suspended) 找到合规暂停供应商并用 crm_get_customer 核验停供原因与整改时间点；f) 排除干扰工单（如包装破损索赔若不对应缺货产品/资金事件则标记为非链路相关），输出报告中明确标注“相关/不相关”。最终输出必须：根因供应商、缺货产品清单、资金事件（取消/延期）时间线、影响客户与工单列表、资金风险评估、短期补货/备选供应商方案与长期合规改进措施；且在追查阶段不应关闭工单。",
+      "grading_plan": "grader 应检查：是否形成从“合规/质检暂停供应商”到“缺货试剂”到“采购取消/延期”到“配送延迟工单”的完整时间线；是否识别唯一根因供应商并用库存与财务交叉验证；是否正确识别并排除与供货中断无关的干扰工单；是否报告包含可行处置方案（应急替代+合规/质检流程改进+客户沟通策略）并覆盖资金风险（如待处理/已取消的金额或比例）。此外检查 agent 未调用 helpdesk_close_ticket。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T151zh_supply_chain_investigation_plus_2",
+      "new_task_name": "园区配电设备延期成因链",
+      "task_goal": "针对园区配电设备“到货延期”类工单，定位是特定供应商的产能/排期调整导致的采购推迟与库存不连续，重建问题链并给出计划性应对方案（包括替代料与排产沟通要点）。",
+      "user_request": "我们园区配电设备最近出现批次到货延期，很多施工方要求明确交付节点。请你追查：从哪些客户工单开始、哪些配电设备在库存里断点/低于安全库存、财务上有哪些采购被延期或部分取消、CRM里哪个供应商状态异常或排期变更，最终还原完整问题链并提出应急排产与客户承诺建议。",
+      "scenario": "多个施工单位在交付窗口前后提交“到货延期”工单，但并非缺货全清零：部分关键配电模块库存为小幅偏低，触发补货但到货时间延后。CRM显示根因供应商处于active，但 notes里有“产能调整/需提前确认排期”；同时另一个供应商也处于active但有良好供货记录，用于干扰。Finance 侧出现同一采购参考号下的多笔交易：其中有部分记录状态为pending或completed，但描述里体现“分批发货/排期调整”，还有少量cancelled为错误采购的退款（属于干扰，不应作为根因链的一部分）。Helpdesk 里存在一类“现场安装故障”工单（技术原因）混入，需要排除。",
+      "difference_from_source": "原题供应商直接suspended导致停供；本题根因供应商仍为active但存在产能/排期调整，导致的是“采购延期与库存断点”而非完全断供清零；finance事件为“分批/排期变更+部分取消退款”的混合，干扰项更偏向“非供货链的安装故障”。",
+      "service_and_tool_plan": "helpdesk_list_tickets(status=open/all) 先筛选“到货延期/交付节点”类；helpdesk_get_ticket 解析每个工单涉及的配电设备型号与批次。inventory_list_items(category=配电/电力设备) 再 inventory_get_item 确认哪些型号存在低于安全库存或接近安全阈值的断点。finance_list_transactions(start_date,end_date) 用描述关键词匹配“排期/分批”，再 finance_get_transaction 核验交易的状态分布与变更原因。crm_list_customers(tier/core/active) 并进一步用 crm_get_customer 读取 notes，确认是“产能调整需提前排期”的供应商为共同来源；最后将各工单与设备-供应商-资金事件关联，输出问题链。",
+      "fixture_generation_plan": "生成新 fixtures：1) helpdesk/tickets：8-12条；至少4条“到货延期”并包含不同施工方/项目点名称（避免复用原客户名与ID），其中2条描述明确“未按合同批次到货”。至少2条干扰：一种“现场安装故障”（category=技术问题）另一种“价格差异咨询”。状态分布：多数open，少量in_progress。2) inventory/items：至少7条产品；其中2条为核心配电模块：quantity为安全库存下方但不为0（例如10与安全阈值20），并给出不同仓库；其余产品充足或为非关键替代料。确保核心模块的 supplier 指向同一供应商SUSP/候选根因供应商（但该供应商crm状态仍active）。3) finance/transactions：至少12笔；含3-5笔采购交易对应关键模块，状态主要pending/部分completed且描述包含“排期调整/分批”；再含1-2笔cancelled但 cancel_reason 为“重复下单/采购撤销（与交付批次无关）”作为干扰；另含2笔客户回款completed用于提示结算与风险。4) crm/customers：至少6条；根因供应商 status=active notes包含“产能调整，需提前确认排期，部分批次延后”；至少2个其他供应商active用于干扰（但其对应库存充足且finance无延后原因）。",
+      "expected_behavior": "代理应输出报告：a) 工单到设备的映射（来自helpdesk_get_ticket的型号/批次线索）；b) 盘点库存断点（来自inventory_get_item 的quantity/安全阈值对比）；c) 盘点资金与采购链（finance_get_transaction里抓“排期调整/分批发货”的证据，并区分与链路无关的cancelled退款）；d) 在CRM中找到共同供应商并引用notes中的排期调整原因（不是suspended）；e) 最终还原问题链：排期调整→采购批次延期→库存断点/低库存→施工方到货延期工单，并给出应急方案：替代料启用条件、与供应商排产窗口沟通清单、对客户的承诺模板与更新节奏；f) 明确标注干扰工单为非供应链链路相关。",
+      "grading_plan": "grader 应检查：问题链是否从“排期/产能调整”而非停供暂停开始；是否能从库存与finance找到同一时间段的“分批/延期”证据；是否正确排除非供货链干扰（如安装故障、价格咨询）；是否给出可执行的应急排产与客户沟通策略；以及是否未调用 helpdesk_close_ticket。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T151zh_supply_chain_investigation_plus_3",
+      "new_task_name": "软件硬件套装交付短缺与错配",
+      "task_goal": "当客户投诉“套装交付不完整/无法安装”，要求追查是因某类关键硬件组件库存不足并触发供应链错配，重建从工单到inventory到finance到CRM的因果链，指出真正的根因供应商并给出补齐策略与防止再发措施。",
+      "user_request": "客户反馈软件-硬件套装无法完成部署，原因是“部分硬件组件缺失”。请你追查并还原问题链：哪些工单属于同一套装缺件问题、缺失组件在库存中处于何种状态、财务上对应的采购/付款是否异常（取消/部分完成/回款延迟等）、CRM里哪个供应商或客户记录显示异常（例如交付中断或条款变更），最后输出根因分析与补齐方案（含交付承诺与内部校验改进）。",
+      "scenario": "工单表中一部分描述为“套装无法部署/缺少组件”，另一部分为“软件激活失败”（干扰，不涉及硬件缺件）。库存系统显示某关键组件数量为0或接近0，但另一些配套组件库存充足。Finance里某采购交易状态显示“completed（已采购入账）”，但reference 指向的是非缺失组件，导致容易误判；同时存在一笔采购交易 status=cancelled，cancel_reason 为“条款调整导致不再发货”，该交易reference 才与缺失组件对应。CRM里供应商记录状态为active，但合同条款notes里包含“交付条款变更需重新确认，否则不发”。因此根因是“条款变更导致关键组件未交付”，而不是普遍缺货或软件问题。",
+      "difference_from_source": "原题供应商被暂停合作(suspended)并导致缺货；本题供应商仍active，且根因来自“交付条款变更/需重新确认”导致未发货；finance存在容易混淆的 completed 采购（参考错位）作为强干扰，需要代理严格通过 reference 与缺失组件匹配。",
+      "service_and_tool_plan": "helpdesk_list_tickets 先找出“套装缺件/部署失败”类工单；helpdesk_get_ticket 提取缺失组件名称或SKU线索（通过描述字段）。inventory_list_items + inventory_get_item 定位缺失组件与其供应商。finance_list_transactions 在相关时间窗拉取所有与硬件类/采购相关交易，再逐笔用 finance_get_transaction 并通过 reference 精确对齐缺失组件；crm_list_customers 重点查找与这些缺失组件供应商同一条目，并用 crm_get_customer 读取条款变更或交付中断说明。最终组合生成问题链并排除“软件激活失败”干扰。",
+      "fixture_generation_plan": "生成新 fixtures：1) helpdesk/tickets：9-14条；至少4条为套装缺件/无法部署且描述明确缺失组件（如“安全网关模块/管理面板线缆”等自定义新组件，不复用原产品名）。至少3条干扰：软件激活失败、网络认证异常、用户操作指引请求。状态分布：open为主，另有1-2条in_progress。2) inventory/items：至少8个产品；其中1-2个组件为缺失（quantity=0或1以下），其 supplier 指向同一供应商；配套组件充足（quantity远高于安全阈值）。3) finance/transactions：至少13笔；包含1-2笔 cancelled 且 cancel_reason 与“条款调整/重新确认未通过”相符，并 reference 对应缺失组件；再包含2-3笔 completed 但 reference 指向配套组件（用于误导），要求 grader 能通过“reference匹配”判断代理是否纠错。另有1笔客户回款completed或延期相关记录用于风险提示。4) crm/customers：至少6条；根因供应商 status=active，notes明确“交付条款变更需重新确认，否则不发货”；其他供应商active notes一般交付稳定用于干扰。",
+      "expected_behavior": "代理应输出：a) 只将“套装缺件/部署失败”工单纳入核心链，并在报告中解释软件激活类工单为何不相关；b) 通过库存确认缺失组件及其供应商；c) 在finance中用 reference 精确找到对应缺失组件的 cancelled（条款变更导致不发货）记录，避免被 completed/入账但不对应缺件的交易诱导；d) 用CRM条款变更说明作为根因证据，完成问题链：条款变更未确认→缺失组件未交付→套装缺件→相关工单；e) 给出补齐方案：紧急补单（走替代供应商/加急重新确认条款）、对已下单客户的分批发货与软件部署校验流程改进（如发货前组件清单自动核对），并提出内部流程防复发；f) 不关闭工单。",
+      "grading_plan": "grader 应检查：是否只针对缺件类工单形成链路；是否在finance中依据 reference 对齐缺失组件并选对 cancelled 交易；是否在CRM中找到“条款变更需重新确认导致不发”的证据；是否提供补齐与内部校验改进的具体措施；以及未调用 helpdesk_close_ticket。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T151zh_supply_chain_investigation_plus_4",
+      "new_task_name": "批量召回引发的替换发货中断",
+      "task_goal": "当出现客户因“批量召回”要求替换发货，追查替换物料供应中断的根因，重建从召回工单→库存替换料短缺→采购/资金变动→供应商CRM状态的因果链，并给出替换发货与质量管控建议。",
+      "user_request": "近期出现批量召回通知后，客户要求更换同批次产品但替换物料一直无法按期到达。请你追查替换发货中断原因：从召回相关工单开始，判断哪些工单同属于替换发货问题、库存中哪些替换物料不足或不可用、财务上对应的采购/退款/重开是否异常、CRM里哪个供应商与召回或质量放行相关。最后输出还原的完整问题链和替换发货处置方案（含质量放行与客户沟通）。",
+      "scenario": "Helpdesk 工单里既有“召回替换发货延迟”也有“召回通知未收到”问询类（干扰但不涉及物料）。库存显示替换料的数量不足且带有notes=“批次不可用（等待质检放行）”，即使数量不为0也不能出库。Finance 里存在两类资金：一类是采购cancelled或退款（原因=召回改单），另一类是新的采购pending（原因=等待放行后再发）。CRM里根因供应商 status=suspended_reason类似“召回批次已冻结，待质检放行后恢复”；另有供应商status=active但notes表示“可立刻替换”，用于对比干扰。由于库存不可用导致实际无法发货，因此需要代理同时考虑“数量”和“可用性状态”。",
+      "difference_from_source": "原题只关注缺货/数量不足；本题强调替换物料的“数量可能不为0但不可用（等待质检放行）”，并且 finance 链路包含“退款/改单取消 + 新采购pending”的组合；根因供应商与召回冻结强关联，且存在可替换供应商作为干扰对比。",
+      "service_and_tool_plan": "helpdesk_list_tickets 用于筛选召回相关；helpdesk_get_ticket 抽取触发原因（召回批次号/替换物料类别）。inventory_get_item 读取notes中的“不可用/待放行”并结合quantity判断可出库状态。finance_list_transactions 在召回事件前后抓取消/退款与新采购pending，再用 finance_get_transaction 确认交易原因与reference。crm_list_customers(status=suspended) 及 crm_get_customer 提取“召回冻结/待放行”证据，同时可用crm_get_customer核对干扰供应商为何尽管active但不在缺口链上。输出报告时必须把“不可用性”纳入链路。",
+      "fixture_generation_plan": "生成新 fixtures：1) helpdesk/tickets：10-16条；至少5条是“召回替换发货延迟/替换物料不到”且指向同一召回产品线；1-2条是“询问未收到召回通知”作为干扰（不应进入物料链）。状态：open/in_progress均有。2) inventory/items：至少7-9个物料；其中2个替换料：quantity>0但notes标注不可用（等待质检放行/批次冻结），另1个替换料quantity=0；其余物料充足。所有被替换料的supplier 指向根因供应商与至少一个可替换供应商形成对比。3) finance/transactions：至少12笔；包含2-4笔cancelled或退款（原因=召回改单/冻结后取消）reference对应替换料；包含2-3笔pending的新采购（原因=放行后发货）；另加1笔completed但reference不匹配以考验对齐能力。4) crm/customers：至少6条；根因供应商status=suspended且notes含召回冻结/待质检放行；干扰供应商status=active notes含可替换但缺口替换料不在其供应清单（可通过库存supplier或finance reference体现）。",
+      "expected_behavior": "代理应：a) 从召回替换工单中提取替换物料类别并聚类出核心工单集合；b) inventory_get_item 判断“可出库”而非只看quantity（notes=不可用必须触发供应链中断原因）；c) finance 中找到与这些替换料相关的取消/退款与待放行采购，形成“召回冻结→改单取消/退款→新采购pending→替换料不可出库→替换发货延迟工单”的链；d) crm 中用根因供应商 suspended/待放行说明作为根因；e) 与可替换供应商对比：说明是否因为物料不匹配、配额限制或条款不同导致未能立即替换；f) 最后给出替换发货方案：替代料选型标准、放行加急流程、客户沟通节奏与补偿策略建议；不关闭工单。",
+      "grading_plan": "grader 应检查：是否考虑 inventory notes 的“不可用”状态并将其写入问题链；是否在 finance 中同时覆盖“退款/改单取消”和“新采购pending”；是否用 CRM suspended/待放行证据锁定根因供应商；是否正确排除“通知未收到”问询工单；以及未调用 helpdesk_close_ticket。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T151zh_supply_chain_investigation_plus_5",
+      "new_task_name": "海外交付通关滞留导致的模块缺口",
+      "task_goal": "针对“海外交付延迟”工单，追查通关/合规滞留引发的模块到货延后，从工单定位受影响模块→库存体现短缺或到货等待→finance显示跨境采购的状态变更→CRM显示供应商的合规/文件问题。输出问题链与风险缓释方案（包括替代渠道与文件准备）。",
+      "user_request": "我们有多笔海外交付的模块订单出现延迟，客户抱怨一直等不到。请你追查并还原完整问题链：哪些工单属于同一跨境模块延迟、库存里哪些模块短缺或处于“待到货/冻结”状态、财务上哪些跨境采购交易被卡在不同阶段（如pending/部分取消）、CRM里哪个供应商因合规文件/清关问题导致交付受阻。最后给出可执行的缓释与客户承诺计划。",
+      "scenario": "工单描述包含“跨境清关未放行/文件补充中”，但同时存在一类干扰工单为“本地门店装配预约延迟”，与供应链无关。库存里某些模块 quantity=0或接近0，并且notes=“在途冻结/清关未放行”；另一类模块数量正常但不在海外订单范围（用于干扰）。Finance 侧体现跨境采购的金额分段：初始采购为pending（已支付定金），随后部分取消为cancelled（退回定金），再有部分交易completed对应其他模块。CRM里根因供应商 status=suspended或notes里明确“海关文件不齐/需补正，否则不发”；另有供应商active但其模块不属于缺口链路。代理必须结合“海外工单线索+库存notes+finance状态+CRM合规原因”才能正确定位。",
+      "difference_from_source": "原题是供应商暂停合作直接导致停供；本题根因是“跨境清关/合规文件问题导致在途冻结”，即使供应商在CRM中可能为suspended或合规受限，关键证据需要来自库存notes与finance分段状态（定金pending、部分cancelled、部分completed）。此外存在“本地预约延迟”技术/运营干扰工单。",
+      "service_and_tool_plan": "helpdesk_list_tickets 找到包含“海外交付/清关/模块延迟”关键词的工单；helpdesk_get_ticket 解析受影响模块名称/订单批次线索。inventory_list_items 选择模块类目后 inventory_get_item 获取quantity与notes中的“在途冻结/待到货”。finance_list_transactions 在海外订单相关时间窗筛选采购与定金/退款，finance_get_transaction 核验pending/cancelled/completed及原因与reference。crm_list_customers 切换到 status=suspended（如有）或读取 notes 关键字“清关/文件补正”，crm_get_customer 验证与缺口模块供应商的对应关系，并排除不相关供应商造成的误判。",
+      "fixture_generation_plan": "生成新 fixtures：1) helpdesk/tickets：10-14条；至少4条明确“海外交付延迟/清关未放行/文件补充”，分别对应不同客户与不同模块批次；至少2条干扰为“本地装配预约延迟/售后排班”，且不出现清关语义。状态open为主，另有in_progress/closed各1条用于干扰（但仍不应由代理去关闭）。2) inventory/items：至少8-10条；其中2-3个模块 quantity=0或极低，notes含“在途冻结/待清关放行”；另有1-2个模块quantity正常但不对应海外延迟工单。3) finance/transactions：至少14笔；跨境采购含：定金pending（原因=等待清关），部分cancelled（原因=文件补正失败/退回定金），以及其他模块completed（完成交付）作为对比干扰；reference 需能对应模块product_id或约定采购参考。4) crm/customers：至少6条；根因供应商 status=suspended（或active但notes明确“文件不齐/需补正”）并与缺口模块supplier一致；再提供至少2个供应商active notes常规交付用于干扰。",
+      "expected_behavior": "代理应生成报告：a) 用helpdesk_get_ticket识别同一海外模块延迟工单集合并列出受影响客户；b) 用inventory_get_item指出哪些模块在库存中“不可立即出库”（quantity低+notes在途冻结）；c) 用finance_get_transaction还原跨境资金链：定金pending、部分取消/退款、完成交付的对比，确保每笔交易reference与对应模块对上；d) 用crm_get_customer锁定清关/文件问题供应商为根因并给出证据摘录（notes/原因字段）；e) 说明为什么干扰工单（本地预约延迟）与根因链无关；f) 给出缓释方案：替代供货渠道、补正文件清单与责任人安排、客户承诺更新频率与替代方案（分批发货/临时替换模块）；不关闭工单。",
+      "grading_plan": "grader 应检查：是否同时使用库存notes与finance分段状态来支持“清关/在途冻结”根因；是否正确对齐reference避免把completed误当缺口；是否排除本地运营干扰工单；是否在CRM中找到清关文件补正或类似合规原因并锁定根因供应商；并确认未调用 helpdesk_close_ticket。"
+    }
+  ]
+}

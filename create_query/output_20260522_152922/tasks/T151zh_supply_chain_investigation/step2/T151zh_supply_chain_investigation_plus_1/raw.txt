@@ -1,0 +1,497 @@
+{
+  "task_id": "T151zh_supply_chain_investigation_plus_1",
+  "task_name": "冷链试剂断供追查",
+  "prompt_text": "最近多家医院反馈“冷链检测试剂”配送延迟。请从客户工单出发还原完整问题链并定位根因：\n1) 汇总与“配送延迟/冷链到货异常”直接相关的高优先级工单，读取每条工单提到的试剂类型、批次、期望到货时间；\n2) 在库存系统中找出冷链检测试剂A/B两种关键产品的缺货/低于安全库存情况（其中一种清零），确认其供应商来源；\n3) 在财务系统中按工单创建前后时间窗追溯对应采购与资金变更，核验采购交易的 cancelled（取消原因与合规暂停/重审相关）与 pending（延期原因与等待放行相关），并结合收款/回款事件评估资金风险；\n4) 在CRM中定位处于 suspended（合规暂停）且原因包含“批次质检报告未通过，需要整改；暂停出货直至放行”的供应商，确认整改/放行节点；\n5) 排除干扰工单（例如包装破损索赔/客户投诉如与缺货产品不匹配或缺少对应资金事件，请标注“不相关”）；\n最终输出结构化分析报告：根因、影响范围、时间线、资金风险评估、受影响客户与工单列表、短期应急补货与备选供应商方案、长期合规/质检改进措施；追查阶段不要关闭工单。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2101",
+        "name": "北辰肿瘤医院",
+        "type": "customer",
+        "contact_person": "曹主任",
+        "email": "cao.zr@beichen-hospital.cn",
+        "phone": "18911002101",
+        "industry": "医疗",
+        "tier": "vip",
+        "annual_revenue": 7600000,
+        "last_contact_date": "2026-04-18",
+        "status": "active",
+        "notes": "冷链检测试剂订单#H-4401（含冷链试剂A 批次CL-A-24Q2-19），要求最晚4/20到货用于检测排班。"
+      },
+      {
+        "customer_id": "CUS-2102",
+        "name": "澄江疾控中心",
+        "type": "customer",
+        "contact_person": "沈科长",
+        "email": "shen@chengjiang-cdc.org",
+        "phone": "18911002102",
+        "industry": "公共卫生",
+        "tier": "standard",
+        "annual_revenue": 2200000,
+        "last_contact_date": "2026-04-19",
+        "status": "active",
+        "notes": "冷链检测试剂订单#H-4402（含冷链试剂B 批次CL-B-24Q2-07），本周二预计到货延迟。"
+      },
+      {
+        "customer_id": "CUS-2103",
+        "name": "星港检验所",
+        "type": "customer",
+        "contact_person": "周检验长",
+        "email": "zhou@xinggang-lab.com",
+        "phone": "18911002103",
+        "industry": "检验检测",
+        "tier": "vip",
+        "annual_revenue": 4100000,
+        "last_contact_date": "2026-04-17",
+        "status": "active",
+        "notes": "冷链检测试剂订单#H-4403（含冷链试剂A 批次CL-A-24Q2-19），影响当月扩项检测。"
+      },
+      {
+        "customer_id": "CUS-2104",
+        "name": "鹭桥骨科医院",
+        "type": "customer",
+        "contact_person": "刘院办",
+        "email": "liu.yb@luqiao-ortho.cn",
+        "phone": "18911002104",
+        "industry": "医疗",
+        "tier": "standard",
+        "annual_revenue": 980000,
+        "last_contact_date": "2026-04-15",
+        "status": "active",
+        "notes": "包装破损索赔相关订单：订单#C-9031（仅涉及外包装赔付，不在冷链A/B范围）。"
+      },
+      {
+        "customer_id": "SUP-3001",
+        "name": "青岚生物科技（冷链源）",
+        "type": "supplier",
+        "contact_person": "赵合规",
+        "email": "hegui@qinglanbio.com",
+        "phone": "18911003001",
+        "industry": "体外诊断试剂制造",
+        "tier": "core",
+        "annual_revenue": 0,
+        "last_contact_date": "2026-04-12",
+        "status": "suspended",
+        "notes": "供应商根因。因批次质检报告未通过（CL-A-24Q2-19/CL-B-24Q2-07对应批次），需整改；自4/12起暂停出货直至放行。整改完成前所有冷链试剂不得发运。"
+      },
+      {
+        "customer_id": "SUP-3002",
+        "name": "恒谱生物供应链",
+        "type": "supplier",
+        "contact_person": "许采购经理",
+        "email": "xu@hengpu-biotech.cn",
+        "phone": "18911003002",
+        "industry": "试剂分销",
+        "tier": "standard",
+        "annual_revenue": 0,
+        "last_contact_date": "2026-04-10",
+        "status": "active",
+        "notes": "备选供应商。可提供同类冷链检测试剂的替代品（非CL-A/CL-B原批次）。合规状态正常。"
+      },
+      {
+        "customer_id": "SUP-3003",
+        "name": "海棠医疗耗材",
+        "type": "supplier",
+        "contact_person": "陈质量专员",
+        "email": "quality@haitang-med.com",
+        "phone": "18911003003",
+        "industry": "医疗耗材",
+        "tier": "standard",
+        "annual_revenue": 0,
+        "last_contact_date": "2026-04-08",
+        "status": "active",
+        "notes": "供应商干扰项。仅供应包装耗材/冷媒袋，库存充足，与冷链A/B试剂采购无对应参考号。"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2101",
+        "date": "2026-04-10",
+        "amount": 680000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "冷链检测试剂A",
+        "description": "采购青岚生物 冷链试剂A（批次CL-A-24Q2-19）共120盒 × 5666.67；采购参考号 PR-CL-A-19",
+        "status": "cancelled",
+        "reference": "PR-CL-A-19",
+        "supplier": "青岚生物科技（冷链源）",
+        "cancel_reason": "合规暂停：质检报告未通过，要求重审后放行"
+      },
+      {
+        "transaction_id": "TXN-2102",
+        "date": "2026-04-11",
+        "amount": 420000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "冷链检测试剂B",
+        "description": "采购青岚生物 冷链试剂B（批次CL-B-24Q2-07）共70盒 × 6000；采购参考号 PR-CL-B-07",
+        "status": "cancelled",
+        "reference": "PR-CL-B-07",
+        "supplier": "青岚生物科技（冷链源）",
+        "cancel_reason": "合规暂停：需要整改并重审批次质检"
+      },
+      {
+        "transaction_id": "TXN-2103",
+        "date": "2026-04-12",
+        "amount": 198000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "冷链检测试剂A",
+        "description": "采购青岚生物 冷链试剂A（补单批次CL-A-24Q2-19-2）共33盒 × 6000；采购参考号 PR-CL-A-19-2",
+        "status": "pending",
+        "reference": "PR-CL-A-19-2",
+        "supplier": "青岚生物科技（冷链源）",
+        "pending_reason": "等待放行：整改完成后方可发货（质检报告复核中）"
+      },
+      {
+        "transaction_id": "TXN-2104",
+        "date": "2026-04-13",
+        "amount": 126000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "冷链检测试剂B",
+        "description": "采购青岚生物 冷链试剂B（备份批次CL-B-24Q2-07-2）共21盒 × 6000；采购参考号 PR-CL-B-07-2",
+        "status": "pending",
+        "reference": "PR-CL-B-07-2",
+        "supplier": "青岚生物科技（冷链源）",
+        "pending_reason": "等待放行：批次质检整改后再出库"
+      },
+      {
+        "transaction_id": "TXN-2105",
+        "date": "2026-04-14",
+        "amount": 54000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "冷媒耗材",
+        "description": "采购海棠医疗耗材 冷媒袋与外包装耗材；采购参考号 PR-PACK-4412",
+        "status": "completed",
+        "reference": "PR-PACK-4412",
+        "supplier": "海棠医疗耗材"
+      },
+      {
+        "transaction_id": "TXN-2106",
+        "date": "2026-04-15",
+        "amount": 155000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "冷链替代试剂",
+        "description": "采购恒谱生物 替代冷链试剂（不含CL-A/CL-B原批次）共50盒 × 3100；采购参考号 PR-ALT-884",
+        "status": "completed",
+        "reference": "PR-ALT-884",
+        "supplier": "恒谱生物供应链"
+      },
+      {
+        "transaction_id": "TXN-2107",
+        "date": "2026-04-08",
+        "amount": 260000.0,
+        "currency": "CNY",
+        "type": "销售收款",
+        "category": "客户回款",
+        "description": "客户回款：CUS-2101北辰肿瘤医院 预付款（订单#H-4401）",
+        "status": "completed",
+        "reference": "CUS-2101"
+      },
+      {
+        "transaction_id": "TXN-2108",
+        "date": "2026-04-16",
+        "amount": 185000.0,
+        "currency": "CNY",
+        "type": "销售收款",
+        "category": "客户回款",
+        "description": "客户回款：CUS-2102澄江疾控中心 部分尾款（订单#H-4402）",
+        "status": "completed",
+        "reference": "CUS-2102"
+      },
+      {
+        "transaction_id": "TXN-2109",
+        "date": "2026-04-17",
+        "amount": 310000.0,
+        "currency": "CNY",
+        "type": "销售收款",
+        "category": "客户回款",
+        "description": "客户回款：CUS-2103星港检验所 预付款（订单#H-4403）",
+        "status": "completed",
+        "reference": "CUS-2103"
+      },
+      {
+        "transaction_id": "TXN-2110",
+        "date": "2026-04-19",
+        "amount": 78000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "打包耗材",
+        "description": "采购海棠医疗耗材 外包装与吸水材料；采购参考号 PR-PACK-4570",
+        "status": "pending",
+        "reference": "PR-PACK-4570",
+        "supplier": "海棠医疗耗材",
+        "pending_reason": "待到货验收（与冷链试剂A/B无直接对应）"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2101",
+        "title": "冷链试剂A配送延迟（批次CL-A-24Q2-19）",
+        "description": "北辰肿瘤医院（CUS-2101）曹主任反馈：订单#H-4401含冷链检测试剂A 批次CL-A-24Q2-19，原定4/20到货，现仍未到，冷链温控记录无法提交。请紧急核查上游供货与合规放行情况。",
+        "customer_id": "CUS-2101",
+        "reporter": "曹主任",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-17T07:45:00Z",
+        "tags": [
+          "配送延迟",
+          "冷链",
+          "试剂A",
+          "CL-A-24Q2-19"
+        ],
+        "category": "冷链到货异常"
+      },
+      {
+        "ticket_id": "TK-2102",
+        "title": "冷链试剂B延迟到货（批次CL-B-24Q2-07）",
+        "description": "澄江疾控中心（CUS-2102）沈科长报：订单#H-4402含冷链检测试剂B 批次CL-B-24Q2-07，计划4/21到达，现出现配送延期，影响本周采样检测。",
+        "customer_id": "CUS-2102",
+        "reporter": "沈科长",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-18T03:20:00Z",
+        "tags": [
+          "配送延迟",
+          "冷链",
+          "试剂B",
+          "CL-B-24Q2-07"
+        ],
+        "category": "冷链到货异常"
+      },
+      {
+        "ticket_id": "TK-2103",
+        "title": "周一冷链时效异常：两类试剂均未装车",
+        "description": "星港检验所（CUS-2103）周检验长：周一早晨发现冷链运输时效受阻，系统显示试剂A与试剂B均未完成装车；要求在48小时内给出明确到货时间与缺货原因。重点关注供应商合规/质检放行。",
+        "customer_id": "CUS-2103",
+        "reporter": "周检验长",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "in_progress",
+        "created_at": "2026-04-19T01:10:00Z",
+        "tags": [
+          "配送延迟",
+          "装车失败",
+          "冷链",
+          "缺货"
+        ],
+        "category": "冷链到货异常"
+      },
+      {
+        "ticket_id": "TK-2104",
+        "title": "订单#H-4401 温控异常导致无法开检",
+        "description": "北辰肿瘤医院（CUS-2101）曹主任：因冷链检测试剂A未按承诺时间到达，导致检测窗口错过；请说明是否存在供应商暂停出货/等待放行，给出替代批次方案。",
+        "customer_id": "CUS-2101",
+        "reporter": "曹主任",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-19T06:30:00Z",
+        "tags": [
+          "温控异常",
+          "冷链",
+          "试剂A"
+        ],
+        "category": "冷链到货异常"
+      },
+      {
+        "ticket_id": "TK-2105",
+        "title": "包装破损索赔：外箱变形（与冷链供货无关）",
+        "description": "鹭桥骨科医院（CUS-2104）刘院办：外箱破损需走索赔流程。该工单仅涉及外包装材料，不涉及冷链检测试剂A/B批次到货问题。请确认我们不要把它当作冷链断供根因。",
+        "customer_id": "CUS-2104",
+        "reporter": "刘院办",
+        "department": "售后索赔",
+        "priority": "medium",
+        "status": "open",
+        "tags": [
+          "包装破损",
+          "索赔",
+          "干扰"
+        ],
+        "category": "售后索赔"
+      },
+      {
+        "ticket_id": "TK-2106",
+        "title": "配送延迟：预计4/22到货但多次延期",
+        "description": "澄江疾控中心（CUS-2102）沈科长：同批次冷链试剂B（批次CL-B-24Q2-07）显示“待放行”导致延迟，要求提供采购取消/延期原因，并给出短期应急方案。",
+        "customer_id": "CUS-2102",
+        "reporter": "沈科长",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "in_progress",
+        "created_at": "2026-04-19T10:05:00Z",
+        "tags": [
+          "配送延迟",
+          "冷链",
+          "CL-B-24Q2-07",
+          "待放行"
+        ],
+        "category": "冷链到货异常"
+      },
+      {
+        "ticket_id": "TK-2107",
+        "title": "已排产但仍未到货：试剂A预计延后",
+        "description": "北辰肿瘤医院（CUS-2101）曹主任：仓库显示试剂A已排产，但实际未到货；要求追问是否为供应商整改导致采购被取消/延期。",
+        "customer_id": "CUS-2101",
+        "reporter": "曹主任",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-16T15:40:00Z",
+        "tags": [
+          "已排产",
+          "仍未到货",
+          "冷链",
+          "试剂A"
+        ],
+        "category": "冷链到货异常"
+      },
+      {
+        "ticket_id": "TK-2108",
+        "title": "冷链试剂B：供应链边界确认（非包装问题）",
+        "description": "星港检验所（CUS-2103）周检验长：请确认本次问题是否确认为冷链试剂B短供，而不是包装破损或运输车辆故障。我们需要供应商与批次对应证据。",
+        "customer_id": "CUS-2103",
+        "reporter": "周检验长",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-18T21:00:00Z",
+        "tags": [
+          "边界确认",
+          "冷链",
+          "试剂B"
+        ],
+        "category": "冷链到货异常"
+      },
+      {
+        "ticket_id": "TK-2109",
+        "title": "包装破损索赔：冷媒袋泄漏（非试剂A/B缺货链）",
+        "description": "鹭桥骨科医院（CUS-2104）刘院办：冷媒袋泄漏导致局部潮湿需索赔。与冷链检测试剂A/B库存清零及采购取消/延期无直接关联，属于物流包装问题。",
+        "customer_id": "CUS-2104",
+        "reporter": "刘院办",
+        "department": "售后索赔",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-17T12:25:00Z",
+        "tags": [
+          "包装破损",
+          "物流包装",
+          "干扰"
+        ],
+        "category": "售后索赔"
+      },
+      {
+        "ticket_id": "TK-2110",
+        "title": "已排产但未装车：试剂B预计再延期48小时",
+        "description": "澄江疾控中心（CUS-2102）沈科长：系统显示试剂B已排产但仍未到仓；预计再延期48小时。请给出是否与供应商“合规暂停/等待放行”有关，以及最新预计到货窗口。",
+        "customer_id": "CUS-2102",
+        "reporter": "沈科长",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-15T18:10:00Z",
+        "tags": [
+          "已排产",
+          "仍未到货",
+          "冷链",
+          "试剂B"
+        ],
+        "category": "冷链到货异常"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "PRD-CL-A-19",
+        "name": "冷链检测试剂A（CL-A-24Q2-19）",
+        "category": "冷链检测试剂A",
+        "quantity": 0,
+        "unit": "盒",
+        "unit_cost": 5666.67,
+        "location": "冷链仓1-02（低温冻结区）",
+        "reorder_level": 90,
+        "supplier": "青岚生物科技（冷链源）",
+        "last_restock_date": "2026-03-25",
+        "notes": "库存已清零；该批次对应供应商合规暂停直至放行。"
+      },
+      {
+        "product_id": "PRD-CL-B-07",
+        "name": "冷链检测试剂B（CL-B-24Q2-07）",
+        "category": "冷链检测试剂B",
+        "quantity": 12,
+        "unit": "盒",
+        "unit_cost": 6000.0,
+        "location": "冷链仓2-01（保鲜区）",
+        "reorder_level": 60,
+        "supplier": "青岚生物科技（冷链源）",
+        "last_restock_date": "2026-04-01",
+        "notes": "低于安全库存（12<60），可用量不足；供应侧等待放行。"
+      },
+      {
+        "product_id": "PRD-AUTO-IMM-33",
+        "name": "自动化配套试剂（替代兼容）IMM-33",
+        "category": "冷链检测试剂配套",
+        "quantity": 220,
+        "unit": "盒",
+        "unit_cost": 2100.0,
+        "location": "常温仓3-05",
+        "reorder_level": 100,
+        "supplier": "恒谱生物供应链",
+        "last_restock_date": "2026-04-10",
+        "notes": "库存充足，可用于部分检测流程的替代方案（需客户确认兼容性）。"
+      },
+      {
+        "product_id": "PRD-CL-ALT-884",
+        "name": "冷链替代试剂（ALT-884）",
+        "category": "冷链替代试剂",
+        "quantity": 95,
+        "unit": "盒",
+        "unit_cost": 3100.0,
+        "location": "冷链仓1-03",
+        "reorder_level": 50,
+        "supplier": "恒谱生物供应链",
+        "last_restock_date": "2026-04-14",
+        "notes": "库存偏稳，可作为应急替代；不对应CL-A/CL-B原批次。"
+      },
+      {
+        "product_id": "PRD-PACK-4412",
+        "name": "冷媒袋（4412）",
+        "category": "冷媒耗材",
+        "quantity": 650,
+        "unit": "个",
+        "unit_cost": 18.5,
+        "location": "包装仓5-02",
+        "reorder_level": 300,
+        "supplier": "海棠医疗耗材",
+        "last_restock_date": "2026-04-14",
+        "notes": "库存充足，用于干扰工单的包装索赔链。"
+      },
+      {
+        "product_id": "PRD-QC-KIT-12",
+        "name": "质量控制校准包（QC-KIT-12）",
+        "category": "实验室耗材",
+        "quantity": 40,
+        "unit": "套",
+        "unit_cost": 720.0,
+        "location": "常温仓3-01",
+        "reorder_level": 30,
+        "supplier": "海棠医疗耗材",
+        "last_restock_date": "2026-04-09",
+        "notes": "数量正常；与冷链断供无直接对应。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将根因从“产品质量问题暂停合作”升级为“批次质检报告未通过触发合规暂停”，并在财务中加入 cancelled+pending 混合；同时加入包装破损索赔工单作为明确干扰。",
+    "fixture_design_summary": [
+      "helpdesk/tickets：10条，至少4条高优先级“冷链到货异常/配送延迟”并覆盖试剂A/B批次与不同医院；2条in_progress；2条“已排产但仍未到货”作为边界；另有2条包装破损索赔干扰。",
+      "inventory/items：6个产品，其中冷链试剂A清零、试剂B低于安全库存，且两者supplier一致为根因供应商青岚生物。",
+      "finance/transactions：10笔含3条采购cancelled（取消原因含合规暂停/重审）与2条采购pending（延期原因含等待放行）；并加入3笔客户回款用于资金风险线索；另有与包装耗材相关的pending作为干扰。",
+      "crm/customers：包含5+对象，1个供应商suspended且notes含“批次质检报告未通过，需要整改；暂停出货直至放行”，并设置至少2个active供应商用于干扰但其库存/采购参考号不对应冷链A/B原批次。"
+    ]
+  }
+}

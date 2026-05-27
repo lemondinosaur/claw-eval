@@ -1,0 +1,230 @@
+task_id: T163zh_quarterly_customer_review_plus_4
+task_name: 按行业细分的季度联合洞察报告（行业经理视角）
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T163zh_quarterly_customer_review_plus_4/fixtures/gmail/inbox.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T163zh_quarterly_customer_review_plus_4/fixtures/contacts/contacts.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T163zh_quarterly_customer_review_plus_4/fixtures/finance/transactions.json
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T163zh_quarterly_customer_review_plus_4/fixtures/rss/feeds.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T163zh_quarterly_customer_review_plus_4/fixtures/crm/customers.json
+prompt:
+  text: '时间为2026年9月下旬，请回顾Q3（7/1-9/30），为6个重点客户输出“行业经理视角”的季度联合洞察。
+
+
+    要求：
+
+    1) 先阅读RSS行业动态，提炼出3个“行业主题”（只能3个），并说明每个主题的形成依据：引用RSS文章的tags与summary中的关键词/趋势点。
+
+    2) 再把每个客户映射到最合适的主题：对每个客户写出映射依据（基于CRM客户的行业字段 + RSS主题关键词对齐/解释），并确保每个客户都被成功映射到某一个主题。
+
+    3) 对每个客户补全：季度收入趋势（基于Q3的交易数据）、CRM满意度与续约节点（含合同到期月份/季度内关键节点）、邮件沟通活跃度（活跃/一般/沉默）与关键话题（从邮件中抽取）。
+
+    4) 邮件需识别并排除“内部群发干扰”：若某客户在9月出现多封邮件但来自内部群发（例如来自company域、或labels表明通知/群发），则不得将其计入该客户的沟通活跃度与关键话题。
+
+    5) 最后对3个行业主题分别总结：共性风险/共性机会，并给出每个主题一条跨客户可复用的建议。
+
+    6) 输出“行业经理”联系方式：从contacts中找title包含“行业经理”的联系人（且不是任何客户的sales_owner），并按主题分别给出对应的行业经理联系方式（至少覆盖每个主题1位）。
+
+
+    输出结构请清晰分段：先3个行业主题 -> 再6个客户逐一映射与分析 -> 最后3个主题的共性风险/机会与可复用建议。'
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选
+      tier:
+        type: string
+        description: 客户等级筛选(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 30
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: rss_list_feeds
+  description: 列出RSS订阅源
+  input_schema:
+    type: object
+    properties: {}
+    required: []
+- name: rss_get_feed
+  description: 获取RSS源文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_id:
+        type: string
+        description: 订阅源ID
+    required:
+    - feed_id
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_get_feed
+  url: http://localhost:9109/rss/feeds/get
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 40

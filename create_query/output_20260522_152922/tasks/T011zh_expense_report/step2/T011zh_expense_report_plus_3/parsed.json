@@ -1,0 +1,228 @@
+{
+  "task_id": "T011zh_expense_report_plus_3",
+  "task_name": "跨月截止的5月结转",
+  "prompt_text": "帮我整理提交2026年5月的报销。对跨月的可能错入账请严格按交易字段的date为准筛选：仅统计2026-05-01到2026-05-31发生的费用交易；若5月内存在撤销/撤单退款（amount为负），也要纳入5月汇总；同时识别并剔除5月内的疑似重复交易（同日同金额同商户，但描述中订单号后四位不同）。",
+  "files": {
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "txn_may_001",
+        "date": "2026-05-03",
+        "amount": 268.0,
+        "currency": "CNY",
+        "merchant": "首汽约车",
+        "category": "",
+        "description": "通勤打车（订单尾号 4821）",
+        "receipt_url": "receipts/txn_may_001.jpg"
+      },
+      {
+        "transaction_id": "txn_may_002",
+        "date": "2026-05-03",
+        "amount": 268.0,
+        "currency": "CNY",
+        "merchant": "首汽约车",
+        "category": "",
+        "description": "通勤打车（订单尾号 9176）",
+        "receipt_url": "receipts/txn_may_002.jpg"
+      },
+      {
+        "transaction_id": "txn_may_003",
+        "date": "2026-05-05",
+        "amount": 95.5,
+        "currency": "CNY",
+        "merchant": "喜茶",
+        "category": "",
+        "description": "团队协作茶饮",
+        "receipt_url": "receipts/txn_may_003.jpg"
+      },
+      {
+        "transaction_id": "txn_may_004",
+        "date": "2026-05-07",
+        "amount": 220.0,
+        "currency": "CNY",
+        "merchant": "肯德基",
+        "category": "",
+        "description": "客户会后餐（含撤销/撤单提示文案但金额为正）",
+        "receipt_url": "receipts/txn_may_004.jpg"
+      },
+      {
+        "transaction_id": "txn_may_005",
+        "date": "2026-05-08",
+        "amount": 780.0,
+        "currency": "CNY",
+        "merchant": "汉庭酒店",
+        "category": "",
+        "description": "差旅住宿 2晚",
+        "receipt_url": "receipts/txn_may_005.jpg"
+      },
+      {
+        "transaction_id": "txn_may_006",
+        "date": "2026-05-10",
+        "amount": 612.35,
+        "currency": "CNY",
+        "merchant": "中国移动",
+        "category": "",
+        "description": "云服务订阅（5月可报）",
+        "receipt_url": "receipts/txn_may_006.jpg"
+      },
+      {
+        "transaction_id": "txn_may_007",
+        "date": "2026-05-12",
+        "amount": 1299.0,
+        "currency": "CNY",
+        "merchant": "京东商城",
+        "category": "",
+        "description": "采购办公显示器 x1",
+        "receipt_url": "receipts/txn_may_007.jpg"
+      },
+      {
+        "transaction_id": "txn_may_008",
+        "date": "2026-05-14",
+        "amount": -129.0,
+        "currency": "CNY",
+        "merchant": "饿了么",
+        "category": "",
+        "description": "退款 - 撤销/撤单：午餐订单取消（退款入账于5月）",
+        "receipt_url": "receipts/txn_may_008.jpg"
+      },
+      {
+        "transaction_id": "txn_may_009",
+        "date": "2026-05-18",
+        "amount": 48.0,
+        "currency": "CNY",
+        "merchant": "顺丰速运",
+        "category": "",
+        "description": "寄送办公用品（快递费）",
+        "receipt_url": "receipts/txn_may_009.jpg"
+      },
+      {
+        "transaction_id": "txn_may_010",
+        "date": "2026-05-21",
+        "amount": 355.6,
+        "currency": "CNY",
+        "merchant": "麦当劳",
+        "category": "",
+        "description": "餐饮报销（订单尾号 0037）",
+        "receipt_url": "receipts/txn_may_010.jpg"
+      },
+      {
+        "transaction_id": "txn_may_011",
+        "date": "2026-05-23",
+        "amount": 198.0,
+        "currency": "CNY",
+        "merchant": "苏宁易购",
+        "category": "",
+        "description": "IT配件采购（鼠标键盘套装）",
+        "receipt_url": "receipts/txn_may_011.jpg"
+      },
+      {
+        "transaction_id": "txn_may_012",
+        "date": "2026-05-27",
+        "amount": 6400.0,
+        "currency": "CNY",
+        "merchant": "南方航空",
+        "category": "",
+        "description": "差旅机票（跨月入账提示：上月入账但以date为准）",
+        "receipt_url": "receipts/txn_may_012.jpg"
+      },
+      {
+        "transaction_id": "txn_may_013",
+        "date": "2026-05-29",
+        "amount": 159.9,
+        "currency": "CNY",
+        "merchant": "网易云音乐",
+        "category": "",
+        "description": "音视频会员（5月项目）",
+        "receipt_url": "receipts/txn_may_013.jpg"
+      },
+      {
+        "transaction_id": "txn_may_dup_trigger_014",
+        "date": "2026-05-30",
+        "amount": 73.2,
+        "currency": "CNY",
+        "merchant": "瑞幸咖啡",
+        "category": "",
+        "description": "门店消费（订单尾号 4119）",
+        "receipt_url": "receipts/txn_may_dup_trigger_014.jpg"
+      },
+      {
+        "transaction_id": "txn_may_dup_trigger_015",
+        "date": "2026-05-30",
+        "amount": 73.2,
+        "currency": "CNY",
+        "merchant": "瑞幸咖啡",
+        "category": "",
+        "description": "门店消费（订单尾号 8822）",
+        "receipt_url": "receipts/txn_may_dup_trigger_015.jpg"
+      },
+      {
+        "transaction_id": "txn_may_016",
+        "date": "2026-05-31",
+        "amount": 420.0,
+        "currency": "CNY",
+        "merchant": "阿里云",
+        "category": "",
+        "description": "云服务资源（按5月结转）",
+        "receipt_url": "receipts/txn_may_016.jpg"
+      },
+      {
+        "transaction_id": "txn_apr_001",
+        "date": "2026-04-28",
+        "amount": 520.0,
+        "currency": "CNY",
+        "merchant": "星巴克",
+        "category": "",
+        "description": "上月入账：5月可报的客户咖啡",
+        "receipt_url": "receipts/txn_apr_001.jpg"
+      },
+      {
+        "transaction_id": "txn_apr_002",
+        "date": "2026-04-30",
+        "amount": 289.0,
+        "currency": "CNY",
+        "merchant": "腾讯会议",
+        "category": "",
+        "description": "差旅相关：写着5月项目但实际4月发生",
+        "receipt_url": "receipts/txn_apr_002.jpg"
+      },
+      {
+        "transaction_id": "txn_apr_003",
+        "date": "2026-04-30",
+        "amount": -60.0,
+        "currency": "CNY",
+        "merchant": "美团外卖",
+        "category": "",
+        "description": "撤销/撤单退款（但退款日期在4月，5月不应纳入）",
+        "receipt_url": "receipts/txn_apr_003.jpg"
+      },
+      {
+        "transaction_id": "txn_jun_001",
+        "date": "2026-06-02",
+        "amount": 110.0,
+        "currency": "CNY",
+        "merchant": "饿了么",
+        "category": "",
+        "description": "写着5月项目的餐饮（但date在6月初，应排除）",
+        "receipt_url": "receipts/txn_jun_001.jpg"
+      },
+      {
+        "transaction_id": "txn_jun_002",
+        "date": "2026-06-05",
+        "amount": 1500.0,
+        "currency": "CNY",
+        "merchant": "京东商城",
+        "category": "",
+        "description": "上月入账的IT采购（实际发生在6月，排除）",
+        "receipt_url": "receipts/txn_jun_002.jpg"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的报销月份从2月替换为2026年5月，并新增“跨月干扰文案”但强制按transaction.date筛选，同时加入5月内重复（订单尾号不同）与5月内负数撤销退款的处理重点。",
+    "fixture_design_summary": [
+      "transactions.json覆盖至少3条跨月干扰：2026-04-28/2026-04-30与2026-06-02/2026-06-05，确保只按date纳入5月。",
+      "5月内包含两组重复交易：首汽约车(同日同额同商户，订单尾号不同)与瑞幸咖啡(同日同额同商户，订单尾号不同)，用于验证重复剔除。",
+      "5月内包含一笔负数撤销退款txn_may_008（description含撤销/撤单），用于验证退款金额直接计入5月total_amount。",
+      "5月内覆盖类别：差旅(酒店/机票)、餐饮(喜茶/肯德基/麦当劳/瑞幸等)、办公(文具/快递/采购)、IT/云服务(腾讯会议/阿里云/中国移动/网易云音乐)等。"
+    ]
+  }
+}

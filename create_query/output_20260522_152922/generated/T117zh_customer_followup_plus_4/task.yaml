@@ -1,0 +1,140 @@
+task_id: T117zh_customer_followup_plus_4
+task_name: 多收件人部门协调（同客户不同联系人）
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_4/fixtures/crm/customers.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_4/fixtures/gmail/inbox.json
+prompt:
+  text: "请帮我为CRM中超过35天未联系的活跃客户（排除churned）准备“部门协调”邮件草稿：\n- CRM里同一客户可能包含多个联系人（例如运营负责人+研发负责人），请对每个联系人分别起草一封草稿；同一客户的草稿主题保持一致，但收件人(to)、措辞重点与回应的关切需严格对应到该联系人。\n\
+    - 从Gmail中找到与“对应联系人”匹配的最后沟通邮件作为依据；如果某个联系人在Gmail中没有任何历史邮件，请明确在输出中标注“无匹配邮件，依据CRM\
+    \ notes中的该角色描述起草”，并且不要混用其他联系人的具体承诺/细节。\n- VIP客户与普通客户需区分风格：\n  - VIP：更正式、更强调重要性与下一步安排。\n\
+    \  - 普通：友好简洁、直接询问当前进展。\n- 只需要起草并保存草稿，不发送。\n\n输出要求：\n1) 每个被跟进客户列出“联系人清单”（联系人邮箱+角色）；\n\
+    2) 每个联系人对应的“邮件依据”（邮件ID；或无邮件时说明依据来源为CRM notes角色描述）；\n3) 每封草稿的“主题要点”（要点列表即可）。\n\n\
+    今天视为2026-03-30。"
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

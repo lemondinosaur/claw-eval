@@ -1,0 +1,57 @@
+[
+  {
+    "contact_id": "CT-1601",
+    "name": "陈屹",
+    "department": "技术部",
+    "title": "搜索平台负责人",
+    "email": "chenyi.search@company.com",
+    "phone": "13900210001",
+    "location": "深圳分部",
+    "specialization": "搜索与检索平台",
+    "notes": "负责搜索服务（核心索引、检索链路、错误率/降级策略）应急处置与技术升级分配"
+  },
+  {
+    "contact_id": "CT-1602",
+    "name": "蒋岚",
+    "department": "技术部",
+    "title": "后端可靠性工程负责人",
+    "email": "jianglan.sre@company.com",
+    "phone": "13900210002",
+    "location": "上海总部",
+    "specialization": "SRE与故障响应",
+    "notes": "负责后端链路降级/回滚、观测指标与应急联动；作为内部升级接收点之一"
+  },
+  {
+    "contact_id": "CT-1603",
+    "name": "郑致远",
+    "department": "技术部",
+    "title": "技术总监",
+    "email": "zhengzy.tech@company.com",
+    "phone": "13900210003",
+    "location": "上海总部",
+    "specialization": "技术管理与升级接收",
+    "notes": "所有P0/P1事故升级的最终接收人，负责跨部门技术协调与资源调度"
+  },
+  {
+    "contact_id": "CT-1604",
+    "name": "周沫",
+    "department": "客户成功部",
+    "title": "VIP客户对接经理",
+    "email": "zhoumo.vipsuccess@company.com",
+    "phone": "13900210004",
+    "location": "北京分部",
+    "specialization": "VIP客户管理与升级沟通",
+    "notes": "负责VIP客户沟通窗口、对接客户业务负责人并同步升级进展"
+  },
+  {
+    "contact_id": "CT-1605",
+    "name": "姚诗韵",
+    "department": "技术部",
+    "title": "日志与观测工程师",
+    "email": "yaoshiyun.obs@company.com",
+    "phone": "13900210005",
+    "location": "杭州分部",
+    "specialization": "日志采集与观测",
+    "notes": "负责日志采集延迟与观测链路问题定位；与并行工单协同"
+  }
+]

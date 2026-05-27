@@ -1,0 +1,117 @@
+[
+  {
+    "event_id": "evt_701",
+    "title": "Horizon 关键评审：法务条款冻结与里程碑",
+    "start_time": "2026-04-05T10:00:00+08:00",
+    "end_time": "2026-04-05T11:30:00+08:00",
+    "location": "线上会议",
+    "organizer": "陈岚",
+    "attendees": [
+      "陈岚",
+      "沈琦",
+      "姚宁"
+    ],
+    "description": "Horizon 关键评审纪要（关联 NOTE-701）；行动项包含：法务审查/条款冻结/签署节奏影响开发blocked",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_702",
+    "title": "Horizon 技术复盘（干扰）：接口性能例会",
+    "start_time": "2026-04-07T15:00:00+08:00",
+    "end_time": "2026-04-07T16:00:00+08:00",
+    "location": "会议室D",
+    "organizer": "周瑜",
+    "attendees": [
+      "周瑜",
+      "沈琦"
+    ],
+    "description": "仅讨论性能优化，不涉及外部依赖（关联 NOTE-702）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_703",
+    "title": "Ivory 关键评审：供应商交付对齐与集成风险",
+    "start_time": "2026-04-06T09:30:00+08:00",
+    "end_time": "2026-04-06T10:45:00+08:00",
+    "location": "会议室B",
+    "organizer": "姚宁",
+    "attendees": [
+      "姚宁",
+      "许晗",
+      "郑航"
+    ],
+    "description": "Ivory 关键评审纪要（关联 NOTE-703）；行动项包含：供应商交付窗口/集成验证待交付物",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_704",
+    "title": "Ivory 跨部门例会（干扰）：数据治理例会",
+    "start_time": "2026-04-08T10:00:00+08:00",
+    "end_time": "2026-04-08T11:00:00+08:00",
+    "location": "会议室A",
+    "organizer": "纪敏",
+    "attendees": [
+      "纪敏",
+      "许晗"
+    ],
+    "description": "数据治理更新，不含外部依赖关键词（关联 NOTE-704）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_705",
+    "title": "Jade 关键评审：运维变更窗口已确定与回滚预案",
+    "start_time": "2026-04-04T14:00:00+08:00",
+    "end_time": "2026-04-04T15:30:00+08:00",
+    "location": "会议室C",
+    "organizer": "邱澄",
+    "attendees": [
+      "邱澄",
+      "何霖",
+      "马骏"
+    ],
+    "description": "Jade 关键评审纪要（关联 NOTE-705）；行动项包含：运维变更窗口/回滚预案/窗口后续跟进",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_706",
+    "title": "Jade 安全扫描对齐（干扰）：合规检查",
+    "start_time": "2026-04-10T09:00:00+08:00",
+    "end_time": "2026-04-10T10:00:00+08:00",
+    "location": "线上会议",
+    "organizer": "薛琦",
+    "attendees": [
+      "薛琦",
+      "何霖"
+    ],
+    "description": "合规检查为干扰会议（关联 NOTE-706）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_707",
+    "title": "全员安全通报（干扰）：季度安全培训",
+    "start_time": "2026-04-03T13:00:00+08:00",
+    "end_time": "2026-04-03T13:45:00+08:00",
+    "location": "大会议室",
+    "organizer": "安全团队",
+    "attendees": [
+      "全员"
+    ],
+    "description": "安全团队培训通报（不作为项目关键评审）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_708",
+    "title": "跨部门协作例会（干扰）：接口联调沟通",
+    "start_time": "2026-04-09T16:00:00+08:00",
+    "end_time": "2026-04-09T17:00:00+08:00",
+    "location": "会议室E",
+    "organizer": "产品运营",
+    "attendees": [
+      "产品运营",
+      "沈琦",
+      "许晗"
+    ],
+    "description": "仅为联调协调，不涉及关键外部依赖（无NOTE）",
+    "status": "confirmed"
+  }
+]

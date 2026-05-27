@@ -1,0 +1,81 @@
+task_id: T001zh_email_triage_plus_1
+task_name: 紧急工单回执识别
+version: '1.0'
+category: communication
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T001zh_email_triage_plus_1/fixtures/gmail/inbox.json
+prompt:
+  text: '请帮我分拣邮箱收件箱里的所有邮件：逐条判断哪些“必须回复”（需回复）、哪些只是“信息/通知”（仅供参考）、哪些是明显垃圾或可疑钓鱼（垃圾邮件）。
+
+
+    要求：对每封邮件输出发送方、主题、判定类别（只能从“需回复/仅供参考/垃圾邮件”三者中选）以及简明理由（说明是否要求回执/签署/确认、是否索要敏感信息或包含可疑链接与诱导）。不得调用发送邮件工具。'
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

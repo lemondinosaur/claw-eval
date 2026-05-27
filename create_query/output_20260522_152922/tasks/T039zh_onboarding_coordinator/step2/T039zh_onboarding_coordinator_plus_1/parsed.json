@@ -1,0 +1,252 @@
+{
+  "task_id": "T039zh_onboarding_coordinator_plus_1",
+  "task_name": "入职冲突与设备补录协调",
+  "prompt_text": "请你为“下周三”（按系统当前日期计算为具体YYYY-MM-DD，系统当前日期为2026-03-05）准备4位新员工的入职协调与排程：\n\n1) 阅读HR收件箱入职邮件与IT库存邮件，分别提取每位新员工的部门、姓名、岗位需求（账号/设备/系统访问/培训要求）。\n2) 使用知识库查找入职流程清单、设备申请规则、培训建议时段、冲突调整原则，以及安全审查“需额外等待”的规则与缺货登记/临时备用策略。\n3) 检索通讯录中各部门经理联系方式；若出现同名联系人歧义，需结合部门上下文选择正确邮箱。\n4) 检查库存：确认每位新员工所需设备是否可用；如缺货（包含“无线键盘套装”），记录到货日期，并为缺货设备创建跟进待办。\n5) 查看日历冲突：在下周三根据知识库给出的培训建议时段安排培训；若培训时间段与已有会议冲突，则自动改到不冲突的附近空闲时段，且新培训时间需覆盖知识库所强调的核心模块时段。\n6) 通知与邮件发送：\n   - 若某位员工所在部门存在部门经理，则给该部门经理发送入职通知。\n   - 若某部门无部门经理，则仅对该部门经理通知保存邮件草稿，不要发送。\n7) 创建待办：至少为缺货设备跟进创建待办，并为账号准备与安全审查/等待依赖创建至少一条相关待办。\n8) 输出完整入职安排总结：覆盖4位员工的培训时间、设备状态（可用/缺货/临时方案）、安全审查是否阻塞、邮件发送或仅草稿的原因、以及待办清单摘要（包含缺货到货日期与跟进负责人）。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_611",
+        "title": "战略评审会",
+        "organizer": "strategy_lead@company.com",
+        "attendees": [
+          "strategy_lead@company.com",
+          "secops_coordinator@company.com"
+        ],
+        "start_time": "2026-03-11T10:00:00+08:00",
+        "end_time": "2026-03-11T11:00:00+08:00",
+        "location": "会议室D",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_612",
+        "title": "客户回访复盘",
+        "organizer": "ops_manager@company.com",
+        "attendees": [
+          "ops_manager@company.com",
+          "finance_partner@company.com"
+        ],
+        "start_time": "2026-03-11T15:00:00+08:00",
+        "end_time": "2026-03-11T16:15:00+08:00",
+        "location": "会议室E",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-401",
+        "name": "林卓",
+        "department": "研发A部门",
+        "title": "研发A负责人",
+        "email": "linzhuo_rnd@company.com",
+        "phone": "13800002001"
+      },
+      {
+        "contact_id": "CT-402",
+        "name": "周晴",
+        "department": "运营部门",
+        "title": "运营部经理",
+        "email": "zhouqing_ops@company.com",
+        "phone": "13800002002",
+        "notes": "（运营）部门经理邮件用于入职通知"
+      },
+      {
+        "contact_id": "CT-403",
+        "name": "周晴",
+        "department": "法务部门",
+        "title": "法务合规专员",
+        "email": "zhouqing_legal@company.com",
+        "phone": "13800002003",
+        "notes": "（法务）非部门经理，用于歧义消解"
+      },
+      {
+        "contact_id": "CT-404",
+        "name": "赵敏",
+        "department": "法务部门",
+        "title": "",
+        "email": "zhaomin_legal@company.com",
+        "phone": "13800002004",
+        "notes": "法务部门无部门经理记录：仅可保存草稿"
+      },
+      {
+        "contact_id": "CT-405",
+        "name": "何可",
+        "department": "平台与数据部门",
+        "title": "数据平台经理",
+        "email": "heke_data@company.com",
+        "phone": "13800002005"
+      },
+      {
+        "contact_id": "CT-406",
+        "name": "陈岚",
+        "department": "IT部门",
+        "title": "IT资产管理员",
+        "email": "chenlan_it@company.com",
+        "phone": "13800002006"
+      },
+      {
+        "contact_id": "CT-407",
+        "name": "马琳",
+        "department": "安全部",
+        "title": "信息安全经理",
+        "email": "mali_ansec@company.com",
+        "phone": "13800002007"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_3101",
+        "from": "wangfang_hr@company.com",
+        "to": "user@company.com",
+        "subject": "下周三（3月11日）新员工入职需求与培训安排请求（4人）",
+        "body": "您好，\n\n下周三（3月11日）将入职4位新员工，请协调：\n\n1) 林峰 — 研发A部门（开发岗位）\n   - 部门经理：待查\n   - 需要：笔记本 + 公司账号（含VPN）\n   - 培训：必须参加入职培训（核心模块1：10:30-11:30；核心模块2：14:30-15:15）\n\n2) 周晴 — 运营部门（增长运营岗位）\n   - 部门经理：待查（注意通讯录同名歧义）\n   - 需要：专用外设（无线键盘套装）\n   - 培训：必须参加入职培训（核心模块1：10:30-11:30；核心模块2：14:30-15:15）\n\n3) 赵敏 — 法务部门（合规岗位）\n   - 部门经理：法务无经理记录\n   - 需要：入职系统账号（不涉及数据库权限）\n   - 培训：必须参加入职培训（核心模块1：10:30-11:30；核心模块2：14:30-15:15）\n\n4) 钱宁 — 平台与数据部门（数据分析）\n   - 部门经理：待查\n   - 需要：访问内部数据集（需安全审查通过后才能开通）\n   - 培训：必须参加入职培训（核心模块1：10:30-11:30；核心模块2：14:30-15:15）\n   - 安全要求：安全审查需额外等待（即便提交了申请，也要等批准后开通）\n\n说明：\n- 若某部门无部门经理：请仅保存通知草稿，不要发送。\n- 若培训时间与现有会议冲突：请调整到不冲突时段，但需保证覆盖上述核心模块时间段。\n\n谢谢！\nHR团队（王芳）",
+        "date": "2026-03-05T10:20:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_3102",
+        "from": "chenlan_it@company.com",
+        "to": "user@company.com",
+        "subject": "IT设备库存更新：无线键盘套装缺货与预计到货日期",
+        "body": "同步一条库存更新：\n\n- 无线键盘套装（EQ-210）当前库存为0，缺货。\n  预计到货日期：2026-03-13。\n  到货后将按登记时间先后分配。\n  缺货期间可申请临时备用外设（EQ-211，库存充足）。\n\n- 笔记本（EQ-120）库存充足。\n- 显示器（EQ-230）库存充足。\n\n如需对缺货登记/临时备用做进一步协同，请在待办里标注到货日期。\n",
+        "date": "2026-03-05T14:35:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_3103",
+        "from": "it_ops_bot@company.com",
+        "to": "user@company.com",
+        "subject": "自动通知：本周系统维护窗口",
+        "body": "提示：本周四将进行系统维护，届时部分账号登录可能延迟。无需处理入职协调相关事务。",
+        "date": "2026-03-05T08:05:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": true
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "EQ-120",
+        "name": "笔记本电脑 Pro 14",
+        "category": "办公电脑",
+        "current_stock": 6,
+        "status": "normal",
+        "unit_price": 15699.0,
+        "notes": ""
+      },
+      {
+        "product_id": "EQ-230",
+        "name": "高清显示器 27英寸",
+        "category": "外设",
+        "current_stock": 18,
+        "status": "normal",
+        "unit_price": 2799.0,
+        "notes": ""
+      },
+      {
+        "product_id": "EQ-210",
+        "name": "无线键盘套装",
+        "category": "外设",
+        "current_stock": 0,
+        "status": "out_of_stock",
+        "unit_price": 1299.0,
+        "restock_date": "2026-03-13",
+        "notes": "缺货：预计3月13日到货。到货后按登记顺序分配"
+      },
+      {
+        "product_id": "EQ-211",
+        "name": "临时备用键盘套装（兼容版）",
+        "category": "外设",
+        "current_stock": 12,
+        "status": "normal",
+        "unit_price": 999.0,
+        "notes": "缺货期间可作为临时替代"
+      },
+      {
+        "product_id": "EQ-340",
+        "name": "办公桌椅基础套装",
+        "category": "办公家具",
+        "current_stock": 9,
+        "status": "normal",
+        "unit_price": 3899.0,
+        "notes": ""
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-801",
+        "title": "新员工入职流程清单（含培训与冲突调整）",
+        "category": "HR",
+        "tags": [
+          "入职",
+          "培训",
+          "排程",
+          "冲突调整"
+        ],
+        "content": "# 新员工入职流程清单\n\n## 建议培训时段（核心模块需覆盖）\n- 核心模块1：10:30-11:30\n- 核心模块2：14:30-15:15\n\n## 冲突调整原则\n- 若建议时段与日历会议冲突：\n  1) 优先把培训整体迁移到同日附近不冲突时段（例如：紧挨着冲突边界的可用空档）。\n  2) 迁移后的新时间仍需覆盖核心模块对应的知识点顺序与持续时长（至少保证核心模块1时段的连续时长满足并覆盖核心模块2的关键部分）。\n\n## 无部门经理处理\n- 若通讯录未检索到部门经理：入职通知仅保存邮件草稿，不发送。\n\n## 设备缺货处理\n- 若设备缺货：登记需求并记录到货日期。\n- 可为缺货创建“到货前临时方案”与“到货后补发”两类安排。\n",
+        "last_updated": "2026-02-24",
+        "views": 3120
+      },
+      {
+        "article_id": "KB-802",
+        "title": "IT设备申请规则与安全审查等待说明",
+        "category": "IT",
+        "tags": [
+          "设备申请",
+          "安全审查",
+          "等待",
+          "缺货登记"
+        ],
+        "content": "# IT设备申请规则与安全审查等待说明\n\n## 设备申请\n1. 入职前3天提交设备申请/登记。\n2. 申请需部门经理审批；若无部门经理则先由HR邮件草稿记录需求，IT侧按登记号准备。\n3. 缺货设备：登记到等候名单，到货后优先按登记顺序分配。\n\n## 安全审查（必须遵守）\n- 涉及内部数据集访问权限的账号：\n  - 安全审查通过前不得开通数据集访问。\n  - 即使已经提交申请，也需要“额外等待”安全审批结果。\n\n## 临时备用策略\n- 对缺货外设：可先提供临时备用外设以支撑培训与入职当日使用。\n- 到货后再替换/补发。\n",
+        "last_updated": "2026-02-18",
+        "views": 2240
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-411",
+        "title": "审核入职名单（Q2批次）",
+        "description": "确认入职名单与人事信息一致，等待HR最终回传。当前任务不涉及设备补录与日历冲突处理。",
+        "status": "in_progress",
+        "priority": "medium",
+        "due_date": "2026-03-10",
+        "tags": [
+          "HR",
+          "名单核对"
+        ],
+        "created_at": "2026-03-03T09:10:00+08:00"
+      },
+      {
+        "task_id": "TODO-412",
+        "title": "整理机房出入登记表",
+        "description": "为新员工发放机房出入临时凭证准备表单（不包含安全审查与数据集开通）。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-03-11",
+        "tags": [
+          "机房",
+          "表单"
+        ],
+        "created_at": "2026-03-02T16:20:00+08:00"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在系统锚点2026-03-05下将任务扩展为4位新员工，并引入“无线键盘套装缺货跟进+同名联系人歧义+上午与下午双区域培训冲突调整+法务无经理仅草稿”的协调分支。",
+    "fixture_design_summary": [
+      "calendar: 下周三(2026-03-11)上午10:00-11:00与下午15:00-16:15各有会议，用于触发培训冲突迁移。",
+      "gmail: inbox提供1封HR入职需求(4人)与1封IT库存更新(明确无线键盘套装缺货到货日期2026-03-13)，另加1封无关维护邮件作干扰。",
+      "kb: 包含培训建议核心模块时段(10:30-11:30与14:30-15:15)、冲突调整原则、无经理仅草稿、以及安全审查“额外等待”和缺货临时备用策略。",
+      "contacts: 设置同名“周晴”两条(运营经理 vs 法务合规专员)以验证部门上下文歧义消解；法务部门无经理记录(只给非经理联系人)以触发gmail_save_draft。",
+      "inventory: 无线键盘套装EQ-210 current_stock=0且restock_date=2026-03-13，并提供临时备用键盘套装EQ-211；其他设备库存正常。",
+      "todo: 预置两条与入职无直接复用的新任务，确保执行时仍需新建至少“缺货设备跟进”和“安全/账号相关”待办。"
+    ]
+  }
+}

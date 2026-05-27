@@ -1,0 +1,235 @@
+[
+  {
+    "ticket_id": "HD-4201",
+    "title": "RENEW-2026-11（Sales）续约谈判预算内升级",
+    "description": "续约谈判编号 RENEW-2026-11，Sales触发。客户CUST-210为VIP，请按年度续约升级流程处理。",
+    "customer_id": "CUST-210",
+    "reporter": "陈晓岚",
+    "department": "销售部",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-15T09:20:00Z",
+    "tags": [
+      "续约升级",
+      "Sales触发",
+      "预算内"
+    ]
+  },
+  {
+    "ticket_id": "HD-4202",
+    "title": "RENEW-2026-11（Legal）续约谈判版本",
+    "description": "续约谈判编号 RENEW-2026-11，Legal团队版本候选，不应被Sales触发邮件命中。",
+    "customer_id": "CUST-210",
+    "reporter": "周浩然",
+    "department": "法务部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-15T09:25:00Z",
+    "tags": [
+      "续约升级",
+      "Legal候选"
+    ]
+  },
+  {
+    "ticket_id": "HD-4203",
+    "title": "RENEW-2026-12（客服）续约谈判预算内审批",
+    "description": "续约谈判编号 RENEW-2026-12，客服触发。客户CUST-211为VIP。",
+    "customer_id": "CUST-211",
+    "reporter": "陈晓岚",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-15T10:10:00Z",
+    "tags": [
+      "续约升级",
+      "客服触发",
+      "预算内"
+    ]
+  },
+  {
+    "ticket_id": "HD-4204",
+    "title": "RENEW-2026-12（Sales）续约谈判版本",
+    "description": "续约谈判编号 RENEW-2026-12，Sales团队候选版本。",
+    "customer_id": "CUST-211",
+    "reporter": "孙佳维",
+    "department": "销售部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-15T10:12:00Z",
+    "tags": [
+      "续约升级",
+      "Sales候选"
+    ]
+  },
+  {
+    "ticket_id": "HD-4205",
+    "title": "RENEW-2026-13（Sales）续约谈判预算外升级候选",
+    "description": "续约谈判编号 RENEW-2026-13，Sales触发。客户CUST-212为standard。",
+    "customer_id": "CUST-212",
+    "reporter": "孙佳维",
+    "department": "销售部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-15T11:40:00Z",
+    "tags": [
+      "续约升级",
+      "Sales触发",
+      "待判断"
+    ]
+  },
+  {
+    "ticket_id": "HD-4206",
+    "title": "RENEW-2026-13（CS）续约谈判版本",
+    "description": "续约谈判编号 RENEW-2026-13，CS团队版本候选。",
+    "customer_id": "CUST-212",
+    "reporter": "陈晓岚",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-15T11:45:00Z",
+    "tags": [
+      "续约升级",
+      "CS候选"
+    ]
+  },
+  {
+    "ticket_id": "HD-4207",
+    "title": "RENEW-2026-14（客服）续约谈判预算内但未先保价",
+    "description": "续约谈判编号 RENEW-2026-14，客服触发。客户CUST-213为standard。",
+    "customer_id": "CUST-213",
+    "reporter": "陈晓岚",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-15T12:25:00Z",
+    "tags": [
+      "续约升级",
+      "客服触发",
+      "预算内"
+    ]
+  },
+  {
+    "ticket_id": "HD-4208",
+    "title": "RENEW-2026-14（Sales）续约谈判候选版本",
+    "description": "续约谈判编号 RENEW-2026-14，Sales团队版本候选。",
+    "customer_id": "CUST-213",
+    "reporter": "孙佳维",
+    "department": "销售部",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-15T12:28:00Z",
+    "tags": [
+      "续约升级",
+      "Sales候选"
+    ]
+  },
+  {
+    "ticket_id": "HD-4209",
+    "title": "RENEW-2026-15（Sales）续约谈判超预算审批",
+    "description": "续约谈判编号 RENEW-2026-15，Sales触发。客户CUST-214为standard。",
+    "customer_id": "CUST-214",
+    "reporter": "孙佳维",
+    "department": "销售部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-15T13:20:00Z",
+    "tags": [
+      "续约升级",
+      "Sales触发",
+      "预算外"
+    ]
+  },
+  {
+    "ticket_id": "HD-4210",
+    "title": "RENEW-2026-15（Legal）续约谈判版本",
+    "description": "续约谈判编号 RENEW-2026-15，Legal版本候选。",
+    "customer_id": "CUST-214",
+    "reporter": "周浩然",
+    "department": "法务部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-15T13:22:00Z",
+    "tags": [
+      "续约升级",
+      "Legal候选"
+    ]
+  },
+  {
+    "ticket_id": "HD-4211",
+    "title": "RENEW-2026-16（客服）VIP续约谈判先保价后审",
+    "description": "续约谈判编号 RENEW-2026-16，客服触发。客户CUST-215为VIP。",
+    "customer_id": "CUST-215",
+    "reporter": "陈晓岚",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-15T14:10:00Z",
+    "tags": [
+      "续约升级",
+      "客服触发",
+      "预算内"
+    ]
+  },
+  {
+    "ticket_id": "HD-4212",
+    "title": "RENEW-2026-16（Sales）续约谈判候选版本",
+    "description": "续约谈判编号 RENEW-2026-16，Sales团队版本候选。",
+    "customer_id": "CUST-215",
+    "reporter": "孙佳维",
+    "department": "销售部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-15T14:15:00Z",
+    "tags": [
+      "续约升级",
+      "Sales候选"
+    ]
+  },
+  {
+    "ticket_id": "HD-4213",
+    "title": "RENEW-2026-77（客服）已流失客户异常候选",
+    "description": "续约谈判编号 RENEW-2026-77，客服触发。客户CUST-216为churned，用于异常演示（本数据可能与干扰邮件无关）。",
+    "customer_id": "CUST-216",
+    "reporter": "陈晓岚",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-10T10:00:00Z",
+    "tags": [
+      "续约升级",
+      "客服触发",
+      "异常-法务"
+    ]
+  },
+  {
+    "ticket_id": "HD-4214",
+    "title": "RENEW-2026-77（Legal）异常处理版本",
+    "description": "续约谈判编号 RENEW-2026-77，Legal处理版本候选。",
+    "customer_id": "CUST-216",
+    "reporter": "周浩然",
+    "department": "法务部",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-10T10:05:00Z",
+    "tags": [
+      "续约升级",
+      "Legal候选",
+      "异常-法务"
+    ]
+  },
+  {
+    "ticket_id": "HD-4215",
+    "title": "RENEW-2026-99（Sales）干扰邮件候选工单",
+    "description": "续约谈判编号 RENEW-2026-99，仅用于干扰邮件字段缺失场景的工单存在性。",
+    "customer_id": "CUST-213",
+    "reporter": "孙佳维",
+    "department": "销售部",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-15T15:05:00Z",
+    "tags": [
+      "续约升级",
+      "Sales候选"
+    ]
+  }
+]

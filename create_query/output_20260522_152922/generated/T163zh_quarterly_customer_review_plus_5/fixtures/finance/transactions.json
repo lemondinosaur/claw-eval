@@ -1,0 +1,236 @@
+[
+  {
+    "transaction_id": "TXN-2401",
+    "customer_id": "CUS-2401",
+    "amount": 92000,
+    "type": "subscription",
+    "date": "2026-07-14",
+    "status": "completed",
+    "description": "7月订阅费（标准包）"
+  },
+  {
+    "transaction_id": "TXN-2402",
+    "customer_id": "CUS-2401",
+    "amount": 98000,
+    "type": "subscription",
+    "date": "2026-08-15",
+    "status": "completed",
+    "description": "8月订阅费（含数据看板）"
+  },
+  {
+    "transaction_id": "TXN-2403",
+    "customer_id": "CUS-2401",
+    "amount": -45000,
+    "type": "refund",
+    "date": "2026-09-09",
+    "status": "completed",
+    "description": "9月退款/冲销：账期调整-对账差异"
+  },
+  {
+    "transaction_id": "TXN-2404",
+    "customer_id": "CUS-2401",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-10-05",
+    "status": "completed",
+    "description": "10月补单：Q3对账差异修正后的新增订阅（用于推断非本Q3归因）"
+  },
+  {
+    "transaction_id": "TXN-2405",
+    "customer_id": "CUS-2402",
+    "amount": 64000,
+    "type": "subscription",
+    "date": "2026-07-18",
+    "status": "completed",
+    "description": "7月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2406",
+    "customer_id": "CUS-2402",
+    "amount": 66000,
+    "type": "subscription",
+    "date": "2026-08-21",
+    "status": "pending",
+    "description": "8月付款延迟：账期调整申请（status非completed）"
+  },
+  {
+    "transaction_id": "TXN-2407",
+    "customer_id": "CUS-2402",
+    "amount": 68000,
+    "type": "subscription",
+    "date": "2026-09-12",
+    "status": "completed",
+    "description": "9月订阅费（补缴后完成）"
+  },
+  {
+    "transaction_id": "TXN-2408",
+    "customer_id": "CUS-2403",
+    "amount": 74000,
+    "type": "subscription",
+    "date": "2026-07-08",
+    "status": "completed",
+    "description": "7月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2409",
+    "customer_id": "CUS-2403",
+    "amount": 76000,
+    "type": "subscription",
+    "date": "2026-08-10",
+    "status": "completed",
+    "description": "8月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2410",
+    "customer_id": "CUS-2403",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-09-03",
+    "status": "pending",
+    "description": "9月订阅中断：付款延迟导致服务暂停（status非completed）"
+  },
+  {
+    "transaction_id": "TXN-2411",
+    "customer_id": "CUS-2403",
+    "amount": 78000,
+    "type": "subscription",
+    "date": "2026-09-28",
+    "status": "completed",
+    "description": "9月底补回：订阅恢复（补单）"
+  },
+  {
+    "transaction_id": "TXN-2412",
+    "customer_id": "CUS-2404",
+    "amount": 125000,
+    "type": "subscription",
+    "date": "2026-07-22",
+    "status": "completed",
+    "description": "7月订阅费+产线扩展包"
+  },
+  {
+    "transaction_id": "TXN-2413",
+    "customer_id": "CUS-2404",
+    "amount": -30000,
+    "type": "refund",
+    "date": "2026-08-30",
+    "status": "completed",
+    "description": "8月退款/冲销：交付验收调整"
+  },
+  {
+    "transaction_id": "TXN-2414",
+    "customer_id": "CUS-2404",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-09-18",
+    "status": "pending",
+    "description": "9月付款延迟：账期调整（status非completed）"
+  },
+  {
+    "transaction_id": "TXN-2415",
+    "customer_id": "CUS-2404",
+    "amount": 110000,
+    "type": "subscription",
+    "date": "2026-10-02",
+    "status": "completed",
+    "description": "10月续期补单（用于推断，非Q3）"
+  },
+  {
+    "transaction_id": "TXN-2416",
+    "customer_id": "CUS-2405",
+    "amount": 98000,
+    "type": "subscription",
+    "date": "2026-07-11",
+    "status": "completed",
+    "description": "7月订阅费（合规审计模块）"
+  },
+  {
+    "transaction_id": "TXN-2417",
+    "customer_id": "CUS-2405",
+    "amount": 102000,
+    "type": "subscription",
+    "date": "2026-08-13",
+    "status": "completed",
+    "description": "8月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2418",
+    "customer_id": "CUS-2405",
+    "amount": -52000,
+    "type": "refund",
+    "date": "2026-09-21",
+    "status": "completed",
+    "description": "9月退款/冲销：合约条款变更冲正（退款/冲销）"
+  },
+  {
+    "transaction_id": "TXN-2419",
+    "customer_id": "CUS-2406",
+    "amount": 56000,
+    "type": "subscription",
+    "date": "2026-07-05",
+    "status": "completed",
+    "description": "7月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2420",
+    "customer_id": "CUS-2406",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-08-18",
+    "status": "pending",
+    "description": "8月订阅状态异常：付款延迟/账期调整（status非completed）"
+  },
+  {
+    "transaction_id": "TXN-2421",
+    "customer_id": "CUS-2406",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-09-06",
+    "status": "pending",
+    "description": "9月账期调整中：合同条款修订等待（description含账期调整）"
+  },
+  {
+    "transaction_id": "TXN-2422",
+    "customer_id": "CUS-2406",
+    "amount": 59000,
+    "type": "subscription",
+    "date": "2026-09-25",
+    "status": "completed",
+    "description": "9月补缴完成（部分恢复）"
+  },
+  {
+    "transaction_id": "TXN-2423",
+    "customer_id": "CUS-2407",
+    "amount": 68000,
+    "type": "subscription",
+    "date": "2026-07-25",
+    "status": "completed",
+    "description": "7月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2424",
+    "customer_id": "CUS-2407",
+    "amount": 69000,
+    "type": "subscription",
+    "date": "2026-08-26",
+    "status": "completed",
+    "description": "8月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2425",
+    "customer_id": "CUS-2407",
+    "amount": 70500,
+    "type": "subscription",
+    "date": "2026-09-16",
+    "status": "pending",
+    "description": "9月付款延迟：账期调整（status非completed，description含延迟）"
+  },
+  {
+    "transaction_id": "TXN-2426",
+    "customer_id": "CUS-2407",
+    "amount": 70500,
+    "type": "subscription",
+    "date": "2026-10-08",
+    "status": "completed",
+    "description": "10月补缴完成（用于推断，非Q3）"
+  }
+]

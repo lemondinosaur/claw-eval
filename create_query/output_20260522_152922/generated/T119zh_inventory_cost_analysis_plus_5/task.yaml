@@ -1,0 +1,93 @@
+task_id: T119zh_inventory_cost_analysis_plus_5
+task_name: 按仓位成本分层一致性
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T119zh_inventory_cost_analysis_plus_5/fixtures/inventory/items.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T119zh_inventory_cost_analysis_plus_5/fixtures/finance/transactions.json
+prompt:
+  text: "请帮我做一次库存与采购成本的交叉核对（按仓位分层一致性）：\n1）先列出库存品及其 location（仓位）与 unit_cost。\n2）对每个\
+    \ product_id，按“仓位口径”核对：inventory_get_item 返回的该仓位 unit_cost，是否与财务采购交易中对应批次的单价一致。\n\
+    3）若同一 product_id 在不同仓位 unit_cost 不一致，分析它们是否分别对应不同批次采购（多批价格），并说明映射依据。\n4）找出成本异常：\n\
+    \   - 出现仓位间不一致，但财务系统只能解释为单一采购口径；或\n   - 缺少某批采购与该仓位库存的映射，导致无法解释价格差异。\n5）输出成本分析报告，至少包含：\n\
+    \   - 按产品与仓位的核对表（仓位数量、仓位 unit_cost、映射批次、批次单价、是否一致、差异金额）\n   - 异常解释（为什么不能被批次映射解释/是哪条映射关系错了）\n\
+    \   - 建议（应合并/重算的方式与需要修正的口径）"
+  language: zh
+tools:
+- name: inventory_list_items
+  description: 查看库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取库存品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

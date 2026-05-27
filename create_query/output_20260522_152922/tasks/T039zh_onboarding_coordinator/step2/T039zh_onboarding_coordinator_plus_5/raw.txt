@@ -1,0 +1,275 @@
+{
+  "task_id": "T039zh_onboarding_coordinator_plus_5",
+  "task_name": "紧急入职：当天培训+补救工单通知（邮件草稿合规）",
+  "prompt_text": "以系统今天（mock_today：2026-03-05）为准，为HR在今天宣布的3位“紧急入职”员工协调当天培训、设备与账号准备。\n\n要求按如下流程完成：\n1) 从Gmail Inbox中定位并只处理与“紧急入职”相关的HR邮件与库存更新邮件；忽略与入职无关的群发公告干扰。\n2) 从知识库确认“当天培训（最短流程）”的具体时段选择规则与“风险/草稿标注”要求：若存在安全审查未完成或设备缺货，则对相应部门经理的通知必须先以邮件草稿形式提交，并在草稿中标注风险点与预计完成时间。\n3) 从通讯录查找3位员工各自的部门经理（若同一部门可能缺失经理也要能处理草稿；本题以经理存在为主）。注意同名联系人可能出现时不要误用。\n4) 检查今天的日历冲突：当天培训需选择不与既有会议碎片冲突的窗口，并创建当天培训日历事件。\n5) 查询IT库存：确认无线耳机缺货与可用替代型号；将设备状态与替代方案用于后续沟通与待办。\n6) 邮件策略：当规则允许临时推进（例如提供临时替代设备或限制权限下可先行推进）时，在同一流程中再发送一封“已允许推进范围”的补充说明邮件（发送对象与草稿对应部门经理一致）。涉及安全审查未完成或缺货的内容仍需在补充说明中清晰标注仍待完成事项与预计时间。\n7) 为每位员工创建待办事项：包含当天培训签到/资料整理、权限审查或设备替代跟进等要点，并覆盖高优先级风险跟进。\n8) 输出一份入职协调总结：逐人说明培训时间、设备状态（是否缺货与替代）、邮件处理状态（草稿/补充说明已发送或未发送原因）、预计完成时间引用与待办列表。\n\n最终请给出清晰的总结，且总结不得提及无关群发公告邮件内容。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_601",
+        "title": "产品迭代同步（碎片）",
+        "organizer": "productops@company.com",
+        "attendees": [
+          "productops@company.com",
+          "qa_lead@company.com"
+        ],
+        "start_time": "2026-03-05T09:00:00+08:00",
+        "end_time": "2026-03-05T09:20:00+08:00",
+        "location": "会议室C",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_602",
+        "title": "供应商对接（碎片）",
+        "organizer": "vendor_mgmt@company.com",
+        "attendees": [
+          "vendor_mgmt@company.com"
+        ],
+        "start_time": "2026-03-05T10:00:00+08:00",
+        "end_time": "2026-03-05T10:40:00+08:00",
+        "location": "线上Zoom-3",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_603",
+        "title": "安全例行评审（碎片）",
+        "organizer": "security_ops@company.com",
+        "attendees": [
+          "security_ops@company.com",
+          "it_sec@company.com"
+        ],
+        "start_time": "2026-03-05T13:30:00+08:00",
+        "end_time": "2026-03-05T14:10:00+08:00",
+        "location": "会议室A",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_604",
+        "title": "运营数据看板校对（碎片）",
+        "organizer": "ops_data@company.com",
+        "attendees": [
+          "ops_data@company.com"
+        ],
+        "start_time": "2026-03-05T15:10:00+08:00",
+        "end_time": "2026-03-05T15:40:00+08:00",
+        "location": "会议室D",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-410",
+        "name": "赵予航",
+        "department": "平台工程",
+        "title": "平台工程部经理",
+        "email": "zhaoyuhang@company.com",
+        "phone": "13900001101",
+        "notes": "负责平台工程入职与权限开通对接"
+      },
+      {
+        "contact_id": "CT-411",
+        "name": "周若岚",
+        "department": "市场内容",
+        "title": "市场内容负责人",
+        "email": "zhouruolan@company.com",
+        "phone": "13900001102",
+        "notes": "负责市场内容设备与入职资源协调"
+      },
+      {
+        "contact_id": "CT-412",
+        "name": "钱岑",
+        "department": "运营支持",
+        "title": "运营支持经理",
+        "email": "qiancen@company.com",
+        "phone": "13900001103"
+      },
+      {
+        "contact_id": "CT-413",
+        "name": "陈欣",
+        "department": "安全部",
+        "title": "安全审查协调人",
+        "email": "chenxin@company.com",
+        "phone": "13900001104"
+      },
+      {
+        "contact_id": "CT-414",
+        "name": "林澄",
+        "department": "IT部",
+        "title": "资产与交付",
+        "email": "lincheng@company.com",
+        "phone": "13900001105"
+      },
+      {
+        "contact_id": "CT-415",
+        "name": "田启",
+        "department": "平台工程",
+        "title": "安全权限管理员（同部门同名干扰）",
+        "email": "tianqi@company.com",
+        "phone": "13900001106",
+        "notes": "仅用于权限审核流程，不负责部门经理通知"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_3101",
+        "from": "hr_ops@company.com",
+        "to": "user@company.com",
+        "subject": "【紧急入职】今天宣布：韩澈/蒋岚/沈澄（请按当天培训最短流程）",
+        "body": "各位好，\n\n今天（3月5日）有3位员工紧急入职，请你们按知识库“当天培训最短流程”和“风险标注/草稿合规”要求协调：\n\n1) 平台工程：韩澈（入职需要受控权限）\n- 部门经理：赵予航\n- 需求：受控权限开通、无线耳机（如缺货需替代）\n- 风险：涉及安全审查，若未完成则经理通知必须先草稿再补充\n\n2) 市场内容：蒋岚（设备缺货但可临时推进）\n- 部门经理：周若岚\n- 需求：无线耳机（预计缺货需替代）、账号同步\n- 推进条件：可用替代设备先入职培训，待缺货到货后补齐\n\n3) 运营支持：沈澄（无需安全审查）\n- 部门经理：钱岑\n- 需求：标准办公设备、培训签到\n\n请注意：如出现安全审查未完成或缺货，对对应经理邮件一律按草稿合规先保存，待知识库规则允许后再发送“已允许推进范围”的补充说明邮件。\n\n谢谢！\nHR团队",
+        "date": "2026-03-05T08:35:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_3102",
+        "from": "asset_ops@company.com",
+        "to": "user@company.com",
+        "subject": "IT库存更新：无线耳机缺货 & 替代型号可用",
+        "body": "通知：\n\n- 无线耳机（型号 WH-01）当前库存为0，预计补货需等待。\n- 可用替代：有线耳机（型号 WHC-02）库存充足，可用于今天培训与临时上岗。\n\n到货节点以IT资产群最新公告为准（本邮件仅提供当前可用替代）。",
+        "date": "2026-03-05T09:10:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_3103",
+        "from": "newsletter@company.com",
+        "to": "all@company.com",
+        "subject": "【公告】本周末活动报名提醒（与入职无关）",
+        "body": "亲爱的同事：\n本周末公司将举办线下活动，请有意向的同事在截止日期前报名。更多详情见内部链接。\n\n（本邮件与任何人员入职安排无关。）",
+        "date": "2026-03-05T11:05:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "EQ-510",
+        "name": "无线耳机 WH-01",
+        "category": "外设",
+        "current_stock": 0,
+        "status": "out_of_stock",
+        "unit_price": 199.00,
+        "notes": "缺货：预计本周无法满足紧急入职"
+      },
+      {
+        "product_id": "EQ-511",
+        "name": "有线耳机 WHC-02（替代）",
+        "category": "外设",
+        "current_stock": 18,
+        "status": "normal",
+        "unit_price": 89.00,
+        "notes": "可用于当日培训与临时上岗"
+      },
+      {
+        "product_id": "EQ-512",
+        "name": "笔记本电脑 ProBook 14",
+        "category": "办公电脑",
+        "current_stock": 6,
+        "status": "normal",
+        "unit_price": 6899.00,
+        "notes": ""
+      },
+      {
+        "product_id": "EQ-513",
+        "name": "轻薄笔记本 AirLite 13",
+        "category": "办公电脑",
+        "current_stock": 9,
+        "status": "normal",
+        "unit_price": 5299.00,
+        "notes": ""
+      },
+      {
+        "product_id": "EQ-514",
+        "name": "高配工作站 WS-Ultra",
+        "category": "办公电脑",
+        "current_stock": 2,
+        "status": "low_stock",
+        "unit_price": 12999.00,
+        "notes": "低库存：需尽快跟进领取与归还"
+      },
+      {
+        "product_id": "EQ-515",
+        "name": "显示器 24英寸标准款",
+        "category": "外设",
+        "current_stock": 14,
+        "status": "normal",
+        "unit_price": 799.00,
+        "notes": ""
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-801",
+        "title": "紧急入职：当天培训最短流程 & 风险标注草稿合规",
+        "category": "HR",
+        "tags": [
+          "入职",
+          "当天培训",
+          "草稿",
+          "风险标注"
+        ],
+        "content": "# 紧急入职当天培训最短流程\n\n## 培训安排（最短流程）\n- 入职当天优先安排 09:30-12:00 之间的连续时段（如与既有会议冲突则跳到 14:00-17:00 的第一个可用窗口）。\n- 培训结束后由HR完成签到并同步工位/设备领取信息。\n\n## 草稿合规与风险标注\n当存在以下任一情况：\n1) 安全审查未完成（需要受控权限但安全部尚未放行）\n2) 设备缺货（关键设备无库存）\n则：\n- 通知部门经理：必须先保存为邮件草稿（gmail_save_draft），不要直接发送。\n- 草稿正文必须包含：\n  - 风险点（安全/缺货的具体项）\n  - 预计完成时间（使用格式：预计在 {日期} {时间段} 完成，例如“预计在2026-03-06 16:00前完成安全审查/补货”）\n  - 临时应对方案（如限制权限/临时替代设备可用则写明可推进范围）\n\n## 允许推进与补充说明\n如果知识库规则表明可以在限制条件下先行推进（例如：提供临时替代设备；或安全审查未完成但允许先进行不涉敏数据的培训与基础流程），则：\n- 在同一流程中，再发送补充说明邮件（gmail_send_message），主题需体现“已允许推进范围”。\n- 补充说明必须再次写明仍待完成事项与预计完成时间。\n",
+        "last_updated": "2026-02-28",
+        "views": 512
+      },
+      {
+        "article_id": "KB-802",
+        "title": "设备缺货：临时替代与补齐的沟通规则（紧急入职适用）",
+        "category": "IT",
+        "tags": [
+          "缺货",
+          "替代",
+          "临时设备"
+        ],
+        "content": "# 设备缺货与临时替代\n\n## 何时允许临时推进\n- 如果缺货设备存在可等效替代型号，并且替代设备可用于当日培训与基础工作，则允许先行推进。\n- 仍需跟进：缺货设备到货后补齐交付。\n\n## 通知要点\n通知部门经理时（草稿合规同紧急入职规则）：\n- 明确“缺货设备型号 + 替代型号 + 替代可用用途（例如培训/临时上岗）”。\n- 写明“仍待完成事项”：到货补齐的时间依据与跟进负责人。\n\n## 预计时间表达\n- 如果库存邮件未给出具体到货日期，用“预计在 {日期} 17:00前完成替代补齐/安排交付”的通用占位表达。\n",
+        "last_updated": "2026-03-01",
+        "views": 734
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-611",
+        "title": "临时客服工单：跟进问责材料归档",
+        "description": "优先处理客服工单材料收集，今天16:30前提交内部表单。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-03-05",
+        "tags": [
+          "工单",
+          "客服"
+        ],
+        "created_at": "2026-03-04T15:20:00+08:00"
+      },
+      {
+        "task_id": "TODO-612",
+        "title": "会议室预订：校验第二季度排期",
+        "description": "核对本周会议室占用情况并更新预订记录（与紧急入职培训排程需避免冲突）。",
+        "status": "in_progress",
+        "priority": "low",
+        "due_date": "2026-03-06",
+        "tags": [
+          "日历",
+          "运营"
+        ],
+        "created_at": "2026-03-03T10:05:00+08:00"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原先固定日期与常规流程改为“今天紧急入职”，并强化安全审查/设备缺货时先草稿后（在规则允许下）发送补充说明邮件，同时加入无关公告邮件干扰与忽略要求。",
+    "fixture_design_summary": [
+      "Gmail Inbox提供1封HR紧急入职邮件（含韩澈/蒋岚/沈澄与安全/缺货/推进条件）、1封IT库存更新（无线耳机缺货+替代）、另加1封无关群发公告用于干扰过滤。",
+      "知识库两篇文章分别覆盖“当天培训最短流程+草稿合规风险标注+补充说明已允许推进范围”与“设备缺货临时替代补齐沟通规则”。",
+      "通讯录包含3位部门经理（平台工程/市场内容/运营支持）及安全/IT相关联系人，并加入平台工程同名干扰条目以测试正确匹配经理。",
+      "日历events在今天（2026-03-05）放入多个碎片会议，确保训练窗口需要避让后再创建培训事件。",
+      "库存products明确无线耳机 WH-01 当前0库存、替代型号 WHC-02 充足，并补充其他办公设备以支撑创建待办。",
+      "todo/tasks.json预置2条与入职无关的待办干扰，确保新增的入职跟进任务在总结中覆盖风险与设备替代/权限审查要点。"
+    ]
+  }
+}

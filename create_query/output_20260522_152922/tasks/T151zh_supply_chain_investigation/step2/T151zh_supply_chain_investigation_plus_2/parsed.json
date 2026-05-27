@@ -1,0 +1,516 @@
+{
+  "task_id": "T151zh_supply_chain_investigation_plus_2",
+  "task_name": "园区配电设备延期成因链",
+  "prompt_text": "我们园区配电设备最近出现批次到货延期：施工方要求明确交付节点。请你追查并还原完整问题链：从CRM/Helpdesk里哪些“到货延期/交付节点”类工单开始；哪些配电设备在库存里出现断点或低于安全库存（但并非完全为0）；财务上同一采购参考号下有哪些交易因排期调整/分批发货而导致采购推迟（区分干扰性的取消退款与链路无关的记录）；CRM里哪个供应商状态异常或排期变更并作为共同根因来源（需验证其状态为active且notes提到“产能调整/需提前确认排期”，而不是停供/暂停）；最后给出应急排产与客户承诺建议（包含替代料启用条件、与供应商排产沟通要点、对外更新节奏与模板），并明确标注干扰工单为非供应链链路相关。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2101",
+        "name": "星澜置业",
+        "type": "customer",
+        "contact_person": "陈工",
+        "email": "chen.gong@xinglan-estate.cn",
+        "phone": "13901002101",
+        "industry": "房地产",
+        "tier": "standard",
+        "annual_revenue": 2200000,
+        "last_contact_date": "2026-05-10",
+        "status": "active",
+        "notes": "园区一期机电集成。项目单#EL-771对应采购清单含：低压配电柜CDQ-20B×2（关键到货批次需跟节点）。"
+      },
+      {
+        "customer_id": "CUS-2102",
+        "name": "宏盛工程",
+        "type": "customer",
+        "contact_person": "刘经理",
+        "email": "liu.mgr@hongsheng-works.com",
+        "phone": "13901002102",
+        "industry": "工程承包",
+        "tier": "vip",
+        "annual_revenue": 5200000,
+        "last_contact_date": "2026-05-11",
+        "status": "active",
+        "notes": "园区二期配电间改造。项目单#EL-884包含CDQ-20B×3与母线模块MB-40×6，施工要求T+7交付窗口。"
+      },
+      {
+        "customer_id": "CUS-2103",
+        "name": "启航机电",
+        "type": "customer",
+        "contact_person": "赵主任",
+        "email": "zhao@qihang-mep.cn",
+        "phone": "13901002103",
+        "industry": "机电设备",
+        "tier": "standard",
+        "annual_revenue": 1700000,
+        "last_contact_date": "2026-05-09",
+        "status": "active",
+        "notes": "园区换新电力柜。项目单#EL-905包含母线模块MB-40×4、配电测控MC-2×2。"
+      },
+      {
+        "customer_id": "CUS-2104",
+        "name": "银桥建设",
+        "type": "customer",
+        "contact_person": "孙工",
+        "email": "sun@guildbridge-build.cn",
+        "phone": "13901002104",
+        "industry": "基建",
+        "tier": "standard",
+        "annual_revenue": 980000,
+        "last_contact_date": "2026-05-08",
+        "status": "active",
+        "notes": "厂房改造项目#EL-930，包含CDQ-20B×1与备用替代料（若主料延后可先装）。"
+      },
+      {
+        "customer_id": "SUP-2201",
+        "name": "北能电工",
+        "type": "supplier",
+        "contact_person": "周总",
+        "email": "zhou@beiner-electrical.cn",
+        "phone": "13902002201",
+        "industry": "低压配电制造",
+        "tier": "core",
+        "annual_revenue": 0,
+        "last_contact_date": "2026-05-06",
+        "status": "active",
+        "notes": "供应商主根因。近期产能调整，需提前确认排期；部分批次原计划在5/12发运，已改为5/19分批发货。若未在窗口前确认，将触发到货延期并导致库存断点。"
+      },
+      {
+        "customer_id": "SUP-2202",
+        "name": "华达电力配件",
+        "type": "supplier",
+        "contact_person": "周明",
+        "email": "ming@huada-powerparts.cn",
+        "phone": "13902002202",
+        "industry": "电力配件",
+        "tier": "standard",
+        "annual_revenue": 0,
+        "last_contact_date": "2026-05-07",
+        "status": "active",
+        "notes": "供应商干扰B。主要提供备用导轨与安装辅料。交货记录稳定，未出现排期变更。"
+      },
+      {
+        "customer_id": "SUP-2203",
+        "name": "南方机电材料",
+        "type": "supplier",
+        "contact_person": "蒋经理",
+        "email": "jiang@nanfang-mec.com",
+        "phone": "13902002203",
+        "industry": "机电材料",
+        "tier": "standard",
+        "annual_revenue": 0,
+        "last_contact_date": "2026-05-05",
+        "status": "active",
+        "notes": "供应商干扰C。提供替代模块与线缆。供应能力充足，通常可在2-3个工作日内完成出库。"
+      },
+      {
+        "customer_id": "SUP-2204",
+        "name": "长昊电气服务",
+        "type": "supplier",
+        "contact_person": "郑工",
+        "email": "zheng@changhao-ei.com",
+        "phone": "13902002204",
+        "industry": "电气服务",
+        "tier": "standard",
+        "annual_revenue": 0,
+        "last_contact_date": "2026-05-04",
+        "status": "active",
+        "notes": "供应商干扰D。提供现场安装维保与故障排查支持，非供货链核心。"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-21011",
+        "date": "2026-04-28",
+        "amount": 118000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "配电设备",
+        "description": "采购 供应商北能电工 CDQ-20B 低压配电柜 20台；采购参考 REF-EL-2041（原计划5/12发运）",
+        "status": "pending",
+        "reference": "REF-EL-2041",
+        "supplier": "北能电工"
+      },
+      {
+        "transaction_id": "TXN-21012",
+        "date": "2026-05-03",
+        "amount": 54000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "配电设备",
+        "description": "采购 供应商北能电工 母线模块MB-40 12套；采购参考 REF-EL-2041（因排期调整改为分批到货）",
+        "status": "pending",
+        "reference": "REF-EL-2041",
+        "supplier": "北能电工"
+      },
+      {
+        "transaction_id": "TXN-21013",
+        "date": "2026-05-05",
+        "amount": 36000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "配电测控",
+        "description": "采购 供应商北能电工 配电测控MC-2 10套；采购参考 REF-EL-2041（批次延后待确认排产窗口）",
+        "status": "pending",
+        "reference": "REF-EL-2041",
+        "supplier": "北能电工"
+      },
+      {
+        "transaction_id": "TXN-21014",
+        "date": "2026-05-12",
+        "amount": 59000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "配电设备",
+        "description": "分批发货结算 采购参考 REF-EL-2041：CDQ-20B首批（到货节点顺延，仍按分批计划完成部分交付）",
+        "status": "completed",
+        "reference": "REF-EL-2041",
+        "supplier": "北能电工"
+      },
+      {
+        "transaction_id": "TXN-21015",
+        "date": "2026-05-18",
+        "amount": 42000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "配电设备",
+        "description": "分批发货结算 采购参考 REF-EL-2041：母线模块MB-40第二批（到货时间从5/12调整至5/19附近）",
+        "status": "completed",
+        "reference": "REF-EL-2041",
+        "supplier": "北能电工"
+      },
+      {
+        "transaction_id": "TXN-21016",
+        "date": "2026-05-20",
+        "amount": 18000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "配电测控",
+        "description": "补批结算 采购参考 REF-EL-2041：MC-2第三批（到货延期但未停供）",
+        "status": "completed",
+        "reference": "REF-EL-2041",
+        "supplier": "北能电工"
+      },
+      {
+        "transaction_id": "TXN-21021",
+        "date": "2026-04-30",
+        "amount": 92000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "安装辅料",
+        "description": "采购 供应商华达电力配件 导轨与安装辅料 400套（订单REF-EL-2070）",
+        "status": "completed",
+        "reference": "REF-EL-2070",
+        "supplier": "华达电力配件"
+      },
+      {
+        "transaction_id": "TXN-21022",
+        "date": "2026-05-02",
+        "amount": 28000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "线缆与备件",
+        "description": "采购 供应商南方机电材料 替代模块AM-5 30套（用于备份安装）",
+        "status": "completed",
+        "reference": "REF-EL-2085",
+        "supplier": "南方机电材料"
+      },
+      {
+        "transaction_id": "TXN-21023",
+        "date": "2026-05-08",
+        "amount": 33000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "安装服务",
+        "description": "采购 供应商长昊电气服务 现场排障工单包（非供货链）",
+        "status": "completed",
+        "reference": "REF-SV-3009",
+        "supplier": "长昊电气服务"
+      },
+      {
+        "transaction_id": "TXN-21031",
+        "date": "2026-05-04",
+        "amount": 46000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "配电设备",
+        "description": "采购 供应商北能电工 CDQ-20B 8台；错误采购参考 REF-ERR-11（重复下单后撤销）",
+        "status": "cancelled",
+        "reference": "REF-ERR-11",
+        "supplier": "北能电工",
+        "cancel_reason": "重复下单/采购撤销（与交付批次无关）"
+      },
+      {
+        "transaction_id": "TXN-21032",
+        "date": "2026-05-09",
+        "amount": 21000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "配电测控",
+        "description": "采购 供应商北能电工 MC-2 4套；错误采购参考 REF-ERR-12（采购撤销退款）",
+        "status": "cancelled",
+        "reference": "REF-ERR-12",
+        "supplier": "北能电工",
+        "cancel_reason": "重复下单/采购撤销（与交付批次无关）"
+      },
+      {
+        "transaction_id": "TXN-21041",
+        "date": "2026-05-01",
+        "amount": 620000.0,
+        "currency": "CNY",
+        "type": "销售收款",
+        "category": "客户收款",
+        "description": "客户CUS-2102宏盛工程 项目#EL-884收款（配电柜+母线模块）",
+        "status": "completed",
+        "reference": "CUS-2102"
+      },
+      {
+        "transaction_id": "TXN-21042",
+        "date": "2026-05-06",
+        "amount": 390000.0,
+        "currency": "CNY",
+        "type": "销售收款",
+        "category": "客户收款",
+        "description": "客户CUS-2101星澜置业 项目#EL-771收款（低压配电柜）",
+        "status": "completed",
+        "reference": "CUS-2101"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-21001",
+        "title": "园区配电到货延期：EL-771（批次未到）",
+        "description": "星澜置业（CUS-2101）陈工反馈：项目#EL-771低压配电柜CDQ-20B×2计划5/12前到货，但施工窗口前仍未到；需明确交付节点。当前现场按替代方案预排，但需要确认主料到货承诺。",
+        "customer_id": "CUS-2101",
+        "reporter": "陈工",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-12T08:20:00Z",
+        "tags": [
+          "到货延期",
+          "交付节点",
+          "CDQ-20B"
+        ],
+        "category": "到货延期"
+      },
+      {
+        "ticket_id": "TK-21002",
+        "title": "到货延期工单：EL-884母线模块MB-40分批延后",
+        "description": "宏盛工程（CUS-2102）刘经理报修：项目#EL-884母线模块MB-40×6原定5/12到现场，现供应端只确认首批，第二批排期后移；要求给出分批到货时间表，并说明如何保证安装连续性。",
+        "customer_id": "CUS-2102",
+        "reporter": "刘经理",
+        "department": "项目交付",
+        "priority": "high",
+        "status": "in_progress",
+        "created_at": "2026-05-13T12:05:00Z",
+        "tags": [
+          "到货延期",
+          "分批发货",
+          "MB-40"
+        ],
+        "category": "到货延期"
+      },
+      {
+        "ticket_id": "TK-21003",
+        "title": "交付节点变更：EL-905配电测控MC-2未按合同批次到货",
+        "description": "启航机电（CUS-2103）赵主任：项目#EL-905配电测控MC-2×2未按合同批次到货。系统显示仍在补货中，但现场必须在6/01前完成调试，要求供应链提供可执行的排产沟通要点与确认邮件。",
+        "customer_id": "CUS-2103",
+        "reporter": "赵主任",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-14T02:35:00Z",
+        "tags": [
+          "到货延期",
+          "合同批次",
+          "MC-2"
+        ],
+        "category": "到货延期"
+      },
+      {
+        "ticket_id": "TK-21004",
+        "title": "工程现场催交：EL-930低压配电柜CDQ-20B到货顺延",
+        "description": "银桥建设（CUS-2104）孙工：项目#EL-930低压配电柜CDQ-20B×1到货顺延，施工方要求明确新节点（能否先装备用模块再做切换）。请给出承诺更新时间和现场替代料启用条件。",
+        "customer_id": "CUS-2104",
+        "reporter": "孙工",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-10T15:40:00Z",
+        "tags": [
+          "到货延期",
+          "CDQ-20B",
+          "替代料"
+        ],
+        "category": "到货延期"
+      },
+      {
+        "ticket_id": "TK-21005",
+        "title": "现场安装故障（干扰）：箱体接地测试未通过",
+        "description": "启航机电（CUS-2103）提交技术问题：EL-905现场安装故障，箱体接地测试未通过。更换线缆后仍需复测。此工单不涉及供货批次延后，仅为现场技术原因。",
+        "customer_id": "CUS-2103",
+        "reporter": "值班工程师",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-13T18:10:00Z",
+        "tags": [
+          "现场安装故障",
+          "干扰"
+        ],
+        "category": "技术问题"
+      },
+      {
+        "ticket_id": "TK-21006",
+        "title": "价格差异咨询（干扰）：配电柜替代方案报价核对",
+        "description": "星澜置业（CUS-2101）财务部咨询：对替代模块AM-5的报价与合同附件不一致，要求重新核对价格。与到货批次延期无直接关联。",
+        "customer_id": "CUS-2101",
+        "reporter": "财务部",
+        "department": "售前咨询",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-15T09:50:00Z",
+        "tags": [
+          "价格差异",
+          "干扰"
+        ],
+        "category": "价格咨询"
+      },
+      {
+        "ticket_id": "TK-21007",
+        "title": "到货延期补充说明：部分备件可先行但主料断点",
+        "description": "宏盛工程（CUS-2102）刘经理补充：现场目前已能开始安装导轨辅料，但关键主料CDQ-20B和MB-40存在低量断点导致无法完成整体验收；要求内部形成统一对外说法。",
+        "customer_id": "CUS-2102",
+        "reporter": "刘经理",
+        "department": "项目交付",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-16T10:20:00Z",
+        "tags": [
+          "到货延期",
+          "断点",
+          "验收"
+        ],
+        "category": "到货延期"
+      },
+      {
+        "ticket_id": "TK-21008",
+        "title": "到货延期：EL-771母线模块MB-40到货节点需更新",
+        "description": "星澜置业（CUS-2101）陈工：项目#EL-771除CDQ-20B外，母线模块MB-40×2预计交付节点也顺延。施工方要求“明确日期+分批说明”，否则将调整工序。",
+        "customer_id": "CUS-2101",
+        "reporter": "陈工",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "in_progress",
+        "created_at": "2026-05-17T06:45:00Z",
+        "tags": [
+          "到货延期",
+          "MB-40"
+        ],
+        "category": "到货延期"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "PD-3101",
+        "name": "低压配电柜CDQ-20B",
+        "category": "配电/电力设备",
+        "quantity": 10,
+        "unit": "台",
+        "unit_cost": 5900.0,
+        "location": "仓库G-01",
+        "reorder_level": 20,
+        "supplier": "北能电工",
+        "last_restock_date": "2026-05-01",
+        "notes": "当前仅有10台，低于安全阈值20；非清零，触发补货但到货预计延后"
+      },
+      {
+        "product_id": "PD-3102",
+        "name": "母线模块MB-40",
+        "category": "配电/电力设备",
+        "quantity": 6,
+        "unit": "套",
+        "unit_cost": 4500.0,
+        "location": "仓库G-02",
+        "reorder_level": 12,
+        "supplier": "北能电工",
+        "last_restock_date": "2026-05-02",
+        "notes": "库存偏低（6套<安全12套），需要启动补货；供应商排期调整导致到货时间顺延"
+      },
+      {
+        "product_id": "PD-3103",
+        "name": "配电测控MC-2",
+        "category": "配电/电力设备",
+        "quantity": 2,
+        "unit": "套",
+        "unit_cost": 3600.0,
+        "location": "仓库G-03",
+        "reorder_level": 8,
+        "supplier": "北能电工",
+        "last_restock_date": "2026-04-30",
+        "notes": "MC-2当前2套，接近低库存断点但未为0；已下补货单，预计分批到货"
+      },
+      {
+        "product_id": "PD-3104",
+        "name": "备用导轨KIT-GL",
+        "category": "配电/电力设备",
+        "quantity": 260,
+        "unit": "套",
+        "unit_cost": 120.0,
+        "location": "仓库H-01",
+        "reorder_level": 80,
+        "supplier": "华达电力配件",
+        "last_restock_date": "2026-05-04",
+        "notes": "库存充足，可用于替代临时安装，但不替代主料CDQ/MB"
+      },
+      {
+        "product_id": "PD-3105",
+        "name": "替代模块AM-5",
+        "category": "配电/电力设备",
+        "quantity": 45,
+        "unit": "套",
+        "unit_cost": 980.0,
+        "location": "仓库H-02",
+        "reorder_level": 30,
+        "supplier": "南方机电材料",
+        "last_restock_date": "2026-05-02",
+        "notes": "替代料库存充足；可作为应急启用条件（需与客户确认验收规则）"
+      },
+      {
+        "product_id": "PD-3106",
+        "name": "线缆组件LC-18",
+        "category": "配电/电力设备",
+        "quantity": 180,
+        "unit": "卷",
+        "unit_cost": 65.0,
+        "location": "仓库H-03",
+        "reorder_level": 90,
+        "supplier": "南方机电材料",
+        "last_restock_date": "2026-05-03",
+        "notes": "库存正常，不是断点来源"
+      },
+      {
+        "product_id": "PD-3107",
+        "name": "安装辅料盒AB-9",
+        "category": "配电/电力设备",
+        "quantity": 70,
+        "unit": "个",
+        "unit_cost": 18.0,
+        "location": "仓库H-04",
+        "reorder_level": 50,
+        "supplier": "华达电力配件",
+        "last_restock_date": "2026-05-05",
+        "notes": "库存充足，用于干扰工单的现场安装支持"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题根因供应商为suspended停供；本题根因供应商仍为active但产能/排期调整导致采购分批延期，从而引发配电设备库存断点与到货延期链。",
+    "fixture_design_summary": [
+      "Helpdesk提供4条到货延期/交付节点相关工单，并明确提及“未按合同批次到货/分批延后”，另含2条干扰：现场安装故障与价格差异咨询。",
+      "Inventory设置3个核心配电模块由同一供应商“北能电工”供给，且数量低于安全阈值但不为0，制造“断点/低库存”证据。",
+      "Finance在同一采购参考REF-EL-2041下包含pending与completed，且描述包含“排期调整/分批发货/批次延后”，同时加入cancelled错误采购退款干扰并使用cancel_reason说明与交付批次无关。",
+      "CRM中根因供应商SUP-2201为active，notes含“产能调整、需提前确认排期、部分批次延后”；另布置2个active干扰供应商与库存充足/无延后背景。"
+    ]
+  }
+}

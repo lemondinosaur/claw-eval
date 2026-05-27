@@ -1,0 +1,80 @@
+task_id: T013zh_meeting_notes_plus_2
+task_name: 发布前复盘行动清单
+version: '1.0'
+category: productivity
+difficulty: easy
+tags:
+- general
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T013zh_meeting_notes_plus_2/fixtures/notes/meetings.json
+prompt:
+  text: '请把“线上发布前复盘会”的风险点和行动项整理好，输出给发布小组的参会人员。需要你从三份相关纪要中提取/汇总行动项：
+
+    1）主会议纪要：提取风险与初步责任分配，并给出每条行动项“负责人/必须完成的具体修改点/预计完成时间或里程碑/当前状态”。
+
+    2）排查进展简报：对部分风险给出新结论（如“原因定位完成，待验证”），你需要把这些更新体现在行动项的“当前状态/下一步”。
+
+    3）临时变更通知：新增一个新风险，并将某些原行动项拆成两个并行任务；你需要把拆分后的两条行动项都保留，并与原风险对应。
+
+    输出时按里程碑先后或截止时间近到远排序。最后调用 notes_share，把整理结果分享给“主会议participants”中的全部且仅这些人（不要包含简报和通知里的其他参与者）。'
+  language: zh
+tools:
+- name: notes_list
+  description: 获取会议记录列表
+  input_schema:
+    type: object
+    properties:
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 10
+    required: []
+- name: notes_get
+  description: 根据ID获取会议记录详细内容
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 会议记录ID
+    required:
+    - note_id
+- name: notes_share
+  description: 将会议记录分享给其他人
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 会议记录ID
+      recipients:
+        type: array
+        items:
+          type: string
+        description: 接收人列表
+    required:
+    - note_id
+    - recipients
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: notes_share
+  url: http://localhost:9105/notes/share
+  method: POST
+sandbox_files:
+- fixtures/notes/meetings.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

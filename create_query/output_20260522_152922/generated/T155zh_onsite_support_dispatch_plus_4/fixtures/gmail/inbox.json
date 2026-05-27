@@ -1,0 +1,53 @@
+[
+  {
+    "message_id": "msg_2101",
+    "from": "dongzong@lanqiao-telecom.com",
+    "to": "support@company.com",
+    "subject": "蓝桥通信紧急：需要立刻现场支持（时间紧迫）",
+    "date": "2026-04-15T08:40:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important",
+      "urgent"
+    ],
+    "body": "您好，\n\n我们刚刚确认核心链路出现异常，需要现场工程师支持。我们已经在系统里提交了相关工单，希望你们今天上午安排技术人员到场。\n\n请尽快给出是否派遣的确认。\n\n董总\n蓝桥通信"
+  },
+  {
+    "message_id": "msg_2102",
+    "from": "account@lanqiao-telecom.com",
+    "to": "support@company.com",
+    "subject": "已通过应急远程处理解决：暂不需要现场支持",
+    "date": "2026-04-15T09:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important"
+    ],
+    "body": "支持团队您好，\n\n更新说明：我们已经使用应急远程手段完成排障并验证恢复，当前问题已解决。\n\n因此暂不需要现场支持，请先不要安排工程师到场。若后续情况再现，我们会再重新开启工单并按要求升级。\n\n感谢！\n蓝桥通信客户经理"
+  },
+  {
+    "message_id": "msg_2103",
+    "from": "no-reply@monitoring-system.com",
+    "to": "support@company.com",
+    "subject": "告警汇总：检测到某服务重启（与当前请求无关）",
+    "date": "2026-04-15T07:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "告警汇总通知：服务svc-gateway在07:02发生一次重启。该事件已自动恢复，不影响当前工单调度。"
+  },
+  {
+    "message_id": "msg_2104",
+    "from": "service-desk@other-tenant.com",
+    "to": "support@company.com",
+    "subject": "关于工单信息同步的内部提示",
+    "date": "2026-04-15T11:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "内部提示：请勿直接从邮件中判断派遣，需以helpdesk状态与SLA为准。"
+  }
+]

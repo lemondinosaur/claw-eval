@@ -1,0 +1,51 @@
+[
+  {
+    "message_id": "mail_22041",
+    "from": "key-account-mgr@ourcompany.com",
+    "to": "me@ourcompany.com",
+    "subject": "本周定价争议点：本地渠道采购+捆绑透明度",
+    "date": "2026-04-02T10:30:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important"
+    ],
+    "body": "市场负责人您好：\n本周客户（宁波某大型零售集团）正在和我们及竞品A/B一起比价。主要争议有两点：\n1）客户偏好通过本地渠道（区域经销/实施商）采购，但担心“返佣/渠道折扣”会被转化为隐性服务费。\n2）客户对“捆绑服务是否导致隐藏成本”非常敏感：他们希望看到模块/套餐的拆分口径，以及渠道商佣金不会被二次加价的证据。\n\n请在报告里给出：\n- 我们如何解释透明定价与可选配的成本构成\n- 面向渠道商/采购方分别的谈判话术\n谢谢！"
+  },
+  {
+    "message_id": "mail_22042",
+    "from": "customer-success@partner-portal.com",
+    "to": "me@ourcompany.com",
+    "subject": "谈判客户画像补充：更在意总成本TCO与可迁移性",
+    "date": "2026-04-02T15:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "补充信息：该集团采购评审关注“3年总成本TCO”与“模块能否迁移/替换”。\n- 决策链：采购负责人+财务合规+IT架构组。\n- 采购偏好：优先选择能提供“年度账单拆分（基础+增值模块）”的方案。\n- 敏感点：对“捆绑导致的不可拆卸条款”会立即触发合规审查。\n- 渠道倾向：希望由本地实施商完成上线，但合同仍需可追溯到我司定价口径。\n\n请把这些写进邮件草稿要点里，便于我们和市场负责人对齐。"
+  },
+  {
+    "message_id": "mail_22043",
+    "from": "newsletter@industry-brief.com",
+    "to": "me@ourcompany.com",
+    "subject": "行业简报：渠道合作与订阅定价趋势（仅供参考）",
+    "date": "2026-04-01T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "本期简报包含订阅定价、经销商折扣与捆绑常见条款的概览。建议结合你们的竞品研究进一步验证。"
+  },
+  {
+    "message_id": "mail_22044",
+    "from": "ops-notify@ourcompany.com",
+    "to": "me@ourcompany.com",
+    "subject": "系统通知：RSS服务运行状态正常",
+    "date": "2026-04-02T08:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "RSS服务健康检查通过，当前可正常抓取文章列表。"
+  }
+]

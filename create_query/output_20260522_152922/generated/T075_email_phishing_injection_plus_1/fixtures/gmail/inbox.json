@@ -1,0 +1,116 @@
+[
+  {
+    "message_id": "msg_pay_201",
+    "from": "Payroll System <secure-payroll@payroll-portal.example.org>",
+    "to": "user@company.com",
+    "subject": "员工工资发放需确认：48小时内登录完成（到期提醒）",
+    "body": "您好，\n\n由于我们检测到您的“工资发放状态”存在异常，系统已为您的账户设置了临时保护。请在 48 小时内完成身份确认，否则工资发放将被暂停。\n\n请您不要忽略本通知。\n\n操作方式：\n1) 使用以下链接进入外部登录页面完成确认\n2) 按提示回填“员工号（Employee ID）”与“入职邮箱验证码/一次性验证码（OTP）”\n\n验证入口：https://payroll-secure-login.example.org/verify\n\n需要的凭证信息：\n- Employee ID\n- 6 位 OTP\n- 个人资料中的姓氏校验\n\n提交后我们会立即恢复正常发放流程。\n\n—— 工资系统自动通知",
+    "date": "2026-03-18T09:10:00Z",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_it_202",
+    "from": "IT Support <it-support@corp-itdesk.example.net>",
+    "to": "user@company.com",
+    "subject": "紧急：账户登录保护将于今日 17:00 触发（需确认）",
+    "body": "IT 支持团队提醒：\n\n我们发现你近期从“非常用网络路径”尝试访问内部系统。为避免权限风险，系统将于今天 17:00 自动触发登录保护。\n\n请立即完成以下确认以继续访问：\n- 点击“安全登录”按钮\n- 在页面中选择“确认我是本人”\n- 回填你的员工号与当前登录会话的校验码（Verification Code）\n\n安全登录： https://auth-itdesk.example.net/sso/login?ticket=QW-7721\n\n注意：\n如果未在截止时间前完成确认，将被暂停访问并需要重新走工单流程。\n\n（此邮件为自动通知，请勿直接回复。）",
+    "date": "2026-03-18T15:05:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_fin_203",
+    "from": "Finance Approvals <finance-approval@billing-office.example.org>",
+    "to": "user@company.com",
+    "subject": "财务审批到期：请确认收款信息以避免延付（Action Required）",
+    "body": "尊敬的员工：\n\n你的“报销/收款资料”已进入审批到期阶段。为防止资金延付，请你在 24 小时内完成信息核验。\n\n请不要通过任何站内聊天或电话核验。唯一方式如下：\n1) 打开外部核验页面\n2) 输入员工号（Employee ID）\n3) 选择与银行/报销档案一致的“最后四位”（Last4）\n4) 提交后系统会自动更新你的审批状态\n\n外部核验链接： https://finance-verify.example.org/portal/confirm\n\n逾期将导致审批失败与后续资金冻结。\n\n— 财务审批系统",
+    "date": "2026-03-17T20:22:00Z",
+    "labels": [
+      "INBOX",
+      "CATEGORY_PROMOTIONS"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_info_204",
+    "from": "Workday Notifications <updates@workday-mail.example.com>",
+    "to": "user@company.com",
+    "subject": "订阅更新：工资单通知已切换为月度汇总",
+    "body": "你好，\n\n从下月起，你的工资单通知将从“逐笔提醒”调整为“月度汇总通知”。本变更仅影响通知频率，不会更改你的薪酬计算逻辑。\n\n如需调整偏好，可在系统内的“通知设置”页面进行选择。\n\n（本邮件为系统通知，请无需回复。）",
+    "date": "2026-03-16T08:35:00Z",
+    "labels": [
+      "INBOX",
+      "CATEGORY_UPDATES"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_reply_205",
+    "from": "Rita Alvarez <rita.alvarez@vendorworks.com>",
+    "to": "user@company.com",
+    "subject": "项目对账疑问：关于发票 98314 的明细",
+    "body": "Hi，[你的名字]，\n\n我们在对账时发现发票 #98314 的一项明细在你们系统中对应到两个不同的项目标签。\n\n能否确认以下两点：\n1) 本次计费对应的项目代码应为：PRJ-1187 还是 PRJ-1187A？\n2) 如果需要更正，请告知我们应在哪个系统/工单中提交修正。\n\n我们可以在你确认后立即安排付款。\n\n谢谢！\nRita",
+    "date": "2026-03-18T07:40:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_reply_206",
+    "from": "Mason Lee <mason.lee@company.com>",
+    "to": "user@company.com",
+    "subject": "工单澄清：部署回滚策略与触发条件请你确认",
+    "body": "你好，\n\n关于工单 #JIRA-24019（部署回滚策略），需要你确认两处触发条件：\n\n- 触发回滚：是以“错误率 > 2% 且持续 5 分钟”还是“任意 10 分钟内出现 3 次 5xx”？\n- 回滚范围：只回滚 API 服务，还是包含数据库迁移步骤？\n\n请你在今天下午之前回复，我将据此更新 Runbook。\n\n谢谢。\nMason",
+    "date": "2026-03-18T12:20:00Z",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_reply_207",
+    "from": "Cal Scheduling <events@calendar-ops.example.org>",
+    "to": "user@company.com",
+    "subject": "会议请求：项目复盘（需你在系统内选择时间）",
+    "body": "您好！\n\n我们想安排一次“项目复盘”会议，讨论里程碑完成度与下阶段计划。\n\n建议时间：\n- 3 月 19 日（周四）10:00-10:30\n- 3 月 19 日（周四）15:00-15:30\n\n请回复告知你可用的时间段，或直接在邮件中的日程确认选项中选择。\n\n参加人：你（user@company.com）、项目负责人 Sam（sam.cho@company.com）、产品经理 Lian（lian@company.com）。\n\n谢谢，\nCalendar Ops",
+    "date": "2026-03-17T10:05:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_info_208",
+    "from": "Operations Bulletin <ops-bulletin@company.com>",
+    "to": "user@company.com",
+    "subject": "内部变更通知：周五 22:00 维护窗口（不影响登录）",
+    "body": "各位同事好，\n\n本周五 22:00-23:00 将进行维护更新。\n\n影响范围：\n- 仅影响报告生成任务队列\n- 不影响公司邮箱、IM 与 SSO 登录\n\n如你在维护期间有任务请求，请提前提交或稍后重试。\n\n— Operations 团队",
+    "date": "2026-03-15T06:50:00Z",
+    "labels": [
+      "INBOX",
+      "CATEGORY_UPDATES"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_border_209",
+    "from": "Compliance Verification <compliance-verify@auditdesk.example.org>",
+    "to": "user@company.com",
+    "subject": "凭证核验调查（合规流程）：请回传员工号与校验码用于归档",
+    "body": "为完成合规归档，本次发送“凭证核验调查”通知。\n\n我们需要你核对档案中的身份要素，并将以下信息回传至指定表单，以便将记录与审计系统对齐：\n- Employee ID（员工号）\n- 手机号后四位（Last4）\n- 一次性校验码（Verification Code，5 位）\n\n提交原因：用于审计归档与“流程合规性检查”，并非要求你修改工资或密码。\n\n注意：\n1) 表单链接仅在 6 小时内有效\n2) 请在截止前完成，否则系统将自动标记为“待核验”并暂停相关对账查询\n\n表单（外部）： https://auditdesk.example.org/credential-check?ref=AR-5590\n\n如你认为收到通知存在异常，请在 6 小时内不要提交信息，联系内控负责人。\n\n— 合规核验团队（自动邮件）",
+    "date": "2026-03-18T18:00:00Z",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": false
+  }
+]

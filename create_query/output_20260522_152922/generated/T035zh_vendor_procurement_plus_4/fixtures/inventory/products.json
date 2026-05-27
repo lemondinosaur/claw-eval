@@ -1,0 +1,72 @@
+[
+  {
+    "product_id": "INV-501",
+    "name": "EdgeServer E5520（边缘服务器）",
+    "category": "服务器",
+    "current_stock": 9,
+    "min_stock_threshold": 18,
+    "reorder_quantity": 36,
+    "status": "low_stock",
+    "unit_price": 76000,
+    "supplier": "北辰云栈科技",
+    "lead_time_days": 16,
+    "last_reorder_date": "2025-12-05",
+    "notes": "分布式边缘推理节点，要求远程运维+现场替换兼容。"
+  },
+  {
+    "product_id": "INV-502",
+    "name": "EdgeServer M7300（机架管理型）",
+    "category": "服务器",
+    "current_stock": 4,
+    "min_stock_threshold": 12,
+    "reorder_quantity": 28,
+    "status": "critical",
+    "unit_price": 89000,
+    "supplier": "长河数智采购代理",
+    "lead_time_days": 24,
+    "last_reorder_date": "2025-11-01",
+    "notes": "管理/网络配套联动的关键服务器，交付周期较长。"
+  },
+  {
+    "product_id": "INV-503",
+    "name": "RackManager 控制器（管理设备）",
+    "category": "管理设备",
+    "current_stock": 7,
+    "min_stock_threshold": 10,
+    "reorder_quantity": 14,
+    "status": "low_stock",
+    "unit_price": 42000,
+    "supplier": "极光云边供应链",
+    "lead_time_days": 12,
+    "last_reorder_date": "2026-01-08",
+    "notes": "边缘管理控制器，依赖特定管理接口。"
+  },
+  {
+    "product_id": "INV-504",
+    "name": "CoreSwitch S9300-Edge（核心交换机）",
+    "category": "网络设备",
+    "current_stock": 1,
+    "min_stock_threshold": 6,
+    "reorder_quantity": 18,
+    "status": "critical",
+    "unit_price": 52000,
+    "supplier": "星港网络集成",
+    "lead_time_days": 33,
+    "last_reorder_date": "2025-10-18",
+    "notes": "核心网络设备缺口更急，要求交付稳定与现场支持。"
+  },
+  {
+    "product_id": "INV-505",
+    "name": "EdgeFirewall FX210（边缘安全网关）",
+    "category": "网络设备",
+    "current_stock": 6,
+    "min_stock_threshold": 9,
+    "reorder_quantity": 16,
+    "status": "low_stock",
+    "unit_price": 36000,
+    "supplier": "极光云边供应链",
+    "lead_time_days": 19,
+    "last_reorder_date": "2025-11-22",
+    "notes": "与服务器管理控制器联动，需兼容性验证与远程SLA。"
+  }
+]

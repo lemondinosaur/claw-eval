@@ -1,0 +1,149 @@
+[
+  {
+    "ticket_id": "TK-2101",
+    "title": "套装ZQ-7701无法部署：安全网关模块GZ-300缺失",
+    "description": "北星智联（CUS-2101）周辰反馈：套装ZQ-7701在硬件校验阶段失败。日志提示缺少安全网关模块GZ-300，系统显示为0件。请追查供应链并给出补齐计划。",
+    "customer_id": "CUS-2101",
+    "reporter": "周辰",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-16T10:12:00Z",
+    "tags": [
+      "套装缺件",
+      "无法部署",
+      "GZ-300"
+    ],
+    "category": "交付部署失败"
+  },
+  {
+    "ticket_id": "TK-2102",
+    "title": "套装ZQ-7701缺少组件导致安装中断：接口套件KIC-02未到",
+    "description": "北星智联（CUS-2101）工位安装员说明：与GZ-300适配的接口套件KIC-02未随包裹到达，安装流程中断，无法完成部署校验。请在同一套装范围内核对补发。",
+    "customer_id": "CUS-2101",
+    "reporter": "安装员-赵",
+    "department": "实施支持",
+    "priority": "high",
+    "status": "in_progress",
+    "created_at": "2026-04-16T13:40:00Z",
+    "tags": [
+      "套装缺件",
+      "KIC-02",
+      "部署中断"
+    ],
+    "category": "交付部署失败"
+  },
+  {
+    "ticket_id": "TK-2103",
+    "title": "套装ZQ-7702无法完成部署：关键安全模块未到货",
+    "description": "青藤云服务（CUS-2102）刘雯反馈：套装ZQ-7702安装到“安全网关初始化”步骤时失败，提示GZ-300缺件。线缆CBL-18与PD-5均齐全，但关键模块缺失。",
+    "customer_id": "CUS-2102",
+    "reporter": "刘雯",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-15T09:20:00Z",
+    "tags": [
+      "套装缺件",
+      "GZ-300"
+    ],
+    "category": "交付部署失败"
+  },
+  {
+    "ticket_id": "TK-2104",
+    "title": "套装ZQ-7704交付中断：安全网关模块GZ-300未发出",
+    "description": "晨光网络集成（CUS-2104）孙浩说明：现场上线计划依赖GZ-300，但至今仅收到线缆CBL-18与PoE供电PD-5，GZ-300未发货，导致无法安装。希望确认供应商条款变更情况。",
+    "customer_id": "CUS-2104",
+    "reporter": "孙浩",
+    "department": "售后支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-14T18:05:00Z",
+    "tags": [
+      "交付中断",
+      "套装缺件",
+      "GZ-300"
+    ],
+    "category": "交付部署失败"
+  },
+  {
+    "ticket_id": "TK-2105",
+    "title": "软件激活失败（干扰）：激活码无效",
+    "description": "青藤云服务（CUS-2102）提交：软件激活失败，提示“激活码校验失败”。该问题仅涉及激活流程，不报告任何硬件缺件或安装步骤缺失。",
+    "customer_id": "CUS-2102",
+    "reporter": "客服-陈",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-15T12:10:00Z",
+    "tags": [
+      "软件激活失败"
+    ],
+    "category": "软件故障"
+  },
+  {
+    "ticket_id": "TK-2106",
+    "title": "网络认证异常（干扰）：无法完成管理员认证",
+    "description": "瑞桦机电（CUS-2103）反馈：管理员认证失败，提示“RADIUS认证超时”。未提及GZ-300或KIC-02缺失，仅要求网络排查与认证参数更新。",
+    "customer_id": "CUS-2103",
+    "reporter": "黄工",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-13T16:25:00Z",
+    "tags": [
+      "网络认证",
+      "RADIUS超时"
+    ],
+    "category": "网络问题"
+  },
+  {
+    "ticket_id": "TK-2107",
+    "title": "用户操作指引请求（干扰）：安装步骤说明",
+    "description": "北星智联（CUS-2101）周辰补充：需要安装步骤与校验顺序说明。未声称缺件，但提到“硬件校验处卡住”，需进一步区分是否与缺少GZ-300相关。",
+    "customer_id": "CUS-2101",
+    "reporter": "周辰",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-16T09:35:00Z",
+    "tags": [
+      "操作指引",
+      "安装说明"
+    ],
+    "category": "客户咨询"
+  },
+  {
+    "ticket_id": "TK-2108",
+    "title": "套装ZQ-7703现场验收疑问：是否仅缺GZ-300",
+    "description": "瑞桦机电（CUS-2103）陈琦询问：现场验收报告显示缺少安全网关模块GZ-300；PoE供电模块PD-5与机柜42U已到。请确认缺件范围并给出补齐时间。",
+    "customer_id": "CUS-2103",
+    "reporter": "陈琦",
+    "department": "实施支持",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-14T11:50:00Z",
+    "tags": [
+      "套装缺件",
+      "验收疑问",
+      "GZ-300"
+    ],
+    "category": "交付部署失败"
+  },
+  {
+    "ticket_id": "TK-2109",
+    "title": "软件组件更新失败（干扰）：镜像拉取失败",
+    "description": "晨光网络集成（CUS-2104）反馈：软件镜像拉取失败。该工单仅与软件下载/更新有关，不涉及GZ-300或KIC-02的缺失描述。",
+    "customer_id": "CUS-2104",
+    "reporter": "售后-王",
+    "department": "技术支持",
+    "priority": "low",
+    "status": "in_progress",
+    "created_at": "2026-04-13T20:00:00Z",
+    "tags": [
+      "镜像拉取失败",
+      "软件更新"
+    ],
+    "category": "软件故障"
+  }
+]

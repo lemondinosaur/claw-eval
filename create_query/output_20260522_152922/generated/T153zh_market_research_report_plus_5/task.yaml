@@ -1,0 +1,266 @@
+task_id: T153zh_market_research_report_plus_5
+task_name: 合规与数据治理年度路线图（研判版）
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/articles
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T153zh_market_research_report_plus_5/fixtures/rss/feeds.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T153zh_market_research_report_plus_5/fixtures/kb/articles.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T153zh_market_research_report_plus_5/fixtures/crm/customers.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T153zh_market_research_report_plus_5/fixtures/gmail/inbox.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T153zh_market_research_report_plus_5/fixtures/contacts/contacts.json
+prompt:
+  text: "你是企业合规与数据治理专项的分析师。请基于以下信息撰写《合规与数据治理年度路线图（研判版）》并保存邮件草稿（不要直接发送）：\n\n要求：\n1)\
+    \ 先查看收件箱邮件，提炼本次路线图的写作偏好（尤其是季度结构与指标口径）。\n2) 从RSS中筛选与“监管强化、认证/合规证明、审计、数据治理/数据出境、合规成本”相关的关键外部变化，并将其转化为内部能力建设（映射到KB的合规能力点与数据治理工作项）。\n\
+    3) 从KB中检索并拉通：合规能力点、数据治理框架、认证准备与运营流程/衡量指标。形成年度可落地的工作项（必须能落到每个季度阶段）。\n4) 从CRM系统拉取客户分层：区分VIP与标准/高风险客户。进一步读取高风险客户notes中的合规风险短语（例如“认证延后、审计不通过、数据出境顾虑、合规证明缺失”），据此评估“合规不足导致续约受阻/流失”的阶段影响，并在路线图中给出针对性优先级。\n\
+    5) 路线图必须包含4个季度阶段目标（按Q2~Q5或等效四阶段）。每个阶段都要明确：\n   - 需要补齐的合规能力点（至少2点）\n   - 数据治理工作项（至少2项，体现数据口径/流程/控制）\n\
+    \   - 交付/运营动作（至少2个，体现谁做什么与产出物）\n   - 衡量指标（至少2个，尽量量化）\n   - 对VIP客户与至少一类高风险客户的影响评估（至少点名两类客户/分层）\n\
+    6) 邮件草稿：发送给两个对象（不要直接发送）：\n   - 信息安全负责人：通讯录关键词命中“信息安全”\n   - 合规运营负责人：通讯录中department=“合规运营”\n\
+    \   邮件草稿的subject需体现“年度路线图（研判版）”。正文需包含：四阶段路线图摘要+关键决策请求（例如资源/优先级/认证排期）。\n\n输出：\n\
+    - 仅保存邮件草稿，调用gmail_save_draft完成；不要调用gmail_send_message。"
+  language: zh
+tools:
+- name: rss_list_articles
+  description: 获取RSS文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_name:
+        type: string
+        description: 按RSS源筛选
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选(active/churned)
+      tier:
+        type: string
+        description: 客户等级筛选(vip/standard)
+      industry:
+        type: string
+        description: 按行业筛选
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 900
+  max_turns: 40

@@ -1,0 +1,157 @@
+[
+  {
+    "job_id": "JOB-2401",
+    "name": "渠道分账回填（批次回填）",
+    "cron_expression": "0 10 * * *",
+    "action": "channel_batch_backfill",
+    "enabled": false,
+    "last_run": "2026-05-24T10:00:00Z",
+    "next_run": "2026-05-25T10:00:00Z",
+    "last_status": "failed",
+    "created_by": "recon_ops",
+    "tags": [
+      "reconciliation",
+      "channel_backfill",
+      "batch_backfill"
+    ],
+    "created_at": "2025-10-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-24T10:00:00Z",
+        "status": "failed",
+        "duration_s": 40,
+        "error": "BatchMappingMismatch: 渠道结算批次映射失败（INT-2402），阻止回填"
+      },
+      {
+        "run_at": "2026-05-23T10:00:00Z",
+        "status": "failed",
+        "duration_s": 41,
+        "error": "BatchMappingMismatch: 渠道结算批次映射失败（INT-2402），阻止回填"
+      },
+      {
+        "run_at": "2026-05-22T10:00:00Z",
+        "status": "success",
+        "duration_s": 55,
+        "note": "检测到版本从“按订单回填”切换为“按批次回填”，但仅部分客户生效"
+      },
+      {
+        "run_at": "2026-05-21T10:00:00Z",
+        "status": "success",
+        "duration_s": 52
+      },
+      {
+        "run_at": "2026-05-20T10:00:00Z",
+        "status": "failed",
+        "duration_s": 45,
+        "error": "VersionSwitchWarning: 新口径enabled标记未完整写入CRM（channel_settlement INT-2401）"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2402",
+    "name": "对账回填（旧口径清理）",
+    "cron_expression": "0 11 * * *",
+    "action": "reconciliation_cleanup_old_policy",
+    "enabled": true,
+    "last_run": "2026-05-26T11:00:00Z",
+    "next_run": "2026-05-27T11:00:00Z",
+    "last_status": "success",
+    "created_by": "recon_ops",
+    "tags": [
+      "reconciliation",
+      "cleanup"
+    ],
+    "created_at": "2025-12-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-26T11:00:00Z",
+        "status": "success",
+        "duration_s": 70,
+        "note": "清理完成，但平台B批次回填失败导致部分expected_monthly仍未更新"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2403",
+    "name": "发票自动生成（依赖CRM回填）",
+    "cron_expression": "0 8 * * 1-6",
+    "action": "auto_generate_invoices",
+    "enabled": true,
+    "last_run": "2026-05-26T08:00:00Z",
+    "next_run": "2026-05-27T08:00:00Z",
+    "last_status": "success",
+    "created_by": "finance_team",
+    "tags": [
+      "invoice",
+      "reconciliation_dependency"
+    ],
+    "created_at": "2025-08-15T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-26T08:00:00Z",
+        "status": "success",
+        "duration_s": 18,
+        "note": "本次发票成功生成；但对notes标记“对账待回填/旧口径”的客户跳过生成"
+      },
+      {
+        "run_at": "2026-05-23T08:00:00Z",
+        "status": "success",
+        "duration_s": 22,
+        "note": "依赖回填结果：跳过平台B未回填客户"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2404",
+    "name": "库存延迟入账补偿（批次对齐）",
+    "cron_expression": "0 14 * * *",
+    "action": "inventory_delay_compensation",
+    "enabled": true,
+    "last_run": "2026-06-01T14:00:00Z",
+    "next_run": "2026-06-02T14:00:00Z",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": [
+      "inventory",
+      "batch_alignment"
+    ],
+    "created_at": "2025-09-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-06-01T14:00:00Z",
+        "status": "success",
+        "duration_s": 62,
+        "note": "已对齐延迟入库批次的库存快照；主要补偿窗口：5/27-5/31入库"
+      },
+      {
+        "run_at": "2026-05-27T14:00:00Z",
+        "status": "success",
+        "duration_s": 58
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2405",
+    "name": "月末渠道分账核对",
+    "cron_expression": "0 9 28-31 * *",
+    "action": "month_end_channel_reconcile",
+    "enabled": true,
+    "last_run": "2026-05-26T09:00:00Z",
+    "next_run": "2026-05-27T09:00:00Z",
+    "last_status": "success",
+    "created_by": "recon_ops",
+    "tags": [
+      "reconciliation",
+      "channel_month_end"
+    ],
+    "created_at": "2025-07-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-26T09:00:00Z",
+        "status": "success",
+        "duration_s": 140,
+        "note": "输出初步差异：平台B与平台C存在回填缺口，但仍等待批次映射重跑"
+      }
+    ]
+  }
+]

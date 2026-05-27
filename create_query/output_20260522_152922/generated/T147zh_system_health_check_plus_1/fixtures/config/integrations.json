@@ -1,0 +1,77 @@
+[
+  {
+    "integration_id": "INT-A1101",
+    "name": "短信网关",
+    "status": "error",
+    "config": {
+      "host": "api.alt-sms-gw.example.com",
+      "port": 443,
+      "auth_mode": "token"
+    },
+    "error_rate": 0.93,
+    "error_message": "网关拒绝连接：TLS握手失败（error=handshake_rejected）",
+    "description": "夜间告警短信发送通道（SLA：高优先级告警）",
+    "service": "sms_gateway",
+    "last_verified": "2026-05-18",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-A1102",
+    "name": "告警事件投递",
+    "status": "error",
+    "config": {
+      "topic": "alerts.nightstream.v1",
+      "producer_timeout_ms": 800,
+      "acks": "all"
+    },
+    "error_rate": 0.27,
+    "error_message": "消息投递失败：队列不可用或写入超时（timeout after 800ms）",
+    "description": "将告警事件投递到下游（用于汇总与重试）",
+    "service": "alert_delivery",
+    "last_verified": "2026-05-19",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-A1103",
+    "name": "告警模板渲染",
+    "status": "active",
+    "config": {
+      "template_engine": "mustache",
+      "cache_ttl_seconds": 300
+    },
+    "error_rate": 0.004,
+    "description": "告警内容模板渲染服务",
+    "service": "template",
+    "last_verified": "2026-05-20",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-A1104",
+    "name": "审计日志归档",
+    "status": "active",
+    "config": {
+      "endpoint": "https://audit-archive.example.com/ingest",
+      "batch_max": 500,
+      "flush_interval_seconds": 10
+    },
+    "error_rate": 0.009,
+    "description": "告警处理链路审计日志归档",
+    "service": "audit",
+    "last_verified": "2026-05-21",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-A1105",
+    "name": "告警通知路由",
+    "status": "active",
+    "config": {
+      "rules_version": "2026-05-01",
+      "default_channel": "sms"
+    },
+    "error_rate": 0.006,
+    "description": "告警路由与通道选择（短信/站内）",
+    "service": "routing",
+    "last_verified": "2026-05-22",
+    "monthly_calls": 0
+  }
+]

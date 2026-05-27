@@ -1,0 +1,197 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:41:35",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T155zh_onsite_support_dispatch",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:38:22",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:38:22",
+      "source_task_id": "T155zh_onsite_support_dispatch",
+      "source_summary": {
+        "task_id": "T155zh_onsite_support_dispatch",
+        "task_name": "VIP客户紧急现场支持派遣",
+        "task_type": "根据紧急工单的SLA/客户信息/技术人员技能与日程约束，选择最合适的工程师并起草派遣通知邮件草稿（含必要升级抄送）。",
+        "category": "workflow",
+        "difficulty": "hard",
+        "tags": [
+          "general",
+          "multi_service"
+        ],
+        "language": "zh",
+        "services": [
+          "gmail",
+          "calendar",
+          "contacts",
+          "crm",
+          "helpdesk"
+        ],
+        "tools": [
+          "gmail_list_messages",
+          "gmail_get_message",
+          "gmail_save_draft",
+          "gmail_send_message",
+          "calendar_list_events",
+          "calendar_get_event",
+          "calendar_get_user_events",
+          "contacts_search",
+          "contacts_get",
+          "crm_list_customers",
+          "crm_get_customer",
+          "helpdesk_list_tickets",
+          "helpdesk_get_ticket",
+          "helpdesk_update_ticket"
+        ],
+        "fixture_paths": [
+          "fixtures/calendar/events.json",
+          "fixtures/contacts/contacts.json",
+          "fixtures/crm/customers.json",
+          "fixtures/gmail/inbox.json",
+          "fixtures/helpdesk/tickets.json"
+        ],
+        "sandbox_files": [],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "多服务数据整合 + 约束驱动派遣决策 + 邮件草稿撰写（但不发送）"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T155zh_onsite_support_dispatch_plus_1",
+          "new_task_name": "SLA-到场派遣（数据中心断电）",
+          "task_goal": "识别唯一需要现场的VIP critical工单，结合客户所在区域、SLA到场时间、工程师技能匹配与当日可用性，选择首选工程师并起草给工程师与客户经理的派遣通知邮件草稿（另含升级抄送）。",
+          "user_request": "请为一张VIP客户的紧急现场支持工单安排派遣：需要在规定时间前到达指定数据中心。请完成工单与客户信息核对、查看工程师技能与今天日程可用性、确定首选/备选工程师，并起草通知邮件草稿（给工程师与客户经理，另抄送技术总监）。注意：不要直接发送邮件，只保存草稿。",
+          "scenario": "今天是 2026-04-02（本地时间）。客户“极光云计算”是VIP，工单已进入critical且requires_onsite=true，SLA规定“60分钟内到达数据中心”。现场场景为机房断电后的关键业务恢复：需要具备“电源/硬件故障定位 + 服务器远程控制切换（DR/主备）”技能。工程师团队共3人：A具备电源与服务器故障定位但今天10:00-11:30有不可打断会议；B全天可用且擅长数据库恢复但缺少电源故障定位；C技能匹配度高但当天在外地出差且卡在高速封闭区域，无法在SLA内到达（以日程/备注体现）。此外，收件箱里有一封来自客户法务/运营的邮件强调“到场时间窗口为到达后30分钟内完成初始巡检，否则将升级为合同罚款”。",
+          "difference_from_source": "原题是“生产系统宕机+下午2点前到场”，本题改为“机房断电恢复+60分钟内到场”，SLA窗口与故障类型不同；技能匹配侧重电源/硬件与DR切换而非ERP数据库运维；日程冲突与不可到达原因也不同（高速封闭/外地出差表现为可达性约束）；通知对象与邮件主题侧重合同罚款提醒。",
+          "service_and_tool_plan": "使用helpdesk_list_tickets找出状态为open且priority=critical且requires_onsite=true的目标工单；helpdesk_get_ticket获取SLA截止到场时间、故障描述、目标地址区域。使用crm_get_customer获取VIP等级、SLA响应条款与站点位置。使用gmail_list_messages与gmail_get_message定位客户邮件确认到场窗口与升级措辞。使用contacts_search/contacts_get获取3名工程师的技能集合与地点信息；使用calendar_get_user_events分别检查今天日程并推断可用时段。最后使用contacts_search定位客户经理与技术总监，再用gmail_save_draft保存“给首选工程师/客户经理，抄送升级联系人”的派遣通知邮件草稿。",
+          "fixture_generation_plan": "生成5类fixture的新数据（保持同结构但换全新实体名/ID/内容）：(1) helpdesk/tickets.json：至少6条工单，其中1条为VIP critical且requires_onsite=true，另外至少2条open非现场或non-critical作为干扰。目标工单的sla_deadline设置为“今天+60分钟内”。(2) crm/customers.json：至少4个客户，其中目标为tier=vip、status=active，location指向新的数据中心城市/区；设置sla_response为“60分钟内现场到达”。(3) contacts/contacts.json：3名工程师（首选候选、技能不足候选、不可达候选）+ 客户经理 + 技术总监，共5-6条记录。工程师skills必须覆盖“电源/硬件故障定位/DR切换”或“数据库恢复但不含电源定位”等差异；可用性信息通过notes或结合日程体现。(4) calendar/events.json：为今天生成多条事件：至少1个与首选候选的不可打断会议重叠（10:00-11:30），为不可达候选加入“外地出差/现场实施”全天事件；可加入与其他候选不冲突的轻量会议或占位活动。(5) gmail/inbox.json：至少3封邮件，其中1封来自目标客户/运营且包含到场窗口与合同罚款升级措辞；另外1封为新闻/非相关，1封为内部提醒作为干扰。确保邮件内容与SLA窗口可被提取用于邮件草稿与派遣理由。",
+          "expected_behavior": "代理应：先通过helpdesk_list_tickets定位唯一需要现场的critical VIP工单；再用helpdesk_get_ticket和crm_get_customer核对SLA到场时间与目标数据中心位置；用gmail_list_messages/gmail_get_message确认“60分钟内到达/到达后30分钟初始巡检/升级措辞”的关键要求；用contacts_search定位工程师候选并通过contacts_get读取技能。然后调用calendar_get_user_events检查三位工程师今天可用性，推断首选在SLA窗口内可到且技能匹配“电源/硬件故障定位+DR切换”。选出首选与备选（备选可为数据库恢复但缺电源定位）。最后用contacts_search找到客户经理与技术总监地址，调用gmail_save_draft生成邮件草稿：包含工单主题摘要、SLA到场时间/站点位置、首选工程师姓名与到场计划（相对时间描述）、备选安排、以及抄送对象（技术总监与客户经理）。不得调用gmail_send_message。",
+          "grading_plan": "grader.py应检查：1) 派遣决策是否选择了具备电源/硬件定位与DR切换技能且在SLA窗口可用的首选工程师，并正确指出备选理由；2) 是否识别了SLA为“60分钟内到场+到达后30分钟初始巡检”且与邮件内容一致；3) 是否正确识别不可达候选的日程/备注约束并未被错误选中；4) 约束识别是否完整（VIP等级、requires_onsite=true唯一工单、站点位置）；5) 邮件草稿是否使用gmail_save_draft生成且未发送（gmail_send_message未被调用），并包含给工程师与客户经理的收件信息与抄送技术总监（至少在草稿正文或元信息中体现）。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T155zh_onsite_support_dispatch_plus_2",
+          "new_task_name": "边界SLA-时区换算派遣",
+          "task_goal": "在同日存在两张VIP相关工单的干扰下，找出满足“现场且满足真正截止时间（含时区换算）”的那一张；再根据工程师能力（网络链路/安全加固）与日程空闲度选择派遣，并起草通知邮件草稿。",
+          "user_request": "请为VIP现场支持安排工程师派遣。需要重点核对SLA截止时间是否涉及时区换算，并选择能在真正截止前到达的工程师。请查看相关工单与CRM信息、检查工程师技能与当天日程、起草通知邮件草稿给工程师和客户经理（并抄送技术总监）。不要发送邮件，只保存草稿。",
+          "scenario": "mock_today 为 2026-04-05。目标客户“北辰金融”tier=vip，站点位于“青岛市区”。系统告警为“跨境专线BGP异常导致风控网段不可用”，需要具备“网络故障定位（BGP/路由）+ 专线切换/安全加固排障”技能才能现场快速恢复。helpdesk中同时存在两张高优工单：TK-2101（critical，但requires_onsite=false，远程可处理）与TK-2102（critical且requires_onsite=true，VIP现场SLA）。干扰来自收件箱中一条来自客户的邮件给出的截止时间以“北京时间+客户本地时区”混写，要求代理进行时区换算后判断真正截止点。工程师A擅长网络故障但今天13:00-18:00有长会议且通勤受限；工程师B全天空闲但缺少安全加固经验；工程师C安全加固强但日程在16:00后有培训且无法确保到达前完成初始排障。日程与可达性需要结合站点为青岛并在邮件草稿中呈现可用性与风险点。",
+          "difference_from_source": "原题的可用性约束主要来自下午空闲/深圳出差，本题加入“时区换算导致的SLA边界判断”；故障类型从系统宕机转为“网络BGP异常+安全加固”；干扰工单数量增加且包括“critical但requires_onsite=false”的假目标；通知内容需强调“时间换算口径与风险管理”。",
+          "service_and_tool_plan": "helpdesk_list_tickets用于拉取open/critical候选并筛出requires_onsite=true的目标；helpdesk_get_ticket核对SLA_deadline字段；crm_get_customer确认客户站点与SLA响应口径。用gmail_list_messages+gmail_get_message提取邮件里混用时区的截止描述，用于与SLA_deadline进行换算一致性判断。随后用contacts_search与contacts_get读取工程师技能集合（BGP/路由、专线切换、安全加固）并用calendar_get_user_events检查今天可用窗口，选择真正能在换算后的截止前到达且技能最贴合的首选。最后用gmail_save_draft生成通知草稿并包含抄送。",
+          "fixture_generation_plan": "生成新fixture数据：helpdesk/tickets.json至少7条：包含2条critical（其中1条requires_onsite=false作为强干扰、1条requires_onsite=true作为正确目标）、再加3条open medium/low；为正确目标设置sla_deadline为“真正截止（换算后）”附近但与邮件表述存在表面矛盾（例如邮件写成“当地时间17:00”，而SLA_deadline字段已换算为北京时间某时刻）。crm/customers.json至少5条：确保北辰金融为vip且location=青岛，并在notes里写明“邮件口径可能混用时区”。contacts/contacts.json：3名工程师+客户经理+技术总监（5条或更多）。工程师notes区分会议时段与通勤限制、以及缺少安全加固/技能偏网络的差异。calendar/events.json为今天添加：工程师A的13:00-18:00会议、工程师C的16:00后培训/不可用事件、工程师B无障碍事件。gmail/inbox.json：至少4封邮件，其中1封来自客户运营强调截止与时区混写，1封为无关邮件，1封为内部自动告警邮件作为干扰，确保内容可被提取用于换算判断。",
+          "expected_behavior": "代理应先用helpdesk_list_tickets找到critical候选并通过requires_onsite过滤掉requires_onsite=false的TK；然后核对helpdesk_get_ticket与crm_get_customer给出的站点/SLA口径。接着使用gmail_get_message读取客户邮件中混写的截止描述，说明并完成换算到统一口径后判断真正截止点。然后对3名工程师：用contacts_get确定是否具备BGP/路由与专线切换/安全加固相关技能；用calendar_get_user_events推断其可用窗口，选择首选（技能最匹配且能在换算后的截止前到达/完成初始排障）。备选用于补位并说明风险（例如安全加固缺失或会议导致到达时间偏晚）。最后gmail_save_draft保存邮件草稿：包含时间换算结论、到达时间计划（用“在截止前X分钟”相对表达）、故障恢复要点、并抄送客户经理与技术总监。不得发送。",
+          "grading_plan": "检查点：1) 是否正确忽略requires_onsite=false的干扰工单；2) 是否基于邮件与SLA字段完成一致的时区换算判断（不要求计算到分钟但必须体现正确口径与边界选择）；3) 是否选择了技能匹配网络故障定位且日程允许的首选工程师；4) 邮件草稿是否包含换算后的截止时间、到达计划与风险说明；5) gmail_save_draft被调用且gmail_send_message未被调用，且收件/抄送对象在草稿信息中可见。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T155zh_onsite_support_dispatch_plus_3",
+          "new_task_name": "多语言干扰-采购条款驱动派遣",
+          "task_goal": "面对邮件正文中存在多语言宣传与采购条款干扰，提取真正的现场派遣要求与SLA；在多名工程师技能“部分重叠”的情况下完成最优选择；生成带有条款引用但不含敏感原文的邮件草稿。",
+          "user_request": "请为VIP紧急现场工单选择工程师派遣并起草通知邮件草稿。要求从客户邮件中准确提取现场要求与SLA，并排除无关的营销/条款片段干扰。请查看工单、CRM、工程师技能与当天日程，最终保存邮件草稿给工程师和客户经理，并抄送技术总监。不要发送邮件。",
+          "scenario": "mock_today=2026-04-10。VIP客户“星环生物医药”tier=vip，站点在“武汉光谷”。工单为requires_onsite=true且priority=critical，但工单描述强调“测试数据污染导致批量放行失败”，需要具备“数据完整性校验/ETL回滚 + 数据库一致性验证”技能才能现场快速止血。收件箱里有一封客户邮件包含：第一段是英文采购条款片段（大量无关文字），中间才是“现场支持要求：今天21:30前工程师到场并启动采样复核流程”的关键信息。工程师团队：工程师A擅长ETL回滚与数据一致性验证，但今天20:00-22:00有值班交接（可部分调整但需要提前确认）；工程师B全天空闲但偏性能优化，对数据污染止血经验不足；工程师C在日程上空闲但技能集中在前端/接口联调，与数据一致性无关（以skills体现）。另外，CRM notes里写明：合同条款引用需要“只摘要不逐字”，因此邮件草稿正文必须避免直接粘贴条款原文。",
+          "difference_from_source": "原题强调ERP宕机与下午2点到场，本题改为“数据污染止血+21:30到场+多语言营销条款干扰”；选择逻辑从“系统故障排查”转为“数据完整性校验与ETL回滚”；还增加了“邮件草稿需摘要条款、不包含敏感原文”的写作约束。",
+          "service_and_tool_plan": "helpdesk_list_tickets定位目标critical且requires_onsite=true的工单；helpdesk_get_ticket读取SLA_deadline（21:30前到场）与现场流程关键点。crm_get_customer核对VIP与站点位置，并从notes获得合同条款处理要求。gmail_list_messages与gmail_get_message提取邮件中真正的现场到场要求，忽略英文/无关段落。contacts_search/contacts_get获取工程师候选并通过contacts_get对照技能（ETL回滚/一致性验证）。calendar_get_user_events检查今天是否能在21:30前覆盖关键启动时间。最后contacts_search定位客户经理与技术总监，gmail_save_draft保存草稿。",
+          "fixture_generation_plan": "fixtures生成：helpdesk/tickets.json不少于6条：1条目标VIP critical requires_onsite=true（SLA_deadline设置在21:30附近），1条同客户的critical但requires_onsite=false（干扰），另外若干中低优先级非目标工单。crm/customers.json至少4条：确保星环生物为vip且location=武汉光谷，并在notes写“条款摘要要求”。contacts/contacts.json：工程师A/B/C三人技能分别覆盖“数据一致性验证/ETL回滚”“性能优化但无止血经验”“前端/接口联调”等明显区分；并加入客户经理与技术总监记录。calendar/events.json为今天包含：工程师A的20:00-22:00交接事件（可用但需提前安排），工程师B空闲或有轻量任务，工程师C无关但skills不匹配。gmail/inbox.json包含：1封目标客户邮件（正文含中英段落，关键句含21:30前到场并启动采样复核流程），1封营销/新闻干扰（可包含类似关键词但不含到场要求），1封自动告警干扰邮件。",
+          "expected_behavior": "代理应：用helpdesk_list_tickets过滤到唯一requires_onsite=true的目标critical工单；用gmail_get_message从邮件中定位真正的“21:30前到场并启动采样复核流程”关键信息（忽略英文条款营销段落）。结合crm_get_customer的notes确认条款引用方式：只做摘要不逐字粘贴。然后通过contacts_get比对技能：首选应选ETL回滚与数据一致性验证最强且日程在关键时间窗前可用/可调整的工程师A；备选为全天空闲但止血经验不足的工程师B，并说明风险点。再用calendar_get_user_events验证覆盖到场前的关键启动时间。最后gmail_save_draft保存邮件草稿：包含到场截止时间、站点位置、目标现场流程（采样复核/一致性验证）、首选/备选选择理由、以及对合同条款的“摘要性引用”。不得发送。",
+          "grading_plan": "检查点：1) 是否正确从含多语言干扰的邮件中提取到场要求与关键流程；2) 是否正确处理合同条款摘要要求（草稿中不应出现大量逐字条款原文或明显敏感大段引文）；3) 派遣选择是否符合技能与日程覆盖21:30前启动；4) 是否正确识别requires_onsite=true的目标工单并排除requires_onsite=false干扰；5) gmail_save_draft调用且gmail_send_message未被调用；草稿应体现给工程师与客户经理通知并抄送技术总监。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T155zh_onsite_support_dispatch_plus_4",
+          "new_task_name": "状态回退-已关闭工单不派遣",
+          "task_goal": "处理“表面上看起来紧急”的工单干扰：必须识别已经进入reopened/closed或不满足现场条件的记录，避免错误派遣；只对符合条件的工单进行工程师派遣决策并起草邮件草稿。",
+          "user_request": "请协助判断是否需要现场派遣，并在确有需要时完成工程师选择与邮件草稿保存。请核对工单状态、是否需要现场、SLA与客户VIP信息；检查工程师技能与日程后完成派遣决策。若没有满足条件的工单，应明确说明不派遣并给出原因。不要发送邮件，只保存草稿（如需）。",
+          "scenario": "mock_today=2026-04-15。收件箱包含客户连发两封邮件：第一封来自VIP客户“蓝桥通信”，催促现场支持；第二封来自客户经理表示“问题已通过应急远程处理解决，暂不需要现场”。helpdesk里存在三条相关记录：TK-3101（priority=critical，requires_onsite=true，但status=closed，且closed_at在今天早上）、TK-3102（priority=critical，requires_onsite=true，status=open，但SLA_deadline已过期10分钟且工单起因为“演练非真实故障”）、TK-3103（priority=medium，requires_onsite=false，status=open）。工程师团队：工程师A/B/C都当日有空，但如果识别错误将导致错误派遣。CRM notes中写明：仅对“真实故障且未超SLA”的open critical requires_onsite工单派遣，超期不补派。正确行为应是：判断不满足派遣条件，因此不进行派遣邮件草稿或仅生成“不派遣说明”的草稿给客户经理与技术总监（根据是否要求草稿）。",
+          "difference_from_source": "原题是始终对唯一open critical VIP工单派遣，本题引入状态回退/已关闭/超期SLA/演练干扰，要求模型决定“不派遣”并以邮件形式说明；从“必派遣”变为“条件不满足则拒绝派遣”。",
+          "service_and_tool_plan": "helpdesk_list_tickets先列出priority=critical与相关customer_id的工单；随后helpdesk_get_ticket核对每条的status、requires_onsite、sla_deadline与标签（演练/真实故障）。crm_get_customer确认VIP与派遣政策（是否超SLA不补派）。gmail_list_messages与gmail_get_message读取两封客户邮件，验证第二封“暂不需要现场”的状态更新。只有当存在满足“open+requires_onsite=true+未过期+真实故障”的工单时才使用contacts/calendar进行派遣选择；否则跳过选择环节，仅生成“不派遣说明”邮件草稿（仍需使用contacts_search定位客户经理与技术总监并用gmail_save_draft）。",
+          "fixture_generation_plan": "fixtures：helpdesk/tickets.json至少8条：包含三条关键干扰（closed/open/超期）+ 其他非相关工单。确保包含字段status=closed、closed_at、以及标签如“演练”。crm/customers.json至少3条，其中目标客户为vip并在notes写明“超SLA不补派”的规则。contacts/contacts.json至少包含客户经理与技术总监（工程师可保留但若不派遣不必依赖）。calendar/events.json可以简单放少量事件，不影响判断。gmail/inbox.json至少4封：两封来自蓝桥通信（催促与撤回），两封无关或内部干扰。关键是确保第二封邮件能明显推导“不需要现场”。",
+          "expected_behavior": "代理应：通过helpdesk_list_tickets与helpdesk_get_ticket识别三条相关记录，结合当前时间判断TK-3101已closed应忽略；判断TK-3102虽open但SLA已过期且为演练不符合政策；再结合gmail邮件确认客户已撤回需求。最终应“不派遣”，并根据任务要求（若需要）生成给客户经理与技术总监的不派遣说明邮件草稿：说明已核对状态/超期/客户已撤回，确认暂不现场。若政策要求“无草稿”，则输出应体现不调用gmail_save_draft（但grader可按任务要求检查）。不得发送。",
+          "grading_plan": "检查点：1) 是否正确判断“不派遣”而不是错误选工程师；2) 是否核对工单status（closed/open）、requires_onsite、SLA是否过期、标签“演练/真实故障”；3) 是否结合客户邮件确认撤回需求；4) 若生成邮件草稿，是否仅用gmail_save_draft且包含充分理由并抄送技术总监；5) gmail_send_message未被调用；若任务设定为“不需要草稿”，则需检查未调用gmail_save_draft。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T155zh_onsite_support_dispatch_plus_5",
+          "new_task_name": "多地点到场-就近派遣+交通约束",
+          "task_goal": "在客户指定多地点（主场+备选场）与交通约束的条件下，选择能在SLA前到达主场且具备目标技能的工程师；同时起草邮件说明备选地点应对措施并抄送升级联系人。",
+          "user_request": "请为VIP紧急现场支持安排派遣。客户现场有主站和备站两个地点，请结合SLA与交通约束选择最合适的工程师，并起草通知邮件草稿给工程师和客户经理（抄送技术总监）。不要发送邮件，只保存草稿。",
+          "scenario": "mock_today=2026-04-20。目标客户“橙海电力集团”tier=vip，站点位于“南京”。工单requires_onsite=true且priority=critical，SLA要求“主站45分钟内到达并开始故障定位”，同时合同写明“若主站无法在90分钟内确认原因，则需转场到备站”。工单技术描述为“变电站监控平台告警风暴导致数据库写入阻塞”，现场需要“监控告警抑制策略 + 数据库写入阻塞排查（锁/慢查询）”技能，而非单纯网络或前端。工程师团队：工程师A在上海但今天上午已完成远程值班，日程显示下午可出发且备注含“可在45分钟内完成高铁到达南京并携带抑制策略工具”；工程师B常驻南京但技能偏监控平台架构，对数据库锁排查不熟且下午有客户现场参观（日程占用导致无法45分钟内开始定位）；工程师C技能最全但在今天中午开始去杭州出差，且日程显示“返回时间晚于SLA主站要求”。收件箱中有一封内部通知邮件来自运维主管，提醒“主站优先、必须在草稿中写明备站转场条件与预计时间”。",
+          "difference_from_source": "原题关注固定地点上海浦东与下午2点到场，本题引入“主站/备站双地点策略+交通约束（高铁/到达时间）”；技能侧重“告警抑制+数据库锁/慢查询排查”；并增加“内部运维主管提醒要求草稿包含转场条件”的写作约束。",
+          "service_and_tool_plan": "helpdesk_list_tickets定位目标critical requires_onsite=true的工单；helpdesk_get_ticket读取主站/备站信息、SLA主站45分钟与转场90分钟条件。crm_get_customer确认VIP与南京站点位置。gmail_list_messages/gmail_get_message读取客户邮件中的主备站要求以及内部主管提醒（作为草稿内容约束）。contacts_search/contacts_get获取工程师候选，contacts_get对照技能（监控告警抑制、数据库锁排查）并参考notes交通可行性；calendar_get_user_events检查出发/到达窗口。最终用contacts_search定位客户经理与技术总监，gmail_save_draft生成草稿，明确：首选工程师到主站计划、备站转场触发条件与预计时间。",
+          "fixture_generation_plan": "fixtures：helpdesk/tickets.json至少6条：其中1条为目标critical requires_onsite=true且包含主站/备站地点与SLA主站45分钟/转场90分钟；另有2条干扰（critical但requires_onsite=false或非VIP客户）以及2条medium open作为噪声。crm/customers.json至少3条：目标橙海电力为vip且notes包含站点与派遣策略。contacts/contacts.json包含3名工程师+客户经理+技术总监（5-6条）。工程师notes需包含交通可达性线索（高铁/常驻南京/返回时间），skills体现“告警抑制+数据库写入阻塞/锁排查”。calendar/events.json为今天设置：工程师B的客户参观占用、工程师C的杭州出差占用、工程师A的可出发空闲窗口。gmail/inbox.json至少3封：1封客户关于主备站与SLA的邮件、1封内部主管提醒草稿需写转场条件、1封无关新闻/自动告警干扰。",
+          "expected_behavior": "代理应识别并选定首选工程师A：既满足主站45分钟内到达的交通可行性（结合日程与notes），又具备“告警抑制策略+数据库写入阻塞/锁排查”技能。备选为工程师B或在日程上可调整但技能偏弱者，并在草稿中说明其风险点（例如45分钟内无法开始定位）。最后gmail_save_draft保存派遣通知邮件：包含主站/备站位置说明、SLA时间线（到主站45分钟开始定位；若90分钟内未确认原因则转场备站的触发条件）、首选工程师到达与到场后第一步行动、以及备站转场的预计时间与联系方式；并通知客户经理与抄送技术总监。不得发送。",
+          "grading_plan": "检查点：1) 是否选对同时满足主站SLA与技能匹配的首选工程师；2) 是否在草稿中明确写出备站转场触发条件与预计时间（来自内部主管提醒）并与工单SLA一致；3) 是否正确利用交通约束线索（高铁/返回时间/常驻）判断可行性；4) 是否忽略不满足requires_onsite或非VIP干扰工单；5) gmail_save_draft被调用、gmail_send_message未调用，并且收件/抄送对象正确。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:41:35",
+    "items": [
+      {
+        "task_id": "T155zh_onsite_support_dispatch_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:39:02",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T155zh_onsite_support_dispatch_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T155zh_onsite_support_dispatch_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:39:43",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T155zh_onsite_support_dispatch_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T155zh_onsite_support_dispatch_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:40:19",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T155zh_onsite_support_dispatch_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T155zh_onsite_support_dispatch_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:40:54",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T155zh_onsite_support_dispatch_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T155zh_onsite_support_dispatch_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:41:35",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/T155zh_onsite_support_dispatch_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T155zh_onsite_support_dispatch_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T155zh_onsite_support_dispatch/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T155zh_onsite_support_dispatch",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

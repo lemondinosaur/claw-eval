@@ -1,0 +1,732 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T161zh_automation_failure_recovery_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/config/integrations.json",
+  "fixtures/helpdesk/tickets.json",
+  "fixtures/inventory/items.json",
+  "fixtures/kb/articles.json",
+  "fixtures/scheduler/jobs.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T161zh_automation_failure_recovery_plus_3",
+  "new_task_name": "多租户数据隔离异常引发链路停止",
+  "task_goal": "在多租户环境中，某租户配置异常导致任务链路对全局共享资源写入失败并触发下游安全中断。需要识别依赖链、定位到错误租户隔离标识，评估库存可用性影响，并准确关联工单与知识库恢复步骤。",
+  "user_request": "你是运维：系统提示多项自动化任务连续失败，且仅影响某些租户的库存可用性。工单里也提到‘A客户看得到但B客户看不到’或‘隔离失败’。请你按以下要求输出排查与恢复：1）列出失败定时任务及依赖关系；2）检查API集成配置找出根因（与租户隔离相关）；3）评估对库存可用性的影响范围；4）关联对应用户工单并解释为何只影响部分租户；5）到知识库搜索并引用恢复方案；6）输出故障分析和可操作恢复计划。",
+  "scenario": "世界状态：有三条链路任务：租户A的“供应数据获取”成功，租户A的“库存写入”失败（403：tenant scope mismatch），进而触发“隔离一致性校验”拒绝执行并将共享缓存标记为不可用。由于缓存不可用，下游“自动补货”任务对所有租户停止（安全策略），形成跨租户的表象，但根因只在租户B的隔离标识错误。干扰：有一条“通用健康检查”任务也失败，但它与依赖链无关。库存数据表现为：inventory 中部分商品 quantity 正常但 sync_status=blocked 或 partial，且 last_sync 在短时间内发生跳变。工单数量4条：2条来自受影响租户（抱怨库存不可用/补货停止），1条来自未受影响租户但因共享缓存报警看到异常信息（应归因于隔离一致性校验中断造成的全局保护），1条硬件无关。",
+  "difference_from_source": "原题是供应商API迁移与补货触发失败；本题是“多租户隔离标识错误→写入403→一致性校验拒绝→安全策略导致自动补货对所有租户表象停止”，需要解释“表象跨租户但根因局部租户”。同时加入共享缓存标记不可用的机制，并要求处理部分工单属于间接受影响。",
+  "service_and_tool_plan": "仍使用 scheduler/config/inventory/helpdesk/kb：scheduler_get_job 提取失败错误码并解析依赖；config_get_integration 定位租户隔离相关配置（如 tenant_id/header 或 scope 字段在错误集成中被配置到错误租户）；inventory_* 用于判断库存是否 blocked/partial 并推断安全策略影响；helpdesk_* 用于区分“直接受影响租户工单”和“间接受影响租户工单”；kb_search/kb_get_article 获取关于“租户隔离配置修复与缓存/校验恢复”的KB步骤。",
+  "fixture_generation_plan": "生成全新 fixtures。\n1）config/integrations.json：至少4条。\n- “租户范围的库存写入集成”active，但 notes 指向 tenant scope mismatch（例如 header tenant_id 写成了B但执行上下文为A 或反之），error_rate 高；\n- “租户范围修复后的集成”inactive（或 active但未被任务使用）；\n- “供应数据获取集成”正常；\n- “健康检查/日志采集集成”正常但在 scheduler 中触发无关失败。\n2）scheduler/jobs.json：至少6条。\n- JOB-T1（租户供应数据获取）成功；\n- JOB-T2（库存写入）依赖 JOB-T1，失败原因 403 tenant scope mismatch；\n- JOB-T3（隔离一致性校验）依赖 JOB-T2，因校验失败拒绝执行并将共享缓存置不可用；\n- JOB-T4（自动补货）依赖 JOB-T3 或检查共享缓存状态，表现为安全策略拒绝执行（不是因为数据过期）；\n- 再加1条失败但无关（健康检查聚合）。\n3）inventory/items.json：至少9个产品。\n- 至少3个 products sync_status=blocked 或 partial，last_sync 在短时间内有停滞；\n- 至少1个 product quantity 仍正常但 sync_status=partial（用于解释“看得到数量但不可用/无法触发补货”）；\n- 其余 ok。\n4）helpdesk/tickets.json：4条 open。\n- 2条来自受影响租户（抱怨库存不可用/补货停止/隔离失败）；\n- 1条来自看似未受影响租户但因共享缓存报警异常（需在描述中体现“共享告警”或“保护导致不可下单”）；\n- 1条硬件无关。\n5）kb/articles.json：至少2篇。\n- KB-T1：多租户隔离 scope mismatch 的排查与配置修复（定位错误 tenant_id/header/caller role）；\n- KB-T2：一致性校验失败后的缓存恢复与重新启用自动补货步骤（包括先恢复写入→再清理缓存/重算校验→最后恢复补货）。",
+  "expected_behavior": "agent 应：\n1）从 scheduler 找到 JOB-T2→JOB-T3→JOB-T4 的依赖链，并读取错误码（tenant scope mismatch）与安全策略拒绝的区别。\n2）config 中定位到隔离标识错误的集成，并给出“修正 tenant scope/启用正确集成后再触发后续任务”的建议。\n3）inventory 解释哪些产品呈现 blocked/partial 状态，以及为何会导致补货停止（共享缓存不可用/一致性校验失败）。\n4）helpdesk 关联：至少区分两类工单（直接受影响租户 vs 间接受影响租户），明确硬件无关工单不纳入链路解释。\n5）kb_search 找到 KB-T1/KB-T2 并引用其步骤，输出可执行恢复计划：修复隔离配置→验证写入成功→重跑一致性校验/清缓存→恢复自动补货并监控。\n6）不在未解决前关闭工单。",
+  "grading_plan": "检查：\n- 依赖链与停止机制是否理解正确（403写入失败→一致性校验拒绝→安全策略导致补货表象停止）；\n- 根因是否指向多租户隔离标识配置错误而非库存过期；\n- inventory 影响评估是否覆盖 blocked/partial 与解释“可见但不可用”；\n- 工单关联是否区分直接/间接受影响并排除无关硬件工单；\n- 恢复方案是否引用KB-T1/KB-T2并包含明确顺序（修配置→验证→校验/缓存恢复→补货恢复）。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T161zh_automation_failure_recovery",
+  "task_name": "多自动化任务连锁故障排查与恢复",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "hard",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "scheduler",
+    "config",
+    "helpdesk",
+    "kb",
+    "inventory"
+  ],
+  "tools": [
+    "scheduler_list_jobs",
+    "scheduler_get_job",
+    "config_list_integrations",
+    "config_get_integration",
+    "inventory_list_products",
+    "inventory_get_product",
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "helpdesk_update_ticket",
+    "helpdesk_close_ticket",
+    "kb_search",
+    "kb_get_article"
+  ],
+  "fixture_paths": [
+    "fixtures/config/integrations.json",
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/inventory/items.json",
+    "fixtures/kb/articles.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T161zh_automation_failure_recovery
+task_name: 多自动化任务连锁故障排查与恢复
+version: '1.0'
+category: ops
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: tasks/T161zh_automation_failure_recovery/fixtures/scheduler/jobs.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: tasks/T161zh_automation_failure_recovery/fixtures/config/integrations.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: tasks/T161zh_automation_failure_recovery/fixtures/helpdesk/tickets.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T161zh_automation_failure_recovery/fixtures/kb/articles.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: tasks/T161zh_automation_failure_recovery/fixtures/inventory/items.json
+prompt:
+  text: '多个自动化任务连续失败，用户也报了相关工单。请帮我排查：
+
+    1. 检查失败的定时任务及其依赖关系
+
+    2. 查看API集成配置找出根因
+
+    3. 评估对库存数据的影响
+
+    4. 关联用户工单
+
+    5. 在知识库搜索解决方案
+
+    6. 输出故障分析和恢复方案
+
+    '
+  language: zh
+tools:
+- name: scheduler_list_jobs
+  description: 列出定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(all/enabled/disabled)
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情（含执行历史和依赖关系）
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: config_list_integrations
+  description: 列出API集成配置
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(active/inactive/all)
+    required: []
+- name: config_get_integration
+  description: 获取API集成配置详情
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成配置ID
+    required:
+    - integration_id
+- name: inventory_list_products
+  description: 列出库存产品
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_product
+  description: 获取产品库存详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单（优先级、标签、分类）
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 工单分类
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/config/integrations.json ---
+[
+  {
+    "integration_id": "INT-1501",
+    "name": "供应商API v2",
+    "service": "supplier_api",
+    "status": "active",
+    "endpoint": "https://supplier-api.example.com/v2/data",
+    "api_key": "sk-supplier-v2-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-03-19T10:00:00Z",
+    "monthly_calls": 720,
+    "error_rate": 1.0,
+    "notes": "v2版本自3月20日起持续返回404，供应商已将API迁移至v3，此端点已废弃。当前仍配置为active状态，需切换到INT-1502。"
+  },
+  {
+    "integration_id": "INT-1502",
+    "name": "供应商API v3",
+    "service": "supplier_api",
+    "status": "inactive",
+    "endpoint": "https://supplier-api.example.com/v3/data",
+    "api_key": "sk-supplier-v3-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": "https://api.ourapp.com/webhooks/supplier-v3",
+    "last_verified": "2026-03-25T14:00:00Z",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "notes": "新版本API已上线并通过验证测试，但尚未在生产环境激活。需将JOB-1501的数据源从v2切换到v3。"
+  },
+  {
+    "integration_id": "INT-1503",
+    "name": "库存管理系统",
+    "service": "inventory_system",
+    "status": "active",
+    "endpoint": "https://inventory.internal.example.com/api/v1",
+    "api_key": "sk-inv-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-03-26T08:00:00Z",
+    "monthly_calls": 15200,
+    "error_rate": 0.002,
+    "notes": "运行正常"
+  },
+  {
+    "integration_id": "INT-1504",
+    "name": "订单系统",
+    "service": "order_system",
+    "status": "active",
+    "endpoint": "https://orders.internal.example.com/api/v2",
+    "api_key": "sk-ord-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-03-26T09:00:00Z",
+    "monthly_calls": 32000,
+    "error_rate": 0.001,
+    "notes": "运行正常"
+  }
+]
+
+--- END FILE: fixtures/config/integrations.json ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-1501",
+    "title": "库存数量与实际不符",
+    "description": "仓库盘点发现系统中显示的无线鼠标库存为50个，但实际货架上只有32个。USB-C扩展坞系统显示0，但上周供应商明明送了一批货。怀疑系统数据不准确。",
+    "reporter": "仓储部-周磊",
+    "department": "仓储部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-26T09:30:00Z",
+    "tags": ["库存", "数据不一致", "仓储"],
+    "category": "数据问题"
+  },
+  {
+    "ticket_id": "TK-1502",
+    "title": "自动补货没有触发",
+    "description": "网络交换机库存已经低于安全线（当前3台，安全库存5台），但系统没有自动触发补货订单。往常库存低于安全线时会自动生成采购单，但最近几天没有任何自动采购记录。请紧急处理，项目下周需要用到交换机。",
+    "reporter": "IT部-赵阳",
+    "department": "IT部",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-26T10:00:00Z",
+    "tags": ["补货", "自动化", "紧急", "库存"],
+    "category": "系统故障"
+  },
+  {
+    "ticket_id": "TK-1503",
+    "title": "供应商价格没有更新",
+    "description": "采购部发现系统中的供应商价格还是上周的数据，3月21日供应商发了新的价格表（部分产品调价），但系统中没有反映。需要确认是否同步出了问题。",
+    "reporter": "采购部-陈蕾",
+    "department": "采购部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-26T11:00:00Z",
+    "tags": ["供应商", "价格", "同步"],
+    "category": "数据问题"
+  },
+  {
+    "ticket_id": "TK-1504",
+    "title": "打印机故障",
+    "description": "2楼打印间的彩色打印机无法打印，显示纸盒卡纸错误。已尝试清理纸盒但问题没有解决。",
+    "reporter": "行政部-李娜",
+    "department": "行政部",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-26T08:45:00Z",
+    "tags": ["硬件", "打印机"],
+    "category": "硬件故障"
+  }
+]
+
+--- END FILE: fixtures/helpdesk/tickets.json ---
+--- FILE: fixtures/inventory/items.json ---
+[
+  {
+    "product_id": "ITEM-1501",
+    "name": "无线鼠标",
+    "category": "IT外设",
+    "quantity": 50,
+    "unit": "个",
+    "reorder_level": 20,
+    "supplier_integration": "INT-1501",
+    "last_sync": "2026-03-20T08:30:00Z",
+    "sync_status": "stale",
+    "notes": "数据已6天未更新，显示数量可能与实际不符"
+  },
+  {
+    "product_id": "ITEM-1502",
+    "name": "USB-C扩展坞",
+    "category": "IT外设",
+    "quantity": 0,
+    "unit": "个",
+    "reorder_level": 10,
+    "supplier_integration": "INT-1501",
+    "last_sync": "2026-03-20T08:30:00Z",
+    "sync_status": "stale",
+    "notes": "显示库存为0，但供应商可能已补货，因同步中断无法确认"
+  },
+  {
+    "product_id": "ITEM-1503",
+    "name": "网络交换机",
+    "category": "网络设备",
+    "quantity": 3,
+    "unit": "台",
+    "reorder_level": 5,
+    "supplier_integration": "INT-1501",
+    "last_sync": "2026-03-20T08:30:00Z",
+    "sync_status": "stale",
+    "notes": "库存低于安全库存(5台)，自动补货因同步故障未触发"
+  },
+  {
+    "product_id": "ITEM-1504",
+    "name": "A4打印纸",
+    "category": "办公耗材",
+    "quantity": 120,
+    "unit": "箱",
+    "reorder_level": 50,
+    "supplier_integration": "INT-1503",
+    "last_sync": "2026-03-26T08:00:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  },
+  {
+    "product_id": "ITEM-1505",
+    "name": "墨盒(黑色)",
+    "category": "办公耗材",
+    "quantity": 35,
+    "unit": "个",
+    "reorder_level": 15,
+    "supplier_integration": "INT-1503",
+    "last_sync": "2026-03-26T08:00:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  },
+  {
+    "product_id": "ITEM-1506",
+    "name": "显示器27寸",
+    "category": "IT设备",
+    "quantity": 18,
+    "unit": "台",
+    "reorder_level": 5,
+    "supplier_integration": "INT-1503",
+    "last_sync": "2026-03-26T08:00:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  },
+  {
+    "product_id": "ITEM-1507",
+    "name": "机械键盘",
+    "category": "IT外设",
+    "quantity": 42,
+    "unit": "个",
+    "reorder_level": 10,
+    "supplier_integration": "INT-1503",
+    "last_sync": "2026-03-26T08:00:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  },
+  {
+    "product_id": "ITEM-1508",
+    "name": "办公椅",
+    "category": "家具",
+    "quantity": 25,
+    "unit": "把",
+    "reorder_level": 8,
+    "supplier_integration": "INT-1503",
+    "last_sync": "2026-03-26T08:00:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  }
+]
+
+--- END FILE: fixtures/inventory/items.json ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "KB-1501",
+    "title": "供应商API迁移指南：v2升级到v3",
+    "category": "技术文档",
+    "tags": ["供应商", "API", "迁移", "v2", "v3", "升级"],
+    "content": "## 供应商API v2→v3 迁移指南\n\n### 背景\n供应商于2026年3月20日正式下线v2 API端点，所有请求将返回404。新版v3 API已上线并提供增强功能。\n\n### 迁移步骤\n1. 在配置管理系统中，将INT-1502（供应商API v3）的状态从inactive改为active\n2. 将INT-1501（供应商API v2）的状态改为inactive或deprecated\n3. 更新JOB-1501（供应商数据同步）的数据源配置，指向v3端点\n4. 运行一次手动同步测试，确认v3连接正常\n5. 监控24小时内的错误率，确保低于0.01\n\n### v3变更说明\n- 新增批量查询接口，支持一次获取最多500条记录\n- 认证方式不变（API Key），但需使用新的Key（已在INT-1502中配置）\n- 响应格式从XML改为JSON\n- 分页机制改为cursor-based\n\n### 注意事项\n- 迁移前务必备份当前配置\n- v2端点已不可用，无法回滚\n- 如有问题请联系供应商技术支持：supplier-support@example.com",
+    "last_updated": "2026-03-18",
+    "views": 156
+  },
+  {
+    "article_id": "KB-1502",
+    "title": "自动化任务依赖关系说明",
+    "category": "运维手册",
+    "tags": ["自动化", "定时任务", "依赖", "JOB", "调度"],
+    "content": "## 自动化任务依赖链说明\n\n### 供应链自动化任务链\n以下三个任务存在严格的依赖关系：\n\n```\nJOB-1501(供应商数据同步) → JOB-1502(库存自动更新) → JOB-1503(自动补货触发)\n```\n\n- **JOB-1501 供应商数据同步**：从供应商API拉取最新的产品价格、库存、交付时间等数据。每4小时运行一次。\n- **JOB-1502 库存自动更新**：基于JOB-1501拉取的供应商数据，更新本地库存系统中的数量和状态。依赖JOB-1501的数据，如果JOB-1501失败则无法获取数据源。\n- **JOB-1503 自动补货触发**：基于最新库存数据检查安全库存线，对低于阈值的商品自动生成补货订单。依赖JOB-1502的更新结果，如果库存数据超过24小时未更新则拒绝执行（防止基于过期数据下单）。\n\n### 故障传播\n当JOB-1501失败时，会引发连锁反应：\n1. JOB-1502因无法获取上游数据而失败\n2. JOB-1503因库存数据过期而失败\n3. 受影响的库存产品将无法自动补货\n4. 仓储和采购部门可能报告数据不一致问题\n\n### 修复优先级\n应从依赖链的根节点（JOB-1501）开始修复，确保数据源恢复后，下游任务会自动恢复正常。",
+    "last_updated": "2026-03-15",
+    "views": 89
+  },
+  {
+    "article_id": "KB-1503",
+    "title": "库存数据不同步修复方案",
+    "category": "运维手册",
+    "tags": ["库存", "同步", "修复", "数据不一致", "手动"],
+    "content": "## 库存数据不同步修复方案\n\n### 适用场景\n- 自动同步任务长时间失败后恢复\n- 库存系统数据与实际不符\n- 需要紧急更新库存数据\n\n### 修复步骤\n1. **确认同步任务已恢复**：检查JOB-1501和JOB-1502是否已恢复正常运行\n2. **手动触发全量同步**：\n   - 登录管理后台\n   - 进入「数据同步」→「手动触发」\n   - 选择「全量同步」（非增量）\n   - 预计耗时10-15分钟\n3. **核对关键商品**：\n   - 对比系统库存与实际盘点数据\n   - 重点关注：库存为0的商品、低于安全线的商品\n4. **检查自动补货队列**：\n   - 同步完成后，检查是否有新的补货订单自动生成\n   - 手动触发一次JOB-1503检查补货需求\n5. **通知相关部门**：\n   - 仓储部：确认库存数据已更新\n   - 采购部：确认补货订单已生成\n\n### 预防措施\n- 设置同步失败告警，超过12小时未同步需自动通知运维\n- 定期检查API集成配置状态",
+    "last_updated": "2026-03-10",
+    "views": 234
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+--- FILE: fixtures/scheduler/jobs.json ---
+[
+  {
+    "job_id": "JOB-1501",
+    "name": "供应商数据同步",
+    "cron_expression": "0 */4 * * *",
+    "action": "sync_supplier_data",
+    "enabled": true,
+    "last_run": "2026-03-26T04:00:00Z",
+    "next_run": "2026-03-26T08:00:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": ["integration", "supplier", "sync"],
+    "created_at": "2025-08-01T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {"run_at": "2026-03-26T04:00:00Z", "status": "failed", "duration_s": 3, "error": "HTTP 404: API endpoint not found — https://supplier-api.example.com/v2/data returned 404 Not Found"},
+      {"run_at": "2026-03-26T00:00:00Z", "status": "failed", "duration_s": 3, "error": "HTTP 404: API endpoint not found — https://supplier-api.example.com/v2/data returned 404 Not Found"},
+      {"run_at": "2026-03-25T20:00:00Z", "status": "failed", "duration_s": 3, "error": "HTTP 404: API endpoint not found — https://supplier-api.example.com/v2/data returned 404 Not Found"},
+      {"run_at": "2026-03-25T16:00:00Z", "status": "failed", "duration_s": 3, "error": "HTTP 404: API endpoint not found — https://supplier-api.example.com/v2/data returned 404 Not Found"},
+      {"run_at": "2026-03-25T12:00:00Z", "status": "failed", "duration_s": 3, "error": "HTTP 404: API endpoint not found — https://supplier-api.example.com/v2/data returned 404 Not Found"},
+      {"run_at": "2026-03-20T08:00:00Z", "status": "success", "duration_s": 45}
+    ]
+  },
+  {
+    "job_id": "JOB-1502",
+    "name": "库存自动更新",
+    "cron_expression": "30 */4 * * *",
+    "action": "update_inventory_from_supplier",
+    "enabled": true,
+    "last_run": "2026-03-26T04:30:00Z",
+    "next_run": "2026-03-26T08:30:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": ["inventory", "sync", "auto"],
+    "created_at": "2025-08-15T00:00:00Z",
+    "depends_on": ["JOB-1501"],
+    "execution_history": [
+      {"run_at": "2026-03-26T04:30:00Z", "status": "failed", "duration_s": 1, "error": "DependencyError: 上游数据源不可用 — JOB-1501(供应商数据同步)最近一次执行失败，无法获取最新供应商数据"},
+      {"run_at": "2026-03-26T00:30:00Z", "status": "failed", "duration_s": 1, "error": "DependencyError: 上游数据源不可用 — JOB-1501(供应商数据同步)最近一次执行失败，无法获取最新供应商数据"},
+      {"run_at": "2026-03-25T20:30:00Z", "status": "failed", "duration_s": 1, "error": "DependencyError: 上游数据源不可用 — JOB-1501(供应商数据同步)最近一次执行失败，无法获取最新供应商数据"},
+      {"run_at": "2026-03-20T08:30:00Z", "status": "success", "duration_s": 30}
+    ]
+  },
+  {
+    "job_id": "JOB-1503",
+    "name": "自动补货触发",
+    "cron_expression": "0 9 * * *",
+    "action": "trigger_auto_restock",
+    "enabled": true,
+    "last_run": "2026-03-26T09:00:00Z",
+    "next_run": "2026-03-27T09:00:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": ["inventory", "restock", "auto"],
+    "created_at": "2025-09-01T00:00:00Z",
+    "depends_on": ["JOB-1502"],
+    "execution_history": [
+      {"run_at": "2026-03-26T09:00:00Z", "status": "failed", "duration_s": 2, "error": "StaleDataError: 库存数据过期 — 最后同步时间为2026-03-20，超过24小时阈值，无法基于过期数据触发补货"},
+      {"run_at": "2026-03-25T09:00:00Z", "status": "failed", "duration_s": 2, "error": "StaleDataError: 库存数据过期 — 最后同步时间为2026-03-20，超过24小时阈值，无法基于过期数据触发补货"},
+      {"run_at": "2026-03-20T09:00:00Z", "status": "success", "duration_s": 15}
+    ]
+  },
+  {
+    "job_id": "JOB-1504",
+    "name": "订单处理",
+    "cron_expression": "*/15 * * * *",
+    "action": "process_orders",
+    "enabled": true,
+    "last_run": "2026-03-26T10:15:00Z",
+    "next_run": "2026-03-26T10:30:00Z",
+    "last_status": "success",
+    "created_by": "admin",
+    "tags": ["orders", "core"],
+    "created_at": "2025-06-01T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {"run_at": "2026-03-26T10:15:00Z", "status": "success", "duration_s": 12},
+      {"run_at": "2026-03-26T10:00:00Z", "status": "success", "duration_s": 10}
+    ]
+  },
+  {
+    "job_id": "JOB-1505",
+    "name": "日志归档",
+    "cron_expression": "0 3 * * *",
+    "action": "archive_logs",
+    "enabled": true,
+    "last_run": "2026-03-26T03:00:00Z",
+    "next_run": "2026-03-27T03:00:00Z",
+    "last_status": "success",
+    "created_by": "admin",
+    "tags": ["infrastructure", "logs"],
+    "created_at": "2025-07-01T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {"run_at": "2026-03-26T03:00:00Z", "status": "success", "duration_s": 180},
+      {"run_at": "2026-03-25T03:00:00Z", "status": "success", "duration_s": 175}
+    ]
+  },
+  {
+    "job_id": "JOB-1506",
+    "name": "监控告警",
+    "cron_expression": "*/5 * * * *",
+    "action": "check_monitoring_alerts",
+    "enabled": true,
+    "last_run": "2026-03-26T10:20:00Z",
+    "next_run": "2026-03-26T10:25:00Z",
+    "last_status": "success",
+    "created_by": "admin",
+    "tags": ["monitoring", "alerts"],
+    "created_at": "2025-06-15T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {"run_at": "2026-03-26T10:20:00Z", "status": "success", "duration_s": 5},
+      {"run_at": "2026-03-26T10:15:00Z", "status": "success", "duration_s": 4}
+    ]
+  }
+]
+
+--- END FILE: fixtures/scheduler/jobs.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

@@ -1,0 +1,222 @@
+[
+  {
+    "job_id": "JOB-9041",
+    "name": "日终资金对账（资金池）",
+    "cron_expression": "50 23 * * *",
+    "action": "end_of_day_reconciliation_funds",
+    "enabled": true,
+    "last_run": "2026-04-16T00:06:00Z",
+    "next_run": "2026-04-17T00:01:00Z",
+    "last_status": "failed",
+    "created_by": "payment_ops",
+    "tags": [
+      "payment",
+      "accounting",
+      "reconciliation",
+      "eod"
+    ],
+    "created_at": "2026-02-01T08:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-15T23:50:00Z",
+        "status": "failed",
+        "duration_s": 41,
+        "error": "DeadlockDetected: funds_ledger_lock wait timeout after 30000ms"
+      },
+      {
+        "run_at": "2026-04-15T23:55:00Z",
+        "status": "failed",
+        "duration_s": 38,
+        "error": "QueryTimeoutError: reconciliation_batch exceeded 25000ms"
+      },
+      {
+        "run_at": "2026-04-15T22:50:00Z",
+        "status": "success",
+        "duration_s": 27
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-9042",
+    "name": "结算单状态回写（账务）",
+    "cron_expression": "*/10 23-0 * * *",
+    "action": "settlement_writeback_to_ledger",
+    "enabled": true,
+    "last_run": "2026-04-16T00:14:00Z",
+    "next_run": "2026-04-16T00:20:00Z",
+    "last_status": "failed",
+    "created_by": "payment_ops",
+    "tags": [
+      "payment",
+      "settlement",
+      "writeback",
+      "accounting"
+    ],
+    "created_at": "2026-02-18T08:30:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-15T23:59:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "ObjectStorageDependencyError: failed to download settlement_materials from bucket 'pay-ops-materials' (timeout)"
+      },
+      {
+        "run_at": "2026-04-16T00:08:00Z",
+        "status": "failed",
+        "duration_s": 11,
+        "error": "ObjectStorageDependencyError: dependency download returned 503 (slow start)"
+      },
+      {
+        "run_at": "2026-04-16T00:18:00Z",
+        "status": "failed",
+        "duration_s": 12,
+        "error": "ObjectStorageDependencyError: stream read interrupted (connection reset by peer)"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-9043",
+    "name": "商户通知生成（对账/结算）",
+    "cron_expression": "0 0-1 * * *",
+    "action": "generate_merchant_notifications",
+    "enabled": true,
+    "last_run": "2026-04-16T00:09:00Z",
+    "next_run": "2026-04-16T01:00:00Z",
+    "last_status": "failed",
+    "created_by": "risk_ops",
+    "tags": [
+      "payment",
+      "notification",
+      "settlement",
+      "template"
+    ],
+    "created_at": "2026-03-01T10:05:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-16T00:02:00Z",
+        "status": "failed",
+        "duration_s": 6,
+        "error": "TemplateRenderingError: nil value 'merchant_name' for template var; output body set to empty"
+      },
+      {
+        "run_at": "2026-04-16T00:09:00Z",
+        "status": "failed",
+        "duration_s": 7,
+        "error": "TemplateRenderingError: render failed due to missing locale; fallback produced blank content"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-9044",
+    "name": "额度风控规则刷新（非关键）",
+    "cron_expression": "0 */2 * * *",
+    "action": "refresh_risk_rules",
+    "enabled": true,
+    "last_run": "2026-04-16T00:00:00Z",
+    "next_run": "2026-04-16T02:00:00Z",
+    "last_status": "success",
+    "created_by": "risk_ops",
+    "tags": [
+      "risk",
+      "rules",
+      "nonpayment"
+    ],
+    "created_at": "2026-01-22T09:10:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-16T00:00:00Z",
+        "status": "success",
+        "duration_s": 14
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-9045",
+    "name": "商户对账快照归档（可用性）",
+    "cron_expression": "15 1 * * *",
+    "action": "archive_reconciliation_snapshot",
+    "enabled": false,
+    "last_run": "2026-04-14T01:15:00Z",
+    "next_run": null,
+    "last_status": "failed",
+    "created_by": "payment_ops",
+    "tags": [
+      "payment",
+      "accounting",
+      "archive",
+      "snapshots"
+    ],
+    "created_at": "2026-03-20T12:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-14T01:15:00Z",
+        "status": "failed",
+        "duration_s": 600,
+        "error": "TimeoutError: snapshot archive worker stalled (queue depth high)"
+      },
+      {
+        "run_at": "2026-04-13T01:15:00Z",
+        "status": "failed",
+        "duration_s": 590,
+        "error": "TimeoutError: snapshot archive worker stalled (queue depth high)"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-9046",
+    "name": "人事批量数据同步（无关链路）",
+    "cron_expression": "0 0 * * *",
+    "action": "sync_hr_batch",
+    "enabled": true,
+    "last_run": "2026-04-16T00:01:00Z",
+    "next_run": "2026-04-17T00:01:00Z",
+    "last_status": "failed",
+    "created_by": "it_ops",
+    "tags": [
+      "hr",
+      "sync",
+      "nonpayment"
+    ],
+    "created_at": "2026-03-05T09:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-16T00:01:00Z",
+        "status": "failed",
+        "duration_s": 22,
+        "error": "ConnectionRefusedError: HR sync endpoint unreachable"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-9047",
+    "name": "结算对账补偿任务（重试）",
+    "cron_expression": "25 */30 * * *",
+    "action": "settlement_reconciliation_compensation_retry",
+    "enabled": true,
+    "last_run": "2026-04-16T00:20:00Z",
+    "next_run": "2026-04-16T00:50:00Z",
+    "last_status": "failed",
+    "created_by": "payment_ops",
+    "tags": [
+      "payment",
+      "accounting",
+      "settlement",
+      "retry"
+    ],
+    "created_at": "2026-03-25T13:30:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-16T00:20:00Z",
+        "status": "failed",
+        "duration_s": 16,
+        "error": "DependencyChainError: upstream reconciliation results unavailable (upstream window missing)"
+      },
+      {
+        "run_at": "2026-04-16T00:10:00Z",
+        "status": "failed",
+        "duration_s": 18,
+        "error": "DependencyChainError: upstream reconciliation results unavailable (upstream window missing)"
+      }
+    ]
+  }
+]

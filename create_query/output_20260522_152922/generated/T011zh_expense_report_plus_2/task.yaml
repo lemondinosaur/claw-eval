@@ -1,0 +1,78 @@
+task_id: T011zh_expense_report_plus_2
+task_name: 费用报销（含税票与培训）
+version: '1.0'
+category: finance
+difficulty: easy
+tags:
+- general
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T011zh_expense_report_plus_2/fixtures/finance/transactions.json
+prompt:
+  text: 帮我整理并提交2026年1月的费用报销。注意：部分交易描述里包含“增值税专票/电子发票”，请据此判断是否为重复凭证；若同一商户、同金额、同日期但仅发票类型措辞不同，视为重复，只保留一笔。另有金额相近但商户不同的相似支出不应当重复。还存在负数交易作为退货退款，退款描述中包含“退货/退款”关键词且与某条正数消费日期相邻但不要求相同天；请按“商户+金额+关键词”匹配为退款，并避免把退款与同商户的其他正数消费混同。最后提交正确总额并避免重复提交，培训/课程/订阅类支出需按培训相关进行准确归类。
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 获取费用交易记录列表
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 开始日期 (YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 结束日期 (YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取单笔交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: finance_submit_report
+  description: 提交费用报告
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 报告标题
+      transactions:
+        type: array
+        items:
+          type: string
+        description: 包含的交易ID列表
+      total_amount:
+        type: number
+        description: 总金额
+    required:
+    - title
+    - transactions
+    - total_amount
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: finance_submit_report
+  url: http://localhost:9104/finance/report/submit
+  method: POST
+sandbox_files:
+- fixtures/finance/transactions.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

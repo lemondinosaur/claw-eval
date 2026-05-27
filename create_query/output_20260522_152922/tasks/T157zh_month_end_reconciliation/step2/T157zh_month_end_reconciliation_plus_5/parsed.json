@@ -1,0 +1,908 @@
+{
+  "task_id": "T157zh_month_end_reconciliation_plus_5",
+  "task_name": "回滚后补偿与一致性验证",
+  "prompt_text": "月底请做回滚补偿一致性验证（回滚窗口前后分段对比）：\n\n1）检查调度任务与回滚窗口：找出哪些 job 在回滚窗口期间运行 failed/cancelled，并结合 job_history 给出发生时间窗与可能的补偿触发记录。\n2）检查集成配置：定位对账系统与发票系统是否处于一致性修复/补偿开关模式（如 consistency_repair=true），并读取 last_sync/恢复时间。\n3）对账核心（按回滚窗口切分 pre/post）：\n   - CRM 应收期望 vs 财务实际收款：判断是否出现“重复计入或漏计入”；若发现重复交易，基于 transaction.description 中的 reversed/compensated 标记判断应否抵消。\n   - 采购支出 vs 库存出入库：判断是否出现“重复出入库或漏出入库”，并尽量与采购交易相关线索对应。\n4）输出一致性验证报告：对每个异常给出\n   - 发生时间窗（回滚前/回滚后明确区间）\n   - 影响链路（job → integration → 数据表/字段）\n   - 补偿成功/失败判定依据\n   - 建议重算策略（例如重跑对账批次/重新生成发票与重新回写CRM等）。\n\n要求：报告至少包含“客户应收重复/漏算”与“采购-库存重复/漏算”两类异常，并覆盖补偿成功/失败状态。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-2401",
+        "name": "reconciliation_core",
+        "display_name": "对账核心系统",
+        "service": "reconciliation",
+        "status": "active",
+        "last_verified": "2026-04-26T09:10:00+08:00",
+        "monthly_calls": 9800,
+        "error_rate": 2.4,
+        "last_sync": "2026-04-23T16:05:00+08:00",
+        "notes": "一致性修复已启用：consistency_repair=true。回滚后 last_sync 于4月23日恢复，但发票/撤销回写存在部分延迟（预计对账口径在4月24日逐步收敛）。"
+      },
+      {
+        "integration_id": "INT-2402",
+        "name": "invoice_ledger",
+        "display_name": "发票账本系统",
+        "service": "invoice",
+        "status": "active",
+        "last_verified": "2026-04-26T09:12:00+08:00",
+        "monthly_calls": 4300,
+        "error_rate": 1.7,
+        "last_sync": "2026-04-24T02:40:00+08:00",
+        "notes": "补偿开关 enabled=true：invoice_compensation=true。回滚窗口期间发票状态回写延迟；4月24日02:40后恢复，部分撤销标记未及时切换导致短时重复计入。"
+      },
+      {
+        "integration_id": "INT-2403",
+        "name": "crm_receivables_bridge",
+        "display_name": "CRM应收桥接",
+        "service": "crm",
+        "status": "degraded",
+        "last_verified": "2026-04-25T20:20:00+08:00",
+        "monthly_calls": 7600,
+        "error_rate": 6.8,
+        "last_sync": "2026-04-24T12:15:00+08:00",
+        "notes": "回滚后桥接恢复但仍存在延迟：receivables_delay=true。4月24日12:15完成增量修复，期间部分撤销事件未抵消到CRM expected_monthly。"
+      },
+      {
+        "integration_id": "INT-2404",
+        "name": "inventory_movement_sync",
+        "display_name": "库存变动同步",
+        "service": "inventory",
+        "status": "active",
+        "last_verified": "2026-04-26T09:18:00+08:00",
+        "monthly_calls": 5200,
+        "error_rate": 0.9,
+        "last_sync": "2026-04-23T23:50:00+08:00",
+        "notes": "一致性修复周期性校验开启：movement_repair=true。回滚窗口内出库事件可能重复上报，系统在4月23日23:50完成补偿对齐，但仍可能漏出入库在月末汇总被放大。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2401",
+        "name": "北辰数据科技有限公司",
+        "contact_person": "周敏",
+        "email": "minzhou@beichen-data.cn",
+        "phone": "18600190001",
+        "industry": "数据服务",
+        "tier": "VIP",
+        "annual_revenue": 14000000,
+        "last_contact_date": "2026-04-21",
+        "status": "active",
+        "contract_amount": 98000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 98000,
+        "notes": "回滚后应收重算中：receivables_recalc=true。4月22日撤销回写曾影响 expected_monthly，补偿后应在4月24日完成口径切换。"
+      },
+      {
+        "customer_id": "CUS-2402",
+        "name": "云桥物流（上海）有限公司",
+        "contact_person": "赵磊",
+        "email": "zhaolei@yq-logistics.com",
+        "phone": "18600190002",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 4200000,
+        "last_contact_date": "2026-04-19",
+        "status": "active",
+        "contract_amount": 36000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 36000,
+        "notes": "回滚后应收重算中：补偿完成（compensation_done=true），但存在短时净额重复计入风险已标记为watch。"
+      },
+      {
+        "customer_id": "CUS-2403",
+        "name": "星海云计算有限公司",
+        "contact_person": "陈悦",
+        "email": "yuechen@xinghai-cloud.cn",
+        "phone": "18600190003",
+        "industry": "云计算",
+        "tier": "VIP",
+        "annual_revenue": 22000000,
+        "last_contact_date": "2026-04-20",
+        "status": "active",
+        "contract_amount": 125000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 125000,
+        "notes": "补偿失败可能：compensation_status=failed（回滚窗口内撤销事件未完全抵消）。预计会出现漏算，需对账重算核对4月24日前后。"
+      },
+      {
+        "customer_id": "CUS-2404",
+        "name": "金穗供应链管理有限公司",
+        "contact_person": "刘静",
+        "email": "jingliu@jinssupply.cn",
+        "phone": "18600190004",
+        "industry": "供应链",
+        "tier": "standard",
+        "annual_revenue": 3000000,
+        "last_contact_date": "2026-04-18",
+        "status": "active",
+        "contract_amount": 28000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 28000,
+        "notes": "状态正常：expected_monthly与财务在4月26日已对齐。"
+      },
+      {
+        "customer_id": "CUS-2405",
+        "name": "格物工业技术有限公司",
+        "contact_person": "孙浩",
+        "email": "sunhao@gewu-industry.cn",
+        "phone": "18600190005",
+        "industry": "工业",
+        "tier": "standard",
+        "annual_revenue": 2600000,
+        "last_contact_date": "2026-04-16",
+        "status": "active",
+        "contract_amount": 25000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 25000,
+        "notes": "回滚后应收重算中：补偿成功（compensation_done=true），expected_monthly不应偏离。"
+      },
+      {
+        "customer_id": "CUS-2406",
+        "name": "潮汐创意传媒有限公司",
+        "contact_person": "周婷",
+        "email": "tingzhou@chaoce-media.cn",
+        "phone": "18600190006",
+        "industry": "传媒",
+        "tier": "standard",
+        "annual_revenue": 980000,
+        "last_contact_date": "2026-04-14",
+        "status": "active",
+        "contract_amount": 21000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 21000,
+        "notes": "补偿成功：一致性修复窗口外已完成切换。"
+      },
+      {
+        "customer_id": "CUS-2407",
+        "name": "北斗教育科技有限公司",
+        "contact_person": "吴晨",
+        "email": "wuchen@beidou-edu.cn",
+        "phone": "18600190007",
+        "industry": "教育科技",
+        "tier": "VIP",
+        "annual_revenue": 7600000,
+        "last_contact_date": "2026-04-22",
+        "status": "active",
+        "contract_amount": 64000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 64000,
+        "notes": "回滚后应收重算中：可能出现重复计入（duplicate_risk=true），需用财务交易reversed/compensated标记抵消判断。"
+      },
+      {
+        "customer_id": "CUS-2408",
+        "name": "鹤鸣软件开发有限公司",
+        "contact_person": "蔡宁",
+        "email": "ningcai@he-mingsoft.com",
+        "phone": "18600190008",
+        "industry": "软件",
+        "tier": "standard",
+        "annual_revenue": 1800000,
+        "last_contact_date": "2026-04-12",
+        "status": "active",
+        "contract_amount": 19000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 19000,
+        "notes": "状态正常：未触发应收补偿。"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-240101",
+        "date": "2026-04-20",
+        "amount": 98000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2401",
+        "customer_name": "北辰数据科技有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2401 4月订阅费（pre）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240102",
+        "date": "2026-04-20",
+        "amount": -98000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2401",
+        "customer_name": "北辰数据科技有限公司",
+        "type": "撤销/回滚抵消",
+        "category": "服务收入撤销",
+        "description": "CUS-2401 回滚抵消 reversed=true（post-补偿未完全生效前的撤销记录）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240103",
+        "date": "2026-04-24",
+        "amount": 98000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2401",
+        "customer_name": "北辰数据科技有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2401 4月订阅费 compensated=true（post重算后到账）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240201",
+        "date": "2026-04-20",
+        "amount": 36000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2402",
+        "customer_name": "云桥物流（上海）有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2402 4月服务费（pre）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240202",
+        "date": "2026-04-24",
+        "amount": 36000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2402",
+        "customer_name": "云桥物流（上海）有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2402 4月服务费 compensated=true（post重复计入但有抵消单在说明里）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240203",
+        "date": "2026-04-24",
+        "amount": -36000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2402",
+        "customer_name": "云桥物流（上海）有限公司",
+        "type": "撤销/回滚抵消",
+        "category": "服务收入撤销",
+        "description": "CUS-2402 reversed=true（post中抵消那笔重复计入）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240301",
+        "date": "2026-04-20",
+        "amount": 125000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2403",
+        "customer_name": "星海云计算有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2403 4月合同款（pre）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240302",
+        "date": "2026-04-22",
+        "amount": -125000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2403",
+        "customer_name": "星海云计算有限公司",
+        "type": "撤销/回滚抵消",
+        "category": "服务收入撤销",
+        "description": "CUS-2403 回滚撤销 reversed=true（撤销发生但post补偿未全部生成）compensation_pending=true",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240401",
+        "date": "2026-04-20",
+        "amount": 28000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2404",
+        "customer_name": "金穗供应链管理有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2404 4月服务费（pre）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240501",
+        "date": "2026-04-20",
+        "amount": 25000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2405",
+        "customer_name": "格物工业技术有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2405 4月服务费（pre）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240601",
+        "date": "2026-04-20",
+        "amount": 21000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2406",
+        "customer_name": "潮汐创意传媒有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2406 4月订阅费（pre）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240701",
+        "date": "2026-04-20",
+        "amount": 64000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2407",
+        "customer_name": "北斗教育科技有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2407 4月订阅费（pre）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240702",
+        "date": "2026-04-23",
+        "amount": 64000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2407",
+        "customer_name": "北斗教育科技有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2407 4月订阅费（post中重复计入）duplicate_suspected=true",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240703",
+        "date": "2026-04-24",
+        "amount": -64000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2407",
+        "customer_name": "北斗教育科技有限公司",
+        "type": "撤销/回滚抵消",
+        "category": "服务收入撤销",
+        "description": "CUS-2407 reversed=true（用于抵消post重复计入）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-240801",
+        "date": "2026-04-20",
+        "amount": 19000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-2408",
+        "customer_name": "鹤鸣软件开发有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2408 4月服务费（pre）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241001",
+        "date": "2026-04-21",
+        "amount": -16800.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24011 超白纸 800包",
+        "related_item": "ITEM-24011",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241002",
+        "date": "2026-04-21",
+        "amount": -72000.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24012 服务器内存 120条",
+        "related_item": "ITEM-24012",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241003",
+        "date": "2026-04-22",
+        "amount": -16000.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24013 交换机SFP模块 40个",
+        "related_item": "ITEM-24013",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241004",
+        "date": "2026-04-22",
+        "amount": -24000.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24014 网线线缆 600卷",
+        "related_item": "ITEM-24014",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241005",
+        "date": "2026-04-23",
+        "amount": -5100.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24015 打印墨盒 85个",
+        "related_item": "ITEM-24015",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241006",
+        "date": "2026-04-23",
+        "amount": -90000.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24016 固态硬盘 200块",
+        "related_item": "ITEM-24016",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241007",
+        "date": "2026-04-24",
+        "amount": -4200.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24017 机柜导轨 30套",
+        "related_item": "ITEM-24017",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241008",
+        "date": "2026-04-24",
+        "amount": -6300.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24018 键盘 210个",
+        "related_item": "ITEM-24018",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241009",
+        "date": "2026-04-25",
+        "amount": -1200.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24019 鼠标 120个",
+        "related_item": "ITEM-24019",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241010",
+        "date": "2026-04-20",
+        "amount": -2000.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24010 台式支架 20个",
+        "related_item": "ITEM-24010",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241011",
+        "date": "2026-04-23",
+        "amount": 24000.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "撤销/回滚抵消",
+        "category": "采购支出撤销",
+        "description": "采购回滚抵消 reversed=true（对应ITEM-24014的部分出库重复需抵消）",
+        "related_item": "ITEM-24014",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-241012",
+        "date": "2026-04-23",
+        "amount": -4800.0,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-24020 UPS电源 4台",
+        "related_item": "ITEM-24020",
+        "status": "completed"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "ITEM-24010",
+        "name": "台式显示支架",
+        "category": "办公设备",
+        "quantity": 20,
+        "unit": "个",
+        "unit_cost": 100.0,
+        "location": "仓库C-01",
+        "last_in": "2026-04-20",
+        "last_in_qty": 20,
+        "last_out": "2026-04-21",
+        "last_out_qty": 6,
+        "supplier": "迅达办公",
+        "notes": "库存正常"
+      },
+      {
+        "product_id": "ITEM-24011",
+        "name": "超白打印纸",
+        "category": "办公耗材",
+        "quantity": 800,
+        "unit": "包",
+        "unit_cost": 21.0,
+        "location": "仓库C-02",
+        "last_in": "2026-04-21",
+        "last_in_qty": 800,
+        "last_out": "2026-04-26",
+        "last_out_qty": 120,
+        "supplier": "晨光纸业",
+        "notes": "月末出库在回滚窗口外"
+      },
+      {
+        "product_id": "ITEM-24012",
+        "name": "服务器内存条 64G",
+        "category": "IT设备",
+        "quantity": 120,
+        "unit": "条",
+        "unit_cost": 600.0,
+        "location": "仓库D-01",
+        "last_in": "2026-04-21",
+        "last_in_qty": 120,
+        "last_out": "2026-04-22",
+        "last_out_qty": 30,
+        "supplier": "英铂科技",
+        "notes": "库存正常"
+      },
+      {
+        "product_id": "ITEM-24013",
+        "name": "SFP模块",
+        "category": "网络配件",
+        "quantity": 40,
+        "unit": "个",
+        "unit_cost": 400.0,
+        "location": "仓库D-02",
+        "last_in": "2026-04-22",
+        "last_in_qty": 40,
+        "last_out": "2026-04-24",
+        "last_out_qty": 18,
+        "supplier": "锐联网络",
+        "notes": "库存正常"
+      },
+      {
+        "product_id": "ITEM-24014",
+        "name": "网线线缆（六类）",
+        "category": "网络设备",
+        "quantity": 600,
+        "unit": "卷",
+        "unit_cost": 40.0,
+        "location": "仓库D-03",
+        "last_in": "2026-04-22",
+        "last_in_qty": 600,
+        "last_out": "2026-04-23",
+        "last_out_qty": 220,
+        "supplier": "迅凯安普",
+        "notes": "回滚窗口内出库重复：4月23日重复出库共+120卷，存在采购回滚抵消交易TXN-241011（reversed=true）用于抵消部分重复。"
+      },
+      {
+        "product_id": "ITEM-24015",
+        "name": "打印墨盒",
+        "category": "办公耗材",
+        "quantity": 85,
+        "unit": "个",
+        "unit_cost": 60.0,
+        "location": "仓库C-03",
+        "last_in": "2026-04-23",
+        "last_in_qty": 85,
+        "last_out": "2026-04-24",
+        "last_out_qty": 20,
+        "supplier": "墨语供货",
+        "notes": "回滚窗口外出库"
+      },
+      {
+        "product_id": "ITEM-24016",
+        "name": "固态硬盘 1TB",
+        "category": "IT设备",
+        "quantity": 200,
+        "unit": "块",
+        "unit_cost": 450.0,
+        "location": "仓库D-04",
+        "last_in": "2026-04-23",
+        "last_in_qty": 200,
+        "last_out": "2026-04-26",
+        "last_out_qty": 60,
+        "supplier": "星曜存储",
+        "notes": "库存正常"
+      },
+      {
+        "product_id": "ITEM-24017",
+        "name": "机柜导轨",
+        "category": "机房配件",
+        "quantity": 30,
+        "unit": "套",
+        "unit_cost": 140.0,
+        "location": "仓库E-01",
+        "last_in": "2026-04-24",
+        "last_in_qty": 30,
+        "last_out": "2026-04-25",
+        "last_out_qty": 12,
+        "supplier": "机匠供应",
+        "notes": "库存正常"
+      },
+      {
+        "product_id": "ITEM-24018",
+        "name": "机械键盘",
+        "category": "外设",
+        "quantity": 210,
+        "unit": "个",
+        "unit_cost": 30.0,
+        "location": "仓库E-02",
+        "last_in": "2026-04-24",
+        "last_in_qty": 210,
+        "last_out": "2026-04-24",
+        "last_out_qty": 35,
+        "supplier": "键盘仓",
+        "notes": "库存正常"
+      },
+      {
+        "product_id": "ITEM-24019",
+        "name": "无线鼠标",
+        "category": "外设",
+        "quantity": 120,
+        "unit": "个",
+        "unit_cost": 10.0,
+        "location": "仓库E-03",
+        "last_in": "2026-04-25",
+        "last_in_qty": 120,
+        "last_out": "2026-04-25",
+        "last_out_qty": 40,
+        "supplier": "鼠标伙伴",
+        "notes": "库存正常"
+      },
+      {
+        "product_id": "ITEM-24020",
+        "name": "UPS电源（小型）",
+        "category": "IT设备",
+        "quantity": 4,
+        "unit": "台",
+        "unit_cost": 1200.0,
+        "location": "仓库D-05",
+        "last_in": "2026-04-24",
+        "last_in_qty": 4,
+        "last_out": "2026-04-23",
+        "last_out_qty": 4,
+        "supplier": "施耐德渠道",
+        "notes": "疑似漏入库出入库口径：last_in晚于last_out，提示回滚补偿未覆盖导致出库/采购链路可能漏算；需要与TXN-241012（采购）对齐验证。"
+      },
+      {
+        "product_id": "ITEM-24021",
+        "name": "企业路由器",
+        "category": "网络设备",
+        "quantity": 25,
+        "unit": "台",
+        "unit_cost": 780.0,
+        "location": "仓库D-06",
+        "last_in": "2026-04-18",
+        "last_in_qty": 25,
+        "last_out": "2026-04-22",
+        "last_out_qty": 5,
+        "supplier": "路由之家",
+        "notes": "回滚窗口前出库"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-2401",
+        "name": "订单支付回写-回滚补偿",
+        "cron_expression": "0 1 * * *",
+        "action": "crm_payback_rewrite_compensate",
+        "enabled": true,
+        "last_run": "2026-04-23T01:20:00Z",
+        "next_run": "2026-04-24T01:20:00Z",
+        "last_status": "failed",
+        "created_by": "payments_ops",
+        "tags": [
+          "crm",
+          "rollback",
+          "compensation"
+        ],
+        "created_at": "2025-12-02T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-23T01:10:00Z",
+            "status": "failed",
+            "duration_s": 42,
+            "error": "CancelWindowError: 回滚窗口内任务取消（回写CRM失败）触发补偿重试"
+          },
+          {
+            "run_at": "2026-04-23T05:10:00Z",
+            "status": "cancelled",
+            "duration_s": 18,
+            "error": "UserCancelled: 一致性修复暂停后取消（预计补偿在4月23日23:00后执行）"
+          },
+          {
+            "run_at": "2026-04-24T02:05:00Z",
+            "status": "success",
+            "duration_s": 65
+          },
+          {
+            "run_at": "2026-04-22T02:05:00Z",
+            "status": "success",
+            "duration_s": 63
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2402",
+        "name": "对账核心增量对齐",
+        "cron_expression": "0 3 * * *",
+        "action": "reconciliation_incremental_align",
+        "enabled": true,
+        "last_run": "2026-04-25T03:00:00Z",
+        "next_run": "2026-04-26T03:00:00Z",
+        "last_status": "success",
+        "created_by": "recon_team",
+        "tags": [
+          "reconciliation",
+          "repair"
+        ],
+        "created_at": "2025-10-10T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-23T02:30:00Z",
+            "status": "failed",
+            "duration_s": 55,
+            "error": "DataStalenessError: 回滚后发票标记未切换，增量对齐失败（INT-2402）"
+          },
+          {
+            "run_at": "2026-04-23T09:30:00Z",
+            "status": "failed",
+            "duration_s": 52,
+            "error": "ConsistencyRepairMismatch: consistency_repair窗口期间字段不一致（INT-2401/INT-2403）"
+          },
+          {
+            "run_at": "2026-04-24T03:15:00Z",
+            "status": "success",
+            "duration_s": 88
+          },
+          {
+            "run_at": "2026-04-21T03:10:00Z",
+            "status": "success",
+            "duration_s": 82
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2403",
+        "name": "发票状态补偿回写",
+        "cron_expression": "0 8 * * 1-6",
+        "action": "invoice_status_compensation_writeback",
+        "enabled": true,
+        "last_run": "2026-04-24T08:00:00Z",
+        "next_run": "2026-04-27T08:00:00Z",
+        "last_status": "success",
+        "created_by": "invoice_ops",
+        "tags": [
+          "invoice",
+          "compensation"
+        ],
+        "created_at": "2025-11-05T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-23T06:40:00Z",
+            "status": "failed",
+            "duration_s": 12,
+            "error": "InvoiceReversalNotFound: 撤销标记缺失，无法生成补偿开票（INT-2402）"
+          },
+          {
+            "run_at": "2026-04-23T18:05:00Z",
+            "status": "cancelled",
+            "duration_s": 9,
+            "error": "CancelDueToSyncDelay: 同步延迟过大，取消本轮补偿（预计4月24日02:40后恢复）"
+          },
+          {
+            "run_at": "2026-04-24T08:00:00Z",
+            "status": "success",
+            "duration_s": 39
+          },
+          {
+            "run_at": "2026-04-22T08:00:00Z",
+            "status": "success",
+            "duration_s": 36
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2404",
+        "name": "库存出入库一致性修复",
+        "cron_expression": "0 7 * * *",
+        "action": "inventory_movement_consistency_repair",
+        "enabled": true,
+        "last_run": "2026-04-24T07:00:00Z",
+        "next_run": "2026-04-25T07:00:00Z",
+        "last_status": "success",
+        "created_by": "ops_team",
+        "tags": [
+          "inventory",
+          "repair"
+        ],
+        "created_at": "2025-08-20T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-23T07:00:00Z",
+            "status": "failed",
+            "duration_s": 48,
+            "error": "DuplicateOutEventDetected: 回滚窗口出库重复事件未完全抵消（INT-2404）"
+          },
+          {
+            "run_at": "2026-04-23T20:10:00Z",
+            "status": "success",
+            "duration_s": 74
+          },
+          {
+            "run_at": "2026-04-21T07:00:00Z",
+            "status": "success",
+            "duration_s": 60
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2405",
+        "name": "月末汇总对外报送",
+        "cron_expression": "0 9 28-31 * *",
+        "action": "month_end_external_report",
+        "enabled": true,
+        "last_run": "2026-04-26T09:00:00Z",
+        "next_run": "2026-04-27T09:00:00Z",
+        "last_status": "success",
+        "created_by": "finance_team",
+        "tags": [
+          "report",
+          "monthly"
+        ],
+        "created_at": "2025-07-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-26T09:00:00Z",
+            "status": "success",
+            "duration_s": 210
+          },
+          {
+            "run_at": "2026-04-25T09:00:00Z",
+            "status": "success",
+            "duration_s": 205
+          },
+          {
+            "run_at": "2026-04-23T09:00:00Z",
+            "status": "cancelled",
+            "duration_s": 10,
+            "error": "DeferredDueToRollbackWindow: 回滚窗口未完全收敛，取消汇总输出"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在月末对账基础上增加一次“回滚窗口前后分段一致性验证”，重点识别回滚补偿缺口导致的重复计入与漏计入，并要求给出补偿成功/失败判定与重算策略。",
+    "fixture_design_summary": [
+      "scheduler/jobs.json：设置回滚窗口（约2026-04-23凌晨至傍晚时段，UTC）内的 failed/cancelled 任务，并在窗口外出现 success 以支撑补偿成功/失败判断。",
+      "config/integrations.json：对账系统与发票系统均在 notes 中标注 consistency_repair/invoice_compensation 开关与 last_sync 恢复时间，补偿/修复后仍保留延迟线索。",
+      "crm/customers.json：8位客户中至少3位在 notes 标注回滚后重算中/补偿失败/重复计入风险，用于与财务交易 pre/post 对比。",
+      "finance/transactions.json：设计回滚前后两段客户收款与撤销/补偿交易，并通过 description 中 reversed/compensated/compensation_pending/duplicate_suspected 标记帮助区分“应抵消的重复”与“真实漏算”。",
+      "inventory/items.json：至少一个产品（ITEM-24014）在 notes 指出回滚窗口出库重复并给出采购回滚抵消线索TXN-241011；另一个产品（ITEM-24020）通过 last_in/last_out 时间矛盾提示可能的漏出入库，便于与采购交易TXN-241012关联核查。"
+    ]
+  }
+}

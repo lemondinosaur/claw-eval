@@ -1,0 +1,103 @@
+task_id: T111zh_expense_email_check_plus_2
+task_name: 报销对账 B（发票重复）
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T111zh_expense_email_check_plus_2/fixtures/gmail/inbox.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T111zh_expense_email_check_plus_2/fixtures/finance/transactions.json
+prompt:
+  text: '收件箱中包含报销申请邮件与少量干扰邮件。请你完成报销对账：
+
+    1) 从收件箱中识别“报销申请”邮件（仅处理正文里明确包含发票号与报销金额的邮件；对不含发票号、或不是报销申请的邮件需排除）。
+
+    2) 对每笔报销邮件，提取发票号与报销金额。
+
+    3) 到财务系统中按发票号匹配对应交易（如果同一发票号存在多条候选交易，需要结合交易类型/类别与description内容，选择与该邮件报销描述最匹配、且应能完成最终核对的那一条；例如优先选择description更完整且status为completed的记录）。
+
+    4) 核对：所选交易的金额是否与邮件一致、交易状态是否为completed。
+
+    5) 输出核对报告，按三类列出：匹配正常、金额不符、状态异常；并在“发票重复”的条目中说明你选择了哪一条交易以及选择理由（与邮件描述/类别一致性）。'
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

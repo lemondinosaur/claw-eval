@@ -1,0 +1,703 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T147zh_system_health_check_plus_2",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/config/integrations.json",
+  "fixtures/helpdesk/tickets.json",
+  "fixtures/kb/articles.json",
+  "fixtures/scheduler/jobs.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 2,
+  "new_task_id": "T147zh_system_health_check_plus_2",
+  "new_task_name": "身份同步一致性巡检",
+  "task_goal": "完成一次身份同步一致性专项巡检报告：识别认证/用户数据相关集成的异常，定位失败的同步/索引类定时任务，关联未解决工单，并给出知识库驱动的修复建议，重点关注“数据一致性”与“权限错配”现象。",
+  "user_request": "请帮我做一次“身份同步一致性”系统健康巡检：\n1）检查API集成配置状态，特别是与身份/用户数据相关的集成\n2）检查定时任务的运行情况，重点关注同步、索引重建或权限刷新任务\n3）查看当前未解决工单，筛出可能由身份同步问题引起的工单\n4）在知识库中搜索与身份同步失败、权限刷新、索引一致性相关的解决方案\n5）输出系统健康报告：标注故障链并给出修复建议（必须包含验证步骤）",
+  "scenario": "用户中心依赖“LDAP/SSO映射”集成与“用户画像同步”集成。其中LDAP映射集成error_rate显著升高且status=error，错误信息为“属性映射表缺失字段”。与此同时，“权限刷新任务”定时作业失败多次，失败信息为“找不到映射字段导致跳过刷新”；以及“用户画像索引重建”任务虽然enabled但多次超时，导致旧索引仍在使用，从而出现权限错配与用户页面展示不一致。工单未解决中存在：未登录可访问、角色不一致、用户画像缺失三类现象。知识库含有与LDAP属性映射配置校验、权限刷新回滚与索引一致性修复相关的文章。",
+  "difference_from_source": "原题关注通知邮件与数仓同步，本题转为身份/权限一致性：故障链围绕“属性映射错误→权限刷新失败→权限错配工单”，并要求建议包含验证步骤（例如重新触发、核对映射字段、校验权限结果）。",
+  "service_and_tool_plan": "使用config_list_integrations查找身份相关的error集成；对异常集成调用config_get_integration获取缺失字段/错误消息细节；使用scheduler_list_jobs筛查同步、权限刷新、索引重建任务并对异常任务调用scheduler_get_job提取失败原因与first_failure；使用helpdesk_list_tickets获取未解决工单并用helpdesk_get_ticket读取具体现象与发生时间；用kb_search检索“映射字段缺失/权限刷新/索引一致性”并用kb_get_article提炼可操作修复与验证流程。",
+  "fixture_generation_plan": "生成5条config集成记录：2条异常（identity映射集成status=error、error_rate>0.6且错误信息为映射缺失；user-analytics或索引相关集成status=active但error_rate>0.2或status=error视为高风险），3条为active且低error_rate。生成6条scheduler任务：至少3条异常且与身份一致性直接相关（1个“权限刷新任务”failed，failure_count>=8，error_message为映射字段缺失/跳过刷新；1个“用户画像索引重建”failed并超时，failure_count>=3；1个“用户数据同步”enabled但部分失败或failed），另有1条enabled success干扰，1条disabled但维护中干扰需标注。生成7条helpdesk工单：其中3条为强相关（权限错配、角色不一致、访问控制异常），2条为弱相关（用户画像缺失但可能与索引有关），2条为干扰（例如表单提交超时、导出失败）并确保不同文本与不同IDs。生成kb相关文章4-5条：至少包含LDAP/SSO属性映射排查、权限刷新失败处理、索引一致性恢复/重建、失败回滚与验证的条目。",
+  "expected_behavior": "报告应先识别异常集成，再定位与身份同步链路对应的失败定时任务。对相关工单逐个取详情并从描述中抽取与“映射字段缺失/权限刷新跳过/索引未更新”一致的现象。至少构建2条故障链：例如“异常身份映射集成→权限刷新任务失败→权限错配工单”；“用户画像索引重建超时→用户画像缺失/展示错误工单”。kb检索需覆盖失败原因关键词，引用对应步骤形成修复建议，并明确给出验证步骤（例如修复映射字段后重新触发权限刷新任务、检查权限样例与索引更新时间）。不要关闭工单。",
+  "grading_plan": "grader应检查：1）故障识别覆盖至少2个异常集成与至少2个对应异常任务；2）故障链关联的因果解释与时间线是否合理（映射字段错误→跳过刷新→权限错配等）；3）输出是否包含基于知识库的具体步骤与验证方法；4）是否避免无关工单的错误关联；5）巡检阶段不调用helpdesk_close_ticket。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T147zh_system_health_check",
+  "task_name": "月度系统健康巡检",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "hard",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "helpdesk",
+    "kb",
+    "config",
+    "scheduler"
+  ],
+  "tools": [
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "helpdesk_update_ticket",
+    "helpdesk_close_ticket",
+    "scheduler_list_jobs",
+    "scheduler_get_job",
+    "config_list_integrations",
+    "config_get_integration",
+    "kb_search",
+    "kb_get_article"
+  ],
+  "fixture_paths": [
+    "fixtures/config/integrations.json",
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/kb/articles.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T147zh_system_health_check
+task_name: 月度系统健康巡检
+version: '1.0'
+category: ops
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: tasks/T147zh_system_health_check/fixtures/helpdesk/tickets.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T147zh_system_health_check/fixtures/kb/articles.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: tasks/T147zh_system_health_check/fixtures/config/integrations.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: tasks/T147zh_system_health_check/fixtures/scheduler/jobs.json
+prompt:
+  text: '请帮我做一次月度系统健康巡检：
+
+    1. 检查所有API集成配置的状态
+
+    2. 检查定时任务的运行情况
+
+    3. 查看当前未解决的工单
+
+    4. 在知识库中搜索已知解决方案
+
+    5. 输出一份系统健康报告，标注故障链和修复建议
+
+    '
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: scheduler_list_jobs
+  description: 列出定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(all/enabled/disabled)
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: config_list_integrations
+  description: 列出系统集成配置
+  input_schema:
+    type: object
+    properties:
+      type:
+        type: string
+        description: 按类型筛选
+      status:
+        type: string
+        description: 按状态筛选
+    required: []
+- name: config_get_integration
+  description: 获取集成配置详情
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/config/integrations.json ---
+[
+  {
+    "integration_id": "INT-1001",
+    "name": "支付网关",
+    "status": "active",
+    "config": {
+      "endpoint": "https://pay.company.com/api/v2",
+      "timeout_ms": 5000,
+      "retry_count": 3
+    },
+    "error_rate": 0.02,
+    "description": "线上支付网关集成，处理订单支付回调",
+    "service": "payment",
+    "last_verified": "2026-03-10",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-1002",
+    "name": "邮件服务",
+    "status": "error",
+    "config": {
+      "host": "smtp.company.com",
+      "port": 587,
+      "auth": "credentials"
+    },
+    "error_rate": 1.0,
+    "error_message": "SMTP认证过期，最近一次成功发送: 2026-03-18",
+    "description": "系统邮件发送服务，用于通知、告警和报表投递",
+    "service": "smtp",
+    "last_verified": "2026-03-18",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-1003",
+    "name": "数据仓库同步",
+    "status": "active",
+    "config": {
+      "source": "production_db",
+      "target": "data_warehouse",
+      "sync_interval_minutes": 30
+    },
+    "error_rate": 0.28,
+    "description": "生产数据库到数据仓库的增量同步，用于报表和分析",
+    "service": "etl",
+    "last_verified": "2026-03-20",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-1004",
+    "name": "消息队列",
+    "status": "active",
+    "config": {
+      "broker": "rabbitmq.company.com:5672",
+      "vhost": "/production",
+      "prefetch_count": 10
+    },
+    "error_rate": 0.01,
+    "description": "异步消息队列，处理后台任务和事件分发",
+    "service": "mq",
+    "last_verified": "2026-03-22",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-1005",
+    "name": "日志服务",
+    "status": "active",
+    "config": {
+      "endpoint": "https://log.company.com/ingest",
+      "buffer_size": 1000,
+      "flush_interval_seconds": 5
+    },
+    "error_rate": 0.005,
+    "description": "集中日志采集和存储服务",
+    "service": "logging",
+    "last_verified": "2026-03-25",
+    "monthly_calls": 0
+  }
+]
+--- END FILE: fixtures/config/integrations.json ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-1001",
+    "subject": "没收到系统通知邮件",
+    "customer_id": "CUS-1001",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-24T14:00:00",
+    "assigned_to": "刘洋",
+    "category": "通知",
+    "description": "从上周开始就收不到系统的任何通知邮件了，包括审批通知、告警邮件等，已检查垃圾邮件文件夹，确认不是被拦截",
+    "title": "没收到系统通知邮件",
+    "reporter": "刘洋",
+    "department": "通知"
+  },
+  {
+    "ticket_id": "TK-1002",
+    "subject": "数据报表延迟更新",
+    "customer_id": "CUS-1002",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-25T09:30:00",
+    "assigned_to": "王芳",
+    "category": "数据",
+    "description": "数据看板上的报表数据经常延迟，有时候延迟半天以上，影响业务决策。之前数据基本是实时的",
+    "title": "数据报表延迟更新",
+    "reporter": "王芳",
+    "department": "数据"
+  },
+  {
+    "ticket_id": "TK-1003",
+    "subject": "报表页面显示空白",
+    "customer_id": "CUS-1003",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-25T11:00:00",
+    "assigned_to": "陈明",
+    "category": "报表",
+    "description": "进入报表页面后显示空白，没有任何数据加载出来。之前是正常的，大概从3月21号开始出现问题",
+    "title": "报表页面显示空白",
+    "reporter": "陈明",
+    "department": "报表"
+  },
+  {
+    "ticket_id": "TK-1004",
+    "subject": "登录速度变慢",
+    "customer_id": "CUS-1004",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-26T08:00:00",
+    "assigned_to": "张伟",
+    "category": "性能",
+    "description": "最近两天登录系统要等10秒以上，之前秒开。多个同事反映同样问题，不分浏览器",
+    "title": "登录速度变慢",
+    "reporter": "张伟",
+    "department": "性能"
+  },
+  {
+    "ticket_id": "TK-1005",
+    "subject": "移动端推送异常",
+    "customer_id": "CUS-1005",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-25T16:00:00",
+    "assigned_to": "赵蕾",
+    "category": "通知",
+    "description": "手机APP上收不到消息推送了，以前审批待办会有推送提醒",
+    "title": "移动端推送异常",
+    "reporter": "赵蕾",
+    "department": "通知"
+  },
+  {
+    "ticket_id": "TK-1006",
+    "subject": "申请增加存储空间",
+    "customer_id": "CUS-1006",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-26T09:00:00",
+    "assigned_to": "李华",
+    "category": "内部需求",
+    "description": "部门文件存储空间快满了，当前使用率95%，申请扩容到2TB",
+    "title": "申请增加存储空间",
+    "reporter": "李华",
+    "department": "内部需求"
+  }
+]
+--- END FILE: fixtures/helpdesk/tickets.json ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "KB-1001",
+    "title": "SMTP服务故障排查指南",
+    "category": "运维文档",
+    "tags": ["SMTP", "邮件", "故障排查", "认证"],
+    "content": "## SMTP服务故障排查指南\n\n### 常见故障现象\n- 邮件发送超时\n- SMTP认证失败\n- 连接被拒绝\n\n### 排查步骤\n1. 检查SMTP服务状态：telnet smtp.company.com 587\n2. 验证认证凭据是否过期\n3. 检查防火墙规则是否放行587端口\n4. 查看邮件服务日志 /var/log/mail/error.log\n\n### 认证过期处理\n- 登录邮件管理后台重新生成凭据\n- 更新系统配置中的SMTP认证信息\n- 重启邮件发送服务\n- 验证：发送测试邮件确认恢复\n\n### 临时方案\n- 可切换到备用SMTP服务器\n- 紧急通知可通过即时消息渠道发送",
+    "last_updated": "2026-03-01",
+    "views": 1856
+  },
+  {
+    "article_id": "KB-1002",
+    "title": "数据仓库同步优化方案",
+    "category": "技术文档",
+    "tags": ["ETL", "数据仓库", "同步", "优化", "超时"],
+    "content": "## 数据仓库同步优化方案\n\n### 常见问题\n- 同步超时（数据量增长导致）\n- 部分同步失败\n- 数据延迟过高\n\n### 优化建议\n1. 增量同步改为CDC（Change Data Capture）模式\n2. 调整同步批次大小，减少单次同步数据量\n3. 优化源库查询，添加必要索引\n4. 增加ETL超时时间阈值（建议3600s）\n5. 对大表启用并行同步\n\n### 错误率过高时的应急措施\n- 临时增大同步窗口\n- 跳过非关键表的同步\n- 手动触发全量同步修复数据一致性\n\n### 监控指标\n- 同步延迟 < 30分钟为正常\n- 错误率 < 5% 为健康状态\n- 错误率 > 20% 需立即排查",
+    "last_updated": "2026-02-15",
+    "views": 1234
+  },
+  {
+    "article_id": "KB-1003",
+    "title": "系统性能调优手册",
+    "category": "技术文档",
+    "tags": ["性能", "调优", "登录", "响应时间", "慢查询"],
+    "content": "## 系统性能调优手册\n\n### 登录慢排查\n1. 检查认证服务响应时间\n2. 查看数据库慢查询日志\n3. 检查Redis缓存命中率\n4. 排查网络延迟问题\n\n### 页面加载慢\n- 启用CDN加速\n- 开启Gzip压缩\n- 检查前端资源加载瀑布图\n\n### 数据库优化\n- 定期分析慢查询并添加索引\n- 配置连接池参数\n- 考虑读写分离\n\n### 缓存策略\n- Session缓存过期时间建议30分钟\n- 热点数据使用Redis缓存\n- 避免缓存穿透和雪崩",
+    "last_updated": "2026-03-10",
+    "views": 2300
+  },
+  {
+    "article_id": "KB-1004",
+    "title": "存储扩容操作手册",
+    "category": "运维文档",
+    "tags": ["存储", "扩容", "磁盘", "空间"],
+    "content": "## 存储扩容操作手册\n\n### 扩容申请流程\n1. 提交扩容工单，注明当前用量和目标容量\n2. 运维团队评估资源可用性\n3. 安排维护窗口执行扩容\n4. 扩容完成后验证挂载和权限\n\n### 自助操作（云存储）\n- 登录云控制台 → 存储管理\n- 选择对应存储卷 → 扩容\n- 在线扩容无需停机，生效时间约5分钟\n\n### 注意事项\n- 扩容前确认备份已完成\n- 文件系统需要resize操作\n- 建议预留20%空间作为缓冲",
+    "last_updated": "2026-02-28",
+    "views": 890
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+--- FILE: fixtures/scheduler/jobs.json ---
+[
+  {
+    "job_id": "JOB-1001",
+    "name": "数据备份",
+    "schedule": "0 2 * * *",
+    "status": "enabled",
+    "last_run": "2026-03-26T02:00:00Z",
+    "last_status": "success",
+    "description": "每天凌晨2点执行全量数据库备份",
+    "tags": [
+      "backup",
+      "daily"
+    ],
+    "cron_expression": "0 2 * * *",
+    "enabled": true,
+    "action": "每天凌晨2点执行全量数据库备份",
+    "next_run": null,
+    "created_at": "2025-06-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T02:00:00Z",
+        "status": "success",
+        "duration_s": 60
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-1002",
+    "name": "邮件通知",
+    "schedule": "*/10 * * * *",
+    "status": "enabled",
+    "last_run": "2026-03-26T09:30:00Z",
+    "last_status": "failed",
+    "error_message": "SMTP连接超时: Connection to smtp.company.com:587 timed out after 30s",
+    "description": "每10分钟检查待发送邮件队列并批量发送",
+    "tags": [
+      "notification",
+      "email"
+    ],
+    "failure_count": 12,
+    "first_failure": "2026-03-19T10:00:00",
+    "cron_expression": "*/10 * * * *",
+    "enabled": true,
+    "action": "每10分钟检查待发送邮件队列并批量发送",
+    "next_run": null,
+    "created_at": "2025-06-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T09:30:00Z",
+        "status": "failed",
+        "duration_s": 60
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-1003",
+    "name": "数据仓库ETL",
+    "schedule": "*/30 * * * *",
+    "status": "enabled",
+    "last_run": "2026-03-26T09:00:00Z",
+    "last_status": "failed",
+    "error_message": "同步超时: ETL pipeline exceeded 1800s limit, partial sync completed (72%)",
+    "description": "每30分钟执行生产数据到数据仓库的增量同步",
+    "tags": [
+      "etl",
+      "sync"
+    ],
+    "failure_count": 6,
+    "first_failure": "2026-03-23T12:00:00",
+    "cron_expression": "*/30 * * * *",
+    "enabled": true,
+    "action": "每30分钟执行生产数据到数据仓库的增量同步",
+    "next_run": null,
+    "created_at": "2025-06-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T09:00:00Z",
+        "status": "failed",
+        "duration_s": 60
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-1004",
+    "name": "监控巡检",
+    "schedule": "*/5 * * * *",
+    "status": "enabled",
+    "last_run": "2026-03-26T09:55:00Z",
+    "last_status": "success",
+    "description": "每5分钟检查各服务健康状态并上报",
+    "tags": [
+      "monitoring",
+      "health"
+    ],
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "action": "每5分钟检查各服务健康状态并上报",
+    "next_run": null,
+    "created_at": "2025-06-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T09:55:00Z",
+        "status": "success",
+        "duration_s": 60
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-1005",
+    "name": "日志清理",
+    "schedule": "0 3 * * *",
+    "status": "enabled",
+    "last_run": "2026-03-26T03:00:00Z",
+    "last_status": "success",
+    "description": "每天凌晨3点清理超过30天的归档日志",
+    "tags": [
+      "maintenance",
+      "cleanup"
+    ],
+    "cron_expression": "0 3 * * *",
+    "enabled": true,
+    "action": "每天凌晨3点清理超过30天的归档日志",
+    "next_run": null,
+    "created_at": "2025-06-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-03-26T03:00:00Z",
+        "status": "success",
+        "duration_s": 60
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-1006",
+    "name": "报表生成",
+    "schedule": "0 8 * * *",
+    "status": "disabled",
+    "last_run": "2026-03-20T08:00:00Z",
+    "last_status": "success",
+    "description": "每天8点生成业务日报和运营报表",
+    "tags": [
+      "report",
+      "daily"
+    ],
+    "disabled_reason": "手动禁用 - 报表模块维护升级中，预计3月28日恢复",
+    "disabled_by": "admin",
+    "disabled_at": "2026-03-21T10:00:00",
+    "cron_expression": "0 8 * * *",
+    "enabled": false,
+    "action": "每天8点生成业务日报和运营报表",
+    "next_run": null,
+    "created_at": "2025-06-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-03-20T08:00:00Z",
+        "status": "success",
+        "duration_s": 60
+      }
+    ]
+  }
+]
+
+--- END FILE: fixtures/scheduler/jobs.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

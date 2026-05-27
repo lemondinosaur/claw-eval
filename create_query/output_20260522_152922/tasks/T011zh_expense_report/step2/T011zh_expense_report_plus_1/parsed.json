@@ -1,0 +1,210 @@
+{
+  "task_id": "T011zh_expense_report_plus_1",
+  "task_name": "3月差旅与餐饮报销",
+  "prompt_text": "帮我整理提交2026年3月的费用报销报告，并确认哪些交易是退款或重复交易。请不要把“完全重复的交易”或“退款（负数金额）”当作普通支出重复统计；对于金额仅略有差异且文案相似的疑似重复，要说明其差异点并按规则保留/剔除。",
+  "files": {
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "txn_m3_001",
+        "date": "2026-03-02",
+        "amount": 180.0,
+        "currency": "CNY",
+        "merchant": "高铁管家",
+        "category": "",
+        "description": "G1845 车票（天津-北京）",
+        "receipt_url": "receipts/txn_m3_001.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_002",
+        "date": "2026-03-02",
+        "amount": 180.0,
+        "currency": "CNY",
+        "merchant": "高铁管家",
+        "category": "",
+        "description": "G1845 车票（天津-北京）",
+        "receipt_url": "receipts/txn_m3_002.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_003",
+        "date": "2026-03-03",
+        "amount": 980.0,
+        "currency": "CNY",
+        "merchant": "锦江之星酒店",
+        "category": "",
+        "description": "住宿：北京出差 2晚",
+        "receipt_url": "receipts/txn_m3_003.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_004",
+        "date": "2026-03-05",
+        "amount": 76.5,
+        "currency": "CNY",
+        "merchant": "滴滴出行",
+        "category": "",
+        "description": "出差通勤车：机场到酒店",
+        "receipt_url": "receipts/txn_m3_004.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_005",
+        "date": "2026-03-11",
+        "amount": 1350.0,
+        "currency": "CNY",
+        "merchant": "南方航空",
+        "category": "",
+        "description": "上海-成都 经济舱",
+        "receipt_url": "receipts/txn_m3_005.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_006",
+        "date": "2026-03-06",
+        "amount": 268.0,
+        "currency": "CNY",
+        "merchant": "外婆家餐厅",
+        "category": "",
+        "description": "团队聚餐 晚餐",
+        "receipt_url": "receipts/txn_m3_006.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_007",
+        "date": "2026-03-06",
+        "amount": 268.0,
+        "currency": "CNY",
+        "merchant": "外婆家餐厅",
+        "category": "",
+        "description": "团队聚餐 晚餐",
+        "receipt_url": "receipts/txn_m3_007.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_008",
+        "date": "2026-03-14",
+        "amount": 39.9,
+        "currency": "CNY",
+        "merchant": "瑞幸咖啡",
+        "category": "",
+        "description": "咖啡+甜点 现场消费",
+        "receipt_url": "receipts/txn_m3_008.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_009",
+        "date": "2026-03-14",
+        "amount": 39.92,
+        "currency": "CNY",
+        "merchant": "瑞幸咖啡",
+        "category": "",
+        "description": "咖啡+甜点（疑似重复）现场消费",
+        "receipt_url": "receipts/txn_m3_009.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_010",
+        "date": "2026-03-18",
+        "amount": 58.0,
+        "currency": "CNY",
+        "merchant": "麦当劳",
+        "category": "",
+        "description": "快餐 午餐",
+        "receipt_url": "receipts/txn_m3_010.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_011",
+        "date": "2026-03-04",
+        "amount": 320.0,
+        "currency": "CNY",
+        "merchant": "办公超市",
+        "category": "",
+        "description": "耗材：A4纸 2箱",
+        "receipt_url": "receipts/txn_m3_011.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_012",
+        "date": "2026-03-08",
+        "amount": 149.0,
+        "currency": "CNY",
+        "merchant": "办公超市",
+        "category": "",
+        "description": "耗材：记事本+笔套装",
+        "receipt_url": "receipts/txn_m3_012.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_013",
+        "date": "2026-03-20",
+        "amount": 799.0,
+        "currency": "CNY",
+        "merchant": "壹站式软件服务",
+        "category": "",
+        "description": "SaaS订阅 月度费用",
+        "receipt_url": "receipts/txn_m3_013.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_014",
+        "date": "2026-03-09",
+        "amount": 0.01,
+        "currency": "CNY",
+        "merchant": "短信通",
+        "category": "",
+        "description": "短信服务校验扣费",
+        "receipt_url": "receipts/txn_m3_014.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_015",
+        "date": "2026-03-25",
+        "amount": 599.0,
+        "currency": "CNY",
+        "merchant": "腾讯云",
+        "category": "",
+        "description": "云存储 月度费用",
+        "receipt_url": "receipts/txn_m3_015.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_016",
+        "date": "2026-03-15",
+        "amount": -980.0,
+        "currency": "CNY",
+        "merchant": "锦江之星酒店",
+        "category": "",
+        "description": "退款 - 住宿费用已取消（对应订单原额）",
+        "receipt_url": "receipts/txn_m3_016.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_017",
+        "date": "2026-03-16",
+        "amount": 980.0,
+        "currency": "CNY",
+        "merchant": "锦江之星酒店",
+        "category": "",
+        "description": "调整/补差（非同日退换）",
+        "receipt_url": "receipts/txn_m3_017.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_018",
+        "date": "2026-03-21",
+        "amount": 22.0,
+        "currency": "CNY",
+        "merchant": "美团外卖",
+        "category": "",
+        "description": "加班晚餐",
+        "receipt_url": "receipts/txn_m3_018.jpg"
+      },
+      {
+        "transaction_id": "txn_m3_019",
+        "date": "2026-03-27",
+        "amount": 420.0,
+        "currency": "CNY",
+        "merchant": "云联科技",
+        "category": "",
+        "description": "云加速服务（按量计费）",
+        "receipt_url": "receipts/txn_m3_019.jpg"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将月份与费用组合改为2026年3月，并把退款/重复识别关系调整为“同月同商户精确重复（含2组）+ 1笔负数退款（抵扣同月原消费）”，另加入同商户但日期不同的干扰项。",
+    "fixture_design_summary": [
+      "覆盖2026-03-01至2026-03-31，包含差旅≥5、餐饮≥4、办公≥4、云服务≥1",
+      "加入2条完全一致的差旅重复（同日同商户同金额同描述）与2条完全一致的餐饮重复",
+      "加入1条金额差0.02且描述高度相似的疑似重复，确保不能按“完全一致”规则直接剔除",
+      "加入1笔负数退款：-980.00，对应同月同商户“锦江之星酒店”原消费980.00",
+      "加入1笔干扰退换：同商户“锦江之星酒店”但日期不同且描述为“调整/补差”，避免误判为退款抵扣",
+      "通过指定剔除/保留规则可得到唯一、可核对的总金额（退款负数纳入总额）"
+    ]
+  }
+}

@@ -1,0 +1,607 @@
+{
+  "task_id": "T157zh_month_end_reconciliation_plus_3",
+  "task_name": "渠道分账与未对账客户",
+  "prompt_text": "月底请做渠道分账对账与缺口修复排查：\n1）检查scheduler里是否存在“渠道分账/对账回填/批次回填”类任务失败、禁用或版本切换未生效；\n2）检查config中的系统集成配置，确认“渠道结算/回填同步”相关集成状态与last_sync时间是否滞后、是否降级；\n3）从finance本月交易中按channel（平台A/平台B/平台C）筛出收款，核对CRM里对应客户的应收expected_monthly是否已按新口径回填（或notes标记为“对账待回填/旧口径”）；找出“未对账客户/回填缺口”及金额缺口；\n4）核对inventory与被影响采购：对受影响客户关联的采购/订单对应的库存入库（批次维度）判断是否存在延迟入账或遗漏；\n5）输出对账报告：按渠道分组列出缺口金额、受影响客户列表、建议的回填策略与验证方法（需结合job/config的时间证据）。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-2401",
+        "name": "channel_settlement",
+        "display_name": "渠道结算同步",
+        "service": "settlement",
+        "status": "degraded",
+        "last_verified": "2026-05-15T11:20:00+08:00",
+        "monthly_calls": 9800,
+        "error_rate": 3.6,
+        "last_sync": "2026-05-23T11:20:00+08:00",
+        "notes": "渠道结算已在部分批次切换为“批次回填”口径，但回填触发条件写入延迟。预计5月23日后同步滞后。"
+      },
+      {
+        "integration_id": "INT-2402",
+        "name": "reconciliation_backfill",
+        "display_name": "对账回填（渠道分账）",
+        "service": "reconciliation",
+        "status": "partial_error",
+        "last_verified": "2026-05-26T09:10:00+08:00",
+        "monthly_calls": 5200,
+        "error_rate": 18.2,
+        "last_sync": "2026-05-20T09:10:00+08:00",
+        "notes": "部分回填失败：旧口径expected_monthly未清理。对平台B客户回填批次校验失败导致回填中断。错误：BatchMappingMismatch。"
+      },
+      {
+        "integration_id": "INT-2403",
+        "name": "invoice_generation_dependency",
+        "display_name": "发票依赖回填结果",
+        "service": "invoice",
+        "status": "active",
+        "last_verified": "2026-05-26T09:30:00+08:00",
+        "monthly_calls": 2600,
+        "error_rate": 0.6,
+        "notes": "发票生成读取CRM expected_monthly回填状态；若回填缺口存在，则跳过对应客户发票生成。"
+      },
+      {
+        "integration_id": "INT-2404",
+        "name": "crm_expected_monthly_sync",
+        "display_name": "CRM应收口径同步",
+        "service": "crm",
+        "status": "active",
+        "last_verified": "2026-05-25T16:40:00+08:00",
+        "monthly_calls": 7100,
+        "error_rate": 0.4,
+        "last_sync": "2026-05-25T16:40:00+08:00",
+        "notes": "仅当渠道分账版本标记为“batch_backfill_enabled”时更新expected_monthly。当前全量未启用，部分客户仍停留旧口径。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2401",
+        "name": "北辰供应链有限公司",
+        "contact_person": "周然",
+        "email": "zhou.ran@beichen-chain.com",
+        "phone": "13100024101",
+        "industry": "供应链",
+        "tier": "standard",
+        "annual_revenue": 6000000,
+        "last_contact_date": "2026-05-20",
+        "status": "active",
+        "contract_amount": 300000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 300000,
+        "notes": "平台A客户，expected_monthly按新口径回填成功。"
+      },
+      {
+        "customer_id": "CUS-2402",
+        "name": "海鸥电商服务商",
+        "contact_person": "许敏",
+        "email": "xu.min@seagull-ec.cn",
+        "phone": "13100024102",
+        "industry": "电商",
+        "tier": "standard",
+        "annual_revenue": 7800000,
+        "last_contact_date": "2026-05-18",
+        "status": "active",
+        "contract_amount": 390000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 390000,
+        "notes": "平台B客户，回填任务中断后仍停留旧口径：对账待回填（旧expected_monthly口径已过期）。"
+      },
+      {
+        "customer_id": "CUS-2403",
+        "name": "星河广告传媒（上海）",
+        "contact_person": "蒋潇",
+        "email": "jiang.xiao@xinghe-ad.com",
+        "phone": "13100024103",
+        "industry": "传媒",
+        "tier": "VIP",
+        "annual_revenue": 15000000,
+        "last_contact_date": "2026-05-12",
+        "status": "active",
+        "contract_amount": 1250000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 1250000,
+        "notes": "平台C客户，批次回填版本切换未生效：notes标记对账待回填（旧口径expected_monthly）。"
+      },
+      {
+        "customer_id": "CUS-2404",
+        "name": "鹤鸣物流科技",
+        "contact_person": "韩佳",
+        "email": "han.jia@hemi-logtech.cn",
+        "phone": "13100024104",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 4200000,
+        "last_contact_date": "2026-05-22",
+        "status": "active",
+        "contract_amount": 210000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 210000,
+        "notes": "平台A客户，回填状态正常。"
+      },
+      {
+        "customer_id": "CUS-2405",
+        "name": "银桥软件外包",
+        "contact_person": "袁博",
+        "email": "yuan.bo@silverbridge.io",
+        "phone": "13100024105",
+        "industry": "软件",
+        "tier": "standard",
+        "annual_revenue": 3600000,
+        "last_contact_date": "2026-05-21",
+        "status": "active",
+        "contract_amount": 180000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 180000,
+        "notes": "平台B客户，notes标记对账待回填（旧口径）。"
+      },
+      {
+        "customer_id": "CUS-2406",
+        "name": "辰光贸易有限公司",
+        "contact_person": "邓菲",
+        "email": "deng.fei@chensun-trade.com",
+        "phone": "13100024106",
+        "industry": "贸易",
+        "tier": "standard",
+        "annual_revenue": 5100000,
+        "last_contact_date": "2026-05-19",
+        "status": "active",
+        "contract_amount": 255000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 255000,
+        "notes": "平台C客户，已部分回填：expected_monthly与财务存在小缺口，待验证批次映射。"
+      },
+      {
+        "customer_id": "CUS-2407",
+        "name": "绵白餐饮管理",
+        "contact_person": "梁雨",
+        "email": "liang.yu@mianbai-food.com",
+        "phone": "13100024107",
+        "industry": "餐饮",
+        "tier": "standard",
+        "annual_revenue": 1200000,
+        "last_contact_date": "2026-04-28",
+        "status": "active",
+        "contract_amount": 60000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 60000,
+        "notes": "平台A客户，金额正常。"
+      },
+      {
+        "customer_id": "CUS-2408",
+        "name": "云端零售科技（深圳）",
+        "contact_person": "马晨",
+        "email": "ma.chen@cloudretail.cn",
+        "phone": "13100024108",
+        "industry": "零售",
+        "tier": "VIP",
+        "annual_revenue": 9800000,
+        "last_contact_date": "2026-05-16",
+        "status": "active",
+        "contract_amount": 820000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 820000,
+        "notes": "平台B客户，旧口径expected_monthly未更新：对账待回填。"
+      },
+      {
+        "customer_id": "CUS-2409",
+        "name": "紫藤集成商贸",
+        "contact_person": "田恬",
+        "email": "tian.tian@ziteng-integrator.com",
+        "phone": "13100024109",
+        "industry": "集成商",
+        "tier": "standard",
+        "annual_revenue": 2400000,
+        "last_contact_date": "2026-05-10",
+        "status": "active",
+        "contract_amount": 120000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 120000,
+        "notes": "平台C客户，回填状态正常。"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-240101",
+        "date": "2026-05-02",
+        "amount": 300000,
+        "currency": "CNY",
+        "customer_id": "CUS-2401",
+        "customer_name": "北辰供应链有限公司",
+        "type": "客户收款",
+        "category": "服务收入",
+        "channel": "平台A",
+        "description": "平台A渠道收款：CUS-2401 5月订阅"
+      },
+      {
+        "transaction_id": "TXN-240102",
+        "date": "2026-05-04",
+        "amount": 210000,
+        "currency": "CNY",
+        "customer_id": "CUS-2404",
+        "customer_name": "鹤鸣物流科技",
+        "type": "客户收款",
+        "category": "服务收入",
+        "channel": "平台A",
+        "description": "平台A渠道收款：CUS-2404 5月服务费"
+      },
+      {
+        "transaction_id": "TXN-240103",
+        "date": "2026-05-06",
+        "amount": 60000,
+        "currency": "CNY",
+        "customer_id": "CUS-2407",
+        "customer_name": "绵白餐饮管理",
+        "type": "客户收款",
+        "category": "服务收入",
+        "channel": "平台A",
+        "description": "平台A渠道收款：CUS-2407 5月订阅"
+      },
+      {
+        "transaction_id": "TXN-240201",
+        "date": "2026-05-03",
+        "amount": 420000,
+        "currency": "CNY",
+        "customer_id": "CUS-2402",
+        "customer_name": "海鸥电商服务商",
+        "type": "客户收款",
+        "category": "服务收入",
+        "channel": "平台B",
+        "description": "平台B渠道收款：CUS-2402 5月批次结算（已到账）"
+      },
+      {
+        "transaction_id": "TXN-240202",
+        "date": "2026-05-07",
+        "amount": 170000,
+        "currency": "CNY",
+        "customer_id": "CUS-2405",
+        "customer_name": "银桥软件外包",
+        "type": "客户收款",
+        "category": "服务收入",
+        "channel": "平台B",
+        "description": "平台B渠道收款：CUS-2405 5月服务费（已到账）"
+      },
+      {
+        "transaction_id": "TXN-240203",
+        "date": "2026-05-10",
+        "amount": 900000,
+        "currency": "CNY",
+        "customer_id": "CUS-2408",
+        "customer_name": "云端零售科技（深圳）",
+        "type": "客户收款",
+        "category": "服务收入",
+        "channel": "平台B",
+        "description": "平台B渠道收款：CUS-2408 5月合同款（已到账）"
+      },
+      {
+        "transaction_id": "TXN-240301",
+        "date": "2026-05-05",
+        "amount": 1320000,
+        "currency": "CNY",
+        "customer_id": "CUS-2403",
+        "customer_name": "星河广告传媒（上海）",
+        "type": "客户收款",
+        "category": "服务收入",
+        "channel": "平台C",
+        "description": "平台C渠道收款：CUS-2403 5月分账款（已到账）"
+      },
+      {
+        "transaction_id": "TXN-240302",
+        "date": "2026-05-12",
+        "amount": 260000,
+        "currency": "CNY",
+        "customer_id": "CUS-2406",
+        "customer_name": "辰光贸易有限公司",
+        "type": "客户收款",
+        "category": "服务收入",
+        "channel": "平台C",
+        "description": "平台C渠道收款：CUS-2406 5月补差（部分回填待验证）"
+      },
+      {
+        "transaction_id": "TXN-240303",
+        "date": "2026-05-13",
+        "amount": 120000,
+        "currency": "CNY",
+        "customer_id": "CUS-2409",
+        "customer_name": "紫藤集成商贸",
+        "type": "客户收款",
+        "category": "服务收入",
+        "channel": "平台C",
+        "description": "平台C渠道收款：CUS-2409 5月订阅"
+      },
+      {
+        "transaction_id": "TXN-240401",
+        "date": "2026-05-15",
+        "amount": -15000,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "退款",
+        "category": "退款支出",
+        "channel": "平台B",
+        "description": "少量退款：不用于主要异常分析"
+      },
+      {
+        "transaction_id": "TXN-240501",
+        "date": "2026-05-08",
+        "amount": -36800,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "channel": "平台B",
+        "description": "批次延迟采购：BATCH-INV-7701（硬件零件）",
+        "related_item": "ITEM-240C1"
+      },
+      {
+        "transaction_id": "TXN-240502",
+        "date": "2026-05-09",
+        "amount": -12600,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "channel": "平台C",
+        "description": "批次延迟采购：BATCH-INV-7702（办公终端配件）",
+        "related_item": "ITEM-240C2"
+      },
+      {
+        "transaction_id": "TXN-240503",
+        "date": "2026-05-16",
+        "amount": -54000,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "channel": "平台B",
+        "description": "正常采购：BATCH-INV-7710（网络设备）",
+        "related_item": "ITEM-240N1"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "ITEM-240C1",
+        "name": "机箱背板模块（批次）",
+        "category": "批次延迟入库",
+        "quantity": 40,
+        "unit": "件",
+        "unit_cost": 920.0,
+        "location": "仓库D-01",
+        "last_in": "2026-06-02",
+        "last_in_qty": 40,
+        "last_out": "2026-06-10",
+        "last_out_qty": 10,
+        "supplier": "锐捷供应链",
+        "notes": "该批次采购在5月已付款但入库延迟至6月2日；可能导致采购-库存时间错配。"
+      },
+      {
+        "product_id": "ITEM-240C2",
+        "name": "办公终端适配器（批次）",
+        "category": "批次延迟入库",
+        "quantity": 30,
+        "unit": "个",
+        "unit_cost": 420.0,
+        "location": "仓库D-02",
+        "last_in": "2026-05-30",
+        "last_in_qty": 30,
+        "last_out": "2026-06-05",
+        "last_out_qty": 8,
+        "supplier": "星辰电子",
+        "notes": "入库发生在5月末附近，晚于多数5月结算触发时间；用于验证延迟入账。"
+      },
+      {
+        "product_id": "ITEM-240N1",
+        "name": "企业级路由器",
+        "category": "网络设备",
+        "quantity": 18,
+        "unit": "台",
+        "unit_cost": 3000.0,
+        "location": "仓库E-01",
+        "last_in": "2026-05-17",
+        "last_in_qty": 18,
+        "last_out": "2026-05-25",
+        "last_out_qty": 5,
+        "supplier": "华域通信",
+        "notes": "正常入库，不作为延迟异常重点。"
+      },
+      {
+        "product_id": "ITEM-240S1",
+        "name": "云网交换面板",
+        "category": "网络设备",
+        "quantity": 12,
+        "unit": "块",
+        "unit_cost": 560.0,
+        "location": "仓库E-02",
+        "last_in": "2026-05-11",
+        "last_in_qty": 12,
+        "last_out": "2026-05-22",
+        "last_out_qty": 4,
+        "supplier": "蓝桥科技",
+        "notes": "正常库存流转。"
+      },
+      {
+        "product_id": "ITEM-240O1",
+        "name": "无线键鼠套装",
+        "category": "办公用品",
+        "quantity": 80,
+        "unit": "套",
+        "unit_cost": 38.0,
+        "location": "仓库F-01",
+        "last_in": "2026-05-14",
+        "last_in_qty": 80,
+        "last_out": "2026-05-24",
+        "last_out_qty": 30,
+        "supplier": "办公优选",
+        "notes": "正常库存。"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-2401",
+        "name": "渠道分账回填（批次回填）",
+        "cron_expression": "0 10 * * *",
+        "action": "channel_batch_backfill",
+        "enabled": false,
+        "last_run": "2026-05-24T10:00:00Z",
+        "next_run": "2026-05-25T10:00:00Z",
+        "last_status": "failed",
+        "created_by": "recon_ops",
+        "tags": [
+          "reconciliation",
+          "channel_backfill",
+          "batch_backfill"
+        ],
+        "created_at": "2025-10-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-24T10:00:00Z",
+            "status": "failed",
+            "duration_s": 40,
+            "error": "BatchMappingMismatch: 渠道结算批次映射失败（INT-2402），阻止回填"
+          },
+          {
+            "run_at": "2026-05-23T10:00:00Z",
+            "status": "failed",
+            "duration_s": 41,
+            "error": "BatchMappingMismatch: 渠道结算批次映射失败（INT-2402），阻止回填"
+          },
+          {
+            "run_at": "2026-05-22T10:00:00Z",
+            "status": "success",
+            "duration_s": 55,
+            "note": "检测到版本从“按订单回填”切换为“按批次回填”，但仅部分客户生效"
+          },
+          {
+            "run_at": "2026-05-21T10:00:00Z",
+            "status": "success",
+            "duration_s": 52
+          },
+          {
+            "run_at": "2026-05-20T10:00:00Z",
+            "status": "failed",
+            "duration_s": 45,
+            "error": "VersionSwitchWarning: 新口径enabled标记未完整写入CRM（channel_settlement INT-2401）"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2402",
+        "name": "对账回填（旧口径清理）",
+        "cron_expression": "0 11 * * *",
+        "action": "reconciliation_cleanup_old_policy",
+        "enabled": true,
+        "last_run": "2026-05-26T11:00:00Z",
+        "next_run": "2026-05-27T11:00:00Z",
+        "last_status": "success",
+        "created_by": "recon_ops",
+        "tags": [
+          "reconciliation",
+          "cleanup"
+        ],
+        "created_at": "2025-12-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-26T11:00:00Z",
+            "status": "success",
+            "duration_s": 70,
+            "note": "清理完成，但平台B批次回填失败导致部分expected_monthly仍未更新"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2403",
+        "name": "发票自动生成（依赖CRM回填）",
+        "cron_expression": "0 8 * * 1-6",
+        "action": "auto_generate_invoices",
+        "enabled": true,
+        "last_run": "2026-05-26T08:00:00Z",
+        "next_run": "2026-05-27T08:00:00Z",
+        "last_status": "success",
+        "created_by": "finance_team",
+        "tags": [
+          "invoice",
+          "reconciliation_dependency"
+        ],
+        "created_at": "2025-08-15T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-26T08:00:00Z",
+            "status": "success",
+            "duration_s": 18,
+            "note": "本次发票成功生成；但对notes标记“对账待回填/旧口径”的客户跳过生成"
+          },
+          {
+            "run_at": "2026-05-23T08:00:00Z",
+            "status": "success",
+            "duration_s": 22,
+            "note": "依赖回填结果：跳过平台B未回填客户"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2404",
+        "name": "库存延迟入账补偿（批次对齐）",
+        "cron_expression": "0 14 * * *",
+        "action": "inventory_delay_compensation",
+        "enabled": true,
+        "last_run": "2026-06-01T14:00:00Z",
+        "next_run": "2026-06-02T14:00:00Z",
+        "last_status": "success",
+        "created_by": "ops_team",
+        "tags": [
+          "inventory",
+          "batch_alignment"
+        ],
+        "created_at": "2025-09-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-06-01T14:00:00Z",
+            "status": "success",
+            "duration_s": 62,
+            "note": "已对齐延迟入库批次的库存快照；主要补偿窗口：5/27-5/31入库"
+          },
+          {
+            "run_at": "2026-05-27T14:00:00Z",
+            "status": "success",
+            "duration_s": 58
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2405",
+        "name": "月末渠道分账核对",
+        "cron_expression": "0 9 28-31 * *",
+        "action": "month_end_channel_reconcile",
+        "enabled": true,
+        "last_run": "2026-05-26T09:00:00Z",
+        "next_run": "2026-05-27T09:00:00Z",
+        "last_status": "success",
+        "created_by": "recon_ops",
+        "tags": [
+          "reconciliation",
+          "channel_month_end"
+        ],
+        "created_at": "2025-07-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-26T09:00:00Z",
+            "status": "success",
+            "duration_s": 140,
+            "note": "输出初步差异：平台B与平台C存在回填缺口，但仍等待批次映射重跑"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题侧重全面对账的通用异常，改为围绕“渠道分账规则从按订单切到按批次”的回填缺口（未对账客户）并按渠道分组输出，同时联动库存延迟入库的影响判断。",
+    "fixture_design_summary": [
+      "scheduler jobs：包含1个“渠道分账回填（批次回填）”禁用且failed的版本切换/批次映射失败证据，用于解释CRM回填滞后；另有发票任务success但依赖回填跳过缺口客户；还有库存延迟补偿success且last_run晚于收款时间点。",
+      "config integrations：提供channel_settlement degraded与reconciliation_backfill partial_error，并设置last_sync滞后，突出版本标记未全量生效与回填批次校验失败。",
+      "crm customers：9位客户覆盖平台A/B/C，其中至少4位在notes中明确“对账待回填/旧口径”，expected_monthly与财务到账金额存在缺口。",
+      "finance transactions：按channel字段构造多笔收款（平台A/B/C），确保至少3位客户“财务有收款但CRM未回填”，同时加入少量退款不主导异常。",
+      "inventory items：设置2个category为“批次延迟入库”的产品，使last_in发生在5月末/6月初，用于支撑采购-库存时间错配的延迟判断。"
+    ]
+  }
+}

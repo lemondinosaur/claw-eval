@@ -1,0 +1,102 @@
+{
+  "schema_version": "step1.task_descriptions.v2",
+  "generated_at": "2026-05-22 15:33:20",
+  "source_task_id": "T111zh_expense_email_check",
+  "source_summary": {
+    "task_id": "T111zh_expense_email_check",
+    "task_name": "报销邮件核对",
+    "task_type": "跨服务工作流：从邮件中提取报销关键信息并在财务交易中匹配核对金额与交易状态，输出分类核对报告",
+    "category": "workflow",
+    "difficulty": "medium",
+    "tags": [
+      "general",
+      "multi_service"
+    ],
+    "language": "zh",
+    "services": [
+      "gmail",
+      "finance"
+    ],
+    "tools": [
+      "gmail_list_messages",
+      "gmail_get_message",
+      "finance_list_transactions",
+      "finance_get_transaction"
+    ],
+    "fixture_paths": [
+      "fixtures/finance/transactions.json",
+      "fixtures/gmail/inbox.json"
+    ],
+    "sandbox_files": [],
+    "has_user_agent": false,
+    "has_grader": true,
+    "core_capability": "workflow"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T111zh_expense_email_check_plus_1",
+      "new_task_name": "Expense Mail Reconcile A",
+      "task_goal": "从收件箱识别所有“报销申请”邮件，提取每笔的金额与发票号；在财务系统按发票号/描述交叉匹配交易；判断金额是否一致以及交易是否处于“completed”；输出三类核对结果：匹配正常、金额不符、状态异常；并确保把非报销邮件排除在核对范围之外。",
+      "user_request": "请帮我核对邮箱中的报销申请：从收件箱筛选所有报销邮件，提取每笔的金额和发票号；再到财务系统查找对应交易，交叉核对金额一致性与交易状态是否完成；最后给出核对报告，分别列出匹配正常、金额不符、状态异常（包含pending/已取消等）。注意：行政公告/通知类邮件不要纳入报销核对。",
+      "scenario": "某财务核对窗口期内，收件箱包含6条消息，其中4条为不同部门员工提交的报销申请（含发票号与金额），1条为供应商发来的非报销咨询邮件（主题含“发票问题”但不属于报销申请），另1条为人事通知。报销邮件中存在干扰：其中一封正文包含“本次报销金额以最终核准为准”，但仍需以正文明确金额与发票号为准；另一封邮件金额为整数但财务交易为小数形式（如 999.50），需要进行精确金额对比（允许两位小数）。财务侧存在两笔状态异常：一笔金额匹配但状态为pending，另一笔金额匹配但状态为canceled。",
+      "difference_from_source": "与原题相比：邮件数量与类别分布改变（6条含2条干扰非报销），并增加了“canceled”状态异常；同时加入“正文提示以最终核准为准”的干扰措辞，但仍需严格按邮件明确金额与发票号做对比。",
+      "service_and_tool_plan": "继续使用 gmail：先调用 gmail_list_messages 获取最近若干天邮件列表，再对疑似报销邮件逐个调用 gmail_get_message 提取发票号与金额；使用 finance：调用 finance_list_transactions 拉取对应日期范围内的交易列表，再对候选交易调用 finance_get_transaction 获取交易状态与金额，完成按发票号/描述的交叉核对。",
+      "fixture_generation_plan": "生成两份 fixtures：1) fixtures/gmail/inbox.json：共6条记录，message_id 用 msg_a01~msg_a06（不要与原题重名），其中4条 subject 以“报销申请：”开头且 body 明确给出“发票号INV-xxx”和金额（不同金额覆盖：一笔正常、一笔金额差异、一笔pending、一笔canceled或等效异常）；另2条分别为“发票问题咨询”与“制度通知”，确保不被识别为报销申请。2) fixtures/finance/transactions.json：共7条交易记录（多出1条与邮件无对应），transaction_id 用 TXA-101~TXA-107；4笔与4张发票一一对应（其中1笔金额不符，2笔状态异常：pending与canceled），另外3笔为水电/服务费/工资等非报销或无发票匹配的干扰交易。关键字段包含：amount（两位小数）、status（completed/pending/canceled）、type/category/description（description中要包含对应发票号或与邮件可对齐的信息）。日期覆盖与邮件 date 接近但不完全一致，需由 start_date/end_date 影响 list 结果。",
+      "expected_behavior": "代理应：1) 列出邮件并过滤出报销申请类消息；2) 从每条报销邮件正文提取发票号与报销金额（忽略干扰提示语）；3) 在财务侧拉取交易并按发票号/description找到对应交易；4) 对每笔进行核对：金额一致且 status=completed 归类为“匹配正常”，金额不一致归类为“金额不符”，仅金额一致但 status 非 completed（pending/canceled）归类为“状态异常”；5) 输出核对报告，清晰列出每个发票号对应的邮件ID与交易ID（或至少描述两者的对应关系）以及差异原因。",
+      "grading_plan": "grader.py 需检查：是否正确排除了非报销邮件（咨询/通知类）；是否从每封报销邮件中准确抽取发票号与金额；是否在财务侧匹配到正确交易并核对金额（含两位小数比较）与状态（pending/canceled 识别准确）；输出报告三类划分完整、每类条目数量与 fixtures 一致，并且报告格式清晰可追溯到邮件与交易的对应关系。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T111zh_expense_email_check_plus_2",
+      "new_task_name": "报销对账 B（发票重复）",
+      "task_goal": "核对收件箱中的报销申请邮件：提取金额与发票号；在财务系统中查找对应交易并核对金额与完成状态。若同一发票号在财务侧存在多条记录，需选择与邮件描述最匹配的一条（例如按交易类型category一致性或description包含更完整的报销内容）；输出最终核对报告并标记选择理由。",
+      "user_request": "请帮我核对报销邮件对账：查看收件箱中的报销申请邮件，提取每笔的发票号与报销金额；到财务系统查找对应交易，核对金额是否一致以及交易状态是否完成；如果某个发票号在财务系统里出现多条交易，请根据交易描述/类别选择最匹配的一条再进行核对；最后输出核对报告，分为匹配正常、金额不符、状态异常。",
+      "scenario": "收件箱共5条消息，其中3条是报销申请，1条是“差旅政策更新”的通知（非报销），1条是“转发提醒”（正文不含发票号）。报销邮件里有一个边界条件：其中一笔报销的发票号在财务侧对应两条交易（可能是重复入账/调整），其中一条金额与邮件一致但状态pending，另一条金额与邮件一致且状态completed。代理需基于description里的报销内容与交易类型选择completed那条以完成最终核对；另一笔报销金额存在差异且财务侧状态为completed，需归入“金额不符”。",
+      "difference_from_source": "相比原题加入“同发票号多交易记录”的分支，并要求模型进行匹配选择理由输出；同时干扰邮件包含“转发提醒”但不含发票号，需识别并排除。",
+      "service_and_tool_plan": "使用 gmail_list_messages 获取候选邮件；对所有疑似报销邮件调用 gmail_get_message 抽取发票号/金额；使用 finance_list_transactions 获取日期内交易；对匹配到的候选交易调用 finance_get_transaction 获取完整状态与description，从而在多条记录场景下做选择与核对。",
+      "fixture_generation_plan": "生成 fixtures：1) fixtures/gmail/inbox.json：5条，message_id 为 msg_b01~msg_b05；其中报销邮件3条：subject 均为“报销申请：……”并在 body 明确给出发票号INV-Bxxx与金额（包含一笔金额差异、一笔同发票重复交易场景、另一笔正常）；其余两条：一条通知主题不含“报销申请”并正文不含发票号；一条转发提醒正文缺少发票号，仅有模糊金额或无金额。2) fixtures/finance/transactions.json：6条交易，transaction_id 为 TXB-201~TXB-206；其中两条共享同一个发票号（description中均包含该发票号），但status分别为pending与completed；另两条各对应其余两张发票（其中一笔金额不符且status=completed）；其余1条为无对应发票号的运营类交易做干扰。金额设置为两位小数，确保可比较。",
+      "expected_behavior": "代理应：1) 只处理明确为报销申请且正文包含发票号与金额的邮件；2) 解析每封邮件的发票号与金额；3) 在财务侧按发票号找到所有候选交易；4) 若同发票号多条：优先选择与邮件报销类型/描述最一致且能支持“最终可完成”的记录（例如completed优先，其次再比对description）；5) 最终以所选交易为准进行金额/状态核对；6) 输出报告三类条目，并在“发票重复”那一条中说明选用了哪一笔交易以及为何选择。",
+      "grading_plan": "grader.py 应检查：过滤逻辑是否正确排除了不含发票号或非报销通知；对重复发票号是否在多条候选中选择正确记录（completed那条）且选择理由合理；金额一致性与状态判断准确；输出报告是否三类划分完整且包含发票重复场景的交易选择说明。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T111zh_expense_email_check_plus_3",
+      "new_task_name": "Expense Mail Reconcile C（金额单位混杂）",
+      "task_goal": "从邮件中抽取报销信息并进行财务核对，但邮件正文存在金额单位/格式混杂（如含“元/人民币”、千分位逗号、或“约”字）。代理需进行规范化解析后与财务交易amount（两位小数、CNY）精确对比；同时核对交易状态是否完成。输出核对报告并准确标注金额差异与状态异常。",
+      "user_request": "请帮我核对收件箱中的报销申请邮件：提取每笔报销的发票号与金额（注意邮件里金额格式可能包含“元”、千分位逗号或“约”等干扰，需要正确规范化后再与财务金额对比）；到财务系统查找对应交易并核对状态是否完成；最后输出核对报告：匹配正常、金额不符、状态异常。",
+      "scenario": "收件箱包含7条消息，4条为报销申请，2条为其他沟通（如“供应商回函：已开票”但不是报销申请），1条为“会议邀请”。报销邮件的正文中：1）有一条金额写成“2,480.00元”；2）另一条金额写成“约3,300元（含税）”但财务为3300.00，需将“约”忽略并提取数值；3）还有一条金额写成“人民币 1200 元整”，需要去空格并解析整数；同时加入干扰：一条报销邮件正文提到了另一个历史发票号但当次发票号要以最后出现的为准。财务侧对应交易中存在一笔金额匹配但状态为pending，另一笔金额不符且状态为completed。",
+      "difference_from_source": "与原题相比，引入金额解析规范化难点（千分位/约/元整/人民币前缀），以及“多个发票号且取最后出现”的文本边界；同时消息总量和干扰类型变化。",
+      "service_and_tool_plan": "先调用 gmail_list_messages 获取足够的候选邮件，再对所有疑似报销邮件调用 gmail_get_message；从正文中抽取“当次发票号/金额”，并进行金额文本规范化后与财务交易对比。随后调用 finance_list_transactions 拉取日期范围内交易，必要时逐条 finance_get_transaction 取到status与amount，再完成分类输出。",
+      "fixture_generation_plan": "生成 fixtures/gmail/inbox.json：7条（msg_c01~msg_c07），其中4条报销申请：subject为“报销申请：……”并在body包含当次发票号INV-Cxxx；金额采用混杂格式：例如“2,480.00元”“约3,300元”“人民币 1200 元整”“费用合计：1,950.5 元（需按两位小数四舍五入到1950.50或按约定取源文本）”；并确保其中一条包含两个发票号，只有最后一个为当次。另3条为非报销沟通：包括“供应商回函已开票”（含发票号但没有“报销申请/请报销”语义）、会议邀请（无发票号）、以及员工请假邮件（含金额但不属于报销）。生成 fixtures/finance/transactions.json：6条（TXC-301~TXC-306），其中4条能与4张当次发票对齐：两笔匹配正常（status=completed）、一笔金额不符（amount与邮件不同但status=completed）、一笔金额匹配但status=pending；另2条为无关交易（description不含对应发票号或为别类费用）。",
+      "expected_behavior": "代理应：1) 从邮件中过滤出明确报销申请邮件；2) 正确提取当次发票号（处理多发票号取最后出现）与金额，并对金额文本进行规范化（去单位/逗号/约/元整/人民币前缀）；3) 到财务系统通过发票号/交易description匹配交易；4) 精确比较规范化后的金额与交易amount；5) 根据 status=completed 与否分类输出三类报告；6) 在报告中反映金额差异的“邮件金额 vs 财务金额（规范化后）”。",
+      "grading_plan": "grader.py 检查点包括：金额抽取与规范化是否正确（处理千分位、约、元整、人民币前缀、小数位）；多发票号场景是否取当次（最后出现）而非历史号；对 pending 状态是否归入状态异常；金额不符是否归入金额不符且差异值计算正确；报告分类与对应关系覆盖所有4笔报销且排除非报销邮件。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T111zh_expense_email_check_plus_4",
+      "new_task_name": "报销对账 D（交易缺失）",
+      "task_goal": "对收件箱报销申请进行核对：提取发票号与金额；在财务系统查找对应交易并比较金额与状态。若财务系统中不存在与某发票号匹配的交易，需要将该报销列为“未找到交易/待核对”。输出包含四类（匹配正常、金额不符、状态异常、未找到交易）的核对报告。",
+      "user_request": "请帮我核对报销申请：从收件箱找出报销邮件并提取发票号与金额；在财务系统中查找对应交易并核对金额是否一致、交易状态是否完成。若某个发票号在财务系统里完全找不到对应交易，也请在报告中单独列出“未找到交易/待核对”。最后输出结构清晰的核对报告（4类：匹配正常、金额不符、状态异常、未找到交易）。",
+      "scenario": "收件箱包含6条消息：3条报销申请、2条为与财务对接的沟通邮件（但不满足报销申请语义），1条为审批提醒（不是报销申请）。三条报销申请中：一条可匹配到已完成交易并金额一致；另一条可匹配到交易但金额差异且状态completed；最后一条发票号在财务系统不存在（例如交易尚未入账或被错误标记为其他系统），但邮件中金额与发票号都明确。干扰条件：其中一条非报销沟通邮件正文包含一个与真实发票号相似的数字串，但并非真正发票号格式（需依靠发票号前缀/格式识别，如必须含“INV-”）。",
+      "difference_from_source": "与原题相比加入“财务侧缺失交易”的新分类要求（未找到交易/待核对），并要求发票号格式识别以排除“相似数字串”的误匹配。",
+      "service_and_tool_plan": "使用 gmail_list_messages 与 gmail_get_message 完成报销邮件抽取；调用 finance_list_transactions 获取交易候选，随后对每个发票号进行匹配；若匹配列表为空则无需调用 finance_get_transaction（或可调用但返回空），直接按“未找到交易”归类；最终输出四类报告。",
+      "fixture_generation_plan": "生成 fixtures：1) gmail/inbox.json 共6条（msg_d01~msg_d06）。其中3条报销邮件：body含发票号INV-Dxxx与金额（覆盖：一正常 completed；一金额不符 completed；一缺失）。2条非报销沟通邮件：分别包含“发票号相关”但不具备“报销申请”语义，且至少1条出现相似数字串但不含INV-前缀。1条审批提醒不含发票号。2) finance/transactions.json：共5条（TXD-401~TXD-405）。其中2条与前两张发票匹配（一个正常completed金额一致、一个completed金额不符），其余3条为其他费用/其他类别交易，不包含缺失那张发票号的INV-Dxxx，确保匹配为空。",
+      "expected_behavior": "代理应：1) 识别并抽取3封报销邮件的发票号与金额（严格按INV-格式）；2) 在财务系统匹配前两张发票找到交易并核对金额与状态；3) 对第三张发票号在财务交易中找不到匹配时，将其列入“未找到交易/待核对”，不做错误匹配；4) 输出四类报告，且对缺失项给出发票号、邮件金额、匹配结果为空的说明。",
+      "grading_plan": "grader.py 应检查：发票号格式识别是否避免将相似数字串误当成发票号；对缺失交易是否正确进入“未找到交易/待核对”；金额不符与状态异常分类正确（本题可配置为无pending，重点在缺失分类）；报告四类覆盖所有报销邮件且不混入非报销邮件。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T111zh_expense_email_check_plus_5",
+      "new_task_name": "Expense Mail Reconcile E（多币种/币种忽略）",
+      "task_goal": "从收件箱提取报销邮件的金额与发票号；在财务系统核对对应交易。邮件中可能出现币种标注（如USD或CNY）与金额写法差异，但财务交易字段固定为CNY；代理应按任务要求执行：如邮件币种与财务币种不一致但任务未要求换算，则应明确判断并按“金额不符/需人工确认”规则处理（例如若币种为USD但未提供汇率，归入异常）。最终输出匹配正常、金额不符、状态异常三类（对币种不明/不一致给出合理异常归类）。",
+      "user_request": "请帮我核对报销申请邮件：提取每笔的发票号与报销金额；到财务系统匹配对应交易并核对金额与交易状态是否完成。注意：部分邮件会标注不同币种（例如USD），但财务系统以CNY为准；如果邮件币种不一致且没有提供可用汇率，请把该笔归入异常并在报告中标注“币种不匹配需人工确认”。最后输出核对报告：匹配正常、金额不符、状态异常（包含币种不匹配的异常说明）。",
+      "scenario": "收件箱共6条消息，其中4条报销申请。报销邮件包括：1）一笔CNY金额与财务completed一致；2）一笔CNY金额与财务amount不一致且财务completed；3）一笔币种标注为USD，金额数字与财务CNY记录明显不一致，但邮件未提供汇率，也未声明已换算，应归为“币种不匹配需人工确认”（并可视为金额不符或单列异常说明，但最终仍需落入三类之一且在报告中解释）；4）一笔金额匹配但交易状态为pending。其余2条为非报销邮件：其中一条内容包含“报销金额已打款”的字样但缺少发票号，另一条为客服咨询。",
+      "difference_from_source": "原题主要考金额与状态；本题增加币种不一致的异常处理，并要求在没有汇率时给出“需人工确认”的解释，且仍需落入既定分类输出。",
+      "service_and_tool_plan": "使用 gmail_list_messages 与 gmail_get_message 抽取报销邮件；解析发票号、金额数值与币种标注；再调用 finance_list_transactions 获取交易；匹配时以发票号对齐交易；对于币种不匹配且无换算信息的情况，在核对规则中将其作为异常归类并在输出解释；对已匹配交易调用 finance_get_transaction 获取status与CNY金额完成核对。",
+      "fixture_generation_plan": "生成 fixtures：gmail/inbox.json 6条（msg_e01~msg_e06）。4条报销邮件：发票号INV-Exxx与金额格式多样，至少包含一条币种USD（body中写“USD 1,250.00”或“$1,250.00”，但不提供汇率）；一条故意包含“已打款”但缺发票号应被排除；其余报销邮件为CNY格式。非报销邮件2条：缺发票号或不具备报销申请语义。finance/transactions.json 6条（TXE-501~TXE-506）：包含4条对应发票号的交易（其中一条CNY金额不符、1条pending、1条completed匹配、1条对应USD发票但仅提供CNY金额与邮件数字不一致）；另2条干扰交易不含这些发票号。确保币种字段在财务侧固定为CNY。",
+      "expected_behavior": "代理应：1) 识别4条报销申请并抽取发票号、金额数值、币种标注；2) 用发票号在财务侧找到对应交易并读取CNY amount与status；3) 若币种为USD且无汇率/无明确已换算说明：不应强行换算，需在报告中标注“币种不匹配需人工确认”，并将该笔归入金额不符或状态异常中的合适类别（按实现一致规则）；4) 输出三类报告并覆盖所有4笔报销（非报销邮件排除）；5) 对金额与状态核对结论要可追溯（至少给出邮件发票号与交易ID）。",
+      "grading_plan": "grader.py 检查：报销邮件与非报销邮件过滤正确；币种不一致时是否未进行错误换算并给出“需人工确认”的解释；对completed/pending状态分类准确；金额一致/不一致判断正确（对币种项的归类遵循规则且解释到位）；输出报告三类中异常项说明清楚且覆盖所有报销发票。"
+    }
+  ]
+}

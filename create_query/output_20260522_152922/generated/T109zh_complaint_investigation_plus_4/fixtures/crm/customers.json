@@ -1,0 +1,41 @@
+[
+  {
+    "customer_id": "CUS-701",
+    "name": "北极风电",
+    "contact_person": "赵芷涵",
+    "email": "zhihan.zhao@beijifeng.com",
+    "phone": "13900077001",
+    "industry": "新能源",
+    "tier": "vip",
+    "annual_revenue": 1680000,
+    "last_contact_date": "2026-03-21",
+    "status": "active",
+    "notes": "合同计费：按账单周期结算；退款计算以“账单周期内实际可用天数/账单周期天数”为基准；包含超额天数时以约定比例计入"
+  },
+  {
+    "customer_id": "CUS-702",
+    "name": "河图云联",
+    "contact_person": "许思远",
+    "email": "siyuan.xu@hetoolink.com",
+    "phone": "13900077002",
+    "industry": "互联网",
+    "tier": "standard",
+    "annual_revenue": 420000,
+    "last_contact_date": "2026-03-15",
+    "status": "active",
+    "notes": "合同计费：按自然日计量；退款计算不包含“超额”部分，超额按另行结算"
+  },
+  {
+    "customer_id": "CUS-703",
+    "name": "星桥教育科技",
+    "contact_person": "周婉",
+    "email": "wan.zhou@qiaostar-edu.com",
+    "phone": "13900077003",
+    "industry": "教育",
+    "tier": "standard",
+    "annual_revenue": 520000,
+    "last_contact_date": "2026-03-09",
+    "status": "active",
+    "notes": "合同计费：按席位数计费；退款计算按“已生效席位/当期席位总数”比例；如账务修正存在则以修正交易覆盖原退款差额"
+  }
+]

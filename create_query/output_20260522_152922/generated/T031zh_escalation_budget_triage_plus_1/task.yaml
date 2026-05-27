@@ -1,0 +1,286 @@
+task_id: T031zh_escalation_budget_triage_plus_1
+task_name: 季度SLA违约补偿分流
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T031zh_escalation_budget_triage_plus_1/fixtures/gmail/inbox.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T031zh_escalation_budget_triage_plus_1/fixtures/contacts/contacts.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T031zh_escalation_budget_triage_plus_1/fixtures/helpdesk/tickets.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T031zh_escalation_budget_triage_plus_1/fixtures/crm/customers.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T031zh_escalation_budget_triage_plus_1/fixtures/finance/transactions.json
+prompt:
+  text: "收件箱中有多封来自客户服务通道的“季度SLA违约补偿”升级邮件。请处理并输出摘要：\n1）读取收件箱中的所有邮件，并逐条解析：只处理主题包含“季度SLA违约补偿”的邮件。\n\
+    2）对每封可解析邮件，提取客户编号与补偿金额，并从正文提取季度标识（Q1/Q2/Q3/Q4）。\n3）到CRM查找该客户的tier、annual_revenue与status（active/churned）。\n\
+    4）在Helpdesk中为该客户匹配对应工单：对同一客户的多个候选工单，优先选择与邮件季度标识最匹配（根据工单标题/描述/标签中季度信息）的那一条。\n5）分流与动作规则：\n\
+    \   a) 若正文或邮件声明“已终止合同”，或CRM中status=churned：标记为异常，并通知法务联络人（输出动作类型legal），禁止向客户服务联络人发送任何“补偿承诺”邮件。\n\
+    \   b) 否则计算补偿金额/annual_revenue 与5%阈值：\n      - 若补偿金额/年收入 <= 5%：发送给客户服务联络人通知（动作sent），并在工单tags加入“预算内”。\n\
+    \      - 若补偿金额/年收入 > 5%：仅保存草稿给客户服务联络人（动作draft），标题注明“需上级审批”，并在工单tags加入“预算外”。不得发送承诺。\n\
+    \   c) 若邮件缺失客户编号或补偿金额为“待确认”：无法分流（动作skip），仍需在摘要标注原因；不更新工单、不发送/保存承诺。\n6）最后给出一份处理摘要：每条邮件包含邮件ID、客户编号（若缺失说明）、补偿比率（若可计算）、结论关键词（预算内/预算外/异常/无法分流）、动作类型（sent/draft/legal/skip）、关联工单ID（若匹配）、以及关键工具调用是否匹配成功/失败。"
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_save_draft
+  description: 将邮件保存为草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+      reply_to_message_id:
+        type: string
+        description: 如果是回复邮件，原邮件ID
+    required:
+    - to
+    - subject
+    - body
+- name: contacts_search
+  description: 搜索通讯录中的联系人
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词（姓名、部门等）
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详细信息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选 (open/closed/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详细信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级 (low/medium/high/critical)
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 工单分类
+    required:
+    - ticket_id
+- name: crm_list_customers
+  description: 获取客户列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选 (active/churned)
+      tier:
+        type: string
+        description: 按等级筛选 (vip/standard)
+      industry:
+        type: string
+        description: 按行业筛选
+    required: []
+- name: crm_get_customer
+  description: 获取客户详细信息
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: finance_list_transactions
+  description: 获取财务交易记录列表
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 开始日期 (YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 结束日期 (YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取财务交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+- fixtures/crm/customers.json
+- fixtures/helpdesk/tickets.json
+- fixtures/contacts/contacts.json
+- fixtures/finance/transactions.json
+environment:
+  timeout_seconds: 900
+  max_turns: 40

@@ -1,0 +1,385 @@
+{
+  "task_id": "T105zh_job_failure_triage_plus_2",
+  "task_name": "支付对账延迟故障与工单关联",
+  "prompt_text": "我们监控到支付对账持续延迟，部分结算单未能按时入账。请你完成：\n1）查看所有失败的支付对账/结算相关定时任务及其错误信息，并关注任务失败窗口（例如 23:50Z-次日00:20Z）。\n2）查看当前未解决的工单（open）。\n3）分析哪些工单与“支付对账/结算回写/商户通知”链路故障有关联：\n- DB死锁/超时：关联对账单未生成/结算待处理\n- 对象存储下载依赖失败：关联结算回写失败导致结算待处理加剧\n- 模板渲染异常：关联通知内容空白\n4）输出“任务-工单关联报告”：对每个故障任务列出对应工单列表、影响范围（财务入账/风控流程/商户通知等）、处理优先级与建议下一步。要求至少给出两处时间线证据（任务失败起点时间 vs 工单创建/上报时间）。不需要关闭工单。\n",
+  "files": {
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "HD-8129",
+        "title": "支付对账单未生成（商户A）",
+        "description": "商户A的对账单在每天 23:55Z 后仍未生成。系统侧查询显示对账汇总流水为空，疑似日终资金对账链路异常导致。首次发现时间：次日00:08Z，提交上报：00:12Z。",
+        "reporter": "商户支持-姚岚",
+        "department": "商户支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-16T00:12:00Z",
+        "tags": [
+          "payment",
+          "accounting",
+          "reconciliation",
+          "report-missing"
+        ],
+        "category": "支付对账"
+      },
+      {
+        "ticket_id": "HD-8130",
+        "title": "对账单延迟入库（内部台账缺失）",
+        "description": "内部财务台账显示对账结果未入库：到 00:22Z 仍未出现当日对账记录。推测与日终资金对账任务超时/锁等待有关。上报时间：00:26Z。",
+        "reporter": "财务结算-沈博",
+        "department": "财务部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-16T00:26:00Z",
+        "tags": [
+          "payment",
+          "accounting",
+          "ledger-delay"
+        ],
+        "category": "财务入账"
+      },
+      {
+        "ticket_id": "HD-8131",
+        "title": "结算单待处理超时（回写失败）",
+        "description": "多笔结算单处于“待处理”超过阈值，处理队列持续重试但未成功回写。日志提示获取结算材料时依赖对象存储下载失败，导致状态回写未完成。首次告警时间：次日00:05Z，工单创建：00:18Z。",
+        "reporter": "结算平台-邹凯",
+        "department": "结算平台",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-16T00:18:00Z",
+        "tags": [
+          "payment",
+          "settlement",
+          "object-storage",
+          "callback-failed"
+        ],
+        "category": "结算回写"
+      },
+      {
+        "ticket_id": "HD-8132",
+        "title": "结算状态回写明显滞后（部分商户受影响）",
+        "description": "到 00:35Z 仍有部分商户结算状态未回写到账务系统，表现为“已发起但未入账”。与上一轮失败回写的时间段一致，需排查回写依赖链是否异常。上报时间：00:40Z。",
+        "reporter": "平台值班-陈曦",
+        "department": "平台运维",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-16T00:40:00Z",
+        "tags": [
+          "payment",
+          "settlement",
+          "writeback-delay"
+        ],
+        "category": "结算回写"
+      },
+      {
+        "ticket_id": "HD-8133",
+        "title": "商户通知内容空白（对账异常后）",
+        "description": "对账流程触发后应生成并推送商户通知，但收到的通知内容为空白，仅包含标题与无正文。模板渲染阶段报错疑似变量缺失或渲染异常。首次反馈：00:09Z，工单创建：00:21Z。",
+        "reporter": "风控&通知-林静",
+        "department": "风控团队",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-16T00:21:00Z",
+        "tags": [
+          "payment",
+          "notification",
+          "template-render"
+        ],
+        "category": "风控通知"
+      },
+      {
+        "ticket_id": "HD-8134",
+        "title": "入账延迟但未明确到具体链路",
+        "description": "多家商户反映“入账延迟”，但目前缺少可定位到对账/结算/通知的明确日志。建议先确认对账与回写是否在 23:50Z-00:20Z 窗口内失败，然后再做进一步排查。",
+        "reporter": "商户支持-周然",
+        "department": "商户支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-16T00:30:00Z",
+        "tags": [
+          "payment",
+          "ingestion-delay",
+          "unclear"
+        ],
+        "category": "支付影响"
+      },
+      {
+        "ticket_id": "HD-8135",
+        "title": "通知发送通道可用性检查（待确认）",
+        "description": "通知发送通道整体可用，但部分通知出现空白或缺失。当前缺少模板渲染日志，只能确认推送成功但内容异常。希望结合调度任务失败记录定位根因。",
+        "reporter": "风控&通知-余昊",
+        "department": "风控团队",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-16T00:47:00Z",
+        "tags": [
+          "payment",
+          "notification",
+          "unknown-root"
+        ],
+        "category": "风控通知"
+      },
+      {
+        "ticket_id": "HD-8136",
+        "title": "人事系统权限变更失败",
+        "description": "人事系统进行批量权限变更时发生失败回滚，当前用户无法登录HR系统。该问题与支付对账无明显关联，但需要确认是否为同一时间窗口的共性故障。",
+        "reporter": "IT-何文",
+        "department": "IT运维",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-16T00:24:00Z",
+        "tags": [
+          "hr",
+          "permissions",
+          "batch-fail"
+        ],
+        "category": "权限/访问"
+      },
+      {
+        "ticket_id": "HD-8137",
+        "title": "CSV 导入失败（批量结算数据）",
+        "description": "部分批量导入文件格式不符合要求导致导入失败，影响结算数据落地。注意：目前工单仅能确认导入环节异常，尚未能判断是否与对象存储依赖或回写任务失败相同根因。",
+        "reporter": "数据平台-孙薇",
+        "department": "数据平台",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-16T00:33:00Z",
+        "tags": [
+          "import",
+          "csv",
+          "settlement-data"
+        ],
+        "category": "数据导入"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-9041",
+        "name": "日终资金对账（资金池）",
+        "cron_expression": "50 23 * * *",
+        "action": "end_of_day_reconciliation_funds",
+        "enabled": true,
+        "last_run": "2026-04-16T00:06:00Z",
+        "next_run": "2026-04-17T00:01:00Z",
+        "last_status": "failed",
+        "created_by": "payment_ops",
+        "tags": [
+          "payment",
+          "accounting",
+          "reconciliation",
+          "eod"
+        ],
+        "created_at": "2026-02-01T08:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-15T23:50:00Z",
+            "status": "failed",
+            "duration_s": 41,
+            "error": "DeadlockDetected: funds_ledger_lock wait timeout after 30000ms"
+          },
+          {
+            "run_at": "2026-04-15T23:55:00Z",
+            "status": "failed",
+            "duration_s": 38,
+            "error": "QueryTimeoutError: reconciliation_batch exceeded 25000ms"
+          },
+          {
+            "run_at": "2026-04-15T22:50:00Z",
+            "status": "success",
+            "duration_s": 27
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-9042",
+        "name": "结算单状态回写（账务）",
+        "cron_expression": "*/10 23-0 * * *",
+        "action": "settlement_writeback_to_ledger",
+        "enabled": true,
+        "last_run": "2026-04-16T00:14:00Z",
+        "next_run": "2026-04-16T00:20:00Z",
+        "last_status": "failed",
+        "created_by": "payment_ops",
+        "tags": [
+          "payment",
+          "settlement",
+          "writeback",
+          "accounting"
+        ],
+        "created_at": "2026-02-18T08:30:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-15T23:59:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "ObjectStorageDependencyError: failed to download settlement_materials from bucket 'pay-ops-materials' (timeout)"
+          },
+          {
+            "run_at": "2026-04-16T00:08:00Z",
+            "status": "failed",
+            "duration_s": 11,
+            "error": "ObjectStorageDependencyError: dependency download returned 503 (slow start)"
+          },
+          {
+            "run_at": "2026-04-16T00:18:00Z",
+            "status": "failed",
+            "duration_s": 12,
+            "error": "ObjectStorageDependencyError: stream read interrupted (connection reset by peer)"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-9043",
+        "name": "商户通知生成（对账/结算）",
+        "cron_expression": "0 0-1 * * *",
+        "action": "generate_merchant_notifications",
+        "enabled": true,
+        "last_run": "2026-04-16T00:09:00Z",
+        "next_run": "2026-04-16T01:00:00Z",
+        "last_status": "failed",
+        "created_by": "risk_ops",
+        "tags": [
+          "payment",
+          "notification",
+          "settlement",
+          "template"
+        ],
+        "created_at": "2026-03-01T10:05:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-16T00:02:00Z",
+            "status": "failed",
+            "duration_s": 6,
+            "error": "TemplateRenderingError: nil value 'merchant_name' for template var; output body set to empty"
+          },
+          {
+            "run_at": "2026-04-16T00:09:00Z",
+            "status": "failed",
+            "duration_s": 7,
+            "error": "TemplateRenderingError: render failed due to missing locale; fallback produced blank content"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-9044",
+        "name": "额度风控规则刷新（非关键）",
+        "cron_expression": "0 */2 * * *",
+        "action": "refresh_risk_rules",
+        "enabled": true,
+        "last_run": "2026-04-16T00:00:00Z",
+        "next_run": "2026-04-16T02:00:00Z",
+        "last_status": "success",
+        "created_by": "risk_ops",
+        "tags": [
+          "risk",
+          "rules",
+          "nonpayment"
+        ],
+        "created_at": "2026-01-22T09:10:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-16T00:00:00Z",
+            "status": "success",
+            "duration_s": 14
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-9045",
+        "name": "商户对账快照归档（可用性）",
+        "cron_expression": "15 1 * * *",
+        "action": "archive_reconciliation_snapshot",
+        "enabled": false,
+        "last_run": "2026-04-14T01:15:00Z",
+        "next_run": null,
+        "last_status": "failed",
+        "created_by": "payment_ops",
+        "tags": [
+          "payment",
+          "accounting",
+          "archive",
+          "snapshots"
+        ],
+        "created_at": "2026-03-20T12:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-14T01:15:00Z",
+            "status": "failed",
+            "duration_s": 600,
+            "error": "TimeoutError: snapshot archive worker stalled (queue depth high)"
+          },
+          {
+            "run_at": "2026-04-13T01:15:00Z",
+            "status": "failed",
+            "duration_s": 590,
+            "error": "TimeoutError: snapshot archive worker stalled (queue depth high)"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-9046",
+        "name": "人事批量数据同步（无关链路）",
+        "cron_expression": "0 0 * * *",
+        "action": "sync_hr_batch",
+        "enabled": true,
+        "last_run": "2026-04-16T00:01:00Z",
+        "next_run": "2026-04-17T00:01:00Z",
+        "last_status": "failed",
+        "created_by": "it_ops",
+        "tags": [
+          "hr",
+          "sync",
+          "nonpayment"
+        ],
+        "created_at": "2026-03-05T09:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-16T00:01:00Z",
+            "status": "failed",
+            "duration_s": 22,
+            "error": "ConnectionRefusedError: HR sync endpoint unreachable"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-9047",
+        "name": "结算对账补偿任务（重试）",
+        "cron_expression": "25 */30 * * *",
+        "action": "settlement_reconciliation_compensation_retry",
+        "enabled": true,
+        "last_run": "2026-04-16T00:20:00Z",
+        "next_run": "2026-04-16T00:50:00Z",
+        "last_status": "failed",
+        "created_by": "payment_ops",
+        "tags": [
+          "payment",
+          "accounting",
+          "settlement",
+          "retry"
+        ],
+        "created_at": "2026-03-25T13:30:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-16T00:20:00Z",
+            "status": "failed",
+            "duration_s": 16,
+            "error": "DependencyChainError: upstream reconciliation results unavailable (upstream window missing)"
+          },
+          {
+            "run_at": "2026-04-16T00:10:00Z",
+            "status": "failed",
+            "duration_s": 18,
+            "error": "DependencyChainError: upstream reconciliation results unavailable (upstream window missing)"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原任务的ERP/邮件/归档故障场景替换为支付对账/结算回写/商户通知链路，新增对应的三类错误模式并要求关联到三类支付相关工单症状。",
+    "fixture_design_summary": [
+      "scheduler/jobs.json：构造至少3个payment相关failed任务，错误类型分别覆盖“DB死锁/超时、对象存储依赖失败、模板渲染异常”；同时加入1个enabled=false但仅有历史失败的job用于边界。",
+      "helpdesk/tickets.json：准备9条open工单，其中至少5条与支付对账/结算/通知直接相关（对账单未生成2、结算待处理2、通知内容空白1），并加入2条干扰（人事权限/HR同步）与2条症状模糊工单用于检验时间线与错误类型映射。",
+      "跨fixture实体一致：工单症状关键词与job标签/错误信息/失败时间窗在同一时间锚点（23:50Z-次日00:20Z）内对应，便于模型完成任务-工单关联与优先级推断。"
+    ]
+  }
+}

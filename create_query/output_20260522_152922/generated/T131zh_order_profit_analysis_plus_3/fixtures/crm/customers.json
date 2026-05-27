@@ -1,0 +1,126 @@
+[
+  {
+    "customer_id": "CUS-911",
+    "name": "旭达智联",
+    "contact_person": "陈女士",
+    "email": "chen@xuda-zhilian.com",
+    "phone": "13900112233",
+    "industry": "制造",
+    "tier": "vip",
+    "annual_revenue": 6200000,
+    "last_contact_date": "2026-04-12",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-911",
+        "products": [
+          "SKU-ALPHA-1",
+          "SKU-SVC-EDGE-1",
+          "SKU-MOD-NOVA-1"
+        ],
+        "total_price": 112000,
+        "date": "2026-04-10"
+      }
+    ],
+    "notes": "产线数字化升级"
+  },
+  {
+    "customer_id": "CUS-912",
+    "name": "天衡商贸",
+    "contact_person": "赵先生",
+    "email": "zhao@tianheng-trade.cn",
+    "phone": "13900445566",
+    "industry": "贸易",
+    "tier": "standard",
+    "annual_revenue": 950000,
+    "last_contact_date": "2026-04-18",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-912",
+        "products": [
+          "SKU-ALPHA-2",
+          "SKU-SVC-EDGE-2"
+        ],
+        "total_price": 86000,
+        "date": "2026-04-16"
+      }
+    ],
+    "notes": "年内扩容"
+  },
+  {
+    "customer_id": "CUS-913",
+    "name": "蓝鲸医疗科技",
+    "contact_person": "周博士",
+    "email": "zhou@bluewhale-medtech.com",
+    "phone": "13900778899",
+    "industry": "医疗科技",
+    "tier": "vip",
+    "annual_revenue": 4100000,
+    "last_contact_date": "2026-04-21",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-913",
+        "products": [
+          "SKU-MOD-NOVA-2",
+          "SKU-MOD-ORBIT-1",
+          "SKU-SVC-CARE-1",
+          "SKU-SVC-CARE-2"
+        ],
+        "total_price": 196000,
+        "date": "2026-04-19"
+      }
+    ],
+    "notes": "合规与数据治理项目"
+  },
+  {
+    "customer_id": "CUS-914",
+    "name": "金曜教育",
+    "contact_person": "孙老师",
+    "email": "sun@jinyao-edu.cn",
+    "phone": "13901012244",
+    "industry": "教育",
+    "tier": "standard",
+    "annual_revenue": 540000,
+    "last_contact_date": "2026-04-24",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-914",
+        "products": [
+          "SKU-ALPHA-1",
+          "SKU-SVC-CARE-1"
+        ],
+        "total_price": 72000,
+        "date": "2026-04-20"
+      }
+    ],
+    "notes": "课程平台续费"
+  },
+  {
+    "customer_id": "CUS-915",
+    "name": "北辰能源",
+    "contact_person": "李工",
+    "email": "li@beichen-energy.com",
+    "phone": "13903334455",
+    "industry": "能源",
+    "tier": "vip",
+    "annual_revenue": 2700000,
+    "last_contact_date": "2026-04-26",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-915",
+        "products": [
+          "SKU-ALPHA-2",
+          "SKU-MOD-ORBIT-1",
+          "SKU-SVC-EDGE-2"
+        ],
+        "total_price": 154000,
+        "date": "2026-04-23"
+      }
+    ],
+    "notes": "设备监测平台"
+  }
+]

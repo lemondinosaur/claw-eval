@@ -1,0 +1,65 @@
+{
+  "task_id": "T009zh_contact_lookup_plus_2",
+  "task_name": "Alias & Near-Match Resolver",
+  "prompt_text": "我想联系“赵敏”（她的姓名有时会被误写成“赵明”）。请帮我查一下她的联系方式：邮箱和手机号码。联系人库里可能存在同名或近似姓名，请先消歧，最终只提供“赵敏”的邮箱与手机号码（不要发送消息）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "c_009",
+        "name": "赵明",
+        "department": "法务部",
+        "title": "法务助理",
+        "email": "zhaoming.legal@company.com",
+        "phone": "147-1010-1111",
+        "location": "深圳分部 C座 2楼",
+        "note": "常被误写为“赵敏”（相同发音误差）。"
+      },
+      {
+        "contact_id": "c_010",
+        "name": "赵敏",
+        "department": "法务部",
+        "title": "法务专员",
+        "email": "zhaomin.legal@company.com",
+        "phone": "148-2020-2222",
+        "location": "深圳分部 C座 2楼",
+        "note": "若外部来访提到“赵明”，请优先按此记录核对后续沟通。"
+      },
+      {
+        "contact_id": "c_011",
+        "name": "赵敏",
+        "department": "行政部",
+        "title": "行政经理",
+        "email": "zhaomin.admin@company.com",
+        "phone": "149-3030-3333",
+        "location": "深圳分部 D座 4楼",
+        "note": "与“赵敏（法务）”同名但部门不同。"
+      },
+      {
+        "contact_id": "c_012",
+        "name": "赵铭",
+        "department": "研发部",
+        "title": "软件工程师",
+        "email": "zhaoming.dev@company.com",
+        "phone": "150-4040-4444",
+        "location": "杭州研发中心 E座 3楼"
+      },
+      {
+        "contact_id": "c_013",
+        "name": "赵明",
+        "department": "销售部",
+        "title": "区域销售代表",
+        "email": "zhaoming.sales@company.com",
+        "phone": "151-5050-5555",
+        "location": "北京分部 F座 1楼"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题是同名查找；本题加入“赵明”误写干扰，并且存在多个“赵敏”（部门/职能不同）需要通过稳定字段消歧后给出唯一的邮箱+手机。",
+    "fixture_design_summary": [
+      "contacts.json 新增并构造了至少三类近似：\"赵明\"（干扰）、\"赵敏\"（目标，法务部）、\"赵敏\"（同名但行政部）。",
+      "通过 department/title 让消歧可落在稳定字段上：目标为 department=法务部，且 title 包含“法务”。",
+      "确保最终唯一答案：赵敏（法务专员）= zhaomin.legal@company.com / 148-2020-2222。"
+    ]
+  }
+}

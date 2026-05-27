@@ -1,0 +1,114 @@
+[
+  {
+    "job_id": "JOB-CMP-1001",
+    "name": "补偿响应-超时升级通知（queue-silent）",
+    "schedule": "*/10 * * * *",
+    "status": "disabled",
+    "last_run": "2026-05-19T09:40:00Z",
+    "last_status": "disabled",
+    "error_message": null,
+    "description": "定时为超时且未响应的工单触发补偿通知与升级链路（本次已停用）。",
+    "tags": [
+      "sla",
+      "compensation",
+      "escalation"
+    ],
+    "failure_count": 0,
+    "enabled": false,
+    "action": "查询未响应超时工单并调用通知API进行补偿升级",
+    "next_run": null,
+    "created_at": "2026-04-01T00:00:00Z",
+    "created_by": "sre-automation",
+    "execution_history": [
+      {
+        "run_at": "2026-05-19T09:40:00Z",
+        "status": "disabled",
+        "duration_s": 0
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-CMP-1002",
+    "name": "超时升级-再提醒（通知API依赖）",
+    "schedule": "*/15 * * * *",
+    "status": "failed",
+    "last_run": "2026-05-22T11:45:00Z",
+    "last_status": "failed",
+    "error_message": "依赖通知API调用失败：upstream timeout；可能导致工单再提醒未投递",
+    "description": "对已超时但仍未首次响应的工单执行再提醒，并推动升级到对应队列消费者。",
+    "tags": [
+      "sla",
+      "reminder",
+      "escalation"
+    ],
+    "failure_count": 7,
+    "first_failure": "2026-05-21T08:15:00Z",
+    "enabled": true,
+    "action": "生成再提醒事件并通过通知API投递",
+    "next_run": null,
+    "created_at": "2026-04-15T00:00:00Z",
+    "created_by": "sre-automation",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T11:45:00Z",
+        "status": "failed",
+        "duration_s": 12
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-REM-1003",
+    "name": "工单再提醒-清理滞留状态（干扰任务）",
+    "schedule": "0 */2 * * *",
+    "status": "enabled",
+    "last_run": "2026-05-22T10:00:00Z",
+    "last_status": "success",
+    "error_message": null,
+    "description": "对无关队列的滞留状态做清理与汇总（不直接影响补偿链路）。",
+    "tags": [
+      "maintenance",
+      "reminder"
+    ],
+    "failure_count": 0,
+    "enabled": true,
+    "action": "清理滞留状态并记录审计日志",
+    "next_run": null,
+    "created_at": "2026-04-20T00:00:00Z",
+    "created_by": "ops-bot",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T10:00:00Z",
+        "status": "success",
+        "duration_s": 35
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-SUM-1004",
+    "name": "每日SLA静默堆积汇总（干扰健康）",
+    "schedule": "30 8 * * *",
+    "status": "enabled",
+    "last_run": "2026-05-22T08:30:00Z",
+    "last_status": "success",
+    "error_message": null,
+    "description": "生成每日汇总报表，用于监控系统仍在运行（不代表告警链路正常）。",
+    "tags": [
+      "sla",
+      "report",
+      "health"
+    ],
+    "failure_count": 0,
+    "enabled": true,
+    "action": "汇总上一日SLA指标并写入报表库",
+    "next_run": null,
+    "created_at": "2026-03-10T00:00:00Z",
+    "created_by": "sre-automation",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T08:30:00Z",
+        "status": "success",
+        "duration_s": 58
+      }
+    ]
+  }
+]

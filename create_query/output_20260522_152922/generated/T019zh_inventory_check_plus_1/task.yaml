@@ -1,0 +1,86 @@
+task_id: T019zh_inventory_check_plus_1
+task_name: Reorder for Multi-Store Promotion
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T019zh_inventory_check_plus_1/fixtures/inventory/products.json
+prompt:
+  text: '促销活动即将开始（未来3天销量预计比常规提升50%）。请查看全站哪些商品库存不足需要补货，并直接为最紧急的商品下补货单：
+
+    1）优先处理缺货且无在途补货的商品（current_stock=0，使用 days_out_of_stock 判断紧急度）；
+
+    2）其次处理低于 min_stock_threshold 的商品（current_stock > 0 但偏低）；
+
+    3）如有延迟到货/已在途但仍短缺（status=backordered 且 backorder_eta 在促销开始前后），需要根据 ETA 相对促销窗口的位置调整优先级；
+
+    4）计算“天数覆盖/补货数量”时使用 daily_avg_sales，并在促销假设下将未来3天的日销量按“+50%”调整（至少用于排序或补货量）；
+
+    5）库龄异常字段 last_count_days_since 仅作为干扰信息，不能作为下单依据；
+
+    6）不要为库存充足或无需补货的商品创建订单。
+
+    最后请按紧急度从高到低列出补货清单与排序原因摘要，并给出每个下单商品的数量与供应商。'
+  language: zh
+tools:
+- name: inventory_list_products
+  description: 获取商品库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: inventory_get_product
+  description: 获取单个商品的详细库存信息
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+    required:
+    - product_id
+- name: inventory_create_order
+  description: 创建补货订单
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+      quantity:
+        type: integer
+        description: 补货数量
+      supplier:
+        type: string
+        description: 供应商
+    required:
+    - product_id
+    - quantity
+tool_endpoints:
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: inventory_create_order
+  url: http://localhost:9108/inventory/orders/create
+  method: POST
+sandbox_files:
+- fixtures/inventory/products.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

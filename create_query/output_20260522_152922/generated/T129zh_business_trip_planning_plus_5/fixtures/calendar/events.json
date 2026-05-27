@@ -1,0 +1,67 @@
+[
+  {
+    "event_id": "evt_601",
+    "title": "内部同步会（需优先调整）",
+    "start_time": "2026-03-31T09:30:00+08:00",
+    "end_time": "2026-03-31T11:00:00+08:00",
+    "location": "本地-会议室C",
+    "organizer": "周主管",
+    "attendees": [
+      "我",
+      "周主管"
+    ],
+    "description": "内部周度对齐（与出发前一天上午对接会冲突）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_602",
+    "title": "国际会议本体（开幕论坛）",
+    "start_time": "2026-04-01T10:00:00+08:00",
+    "end_time": "2026-04-01T12:00:00+08:00",
+    "location": "迪拜会展中心（按当地时区）",
+    "organizer": "国际会议秘书处",
+    "attendees": [
+      "我",
+      "项目负责人A"
+    ],
+    "description": "日程确认：开幕论坛（邮件含“时区以当地为准”提示）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_603",
+    "title": "出发前一天空窗",
+    "start_time": "2026-03-31T19:00:00+08:00",
+    "end_time": "2026-03-31T22:00:00+08:00",
+    "location": "",
+    "organizer": "",
+    "attendees": [],
+    "description": "晚间可用时间段",
+    "status": "free"
+  },
+  {
+    "event_id": "evt_604",
+    "title": "出发前一天晚餐安排（非关键）",
+    "start_time": "2026-03-31T18:00:00+08:00",
+    "end_time": "2026-03-31T18:45:00+08:00",
+    "location": "酒店大堂",
+    "organizer": "行政",
+    "attendees": [
+      "我"
+    ],
+    "description": "临时晚餐安排，不影响核心调整",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_605",
+    "title": "出发当天上午备用会议（干扰）",
+    "start_time": "2026-04-01T08:30:00+08:00",
+    "end_time": "2026-04-01T09:15:00+08:00",
+    "location": "本地-远程会议室",
+    "organizer": "运维团队",
+    "attendees": [
+      "我"
+    ],
+    "description": "例行同步（在国际会议本体之前结束）",
+    "status": "confirmed"
+  }
+]

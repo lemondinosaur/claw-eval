@@ -1,0 +1,179 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:36:11",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T019zh_inventory_check",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:34:53",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:34:53",
+      "source_task_id": "T019zh_inventory_check",
+      "source_summary": {
+        "task_id": "T019zh_inventory_check",
+        "task_name": "Inventory Check",
+        "task_type": "盘点库存并针对低于阈值/缺货/延期等情况创建补货订单，按紧急度与合理补货量给出下单建议",
+        "category": "operations",
+        "difficulty": "easy",
+        "tags": [
+          "general"
+        ],
+        "language": "zh",
+        "services": [
+          "inventory"
+        ],
+        "tools": [
+          "inventory_list_products",
+          "inventory_get_product",
+          "inventory_create_order"
+        ],
+        "fixture_paths": [
+          "fixtures/inventory/products.json"
+        ],
+        "sandbox_files": [
+          "fixtures/inventory/products.json"
+        ],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "识别低库存与缺货/回补优先级，并计算合理补货数量并发起下单"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T019zh_inventory_check_plus_1",
+          "new_task_name": "Reorder for Multi-Store Promotion",
+          "task_goal": "根据当前促销期的库存风险清单，筛选需要补货的商品并创建补货订单，确保优先级正确且补货数量与日均销量、交期匹配。",
+          "user_request": "促销活动即将开始，请查看全站哪些商品库存不足需要补货，并直接为最紧急的商品下补货单（需要考虑缺货/即将缺货、按天数紧急度排序，补货数量要合理）。",
+          "scenario": "电商平台为期7天的“闪购”促销已在系统中触发：未来3天预计销量比常规提升50%。当前商品存在三类状态分布：A类为已断货且无在途补货（current_stock=0 且含缺货天数字段），B类为接近触发补货线的低库存（current_stock略低于 min_stock_threshold），C类为已标记延迟到货（status=backordered 且 backorder_eta 在促销开始前后）。同时数据中混入“库龄异常”字段干扰（例如 last_count_days_since 超过阈值），但该字段不应被当作下单依据。",
+          "difference_from_source": "原题聚焦单一默认情形；本题要求在促销销量提升假设下重新计算“天数覆盖”，并处理延迟到货ETA跨越促销窗口导致的优先级变化；同时加入库龄异常干扰字段，要求不被误用。",
+          "service_and_tool_plan": "继续使用 inventory（同一服务与工具）完成：先调用 inventory_list_products 获取全部商品及库存字段；对候选低库存/缺货/延迟商品再调用 inventory_get_product 获取更完整字段（如缺货天数/状态/销量假设所需字段）；最后对紧急商品调用 inventory_create_order 创建补货订单（并避免下单给库存充足或无需补货的商品）。",
+          "fixture_generation_plan": "生成一个新的 fixtures/inventory/products.json（或在同schema下使用不同记录）。至少10条商品记录，必须包含：3个缺货商品（current_stock=0，额外给出缺货相关字段如 days_out_of_stock=...）、4个低于阈值的商品（current_stock < min_stock_threshold，但非0）、1-2个延迟到货/backordered 商品（status=backordered 且 backorder_eta 分别落在促销开始前后以造成排序差异）。同时加入2条“干扰信息”商品：min_stock_threshold 很低但库存其实很高、或包含 last_count_days_since 很大但库存充足。字段关键包括 product_id（不复用原SKU命名）、name、category、current_stock、min_stock_threshold、daily_avg_sales、supplier、lead_time_days、status/backorder_eta（可选）、days_out_of_stock（可选）、last_count_days_since（干扰）。确保至少5个商品需要下单，且其中1个延迟到货商品在促销窗口内应更靠前/更靠后与其他缺货商品形成对比。",
+          "expected_behavior": "智能体应：1）调用 inventory_list_products；2）识别所有 current_stock < min_stock_threshold 的候选，并额外把 current_stock=0 的断货商品置为最高优先级；3）若存在促销假设（未来3天销量+50%），则在输出“天数覆盖/紧急度”计算中将 daily_avg_sales 按+50%调整（至少用于排序或补货量）；4）对 backordered 商品按 backorder_eta 是否落在促销开始前后调整优先级（ETA更早优先或更晚优先，需在描述中体现一致逻辑）；5）调用 inventory_create_order 仅对需要补货的商品创建订单，quantity 计算应反映 lead_time_days 与期望库存覆盖（例如覆盖到交期+促销期至少若干天），并合理取整且不出现0或负数；6）在最终回复中列出补货清单及排序原因摘要，并给出每个下单商品的数量与供应商。",
+          "grading_plan": "grader.py 需要检查：是否至少调用一次 inventory_list_products；是否对所有应下单的商品调用了 inventory_create_order，且禁止对库存充足或不应补货的商品下单（安全检查）；检查输出文本中包含“紧急度/天数覆盖/促销销量+50%”相关关键词或等价表述，并且排序逻辑与 fixture 的促销窗口与 backorder_eta 一致；检查补货 quantity 合理性（基于 daily_avg_sales（促销调整后）、lead_time_days 的覆盖量，容许一定误差区间）；检查对缺货（current_stock=0）优先级是否高于普通低库存；并验证 backordered 商品的相对顺序符合 ETA 与缺货状态的规则。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T019zh_inventory_check_plus_2",
+          "new_task_name": "Warehouse Transfer Reorder",
+          "task_goal": "在发生仓库调拨限制后，判断哪些商品无法靠内部调拨补足而仍需向供应商下补货单，并创建订单。",
+          "user_request": "我们仓库之间本周只能调拨两次额度商品，额度用完后仍要保证最低库存。请帮我核查现有库存，判断哪些商品必须向供应商下补货单，并下单给最需要的几种。",
+          "scenario": "运营设置了“调拨额度”限制：系统允许在同品类内部互补，但本周额度已接近用尽（在数据里用一个字段 transfer_allowance_left 表示）。同时存在“不可调拨原因”的干扰：某些商品虽然库存不足，但因为保质期短/监管限制标记为 non_transferable=true，必须直接外采补货。数据里还包含“预计在途库存 in_transit_units”字段，部分商品即使 current_stock 低，也可能通过 in_transit_units 很快补齐；这部分应被用于判断是否真的需要外采。世界状态包括：有的商品 current_stock 低但 in_transit_units 大且 lead_time 短；有的商品 in_transit_units 为0且 non_transferable=true；还有的商品虽然 current_stock=0 但 in_transit_units >0（不应视为真正断货）。",
+          "difference_from_source": "原题是直接根据 current_stock 与阈值补货；本题引入内部调拨额度、不可调拨标记、在途库存影响，要求区分“表面低库存”与“真实需要外采补货”。",
+          "service_and_tool_plan": "使用 inventory_list_products 拉取全量商品字段（含 in_transit_units、non_transferable、transfer_allowance_left 等）；对优先候选（non_transferable 或 预计缺口仍存在）调用 inventory_get_product 获取必要明细；对最终确定需要外采的商品调用 inventory_create_order。",
+          "fixture_generation_plan": "生成新的 products.json：至少12条记录。关键字段：product_id/name/category/current_stock/min_stock_threshold/daily_avg_sales/supplier/lead_time_days；新增用于逻辑判断但仍保持同schema兼容的字段（若服务端允许字段透传）：in_transit_units（0~较大）、non_transferable（布尔或字符串）、transfer_group（用于内部调拨归类）、transfer_allowance_left（可放在每条或在商品字段中体现）。设置状态：至少4个商品为 non_transferable=true 且（current_stock + in_transit_units）不足以覆盖到交期后的 min_stock；至少2个商品 current_stock 低但 in_transit_units 足够应不下单；至少1个商品 current_stock=0 且 in_transit_units>0应仍可能不下单或下单量更小。避免复用原SKU/名称/供应商与数值。",
+          "expected_behavior": "智能体应：1）先用 inventory_list_products；2）对每个商品计算可用库存 = current_stock + in_transit_units（或考虑交付时点，如果 fixture 提供 in_transit_lead_time，则用于更细粒度）；3）若可用库存仍低于 min_stock_threshold，且 non_transferable=true 或当前同组 transfer_allowance_left 不足以覆盖缺口，则将其加入外采补货候选；4）按紧急度排序：缺口覆盖天数更短（可用库存/日均销量）越紧急；若存在 backordered 状态则可提高优先级；5）只为外采候选调用 inventory_create_order，quantity 根据缺口与 lead_time_days 计算，并避免对“可通过在途库存或可调拨”的商品下单；6）最终输出应列出每个下单商品：原因（不可调拨/额度不足/在途不足）、计算口径摘要、下单数量。",
+          "grading_plan": "检查工具调用：inventory_list_products 至少1次，inventory_create_order 至少对1个商品且不对不该下单商品下单。文本/逻辑检查：输出是否提到“在途库存 in_transit_units”“不可调拨 non_transferable”“调拨额度 transfer_allowance_left”等任一关键概念或等价说明，并且下单集合与 fixture 中 non_transferable/缺口规则一致。数量检查：quantity 必须大于0且与缺口覆盖 lead_time_days 的量级一致（容许误差）。排序检查：缺口覆盖天数最短的商品应排在前列。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T019zh_inventory_check_plus_3",
+          "new_task_name": "Batch Category Compliance Restock",
+          "task_goal": "在遵守合规批次规则的前提下，补货指定类别的低库存商品，并为需补货的商品下单。",
+          "user_request": "请只关注‘耗材’类别：找出其中库存低于阈值或即将触底的商品。由于合规要求，必须按批次下单（同一供应商的订单批次不超过3种商品）。帮我生成补货订单并说明原因。",
+          "scenario": "系统要求“耗材”类别执行合规批次：同一供应商最多包含3种不同商品在同一批次订单中（若超过需拆成多个订单批次；但不需要多轮澄清，直接按规则拆分即可）。另外设置一个边界条件干扰：某些耗材的 min_stock_threshold 很高但 daily_avg_sales 极低，导致几乎不缺货；应按“天数覆盖”而不仅是简单阈值判断来决定是否下单（例如覆盖天数已足够则不下单）。本题还包含一个复杂状态：同商品可能存在多个仓位字段（primary_stock、secondary_stock），但只有 primary_stock 可用于销售；因此应以 primary_stock 参与计算。",
+          "difference_from_source": "原题是全品类简单阈值下单；本题限定类别、引入按供应商合规批次拆单规则，并且用“天数覆盖”与“主销售仓位 primary_stock”处理边界与干扰字段。",
+          "service_and_tool_plan": "使用 inventory_list_products 加载所有商品后在客户端筛选 category='耗材'；若 fixture 中提供 primary_stock/secondary_stock，则在文本与下单逻辑中只使用 primary_stock；对选定候选商品可调用 inventory_get_product 确认 supplier 与批次相关字段；调用 inventory_create_order 时以供应商维度确保每批最多3种商品（可能需要多次调用 create_order，每次创建不同商品的补货记录）。",
+          "fixture_generation_plan": "生成新的产品数据（至少10-14条）。其中必须有：至少5条 category='耗材'，包含不同 supplier（至少2个供应商），且 supplier 下商品种类数可能超过3以触发拆批；每条耗材需要字段：product_id/name/current_stock（或 primary_stock 字段）、secondary_stock（干扰）、min_stock_threshold/daily_avg_sales/lead_time_days/supplier，以及可选合规字段 batch_policy_tag（可用于提示）。设置两类边界：1）3个耗材 primary_stock 低于阈值但 daily_avg_sales 极低且因此天数覆盖足够=>不下单；2）2个耗材 primary_stock 明显不足且覆盖天数短=>下单。不要复用原SKU与名称与具体数值。",
+          "expected_behavior": "智能体应：1）调用 inventory_list_products；2）筛出耗材类别；3）计算每个耗材基于 primary_stock 的天数覆盖 days_coverage = primary_stock / daily_avg_sales（可结合 lead_time_days 与阈值形成紧急度）；4）仅对 days_coverage 低于某个隐含门槛（或能推导出将低于 min_stock_threshold）且 primary_stock 缺口明显的商品下单；5）按 supplier 批次拆单：同一 supplier 的不同商品最多3种分为多个批次（实现层面：可多次调用 inventory_create_order 分别创建各批次对应商品的订单；但最终输出要说明批次拆分结果）；6）输出中要体现：为何仅耗材、为何按主销售仓位计算、以及每个下单商品的补货量与批次归属。",
+          "grading_plan": "grader.py 应检查：是否仅对耗材类别调用 inventory_create_order（不允许其他类别下单）；是否遵守每供应商批次上限（通过下单商品集合按 supplier 分组统计种类数，并判断拆分结果是否合理呈现）；是否提到 primary_stock 的使用；是否使用天数覆盖或等价逻辑过滤掉“阈值高但销量低”的不应下单项。工具调用次数不必固定，但必须至少对2个耗材下单。数量合理性与覆盖 lead_time_days 的量级一致。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T019zh_inventory_check_plus_4",
+          "new_task_name": "Zero-Stock with Supplier Split & Risk Controls",
+          "task_goal": "处理多供应商冗余策略：对缺货商品优先选择主供应商，若交期过长则改走备选供应商，并创建对应补货订单。",
+          "user_request": "我们有多款商品已经缺货。请帮我对缺货与将缺货的商品下补货单：优先从主供应商采购，但如果某供应商 lead time 超过你们设定的上限，就改用备选供应商。请同时给出每个商品的选择理由。",
+          "scenario": "数据中每个商品包含主供应商与备选供应商信息（主供应商可能交期长、备选交期短但单位成本更高，用于干扰但不影响选择规则）。设定上限 lead_time_days_max=lead_time_threshold（在 fixture 中以字段 restock_lead_time_cap 给出）；如果主供应商 lead_time_days > cap，则必须改用备选供应商。另一个边界：某些商品虽然 current_stock=0，但 daily_avg_sales=0（长期停产/低需求），不应下单或只下很小安全量（如0或1不允许，需设为最小订购量 min_order_qty=...）。还存在“已停供停产标记 discontinued=true”的干扰：这类商品即使缺货也不能下单。",
+          "difference_from_source": "原题单供应商补货；本题加入主/备供应商选择规则、交期上限与停产/零销量边界，要求更复杂的下单决策与理由说明。",
+          "service_and_tool_plan": "先调用 inventory_list_products 获取所有字段（含主备供应商及两个交期）。对需要判断的缺货候选调用 inventory_get_product 以获取主/备 lead time 与 discontinued/min_order_qty 等细节。对最终需要补货的商品调用 inventory_create_order，其中 supplier 字段要与规则选择一致。",
+          "fixture_generation_plan": "生成新的 products.json：至少11条记录，包含：至少3个 current_stock=0 的商品，其中至少2个 discontinued=false；至少1个 discontinued=true 且 current_stock=0（应禁止下单）；至少2个 discontinued=false 但 daily_avg_sales=0（按 min_order_qty 处理）；包含每个缺货商品字段：primary_supplier、primary_lead_time_days、secondary_supplier、secondary_lead_time_days、min_order_qty。fixture 还应包含一个字段 restock_lead_time_cap（可放在每条或全局可在后续 grader 使用）。另含2-3个将触底商品（current_stock 小于阈值但非0）以验证非断货也会被纳入。不要复用原SKU名、供应商名与具体数值。",
+          "expected_behavior": "智能体应：1）调用 inventory_list_products；2）筛出（current_stock=0 或 < min_stock_threshold）且 discontinued=false 的候选；3）对缺货候选：若 daily_avg_sales=0，则下单数量应为 min_order_qty（或根据安全量规则）且优先供应商选择也应遵守 lead_time_cap；4）对主/备选择：若 primary_lead_time_days <= cap 选择 primary_supplier，否则选择 secondary_supplier；5）排序：缺货+覆盖天数更短者优先；6）调用 inventory_create_order 下单，supplier 必须是选择结果；7）最终回复需清楚写出每个下单商品：选用供应商、交期是否触发上限、下单量计算依据。",
+          "grading_plan": "检查点：inventory_create_order 的 supplier 是否符合 lead_time_cap 规则；discontinued=true 的商品不得下单；daily_avg_sales=0 的商品下单量是否等于 min_order_qty（或最小订购量规则）。数量与紧急度：缺货商品优先级与排序逻辑正确。并验证是否至少调用了一次 inventory_get_product 用于补全决策字段。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T019zh_inventory_check_plus_5",
+          "new_task_name": "Safety Stock Recalculation for Seasonal Demand",
+          "task_goal": "基于季节系数重新计算安全库存需求，识别低于重算后安全库存的商品并下补货单，输出给出重算口径。",
+          "user_request": "这周开始进入夏季旺季，系统已给出季节系数。请用季节系数重算每个商品的安全库存需求，找出需要补货的商品并下单（要解释你如何用季节系数调整补货量与优先级）。",
+          "scenario": "旺季系数 season_multiplier=1.8（在 fixture 中字段 seasonal_multiplier 给出）。库存安全需求不再直接用 min_stock_threshold，而是使用 adjusted_min_stock = min_stock_threshold * season_multiplier。干扰字段包括：有些商品的 daily_avg_sales 已经包含旺季预测（因此再乘系数会重复）；需要遵循数据标记字段 sales_already_seasonal=true 来决定是否二次调整。还有一个边界：如果 lead_time_days 极短（<=2），则优先补足 immediate safety 而非追求长期覆盖（使用字段 immediate_safety_days）。",
+          "difference_from_source": "原题直接用 min_stock_threshold 与 daily_avg_sales；本题引入季节系数重算 adjusted_min_stock，并处理 daily_avg_sales 是否已季节化的去重逻辑，同时加入 lead time 极短的特殊补货策略。",
+          "service_and_tool_plan": "使用 inventory_list_products 获取所有商品含 seasonal_multiplier、sales_already_seasonal、immediate_safety_days 等字段；对候选商品可用 inventory_get_product 以确认这些标记；最后对需要补货的商品调用 inventory_create_order，并给出数量计算依据（调整后的安全库存与有效日销量）。",
+          "fixture_generation_plan": "生成新 products.json：至少12条商品，覆盖多种标记组合：至少4条需要按 adjusted_min_stock 判断才发现低于安全库存；至少2条 sales_already_seasonal=true（若处理错误会造成过量下单，应能被 grader 检出）；至少1-2条 lead_time_days <=2 触发 immediate_safety_days 策略；其余为常规 lead time。字段关键：product_id/name/category/current_stock/min_stock_threshold/daily_avg_sales/lead_time_days/supplier；新增 seasonal_multiplier、sales_already_seasonal、immediate_safety_days。确保至少5条商品应下单，且至少1条在不重算时会被误判为不需要补货。",
+          "expected_behavior": "智能体应：1）调用 inventory_list_products；2）对每个商品计算是否需要季节调整：若 sales_already_seasonal=true 则只重算 adjusted_min_stock，不调整日销量；否则日销量也可按 season_multiplier 调整（或按题目要求的固定口径，需在输出说明）；3）计算 adjusted_min_stock 并比较当前可用库存：若 current_stock < adjusted_min_stock 则属于补货候选（或结合 lead_time/覆盖天数）；4）若 lead_time_days <=2：下单量应至少覆盖 immediate_safety_days * daily_avg_sales（按去重后的日销量），而不是按长期覆盖逻辑；5）按缺口大小/覆盖天数排序；6）调用 inventory_create_order 为候选商品下单，quantity 合理取整；7）最终输出解释季节系数使用规则与去重逻辑。",
+          "grading_plan": "检查：是否在输出中明确提到 adjusted_min_stock = min_stock_threshold * season_multiplier 以及 sales_already_seasonal 的处理方式；下单商品集合与“是否低于 adjusted_min_stock”一致；若存在 sales_already_seasonal=true 的商品，下单量不应出现与未标记商品同倍率导致的过量（检查数量区间/相对比例）；对 lead_time_days<=2 的商品，quantity 需更接近 immediate_safety_days 覆盖。工具调用：inventory_list_products 至少1次；inventory_create_order 仅对需要补货的商品调用；可选检查是否对关键商品调用 inventory_get_product。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:36:11",
+    "items": [
+      {
+        "task_id": "T019zh_inventory_check_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:35:07",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T019zh_inventory_check_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T019zh_inventory_check_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:35:22",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T019zh_inventory_check_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T019zh_inventory_check_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:35:37",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T019zh_inventory_check_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T019zh_inventory_check_plus_4",
+        "index": 4,
+        "status": "failed",
+        "generated_at": "2026-05-22 15:35:53",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_4/parsed.json",
+        "task_dir": "",
+        "error": "Generated fixtures must exactly match required paths: extra=['fixtures/inventory/products.json_meta']"
+      },
+      {
+        "task_id": "T019zh_inventory_check_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:36:11",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/T019zh_inventory_check_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T019zh_inventory_check_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T019zh_inventory_check/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T019zh_inventory_check",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

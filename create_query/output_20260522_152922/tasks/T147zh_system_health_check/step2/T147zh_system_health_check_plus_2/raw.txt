@@ -1,0 +1,434 @@
+{
+  "task_id": "T147zh_system_health_check_plus_2",
+  "task_name": "身份同步一致性巡检",
+  "prompt_text": "请帮我做一次“身份同步一致性”系统健康巡检：\n\n1）检查API集成配置状态，重点关注与“身份/用户数据”相关的集成（如 LDAP/SSO 映射、用户画像同步、用户/权限相关索引）。\n2）检查定时任务运行情况，重点关注同步、索引重建或权限刷新任务，筛出失败/超时/频繁跳过刷新等异常。\n3）查看当前未解决工单，筛出可能由身份同步问题引起的工单（例如未登录可访问、角色不一致、用户画像缺失/展示不一致）。\n4）在知识库中搜索与“映射字段缺失/权限刷新失败/索引一致性修复与验证/失败回滚”相关的解决方案，并提取可操作的修复步骤。\n5）输出系统健康报告：\n   - 先列出异常集成与异常定时任务（含失败原因片段）\n   - 构建至少两条故障链并写出时间线/因果关系\n   - 给出修复建议（必须包含验证步骤，例如：修复映射字段后重新触发权限刷新并核对权限结果；恢复索引一致性后核对索引更新时间与用户页面展示一致性）\n   - 不要关闭任何工单（仅建议处理）\n\n请确保报告围绕“数据一致性”与“权限错配”展开。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "IDMAP-2001",
+        "name": "LDAP/SSO 映射（用户属性）",
+        "status": "error",
+        "config": {
+          "provider": "ldap",
+          "mapping_profile": "corp-prod-user-attr",
+          "required_fields": [
+            "uid",
+            "mail",
+            "department",
+            "roles"
+          ]
+        },
+        "error_rate": 0.73,
+        "error_message": "属性映射表缺失字段: mail/roles 中至少一项未在映射表中定义",
+        "description": "将 LDAP/SSO 的用户属性映射为系统用户画像字段",
+        "service": "identity-mapping",
+        "last_verified": "2026-04-18",
+        "monthly_calls": 124000
+      },
+      {
+        "integration_id": "UIMG-2002",
+        "name": "用户画像索引源（Index Feed）",
+        "status": "error",
+        "config": {
+          "source": "user_360",
+          "target_index": "user_portrait_v3",
+          "mode": "incremental"
+        },
+        "error_rate": 0.41,
+        "error_message": "字段不匹配：权限刷新所需的映射字段未在索引文档中找到，导致跳过写入",
+        "description": "为权限刷新/用户页面加载提供用户画像索引数据",
+        "service": "search-index-feed",
+        "last_verified": "2026-04-17",
+        "monthly_calls": 98000
+      },
+      {
+        "integration_id": "USER-SYNC-2003",
+        "name": "用户数据同步（增量）",
+        "status": "active",
+        "config": {
+          "source_system": "idm-platform",
+          "target_system": "core-user-center",
+          "sync_window_minutes": 15
+        },
+        "error_rate": 0.04,
+        "description": "从身份平台同步用户主数据与基础授权信息",
+        "service": "identity-sync",
+        "last_verified": "2026-04-20",
+        "monthly_calls": 650000
+      },
+      {
+        "integration_id": "PERM-RBAC-2004",
+        "name": "权限策略分发（RBAC）",
+        "status": "active",
+        "config": {
+          "policy_version": "rbac-2026Q2",
+          "refresh_mode": "delta"
+        },
+        "error_rate": 0.02,
+        "description": "将策略变更分发到权限刷新服务",
+        "service": "permission-rbac",
+        "last_verified": "2026-04-21",
+        "monthly_calls": 430000
+      },
+      {
+        "integration_id": "ANALYTICS-2005",
+        "name": "用户分析画像回填（Analytics Backfill）",
+        "status": "active",
+        "config": {
+          "workspace": "user-analytics-prod",
+          "job": "portrait_backfill_daily"
+        },
+        "error_rate": 0.08,
+        "description": "补齐分析侧画像字段（非主链路但会影响展示一致性）",
+        "service": "analytics-portrait",
+        "last_verified": "2026-04-19",
+        "monthly_calls": 210000
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "HD-TK-2201",
+        "subject": "未登录用户出现越权访问（权限错配）",
+        "customer_id": "CUS-2201",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-21T10:12:00",
+        "assigned_to": "周凯",
+        "category": "权限/安全",
+        "description": "部分未登录用户可以访问需要登录的“用户管理”页面，刷新后仍可复现；怀疑权限刷新与用户画像字段不同步。",
+        "title": "未登录用户出现越权访问（权限错配）",
+        "reporter": "周凯",
+        "department": "安全"
+      },
+      {
+        "ticket_id": "HD-TK-2202",
+        "subject": "角色不一致：同一账号两端显示权限不同",
+        "customer_id": "CUS-2202",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-22T08:45:00",
+        "assigned_to": "林敏",
+        "category": "权限/一致性",
+        "description": "账号在移动端显示为“审计员”，但在管理后台显示为“访客”；用户画像缓存与权限刷新结果存在不一致。",
+        "title": "角色不一致：同一账号两端显示权限不同",
+        "reporter": "林敏",
+        "department": "合规"
+      },
+      {
+        "ticket_id": "HD-TK-2203",
+        "subject": "权限刷新任务失败后，部分用户权限未更新",
+        "customer_id": "CUS-2203",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-23T14:20:00",
+        "assigned_to": "陈旭",
+        "category": "后台任务",
+        "description": "权限刷新失败多次；部分用户权限保持旧状态，导致页面展示与实际授权不匹配。当前有用户画像缺字段告警。",
+        "title": "权限刷新任务失败后，部分用户权限未更新",
+        "reporter": "陈旭",
+        "department": "平台运维"
+      },
+      {
+        "ticket_id": "HD-TK-2204",
+        "subject": "用户画像缺失：用户详情页加载不完整",
+        "customer_id": "CUS-2204",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-20T16:05:00",
+        "assigned_to": "高悦",
+        "category": "用户画像",
+        "description": "用户详情页部分字段为空（如部门/角色摘要），刷新仍缺失；怀疑用户画像索引未能按时重建。",
+        "title": "用户画像缺失：用户详情页加载不完整",
+        "reporter": "高悦",
+        "department": "用户体验"
+      },
+      {
+        "ticket_id": "HD-TK-2205",
+        "subject": "用户画像展示与授权面板不一致",
+        "customer_id": "CUS-2205",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-24T09:30:00",
+        "assigned_to": "周宁",
+        "category": "前台展示",
+        "description": "用户页面展示的权限标签与授权面板不一致；多用户同时出现，可能源于索引一致性与权限刷新链路延迟。",
+        "title": "用户画像展示与授权面板不一致",
+        "reporter": "周宁",
+        "department": "前台"
+      },
+      {
+        "ticket_id": "HD-TK-2206",
+        "subject": "表单提交偶发超时（非身份链路）",
+        "customer_id": "CUS-2206",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-19T11:10:00",
+        "assigned_to": "赵晨",
+        "category": "接口异常",
+        "description": "某些表单提交偶发超时，未发现与用户权限相关的直接关联。现象主要出现在导入/提交峰值时段。",
+        "title": "表单提交偶发超时（非身份链路）",
+        "reporter": "赵晨",
+        "department": "业务系统"
+      },
+      {
+        "ticket_id": "HD-TK-2207",
+        "subject": "导出任务失败：导出作业超时",
+        "customer_id": "CUS-2207",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-18T17:25:00",
+        "assigned_to": "徐涛",
+        "category": "数据导出",
+        "description": "导出任务超时失败，主要涉及报表导出；目前尚未确认与身份同步或索引链路有关。",
+        "title": "导出任务失败：导出作业超时",
+        "reporter": "徐涛",
+        "department": "数据服务"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-2101",
+        "title": "LDAP/SSO 属性映射字段校验与缺失处理（含验证）",
+        "category": "身份集成",
+        "tags": [
+          "LDAP",
+          "SSO",
+          "属性映射",
+          "字段缺失",
+          "权限刷新"
+        ],
+        "content": "## LDAP/SSO 属性映射字段校验与缺失处理（含验证）\n\n### 典型现象\n- 属性映射表缺失字段（如 mail/roles/department）\n- 身份同步或权限刷新跳过写入，导致权限错配\n\n### 修复步骤\n1. 在映射配置中核对必填字段清单（例如：uid、mail、department、roles）\n2. 将缺失字段补全到“映射表”，并校验字段类型与格式（邮箱、角色列表等）\n3. 重新发布/刷新映射配置到运行时（确保生效）\n4. 重新触发“权限刷新”定时任务（或手动触发刷新接口）\n\n### 验证步骤（必须执行）\n- 抽取一个受影响用户：核对其在系统用户画像中 mail/roles 字段是否存在且非空\n- 对比权限结果：登录后在“权限/角色”面板核对是否与预期一致\n- 观察后续两次定时刷新日志，确认不再出现“字段缺失导致跳过刷新”",
+        "last_updated": "2026-04-10",
+        "views": 5120
+      },
+      {
+        "article_id": "KB-2102",
+        "title": "权限刷新失败回滚与跳过刷新应急处置",
+        "category": "权限同步",
+        "tags": [
+          "权限刷新",
+          "回滚",
+          "跳过刷新",
+          "错误处理"
+        ],
+        "content": "## 权限刷新失败回滚与跳过刷新应急处置\n\n### 典型错误\n- 找不到映射字段导致跳过刷新\n- 由于上游用户画像索引文档缺失字段，刷新结果不完整\n\n### 应急处置建议\n1. 暂停后续权限刷新（避免持续覆盖旧正确数据）\n2. 回滚到最近一次成功的权限快照（如存在快照/版本）\n3. 处理根因：补全缺失字段映射或修复索引文档字段\n4. 恢复权限刷新：先进行小范围抽样刷新，再全量刷新\n\n### 验证步骤\n- 抽样 5~10 个受影响用户，核对其页面展示权限与后端授权校验一致\n- 核对权限刷新任务执行日志：确认不再出现“跳过刷新”关键字\n- 监控权限刷新后 30 分钟内的访问授权错误率是否下降",
+        "last_updated": "2026-04-12",
+        "views": 3380
+      },
+      {
+        "article_id": "KB-2103",
+        "title": "用户画像索引一致性恢复：超时重建策略与核对清单",
+        "category": "索引一致性",
+        "tags": [
+          "索引重建",
+          "一致性",
+          "超时",
+          "用户画像"
+        ],
+        "content": "## 用户画像索引一致性恢复：超时重建策略与核对清单\n\n### 典型现象\n- 用户画像索引重建任务超时\n- 旧索引仍被使用，导致权限错配与展示不一致\n\n### 修复步骤\n1. 评估超时原因：检查重建输入数据量与字段映射是否完整\n2. 将重建任务调整为分片/批次执行（减少单次超时风险）\n3. 在确认字段映射正确后，再执行索引重建\n4. 重建完成后进行“索引健康检查”（doc count、字段覆盖率）\n\n### 验证步骤\n- 核对索引更新时间：确认新索引版本已写入并对查询生效\n- 抽查受影响用户：对比其用户画像字段与权限刷新所依赖字段是否齐全\n- 在用户页面与授权校验接口上进行一致性对比（至少核对 3 个关键字段）",
+        "last_updated": "2026-04-14",
+        "views": 2760
+      },
+      {
+        "article_id": "KB-2104",
+        "title": "失败回滚后重新触发：从定时任务到权限验证的闭环流程",
+        "category": "运维流程",
+        "tags": [
+          "定时任务",
+          "验证闭环",
+          "重新触发",
+          "权限校验"
+        ],
+        "content": "## 失败回滚后重新触发：从定时任务到权限验证的闭环流程\n\n### 目标\n确保“映射字段/索引一致性修复”后，权限刷新与用户展示达到闭环一致。\n\n### 流程建议\n1. 根据失败原因修复根因（映射字段缺失或索引字段缺失）\n2. 先在低风险范围重新触发：选择少量用户/租户进行回放\n3. 观察权限刷新任务执行日志并记录：是否出现失败、跳过刷新或字段缺失\n4. 扩大范围到全量或按分片策略推进\n\n### 验证要点\n- 权限结果：抽样用户登录后，权限按钮/菜单与后端授权校验一致\n- 展示结果：用户画像页面字段与授权面板一致\n- 记录关键时间点：修复完成时间、任务重新触发时间、索引版本更新时间",
+        "last_updated": "2026-04-09",
+        "views": 1940
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-IDP-3101",
+        "name": "权限刷新（RBAC Sync）",
+        "schedule": "*/10 * * * *",
+        "status": "failed",
+        "last_run": "2026-04-23T12:30:00Z",
+        "last_status": "failed",
+        "description": "定时刷新权限缓存与授权映射，依赖 LDAP/SSO 映射字段与用户画像索引文档",
+        "tags": [
+          "identity",
+          "permission-refresh",
+          "rbac"
+        ],
+        "cron_expression": "*/10 * * * *",
+        "failure_count": 11,
+        "first_failure": "2026-04-18T09:00:00Z",
+        "error_message": "找不到映射字段导致跳过刷新：缺失字段 mail 或 roles",
+        "enabled": true,
+        "action": "每10分钟刷新权限缓存并更新用户授权映射",
+        "next_run": null,
+        "created_at": "2025-08-10T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-23T12:30:00Z",
+            "status": "failed",
+            "duration_s": 58
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-IDP-3102",
+        "name": "用户画像索引重建（Portrait Reindex）",
+        "schedule": "0 */2 * * *",
+        "status": "failed",
+        "last_run": "2026-04-23T16:00:00Z",
+        "last_status": "failed",
+        "description": "重建用户画像索引以保证与权限刷新所依赖的字段一致",
+        "tags": [
+          "identity",
+          "index-rebuild",
+          "portrait"
+        ],
+        "cron_expression": "0 */2 * * *",
+        "failure_count": 4,
+        "first_failure": "2026-04-21T02:00:00Z",
+        "error_message": "执行超时：任务在 1800s 内未完成，可能由于索引输入字段缺失导致回滚并保留旧索引",
+        "enabled": true,
+        "action": "每2小时尝试重建用户画像索引并进行一致性校验",
+        "next_run": null,
+        "created_at": "2025-08-10T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-23T16:00:00Z",
+            "status": "failed",
+            "duration_s": 1800
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-IDP-3103",
+        "name": "用户数据同步（增量同步）",
+        "schedule": "*/15 * * * *",
+        "status": "failed",
+        "last_run": "2026-04-23T15:45:00Z",
+        "last_status": "failed",
+        "description": "同步用户主数据与授权基础信息，供权限刷新服务使用",
+        "tags": [
+          "identity",
+          "user-sync",
+          "incremental"
+        ],
+        "cron_expression": "*/15 * * * *",
+        "failure_count": 3,
+        "first_failure": "2026-04-22T01:15:00Z",
+        "error_message": "部分批次失败：受影响用户字段缺失，导致 18% 记录未写入核心用户表",
+        "enabled": true,
+        "action": "每15分钟增量同步用户数据到核心用户中心",
+        "next_run": null,
+        "created_at": "2025-08-10T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-23T15:45:00Z",
+            "status": "failed",
+            "duration_s": 210
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-IDP-3104",
+        "name": "用户画像索引健康检查（预检）",
+        "schedule": "*/20 * * * *",
+        "status": "enabled",
+        "last_run": "2026-04-23T12:20:00Z",
+        "last_status": "success",
+        "description": "在重建前检查索引字段覆盖率与健康度，用于降低重建失败概率",
+        "tags": [
+          "identity",
+          "index-health"
+        ],
+        "cron_expression": "*/20 * * * *",
+        "failure_count": 0,
+        "enabled": true,
+        "action": "每20分钟执行索引健康检查",
+        "next_run": null,
+        "created_at": "2025-08-10T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-23T12:20:00Z",
+            "status": "success",
+            "duration_s": 42
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-IDP-3105",
+        "name": "权限缓存回收（Maintenance GC）",
+        "schedule": "0 4 * * *",
+        "status": "disabled",
+        "last_run": "2026-04-20T04:00:00Z",
+        "last_status": "success",
+        "description": "在维护窗口回收旧权限缓存与索引快照（与身份链路存在关联但当前维护中）",
+        "tags": [
+          "maintenance",
+          "permission-cache"
+        ],
+        "cron_expression": "0 4 * * *",
+        "failure_count": 0,
+        "enabled": false,
+        "disabled_reason": "手动禁用 - 索引维护升级中，计划在 2026-04-25 恢复",
+        "enabled_by": "admin",
+        "action": "每天凌晨4点回收旧权限缓存",
+        "next_run": null,
+        "created_at": "2025-08-10T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-20T04:00:00Z",
+            "status": "success",
+            "duration_s": 35
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-IDP-3106",
+        "name": "用户画像索引回填（Backfill）",
+        "schedule": "30 */1 * * *",
+        "status": "enabled",
+        "last_run": "2026-04-23T13:30:00Z",
+        "last_status": "failed",
+        "description": "补齐画像索引中缺失字段，作为身份链路兜底；失败不会直接终止但会延迟一致性",
+        "tags": [
+          "identity",
+          "backfill"
+        ],
+        "cron_expression": "30 */1 * * *",
+        "failure_count": 2,
+        "first_failure": "2026-04-22T12:30:00Z",
+        "error_message": "字段缺失导致跳过写入：无法生成 roles 字段，已将 9,216 条标记为待补齐",
+        "enabled": true,
+        "action": "每小时执行画像索引回填任务以补齐缺失字段",
+        "next_run": null,
+        "created_at": "2025-08-10T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-23T13:30:00Z",
+            "status": "failed",
+            "duration_s": 310
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的健康巡检场景从通知邮件与数据仓库同步，改为围绕 LDAP/SSO 映射字段缺失→权限刷新失败→用户画像索引超时→权限错配的身份一致性排查与修复建议（含验证步骤）。",
+    "fixture_design_summary": [
+      "config/integrations.json：新增 2 条身份相关高风险异常集成（status=error、明确缺失/跳过错误信息）并配套 3 条低错误率/健康集成。 ",
+      "scheduler/jobs.json：提供 3 个与身份一致性直接相关的异常任务（权限刷新失败、画像索引重建超时、用户数据同步部分失败），外加 1 个健康干扰任务与 1 个禁用维护干扰任务，以及 1 个回填失败但不完全终止的任务。 ",
+      "helpdesk/tickets.json：加入 3 类强相关未解决工单（越权/角色不一致/权限刷新后未更新）+ 2 类弱相关（画像缺失/展示与授权面板不一致）+ 2 类干扰（提交超时、导出失败）。 ",
+      "kb/articles.json：新增覆盖“映射字段缺失校验与验证、权限刷新回滚与跳过处理、索引一致性恢复与核对、失败回滚后重新触发验证闭环”的文章，用于驱动修复与验证步骤输出。"
+    ]
+  }
+}

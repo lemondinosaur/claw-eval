@@ -1,0 +1,237 @@
+{
+  "task_id": "T129zh_business_trip_planning_plus_5",
+  "task_name": "国际会议前的国内对接",
+  "prompt_text": "收件箱中包含多封与出差相关的邮件：国内对接会邀请、国际会议日程确认通知，以及一封无行程时间的议程干扰邮件。请你完成：\n1）识别并区分哪些邮件属于“国内对接会”，哪些属于“国际会议相关安排”；\n2）检查日历中“出发前一天（含上午时段）到国际会议当天”的关键时段是否发生冲突；\n3）为“国内对接会所在城市”和“国际会议所在城市”分别检索联系人清单；\n4）输出最终取舍与行程建议：\n   - 国内对接会明确写有“必须本人参加”时，若与内部同步会冲突，需要给出合理重排策略（必须基于日历的可用空窗/无冲突时段提出替代，如把内部同步会调整到出发前一天晚上空窗或改为电话/远程参与这一类不新增复杂流程的做法）；\n   - 国际会议本体事件保持参加；\n   - 行程至少覆盖出发前一天上午/晚上、出发当天上午三段，并附上两地联系人清单。\n同时忽略不含具体行程时间的干扰邮件，并对“时区以当地为准”的提示作为干扰说明但仍以日历时间判断冲突。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_601",
+        "title": "内部同步会（需优先调整）",
+        "start_time": "2026-03-31T09:30:00+08:00",
+        "end_time": "2026-03-31T11:00:00+08:00",
+        "location": "本地-会议室C",
+        "organizer": "周主管",
+        "attendees": [
+          "我",
+          "周主管"
+        ],
+        "description": "内部周度对齐（与出发前一天上午对接会冲突）",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_602",
+        "title": "国际会议本体（开幕论坛）",
+        "start_time": "2026-04-01T10:00:00+08:00",
+        "end_time": "2026-04-01T12:00:00+08:00",
+        "location": "迪拜会展中心（按当地时区）",
+        "organizer": "国际会议秘书处",
+        "attendees": [
+          "我",
+          "项目负责人A"
+        ],
+        "description": "日程确认：开幕论坛（邮件含“时区以当地为准”提示）",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_603",
+        "title": "出发前一天空窗",
+        "start_time": "2026-03-31T19:00:00+08:00",
+        "end_time": "2026-03-31T22:00:00+08:00",
+        "location": "",
+        "organizer": "",
+        "attendees": [],
+        "description": "晚间可用时间段",
+        "status": "free"
+      },
+      {
+        "event_id": "evt_604",
+        "title": "出发前一天晚餐安排（非关键）",
+        "start_time": "2026-03-31T18:00:00+08:00",
+        "end_time": "2026-03-31T18:45:00+08:00",
+        "location": "酒店大堂",
+        "organizer": "行政",
+        "attendees": [
+          "我"
+        ],
+        "description": "临时晚餐安排，不影响核心调整",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_605",
+        "title": "出发当天上午备用会议（干扰）",
+        "start_time": "2026-04-01T08:30:00+08:00",
+        "end_time": "2026-04-01T09:15:00+08:00",
+        "location": "本地-远程会议室",
+        "organizer": "运维团队",
+        "attendees": [
+          "我"
+        ],
+        "description": "例行同步（在国际会议本体之前结束）",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-501",
+        "name": "周澄",
+        "department": "广州分公司",
+        "title": "客户运营经理",
+        "email": "zhoucheng@gz-branch.com",
+        "phone": "13900190001",
+        "location": "广州",
+        "notes": "国内对接会联系人之一，负责会务与对口安排"
+      },
+      {
+        "contact_id": "CT-502",
+        "name": "孙琳",
+        "department": "广州分公司",
+        "title": "项目经理",
+        "email": "sunlin@gz-branch.com",
+        "phone": "13900190002",
+        "location": "广州",
+        "notes": "对接会流程对口，负责会前材料与签到"
+      },
+      {
+        "contact_id": "CT-503",
+        "name": "陈航",
+        "department": "广州分公司",
+        "title": "技术支持负责人",
+        "email": "chenhang@gz-branch.com",
+        "phone": "13900190003",
+        "location": "广州",
+        "notes": "国内技术协同联系人"
+      },
+      {
+        "contact_id": "CT-504",
+        "name": "龚敏",
+        "department": "北京总部",
+        "title": "战略合作负责人",
+        "email": "gongmin@company-bj.com",
+        "phone": "13900190004",
+        "location": "北京",
+        "notes": "非本次两地的干扰联系人"
+      },
+      {
+        "contact_id": "CT-505",
+        "name": "王旭",
+        "department": "上海办事处",
+        "title": "区域经理",
+        "email": "wangxu@company-sh.com",
+        "phone": "13900190005",
+        "location": "上海",
+        "notes": "干扰联系人"
+      },
+      {
+        "contact_id": "CT-506",
+        "name": "Farah Alvi",
+        "department": "Middle East Office",
+        "title": "International Program Coordinator",
+        "email": "farah.alvi@company-mena.com",
+        "phone": "+971501001006",
+        "location": "迪拜",
+        "notes": "国际会议对接联系人，负责当天签到与会场引导"
+      },
+      {
+        "contact_id": "CT-507",
+        "name": "Omar Rahman",
+        "department": "Middle East Office",
+        "title": "Operations Liaison",
+        "email": "omar.rahman@company-mena.com",
+        "phone": "+971501001007",
+        "location": "迪拜",
+        "notes": "国际会议现场协调人"
+      },
+      {
+        "contact_id": "CT-508",
+        "name": "Nadia Karim",
+        "department": "Middle East Office",
+        "title": "Guest Services Lead",
+        "email": "nadia.karim@company-mena.com",
+        "phone": "+971501001008",
+        "location": "迪拜",
+        "notes": "国际参会保障联系人"
+      },
+      {
+        "contact_id": "CT-509",
+        "name": "李娜",
+        "department": "深圳分公司",
+        "title": "支持工程师",
+        "email": "lina@company-sz.com",
+        "phone": "13900190009",
+        "location": "深圳",
+        "notes": "干扰联系人"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_601",
+        "from": "houston-office@vendor-partner.com",
+        "to": "me@company.com",
+        "subject": "【国内对接会】出发前一天上午必须本人参加（广州）",
+        "date": "2026-03-26T09:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "您好！我们将于【出发前一天上午】在广州召开国内对接会，地点：广州国际中心A座。此邀请明确写有“必须本人参加”。\n请您务必在该时段准时到场完成对接要点。\n联系人：周澄（广州）。"
+      },
+      {
+        "message_id": "msg_602",
+        "from": "conference-dubai@intlconf.org",
+        "to": "me@company.com",
+        "subject": "国际会议日程确认：4/1上午开幕论坛（时区以当地为准）",
+        "date": "2026-03-26T13:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "尊敬的参会同事，国际会议已确认您的日程：4月1日（上午）参加开幕论坛。\n邮件提示：时区以当地为准（迪拜）。请以日历时间为准检查您当天安排，确保准时参会。\n如需会场协助请联系迪拜办公室对接同事。"
+      },
+      {
+        "message_id": "msg_603",
+        "from": "speaker-bureau@intlconf.org",
+        "to": "me@company.com",
+        "subject": "议程提前流出：开幕论坛与主题演讲（不含具体行程时间）",
+        "date": "2026-03-26T16:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位同事好，以下为议程的提前版本：开幕论坛、主题演讲、圆桌讨论。\n本邮件不包含具体行程时间与日程安排，请忽略其中的时间缺失内容，仅供参考。"
+      },
+      {
+        "message_id": "msg_604",
+        "from": "it-support@company.com",
+        "to": "me@company.com",
+        "subject": "差旅设备检查提醒（行程时间请以日历为准）",
+        "date": "2026-03-26T18:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "出差前请检查会议所需设备：耳机、网线、充电器。无需回复。具体行程时间以日历安排为准。"
+      },
+      {
+        "message_id": "msg_605",
+        "from": "travel-desk@company.com",
+        "to": "me@company.com",
+        "subject": "出行信息已更新（仅通知）",
+        "date": "2026-03-27T08:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您的出行信息已更新，请在出发前一天再次确认。此通知不包含会议冲突信息。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新任务将冲突约束收敛到“出发前一天上午 vs. 内部同步会”以及“出发当天上午国际会议本体”，并通过出发前一天晚间空窗支持内部同步的重排/替代策略，同时保留“时区以当地为准”的干扰提示。",
+    "fixture_design_summary": [
+      "gmail：2封关键邮件（国内对接会明确“必须本人参加”、国际会议日程确认含时区干扰），1封议程流出干扰（无具体时间），外加2封纯通知干扰。",
+      "calendar：包含出发前一天上午 confirmed 的内部同步会（与国内对接会窗口冲突）、出发前一天晚上 free 空窗、出发当天上午 confirmed 的国际会议本体事件；另加一个出发当天更早的 confirmed 事件用于轻量干扰但不造成国际会议冲突。",
+      "contacts：国内对接会城市广州提供至少3个联系人；国际会议城市迪拜提供至少3个联系人；再补充其他城市1-2个干扰联系人，确保两地清单可分别覆盖。"
+    ]
+  }
+}

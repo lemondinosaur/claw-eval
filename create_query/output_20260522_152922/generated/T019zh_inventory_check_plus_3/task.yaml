@@ -1,0 +1,74 @@
+task_id: T019zh_inventory_check_plus_3
+task_name: Batch Category Compliance Restock
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T019zh_inventory_check_plus_3/fixtures/inventory/products.json
+prompt:
+  text: 请只关注“耗材”类别。找出其中库存（只以主销售仓位 primary_stock 为准）低于阈值，或基于“天数覆盖”判断即将触底的商品，并在遵守合规批次规则的前提下为需补货的商品下单：同一供应商在同一批次订单中最多包含3种不同商品；如果某供应商需要补的耗材种类超过3种，请拆分成多个批次订单。注意：存在干扰字段
+    secondary_stock，但不参与销售计算。对“min_stock_threshold 很高但 daily_avg_sales 极低”的情况，不要只看阈值，必须用天数覆盖判断是否真的需要下单。请给出补货订单及说明原因（体现为何仅耗材、为何用
+    primary_stock、以及天数覆盖/缺口计算逻辑）。
+  language: zh
+tools:
+- name: inventory_list_products
+  description: 获取商品库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: inventory_get_product
+  description: 获取单个商品的详细库存信息
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+    required:
+    - product_id
+- name: inventory_create_order
+  description: 创建补货订单
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+      quantity:
+        type: integer
+        description: 补货数量
+      supplier:
+        type: string
+        description: 供应商
+    required:
+    - product_id
+    - quantity
+tool_endpoints:
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: inventory_create_order
+  url: http://localhost:9108/inventory/orders/create
+  method: POST
+sandbox_files:
+- fixtures/inventory/products.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

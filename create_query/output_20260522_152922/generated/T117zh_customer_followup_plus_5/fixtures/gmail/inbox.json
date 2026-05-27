@@ -1,0 +1,122 @@
+[
+  {
+    "message_id": "m_801_01",
+    "from": "chenjd@beichen-ind.com",
+    "to": "ops@company.com",
+    "subject": "关于联系频率与数据使用的说明诉求",
+    "date": "2026-02-21T09:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "陈述一下我们的偏好：请不要频繁推送营销信息。若需要联系，请尽量合并成少量必要沟通。同时希望你们在处理我们的联系信息时，说明数据将如何被使用以及我们如何选择停止接收。谢谢。——陈总监"
+  },
+  {
+    "message_id": "m_802_01",
+    "from": "liwx@starline-cloud.cn",
+    "to": "ops@company.com",
+    "subject": "隐私合规与退订方式确认",
+    "date": "2026-03-02T16:35:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "为满足内部合规要求，我需要你们明确两点：1）如何处理/保存我们的联系信息；2）如未来不想接收推广，能否直接退订并更改联系偏好。请在回信中写清楚操作路径，最好包含步骤。——李女士"
+  },
+  {
+    "message_id": "m_803_01",
+    "from": "zhouyuan@seagull-hospital.cn",
+    "to": "ops@company.com",
+    "subject": "项目节点更新与下一步安排",
+    "date": "2026-03-03T11:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "院内目前正在推进数据对接的节点，请你们提供下一步的时间安排与需要的资料清单。我们希望沟通以项目为主。——周院长"
+  },
+  {
+    "message_id": "m_noise_batch_01",
+    "from": "newsletter@company-automation.com",
+    "to": "ops@company.com",
+    "subject": "我们为你提供最新消息（退订）",
+    "date": "2026-03-10T08:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "【群发模板】点击退订链接停止接收。此邮件为自动更新通知，与个人偏好无关。若不希望继续，请在页面选择关闭订阅。"
+  },
+  {
+    "message_id": "m_noise_batch_02",
+    "from": "support@company-automation.com",
+    "to": "ops@company.com",
+    "subject": "账户通知：可随时退订（批量）",
+    "date": "2026-03-15T14:45:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "【批量通知】如需停止接收营销邮件，请使用文中退订链接。我们会在你的选择后调整发送频率。"
+  },
+  {
+    "message_id": "m_noise_04",
+    "from": "sunmin@fanqiao-retail.com",
+    "to": "ops@company.com",
+    "subject": "关于上次会议材料补充",
+    "date": "2026-03-18T12:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "补充一下我们需要的材料格式：请按附件模板提供。谢谢。——孙经理"
+  },
+  {
+    "message_id": "m_noise_05",
+    "from": "zhaogy@yin-gangadvisory.com",
+    "to": "ops@company.com",
+    "subject": "（已结束）不再续用服务的确认",
+    "date": "2026-02-20T10:00:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "关于合作我们决定不再续用。请后续不要再联系。——赵顾问"
+  },
+  {
+    "message_id": "m_noise_06",
+    "from": "wug@qinghe-energy.com",
+    "to": "ops@company.com",
+    "subject": "近期沟通安排（未到25天）",
+    "date": "2026-03-08T09:00:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们本周有调整，等下次再对接。——吴工"
+  },
+  {
+    "message_id": "m_noise_extra_07",
+    "from": "ops@company.com",
+    "to": "chenjd@beichen-ind.com",
+    "subject": "回复：推进方式与下一步材料",
+    "date": "2026-02-19T18:20:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "收到，我们会合并信息再沟通，并在邮件中补充退订与数据处理说明。"
+  },
+  {
+    "message_id": "m_noise_extra_08",
+    "from": "starline-cloud.cn-team@company-automation.com",
+    "to": "ops@company.com",
+    "subject": "退订链接测试（非客户相关）",
+    "date": "2026-03-20T07:25:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "【测试邮件】包含退订链接字段，用于系统验证。正文不包含客户隐私/频率/退订偏好的具体表述。"
+  }
+]

@@ -1,0 +1,313 @@
+{
+  "task_id": "T141zh_sla_compliance_audit_plus_5",
+  "task_name": "SLA回放校验：历史差异与时区边界",
+  "prompt_text": "请帮我做一次SLA合规审查（历史回放校验，重点处理时区/时间格式边界）：\n\n1) 查看系统配置中的SLA响应时间规则（四级阈值，单位为分钟），并说明阈值口径。\n2) 检查回放窗口内工单的首次响应时间：对created_at与first_response_at的时间戳字符串进行严谨解析并统一到同一时间标准后计算响应时长，判定达标/超标；注意时间戳可能包含Z结尾或带偏移（如+08:00）。回放窗口跨日（如23:30到次日00:30），因此要指出“忽略时区会导致判断翻转”的临界风险工单，并解释翻转原因（至少点名2条）。\n3) 检查与“历史SLA回放/修正报表”相关的scheduler自动化任务运行状态，判断是否存在延迟/失败，解释该异常为何会影响回放结果；并结合配置中与“时间标准/时区解析集成”相关的异常状态给出根因线索。\n4) 输出SLA合规回放分析报告：\n- 达标/超标明细（列出ticket_id、响应时长、对应优先级阈值、判定结果）\n- 至少2条“若忽略时区将导致判断翻转”的工单，说明边界风险\n- 对first_response_at为null的工单标注“无法判定/回放缺失风险”\n- 给出改进建议（统一时间标准、解析校验、回放失败补偿/幂等与一致性复核）。\n\n注意：审查阶段不要关闭任何工单。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-G01",
+        "name": "SLA规则配置（四级阈值）",
+        "status": "active",
+        "config": {
+          "time_standard": "UTC",
+          "critical": {
+            "response_time_minutes": 45,
+            "resolution_time_hours": 6,
+            "escalation_after_minutes": 20
+          },
+          "high": {
+            "response_time_minutes": 180,
+            "resolution_time_hours": 10,
+            "escalation_after_minutes": 90
+          },
+          "medium": {
+            "response_time_minutes": 360,
+            "resolution_time_hours": 24,
+            "escalation_after_minutes": 180
+          },
+          "low": {
+            "response_time_minutes": 1440,
+            "resolution_time_hours": 72,
+            "escalation_after_minutes": 720
+          }
+        },
+        "service": "sla_policy",
+        "last_verified": "2026-04-02",
+        "monthly_calls": 0,
+        "error_rate": 0.0
+      },
+      {
+        "integration_id": "INT-G02",
+        "name": "时间标准/时区解析集成",
+        "status": "error",
+        "config": {
+          "parser_mode": "strict",
+          "expected_time_standard": "UTC",
+          "fallback_to_local_if_missing_offset": false
+        },
+        "error_message": "时区解析失败：字段缺失或无法从时间戳中识别偏移（例如缺少Z/+HH:MM）",
+        "service": "time_parser",
+        "last_verified": "2026-04-20",
+        "monthly_calls": 0,
+        "error_rate": 0.12
+      },
+      {
+        "integration_id": "INT-G03",
+        "name": "即时告警通知集成",
+        "status": "active",
+        "config": {
+          "url": "https://im.example.org/webhook/ops-alerts",
+          "channel": "#ops-sla"
+        },
+        "service": "webhook",
+        "last_verified": "2026-04-10",
+        "monthly_calls": 0,
+        "error_rate": 0.0
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-812",
+        "title": "登录服务会话刷新延迟",
+        "subject": "登录服务会话刷新延迟",
+        "customer_id": "CUS-880",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-21T23:45:00+08:00",
+        "first_response_at": "2026-04-21T16:19:00Z",
+        "assigned_to": "孙宁",
+        "category": "后端",
+        "description": "会话刷新偶发延迟，影响部分用户登录体验。",
+        "reporter": "孙宁",
+        "department": "后端"
+      },
+      {
+        "ticket_id": "TK-813",
+        "title": "工单回放接口偶发超时",
+        "subject": "工单回放接口偶发超时",
+        "customer_id": "CUS-881",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-21T23:30:00Z",
+        "first_response_at": "2026-04-22T02:05:00Z",
+        "assigned_to": "陈晨",
+        "category": "平台",
+        "description": "回放接口在高峰期返回超时错误。",
+        "reporter": "陈晨",
+        "department": "平台"
+      },
+      {
+        "ticket_id": "TK-814",
+        "title": "消息队列积压导致通知延迟",
+        "subject": "消息队列积压导致通知延迟",
+        "customer_id": "CUS-882",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-21T23:55:00+08:00",
+        "first_response_at": "2026-04-22T05:20:00+08:00",
+        "assigned_to": "周航",
+        "category": "运维",
+        "description": "队列积压严重，影响通知触达。",
+        "reporter": "周航",
+        "department": "运维"
+      },
+      {
+        "ticket_id": "TK-815",
+        "title": "SLA回放修正报表缺失字段",
+        "subject": "SLA回放修正报表缺失字段",
+        "customer_id": "CUS-883",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-21T23:30:00Z",
+        "first_response_at": "2026-04-22T00:14:00Z",
+        "assigned_to": "姚敏",
+        "category": "数据",
+        "description": "部分回放记录缺失时区字段，导致统计口径不一致。",
+        "reporter": "姚敏",
+        "department": "数据"
+      },
+      {
+        "ticket_id": "TK-816",
+        "title": "临界：忽略时区会翻转判定的工单",
+        "subject": "临界：忽略时区会翻转判定的工单",
+        "customer_id": "CUS-884",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-21T23:58:00+08:00",
+        "first_response_at": "2026-04-21T16:07:00Z",
+        "assigned_to": "郭涛",
+        "category": "后端",
+        "description": "首响时长处于阈值附近，时区解析错误会导致达标/超标翻转。",
+        "reporter": "郭涛",
+        "department": "后端"
+      },
+      {
+        "ticket_id": "TK-817",
+        "title": "内部：回放校验用例工单",
+        "subject": "内部：回放校验用例工单",
+        "customer_id": "internal",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-21T22:50:00+05:30",
+        "first_response_at": "2026-04-21T17:50:00Z",
+        "assigned_to": "内部机器人",
+        "category": "内部",
+        "description": "用于回放校验的内部用例数据。",
+        "reporter": "内部机器人",
+        "department": "内部",
+        "internal": true
+      },
+      {
+        "ticket_id": "TK-818",
+        "title": "临界：跨日边界导致的时间差风险",
+        "subject": "临界：跨日边界导致的时间差风险",
+        "customer_id": "CUS-885",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-21T23:25:00-00:00",
+        "first_response_at": "2026-04-22T02:20:00Z",
+        "assigned_to": "李淼",
+        "category": "平台",
+        "description": "时间戳在跨日边界附近，偏移解析错误会影响分钟级判定。",
+        "reporter": "李淼",
+        "department": "平台"
+      },
+      {
+        "ticket_id": "TK-819",
+        "title": "回放数据未写入：首响缺失",
+        "subject": "回放数据未写入：首响缺失",
+        "customer_id": "CUS-886",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-21T23:40:00+08:00",
+        "first_response_at": null,
+        "assigned_to": "王磊",
+        "category": "数据",
+        "description": "回放窗口内缺少first_response_at字段或写入失败。",
+        "reporter": "王磊",
+        "department": "数据"
+      },
+      {
+        "ticket_id": "TK-820",
+        "title": "明显超标：响应时间偏差",
+        "subject": "明显超标：响应时间偏差",
+        "customer_id": "CUS-887",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-21T23:10:00Z",
+        "first_response_at": "2026-04-22T01:40:00Z",
+        "assigned_to": "赵航",
+        "category": "后端",
+        "description": "首响明显延迟，疑似回放与解析口径不一致。",
+        "reporter": "赵航",
+        "department": "后端"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-G11",
+        "name": "历史SLA回放/修正报表",
+        "schedule": "*/10 * * * *",
+        "status": "failed",
+        "last_run": "2026-04-22T00:05:00Z",
+        "last_status": "failed",
+        "description": "定时回放历史工单SLA并生成修正报表（受时区解析影响）。",
+        "tags": [
+          "sla",
+          "replay",
+          "report"
+        ],
+        "failure_count": 3,
+        "first_failure": "2026-04-21T23:40:00Z",
+        "cron_expression": "*/10 * * * *",
+        "enabled": true,
+        "action": "历史SLA回放/修正报表：拉取回放窗口数据并计算响应时长",
+        "next_run": null,
+        "created_at": "2025-12-01T00:00:00Z",
+        "created_by": "system",
+        "error_message": "回放数据缺失或时区解析错误：INT-G02 时间偏移无法识别，导致部分记录跳过",
+        "execution_history": [
+          {
+            "run_at": "2026-04-21T23:50:00Z",
+            "status": "failed",
+            "duration_s": 85
+          },
+          {
+            "run_at": "2026-04-22T00:00:00Z",
+            "status": "failed",
+            "duration_s": 78
+          },
+          {
+            "run_at": "2026-04-22T00:05:00Z",
+            "status": "failed",
+            "duration_s": 92
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-G12",
+        "name": "每日SLA达标汇总（通知版）",
+        "schedule": "0 9 * * *",
+        "status": "enabled",
+        "last_run": "2026-04-22T09:00:00Z",
+        "last_status": "success",
+        "description": "每天9点生成前一天的SLA达标汇总并发送通知（仅用于告警/汇总，不回放修正）。",
+        "tags": [
+          "sla",
+          "alert"
+        ],
+        "failure_count": 0,
+        "first_failure": null,
+        "cron_expression": "0 9 * * *",
+        "enabled": true,
+        "action": "每日SLA达标汇总并通知",
+        "next_run": null,
+        "created_at": "2025-12-15T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-22T09:00:00Z",
+            "status": "success",
+            "duration_s": 66
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-G13",
+        "name": "例行数据备份",
+        "schedule": "30 2 * * *",
+        "status": "enabled",
+        "last_run": "2026-04-22T02:30:00Z",
+        "last_status": "success",
+        "description": "例行备份任务，与SLA回放无关（干扰项）。",
+        "tags": [
+          "backup"
+        ],
+        "failure_count": 0,
+        "first_failure": null,
+        "cron_expression": "30 2 * * *",
+        "enabled": true,
+        "action": "执行例行数据备份",
+        "next_run": null,
+        "created_at": "2025-10-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-22T02:30:00Z",
+            "status": "success",
+            "duration_s": 140
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题强调跨日窗口下对Z与带偏移时间戳进行统一时区归一的严谨校验，并将异常归因到“历史SLA回放/时区解析集成”而非单纯阈值计算。",
+    "fixture_design_summary": [
+      "integrations.json 新增INT-G01四级阈值（分钟）并声明time_standard=UTC，同时INT-G02以error形式提供时区解析失败线索。",
+      "tickets.json 构造9条回放相关工单，覆盖：UTC（Z）、带+08:00、带+05:30、带-00:00等时间戳格式；包含internal工单与first_response_at为null工单。",
+      "在跨日边界附近放置至少两条critical/high临界工单，使若忽略时区会出现达标/超标翻转风险。",
+      "scheduler/jobs.json 设置JOB-G11 last_status=failed且error_message指向回放数据缺失或时区解析错误；同时加入成功的干扰任务用于区分告警与回放失败影响。"
+    ]
+  }
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "article_id": "pm95_101",
+    "title": "Lightstep：端到端可观测与OTel采集取向",
+    "content": "Lightstep 强调端到端可观测与故障分析闭环。其架构取向偏向可标准化采集：支持将分布式追踪与指标/日志在同一语义层进行关联，并鼓励使用开放标准采集管道以降低接入摩擦。工程侧的差异点在于：把追踪上下游的上下文归一化，帮助团队在CI/CD与发布节奏中持续验证服务行为。定价通常与采集与保留相关（如每单位摄入数据/每月保留规模），并在不同套餐中区分告警与分析能力。对希望扩展追踪覆盖面、同时关注“成本随数据增长而如何线性”的团队更友好。",
+    "category": "market_research",
+    "last_updated": "2026-03-10",
+    "views": 64,
+    "tags": [
+      "OTel",
+      "tracing",
+      "pricing",
+      "workflow",
+      "engineering"
+    ]
+  },
+  {
+    "article_id": "pm95_102",
+    "title": "Elastic APM：统一可观测与弹性集群计费思路",
+    "content": "Elastic 在可观测领域以统一平台能力著称，强调将指标、日志与追踪通过同一索引与检索体系关联，便于工程团队在同一工作台完成调查与回归。其平台整合能力偏强：可把仪表盘与检索/告警编排放进团队常用的工程流程，降低跨系统切换。与OpenTelemetry相关的取向体现在：倾向于与开放采集端形成兼容的摄入管道，并把数据标准化到平台内部的统一模型中。常见定价维度主要围绕部署与使用（例如基于订阅/集群规模与功能等级），同时会通过数据存储与处理成本影响总体开销；扩展资源时成本效率需要被团队主动治理。",
+    "category": "market_research",
+    "last_updated": "2026-03-11",
+    "views": 102,
+    "tags": [
+      "Elastic",
+      "OpenTelemetry",
+      "dashboards",
+      "pricing",
+      "integration"
+    ]
+  },
+  {
+    "article_id": "pm95_103",
+    "title": "Grafana + LGTM：开源路线、OTel友好与可扩展可视化",
+    "content": "Grafana Labs 的差异化来自开源生态与LGTM路线的融合：用可扩展的可视化与仪表盘框架承载指标/日志/链路，并将“数据源与可视化解耦”，让工程团队可按需替换后端与扩展插件。其与OpenTelemetry相关的取向是：把OTel作为标准遥测采集的关键路径之一，并支持将OTel生成的指标/日志/追踪在平台侧进行统一展示与关联分析。工作流整合能力体现在：仪表盘可作为持续交付的可视化验收界面，告警与面板编排可被脚本化与版本化。定价通常不是单一维度封死，而是按云计划/企业支持与能力打包（例如托管服务、权限、安全、支持与升级），同时把“采集与存储规模”更多留给工程侧治理。",
+    "category": "market_research",
+    "last_updated": "2026-03-12",
+    "views": 140,
+    "tags": [
+      "Grafana",
+      "LGTM",
+      "OpenTelemetry",
+      "open-source",
+      "pricing",
+      "workflows"
+    ]
+  },
+  {
+    "article_id": "pm95_104",
+    "title": "Tempo/Loki生态与自建可维护性：以CI/CD为中心的OTel管道",
+    "content": "围绕 Grafana 生态的自建方案通常以“工程可维护”为核心：将采集、存储、查询与可视化拆分为模块，便于团队在CI/CD中实现配置即代码，并在灰度发布时验证可观测覆盖。与OpenTelemetry相关的架构取向是：OTel采集管道作为遥测进入系统的统一接口，把跨环境的追踪/指标/日志语义对齐在一套模型里，再由后端实现弹性存储与查询。仪表盘与工作流能力偏向可扩展：面板与告警可以按版本发布，并支持与工程发布节奏联动。定价维度通常更偏基础设施与运维：对象存储、计算资源、查询成本以及企业支持（如需要托管时），从而使“成本随覆盖面增长如何变化”更可解释，但需要团队具备平台运维能力。",
+    "category": "market_research",
+    "last_updated": "2026-03-13",
+    "views": 91,
+    "tags": [
+      "OTel",
+      "Loki",
+      "Tempo",
+      "open-source",
+      "dashboards",
+      "pricing"
+    ]
+  },
+  {
+    "article_id": "pm95_105",
+    "title": "New Relic：平台化使用与数据摄入驱动的计费维度",
+    "content": "New Relic 强调统一平台体验与面向应用团队的调查工作流。其平台整合能力体现在：把追踪、指标与日志的上下文以“单一操作路径”呈现，支持从告警到根因分析的快速跳转，减少工程团队在多个系统之间来回切换。关于OpenTelemetry的相关取向：倾向于与开放标准采集路径兼容，使遥测在平台侧可被纳入一致的分析模型，从而降低接入锁定风险。定价模式常见以使用量驱动，包括数据摄入/保留、以及与席位或用户相关的功能开通（不同套餐覆盖告警、自动化分析或数据保留深度）。因此对“覆盖面逐步扩大、但成本效率要跟得上”的团队，需评估其计费维度与工程扩展是否线性。",
+    "category": "market_research",
+    "last_updated": "2026-03-14",
+    "views": 73,
+    "tags": [
+      "New Relic",
+      "OpenTelemetry",
+      "workflow",
+      "pricing",
+      "telemetry"
+    ]
+  },
+  {
+    "article_id": "pm95_106",
+    "title": "Splunk Observability：企业集成与高数据量治理",
+    "content": "Splunk Observability 在大企业中常见优势是与现有企业平台/安全与日志体系的集成能力，便于组织级统一管理。其仪表盘与工作流能力强调企业级运营：可把告警、报告与跨域分析纳入统一治理流程。与OpenTelemetry相关的取向体现在：支持在平台内部对标准遥测进行摄入与归一化，从而让不同数据源更容易被纳入同一视图与策略。定价通常与数据量（摄入、处理或存储）及企业级打包相关，且在高数据量场景需要重点关注成本治理（例如按组织/环境控制摄入策略）。对工程自治团队而言，关键在于其计费维度能否与“工程扩展覆盖面”保持可预测的增长曲线，并允许通过配置把成本与价值对齐。",
+    "category": "market_research",
+    "last_updated": "2026-03-15",
+    "views": 86,
+    "tags": [
+      "Splunk",
+      "OpenTelemetry",
+      "enterprise",
+      "pricing",
+      "governance"
+    ]
+  },
+  {
+    "article_id": "pm95_200",
+    "title": "市场趋势：OTel标准化、平台整合与AI/工作流自动化",
+    "content": "近一年市场趋势包括：第一，OpenTelemetry持续成为跨厂商遥测与统一语义的“采集标准”，降低切换成本并推动观测平台从单点工具走向协议/管道驱动。第二，可观测平台越来越强调跨指标、日志、追踪与安全上下文的整合，并把仪表盘从静态展示升级为“可操作工作流”（告警到工单、从CI/CD到发布回归）。第三，AI辅助根因分析与告警降噪被更紧密地嵌入到工程流程中，形成自动化处置建议；同时买家对消费型计费更敏感，要求计费维度与扩展覆盖面（摄入/存储/查询/席位）形成可预测的成本效率，并可通过治理策略实现弹性。",
+    "category": "market_research",
+    "last_updated": "2026-03-16",
+    "views": 155,
+    "tags": [
+      "market trends",
+      "OpenTelemetry",
+      "AI",
+      "platform consolidation",
+      "workflow automation",
+      "pricing efficiency"
+    ]
+  }
+]

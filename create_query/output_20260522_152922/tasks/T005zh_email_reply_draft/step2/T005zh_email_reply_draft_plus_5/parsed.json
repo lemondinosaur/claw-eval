@@ -1,0 +1,129 @@
+{
+  "task_id": "T005zh_email_reply_draft_plus_5",
+  "task_name": "活动供应商报价异议与再谈判草稿",
+  "prompt_text": "请查看收件箱中与“活动供应商报价/异议/再谈判/更新报价单/会议时间”相关的邮件：筛出两封关键邮件并分别起草回复，保存为草稿即可，不要发送。\n\n需要你起草两封不同业务链的回复草稿：\n1）对客户经理：先解释我们对其“报价偏高”的疑问与报价构成（引用对方邮件里提到的构成维度），再说明哪些部分我们愿意调整/优化（方向性承诺即可，不要编造具体价格），最后从对方提供的两个电话时间偏好里选一个建议，并提出后续再谈判会议后的行动与交付截止。\n2）对供应商：确认我们将提供哪些“必须满足的规格与排除项”来支持其修改报价，并复述其要求的更新报价单提交截止时间；强调我们希望其在截止前提交更新版报价单。\n\n只要保存草稿，不调用发送功能。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_201",
+        "from": "client.pm@horizonholdings.com",
+        "to": "user@company.com",
+        "subject": "Re: 活动供应商报价偏高 - 希望解释构成并安排沟通",
+        "body": "你好，\n\n我们收到贵司/你方转交的活动供应商报价后发现金额偏高。请你帮我们解释清楚报价是怎么构成的，并指出有哪些调整点是可行的。\n\n我希望重点看到报价维度：\n- 场地\n- 人员与执行\n- 物料与搭建\n- 交通与保险（如有）\n\n另外我们想安排一个15-30分钟电话沟通（只需择一时间即可）。两个时间偏好如下：\n1）周三14:00-15:00\n2）周四10:30-12:00\n\n请你在回复中给出你建议的电话时间，并说明你们愿意从哪些方面优化报价（比如减少人天/调整包含范围等方向）。\n\n谢谢，\n张经理 | Horizon Holdings",
+        "date": "2026-03-03T01:12:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_202",
+        "from": "sales@aurorapartners.cn",
+        "to": "user@company.com",
+        "subject": "关于更新报价单的确认：必须满足规格与排除项 + 截止时间",
+        "body": "您好，\n\n我们可以配合调整方案并出具更新版报价单。但需要你们方明确以下信息，以便我们按要求修改：\n\n1）必须满足规格（Must-have）：\n- 演出/展示部分的关键交付项\n- 现场安全与合规要求\n\n2）排除项（Exclusion）：\n- 需要排除不包含的内容范围\n\n请你方确认：你们希望我们依据哪些“必须满足规格与排除项”来重新核算。\n\n同时，为了我们内部流程，请务必在【明天17:00前】回复并确认，我们才能在截止前提交更新报价单。\n\n谢谢！\n李商务 | Aurora Partners",
+        "date": "2026-03-03T04:40:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_203",
+        "from": "finance@company.com",
+        "to": "user@company.com",
+        "subject": "月度费用明细（3月） - 供审核",
+        "body": "各位同事：\n\n本月费用明细已更新，请在系统中核对以下科目：差旅、采购、服务外包等。\n\n无需回复，感谢配合。\n\n—— 财务部",
+        "date": "2026-03-02T22:05:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_204",
+        "from": "news@company.com",
+        "to": "all-staff@company.com",
+        "subject": "关于春季活动报名的宣传通知（群发）",
+        "body": "大家好：\n\n春季活动报名通道已开启，详情请见群内公告。\n\n—— 市场部",
+        "date": "2026-03-02T11:30:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_205",
+        "from": "security-alerts@monitoring.internal",
+        "to": "user@company.com",
+        "subject": "[系统告警] 登录失败次数过多",
+        "body": "告警：\n\n检测到用户在短时间内多次登录失败。\n\n建议：检查账号状态与访问策略。\n\n—— 安全监控",
+        "date": "2026-03-03T00:30:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_206",
+        "from": "ops-team@company.com",
+        "to": "user@company.com",
+        "subject": "Re: 上周活动执行复盘（不涉及报价）",
+        "body": "你好，\n\n上周活动复盘文档已整理：重点包括动线优化、舞台灯光节奏与现场补给流程。\n\n如需进一步讨论请直接在群里@我。\n\n—— 运维团队",
+        "date": "2026-03-02T16:08:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_207",
+        "from": "client.ops@horizonholdings.com",
+        "to": "user@company.com",
+        "subject": "需求确认：活动日期与人数（非报价谈判）",
+        "body": "你好，\n\n为便于供应商排期：活动预计在4月中旬，预计到场人数约280人。\n\n以上信息已确认，不涉及报价讨论。\n\n谢谢，\n赵负责人 | Horizon Holdings",
+        "date": "2026-03-02T03:55:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_208",
+        "from": "procurement@horizonholdings.com",
+        "to": "user@company.com",
+        "subject": "跟进：供应商报价已收到（尚未谈判）",
+        "body": "你好，\n\n我们已经收到供应商的初版报价单。当前仍在内部评估阶段，可能会提出调整点。\n\n先别回复供应商，等我们确认谈判范围后再安排。\n\n—— 采购同事",
+        "date": "2026-03-03T06:15:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_209",
+        "from": "partner@aurorapartners.cn",
+        "to": "user@company.com",
+        "subject": "转发：上次活动报价版本存档（没有截止信息）",
+        "body": "您好，\n\n这里是上次活动报价版本存档，供你们参考。\n\n如有进一步修改需求请告诉我们。\n\n—— Aurora Partners",
+        "date": "2026-03-01T09:20:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题聚焦客户对活动供应商报价的异议与再谈判，并要求分别草拟客户回信与供应商回信（含会议时间偏好与更新报价截止承诺）。",
+    "fixture_design_summary": [
+      "fixtures/gmail/inbox.json 共9封，包含2封目标邮件：客户异议（含两段电话时间偏好与报价构成维度）+ 供应商要求回传“必须满足规格/排除项”并在“明天17:00前”前提交更新报价单。",
+      "其余5封干扰邮件覆盖月度财务明细、群发宣传、系统告警、活动复盘（不涉及报价）、非谈判的需求确认。",
+      "再额外加入2封半相关邮件与“报价”但缺少谈判关键要素：一封仅称已收到报价且未建议谈判；一封仅转发报价存档且没有截止时间。",
+      "确保目标邮件正文包含：报价构成维度、客户的两个电话时间偏好、供应商的截止时间与必须满足规格/排除项字段，以支撑生成两封草稿但不发送。"
+    ]
+  }
+}

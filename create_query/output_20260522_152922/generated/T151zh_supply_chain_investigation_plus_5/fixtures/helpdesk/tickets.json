@@ -1,0 +1,167 @@
+[
+  {
+    "ticket_id": "TK-2101",
+    "title": "海外订单M-883 模块清关未放行导致延迟",
+    "description": "客户：艾尔达电子（CUS-2201）莫总反映海外交付M-883已下单约2周。订单包含模块HXM-16 与模块BYP-10。客户反馈最新物流信息显示“跨境清关未放行”，且我方客服多次仅能回复“预计放行后发出”，目前仍未到港。请追查根因并给出预计到货节奏。",
+    "customer_id": "CUS-2201",
+    "reporter": "莫总",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-26T10:10:00Z",
+    "tags": [
+      "海外交付",
+      "清关未放行",
+      "模块延迟"
+    ],
+    "category": "订单问题"
+  },
+  {
+    "ticket_id": "TK-2102",
+    "title": "海外订单M-884 文件补充中：模块BYP-10 等待放行",
+    "description": "客户：北极星科技（CUS-2202）林工反馈海外交付M-884延后。涉及模块BYP-10（数量12）与模块PWR-7（数量6）。当前状态为“文件补充中/清关资料待补正”，要求我们提供更细的到货时间与补救路径（至少分阶段）。",
+    "customer_id": "CUS-2202",
+    "reporter": "林工",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-27T09:40:00Z",
+    "tags": [
+      "海外交付",
+      "文件补充中",
+      "清关延迟"
+    ],
+    "category": "订单问题"
+  },
+  {
+    "ticket_id": "TK-2103",
+    "title": "海外订单M-885 模块HXM-16 在途冻结（待清关放行）",
+    "description": "客户：枫桥贸易（CUS-2203）周经理称海外订单M-885包含模块HXM-16与连接件ASM-3。海运段显示“在途冻结/等待海关放行”，预计发运日期已多次变更。希望我们说明：为何同一批模块在不同订单中都被卡住，以及是否存在替代发货方案。",
+    "customer_id": "CUS-2203",
+    "reporter": "周经理",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "in_progress",
+    "created_at": "2026-03-27T16:20:00Z",
+    "tags": [
+      "海外交付",
+      "在途冻结",
+      "模块HXM-16"
+    ],
+    "category": "订单问题"
+  },
+  {
+    "ticket_id": "TK-2104",
+    "title": "海外交付M-886：合规资料需补正，否则不发（模块PWR-7）",
+    "description": "客户：海鸥集成（CUS-2204）孙总反馈海外交付M-886超期。客服收到供应商提示：合规资料需补正，否则不发。涉及模块PWR-7与模块BYP-10。请尽快确认合规文件清单与责任链条，并更新客户承诺时间。",
+    "customer_id": "CUS-2204",
+    "reporter": "孙总",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-28T08:05:00Z",
+    "tags": [
+      "海外交付",
+      "合规文件",
+      "清关失败后补正"
+    ],
+    "category": "订单问题"
+  },
+  {
+    "ticket_id": "TK-2105",
+    "title": "本地门店装配预约延迟：不涉及海外模块供应",
+    "description": "客户：泉州智造门店（CUS-2205）张店长反馈门店装配预约排期延后，需重新安排上门装配时间。该工单不包含海外清关/模块批次线索，仅为现场预约变更。",
+    "customer_id": "CUS-2205",
+    "reporter": "张店长",
+    "department": "运营支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-28T14:30:00Z",
+    "tags": [
+      "本地装配",
+      "预约延迟"
+    ],
+    "category": "运营问题"
+  },
+  {
+    "ticket_id": "TK-2106",
+    "title": "售后排班延迟：零件到店时间调整",
+    "description": "客户：逸航服务（CUS-2206）曹主管反馈售后排班延迟，相关零件到店时间需要顺延。该工单未提及跨境清关、合规文件或在途冻结字样。",
+    "customer_id": "CUS-2206",
+    "reporter": "曹主管",
+    "department": "售后服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-29T11:15:00Z",
+    "tags": [
+      "售后排班",
+      "零件到店"
+    ],
+    "category": "售后问题"
+  },
+  {
+    "ticket_id": "TK-2107",
+    "title": "海外订单M-882 运输异常（需排除本地干扰）",
+    "description": "客户：珊瑚云计算（CUS-2201）向我们确认：订单M-882出现运输异常但客服未能说明具体卡点。请结合库存/财务/CRM判断是否仍属于跨境清关未放行链路。",
+    "customer_id": "CUS-2201",
+    "reporter": "客服专员",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-29T18:00:00Z",
+    "tags": [
+      "海外交付",
+      "运输异常"
+    ],
+    "category": "订单问题"
+  },
+  {
+    "ticket_id": "TK-2108",
+    "title": "海外订单M-870（干扰）：预计本地仓库装配延迟",
+    "description": "客户：北极星科技（CUS-2202）提出预计交付拖延，但描述为“本地仓库装配预约延迟”，未出现清关/文件补充关键词。请注意与海外清关滞留区分。",
+    "customer_id": "CUS-2202",
+    "reporter": "林工",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "closed",
+    "created_at": "2026-03-20T12:00:00Z",
+    "tags": [
+      "本地仓库装配",
+      "预约延迟"
+    ],
+    "category": "订单问题"
+  },
+  {
+    "ticket_id": "TK-2109",
+    "title": "海外订单M-887：清关资料补正失败后仍在等待",
+    "description": "客户：枫桥贸易（CUS-2203）补充：海关要求补正的资料在上一轮提交后仍被退回（补正失败），因此模块仍处“待清关放行”。涉及模块BYP-10。",
+    "customer_id": "CUS-2203",
+    "reporter": "周经理",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-30T09:25:00Z",
+    "tags": [
+      "海外交付",
+      "补正失败",
+      "清关等待"
+    ],
+    "category": "订单问题"
+  },
+  {
+    "ticket_id": "TK-2110",
+    "title": "海外订单M-888 模块短缺但非跨境链路（干扰）",
+    "description": "客户：海鸥集成（CUS-2204）反馈部分模块短缺，但本次供应链说明为“本地产能排期调整”，没有清关/文件补充/在途冻结关键词。用于干扰核查。",
+    "customer_id": "CUS-2204",
+    "reporter": "孙总",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-30T16:45:00Z",
+    "tags": [
+      "本地产能排期",
+      "短缺"
+    ],
+    "category": "订单问题"
+  }
+]

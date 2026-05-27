@@ -1,0 +1,185 @@
+task_id: T133zh_competitive_intelligence_plus_5
+task_name: Customer Adoption Momentum（竞品采用动能）
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/articles
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T133zh_competitive_intelligence_plus_5/fixtures/rss/feeds.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T133zh_competitive_intelligence_plus_5/fixtures/kb/articles.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T133zh_competitive_intelligence_plus_5/fixtures/gmail/inbox.json
+prompt:
+  text: "请为客户成功团队整理竞品采用/增长动能情报报告（不发送，仅保存草稿）。\n\n任务要求：\n1）先读取收件箱邮件，找出客户提到的“采用阻碍/流失原因”、以及需要关注的用户画像与触发条件；\n\
+    2）从RSS收集竞品A与竞品B最近与“用户增长、激活、续费、渠道合作、客户案例、模板/导入/培训上手”相关的动态（严格限制为竞品A/B相关）；\n3）在知识库中检索我们对竞品A/B“用户采用模型/常见痛点”的历史分析，结合RSS证据进行更新与修正；\n\
+    4）输出报告：\n   - 竞品A的用户采用动能分析（他们如何让用户更快看到价值：流程、材料/模板、关键激活步骤与证据）；\n   - 竞品B的用户增长策略分析（他们如何通过渠道/合作与交付上手推动增长：流程、培训/上手营、案例维度与证据）；\n\
+    \   - 对我司的改进建议：包括可复制/替代的激活路径、成功交付里程碑、续费话术与客户成功材料清单；\n5）保存邮件草稿（不发送）：收件人 fixed 为\
+    \ cs_head@ourcompany.com，主题需包含“采用动能”。\n\n注意：不要调用发送接口（只允许保存草稿）。"
+  language: zh
+tools:
+- name: rss_list_articles
+  description: 获取RSS文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_name:
+        type: string
+        description: 按RSS源筛选
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

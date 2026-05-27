@@ -1,0 +1,473 @@
+{
+  "task_id": "T041zh_scheduled_task_management_plus_1",
+  "task_name": "依赖失败与补偿修复",
+  "prompt_text": "请在生产调度审计窗口内审计并修复系统定时任务。调度器当前共有12个任务：其中至少2个任务最近连续失败且错误均指向“上游服务返回 502/超时”；至少1个任务属于依赖补偿链条但被误关闭（enabled=false 且 next_run=null）；另有1个任务因 cron 与数据写入资源冲突导致偶发失败（错误包含“写入锁冲突/duplicate key”）。\n\n请按以下流程完成：\n1) 列出所有任务并定位失败与异常：对连续失败的任务逐个获取详情与执行历史，提取连续失败次数与错误要点。\n2) 基于知识库执行归因与修复：针对依赖类失败，查找“依赖故障/连续失败通知规则/依赖问题分流与补偿链启用建议”，给出根因归因（上游依赖异常导致）并执行自动修复（重启/启用/调整重试节奏或调度窗口，按指南选择）。\n3) 对被误禁用且属于补偿链条的任务，使用更新操作重新启用，并确保其下一次调度恢复。\n4) 对写入锁冲突的偶发失败任务，按知识库“错峰规则”调整 cron_expression，使其与冲突窗口错开至少10分钟。\n5) 对需要人工介入的依赖问题，使用邮件通知运维；邮件需包含任务名称、失败时间范围要点、根因要点与建议。\n6) 最后输出定时任务健康报告：按任务列出状态、根因、采取的操作（启用/调度调整/通知）与后续观察建议，并总结整体风险。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_ops_3307",
+        "from": "alarm.coordinator@prod-ops.example.com",
+        "to": "me@company.com",
+        "subject": "关于依赖异常时间线的跟踪说明（含误导点）",
+        "date": "2026-03-01T06:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位好，\n\n我们在凌晨开始观察到依赖侧波动：从 03:10 左右出现上游接口 502/超时，随后部分定时任务连续失败。\n\n但我这边一开始的判断有偏差：我认为是磁盘/存储压力触发的（此处仅供参考，可能不准确）。\n\n请你们以任务执行历史中的报错为准，完成依赖故障排查与必要的补偿链启用/调度错峰；对需要人工确认的依赖问题，麻烦通知运维跟进。\n\n— 告警协调人\nalarm.coordinator@prod-ops.example.com"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-701",
+        "title": "依赖服务异常：连续失败处理与通知规则",
+        "category": "故障排查",
+        "tags": [
+          "依赖",
+          "502",
+          "timeout",
+          "连续失败",
+          "通知"
+        ],
+        "content": "# 依赖服务异常：连续失败处理与通知规则\n\n## 触发条件\n- 连续失败达到 3 次及以上时，必须触发人工关注或至少发送运维通知。\n- 若错误包含“上游 502/超时/Bad Gateway”，通常属于依赖侧故障或网络链路波动。\n\n## 自动化修复建议（可尝试）\n1. 将任务短时重启/重新拉起执行（以调度层面的重新触发为准）。\n2. 若任务支持补偿链条：确保补偿链条相关任务处于 enabled=true。\n3. 调整重试节奏：将下一次运行时间向后推移至少 10 分钟，并减少同一上游依赖的并发聚集（通过错开 cron 或调整窗口）。\n\n## 需要人工介入的场景\n- 若知识库同时提示“需要确认上游是否恢复”，则必须发邮件给运维：说明任务名、连续失败次数与错误要点。\n\n## 通知模板要点\n邮件正文建议包含：任务名、连续失败次数、最近失败时间点、错误关键字（如 502/timeout）、初步根因归因（上游依赖异常）与建议的下一步动作。",
+        "last_updated": "2026-03-01",
+        "views": 120
+      },
+      {
+        "article_id": "KB-702",
+        "title": "补偿链条任务启用策略（依赖故障后的恢复）",
+        "category": "运维规范",
+        "tags": [
+          "补偿链",
+          "enabled",
+          "next_run",
+          "恢复策略"
+        ],
+        "content": "# 补偿链条任务启用策略（依赖故障后的恢复）\n\n## 背景\n当主链路因依赖服务异常失败时，补偿链条任务用于恢复或补齐数据。\n\n## 启用判断\n- 若某补偿链条任务满足：\n  - 属于补偿链条（任务名称/标签命中 compensation 或 compensation_chain）\n  - 且 enabled=false 且 next_run=null\n  - 并且与失败主任务处于同一依赖故障窗口\n  => 应重新启用（enabled=true），并恢复其 next_run。\n\n## 恢复方式\n- 优先保持 cron_expression 不变，仅将 enabled 从 false 改为 true。\n- 若指南要求错峰：在开启后将 cron_expression 向后错开至少 10 分钟，避免与上游依赖并发峰值重合。\n\n## 记录要点\n对启用操作应写入健康报告：被误禁用原因（若有）、启用时间点、对应依赖故障窗口与风险说明。",
+        "last_updated": "2026-02-28",
+        "views": 89
+      },
+      {
+        "article_id": "KB-703",
+        "title": "写入锁冲突与 duplicate key：错峰与参数调整规范",
+        "category": "故障排查",
+        "tags": [
+          "写入锁冲突",
+          "duplicate key",
+          "错峰",
+          "cron"
+        ],
+        "content": "# 写入锁冲突与 duplicate key：错峰与参数调整规范\n\n## 常见错误特征\n- 报错包含“写入锁冲突”或“duplicate key”且为偶发。\n- 多个写入型任务在相同资源窗口运行，导致竞争。\n\n## 调度错峰规则（必须）\n- 对同一目标资源/同一写入模型：至少错开 10 分钟。\n- 若无法确认资源粒度：默认按 cron 表示的整分钟窗口错开。\n\n## 调整建议\n- 将冲突任务的 cron_expression 调整为错开窗口（向后偏移 10~20 分钟）。\n- 保持任务 action 不变，先降低并发，再观察历史是否仍出现 duplicate key。\n\n## 验证\n- 修改后至少观察 2 个调度周期的执行历史，若错误率下降视为修复成功。\n",
+        "last_updated": "2026-02-27",
+        "views": 74
+      },
+      {
+        "article_id": "KB-704",
+        "title": "依赖故障分流：从错误关键字到处置动作",
+        "category": "运维规范",
+        "tags": [
+          "分流",
+          "错误归因",
+          "动作选择"
+        ],
+        "content": "# 依赖故障分流：从错误关键字到处置动作\n\n## 错误归因要点\n- 包含“上游 502/超时”：优先归因到依赖服务异常，不直接判断为磁盘问题。\n- 包含“写入锁冲突/duplicate key”：归因到写入资源竞争与调度重叠。\n\n## 动作选择\n- 依赖类：尝试重试节奏调整、确保补偿链启用；连续失败达到阈值时通知运维。\n- 补偿链：enabled=false 且 next_run=null 时优先启用恢复。\n- 冲突类：调整 cron_expression 错峰。\n\n## 注意\n如果邮件/公告给出与错误不一致的归因（例如把依赖问题归因到磁盘），需以执行历史中错误关键字为准。",
+        "last_updated": "2026-03-01",
+        "views": 51
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-401",
+        "name": "report_ingest_dependency",
+        "cron_expression": "0 6 * * *",
+        "action": "从上游依赖拉取报表增量并写入报表服务",
+        "enabled": true,
+        "last_run": "2026-03-01T06:00:00+08:00",
+        "next_run": "2026-03-02T06:00:00+08:00",
+        "last_status": "failed",
+        "error": "依赖调用失败：上游网关返回 502 Bad Gateway（拉取报表增量超时后中止）",
+        "created_by": "prod_scheduler",
+        "tags": [
+          "dependency",
+          "report",
+          "ingest"
+        ],
+        "created_at": "2025-10-03T09:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T06:00:00+08:00",
+            "status": "failed",
+            "error": "依赖调用失败：上游网关返回 502 Bad Gateway（拉取报表增量超时后中止）",
+            "duration_seconds": 41
+          },
+          {
+            "run_time": "2026-02-28T06:00:00+08:00",
+            "status": "failed",
+            "error": "依赖调用失败：上游网关返回 502 Bad Gateway（连接超时）",
+            "duration_seconds": 38
+          },
+          {
+            "run_time": "2026-02-27T06:00:00+08:00",
+            "status": "failed",
+            "error": "依赖调用失败：上游网关返回 502 Bad Gateway（读取响应超时）",
+            "duration_seconds": 45
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-402",
+        "name": "billing_reconcile_dependency",
+        "cron_expression": "15 6 * * *",
+        "action": "对账任务：依赖上游结算接口数据并执行差异修复",
+        "enabled": true,
+        "last_run": "2026-03-01T06:15:00+08:00",
+        "next_run": "2026-03-02T06:15:00+08:00",
+        "last_status": "failed",
+        "error": "依赖服务超时：上游结算 API timeout，重试耗尽",
+        "created_by": "finops",
+        "tags": [
+          "dependency",
+          "reconcile",
+          "billing"
+        ],
+        "created_at": "2025-11-17T16:20:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T06:15:00+08:00",
+            "status": "failed",
+            "error": "依赖服务超时：上游结算 API timeout，重试耗尽",
+            "duration_seconds": 93
+          },
+          {
+            "run_time": "2026-02-28T06:15:00+08:00",
+            "status": "failed",
+            "error": "依赖服务超时：上游结算 API timeout，重试耗尽",
+            "duration_seconds": 88
+          },
+          {
+            "run_time": "2026-02-27T06:15:00+08:00",
+            "status": "failed",
+            "error": "依赖服务超时：上游结算 API timeout，重试耗尽",
+            "duration_seconds": 90
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-403",
+        "name": "compensation_chain_repair",
+        "cron_expression": "10 7 * * *",
+        "action": "依赖异常后的补偿链条：修复缺失明细与回填状态",
+        "enabled": false,
+        "last_run": "2026-02-29T07:10:00+08:00",
+        "next_run": null,
+        "last_status": "failed",
+        "error": "任务被禁用，未执行补偿链条",
+        "last_disable_reason": "误操作：将补偿链条任务关闭但未恢复",
+        "created_by": "ops_delegate",
+        "tags": [
+          "compensation",
+          "compensation_chain",
+          "repair"
+        ],
+        "created_at": "2025-12-20T11:35:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-29T07:10:00+08:00",
+            "status": "failed",
+            "error": "任务被禁用，未执行补偿链条",
+            "duration_seconds": 0
+          },
+          {
+            "run_time": "2026-02-28T07:10:00+08:00",
+            "status": "success",
+            "duration_seconds": 214
+          },
+          {
+            "run_time": "2026-02-27T07:10:00+08:00",
+            "status": "success",
+            "duration_seconds": 206
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-404",
+        "name": "resource_write_sync_a",
+        "cron_expression": "*/20 * * * *",
+        "action": "写入资源同步 A：向 target_resource 写入批次记录",
+        "enabled": true,
+        "last_run": "2026-03-01T06:40:00+08:00",
+        "next_run": "2026-03-01T07:00:00+08:00",
+        "last_status": "success",
+        "created_by": "dataflow",
+        "tags": [
+          "sync",
+          "write",
+          "target_resource"
+        ],
+        "created_at": "2025-09-09T12:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T06:40:00+08:00",
+            "status": "success",
+            "duration_seconds": 73
+          },
+          {
+            "run_time": "2026-03-01T06:20:00+08:00",
+            "status": "success",
+            "duration_seconds": 69
+          },
+          {
+            "run_time": "2026-03-01T06:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 72
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-405",
+        "name": "resource_write_sync_b",
+        "cron_expression": "*/20 * * * *",
+        "action": "写入资源同步 B：向 target_resource 写入批次记录（与 A 同窗口）",
+        "enabled": true,
+        "last_run": "2026-03-01T06:40:00+08:00",
+        "next_run": "2026-03-01T07:00:00+08:00",
+        "last_status": "failed",
+        "error": "写入锁冲突/duplicate key：target_resource 批次写入发生竞争",
+        "created_by": "dataflow",
+        "tags": [
+          "sync",
+          "write",
+          "target_resource",
+          "conflict_prone"
+        ],
+        "created_at": "2025-09-10T12:05:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T06:40:00+08:00",
+            "status": "failed",
+            "error": "写入锁冲突/duplicate key：target_resource 批次写入发生竞争",
+            "duration_seconds": 22
+          },
+          {
+            "run_time": "2026-03-01T06:20:00+08:00",
+            "status": "failed",
+            "error": "写入锁冲突/duplicate key：target_resource 批次写入发生竞争",
+            "duration_seconds": 19
+          },
+          {
+            "run_time": "2026-03-01T06:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 68
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-406",
+        "name": "indexer_rebuild",
+        "cron_expression": "0 1 * * 0",
+        "action": "每周重建搜索索引",
+        "enabled": true,
+        "last_run": "2026-02-29T01:00:00+08:00",
+        "next_run": "2026-03-07T01:00:00+08:00",
+        "last_status": "success",
+        "created_by": "search_team",
+        "tags": [
+          "index",
+          "rebuild"
+        ],
+        "created_at": "2025-08-20T10:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-29T01:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 401
+          },
+          {
+            "run_time": "2026-02-22T01:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 389
+          },
+          {
+            "run_time": "2026-02-15T01:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 412
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-407",
+        "name": "user_profile_rollup",
+        "cron_expression": "30 2 * * *",
+        "action": "用户画像日滚动聚合",
+        "enabled": true,
+        "last_run": "2026-03-01T02:30:00+08:00",
+        "next_run": "2026-03-02T02:30:00+08:00",
+        "last_status": "success",
+        "created_by": "analytics_team",
+        "tags": [
+          "analytics",
+          "rollup"
+        ],
+        "created_at": "2025-12-01T09:12:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T02:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 128
+          },
+          {
+            "run_time": "2026-02-28T02:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 121
+          },
+          {
+            "run_time": "2026-02-27T02:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 130
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-408",
+        "name": "daily_event_cleanup",
+        "cron_expression": "5 3 * * *",
+        "action": "清理过期事件表数据",
+        "enabled": true,
+        "last_run": "2026-03-01T03:05:00+08:00",
+        "next_run": "2026-03-02T03:05:00+08:00",
+        "last_status": "success",
+        "created_by": "platform",
+        "tags": [
+          "cleanup",
+          "events"
+        ],
+        "created_at": "2025-07-25T08:30:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T03:05:00+08:00",
+            "status": "success",
+            "duration_seconds": 61
+          },
+          {
+            "run_time": "2026-02-28T03:05:00+08:00",
+            "status": "success",
+            "duration_seconds": 58
+          },
+          {
+            "run_time": "2026-02-27T03:05:00+08:00",
+            "status": "success",
+            "duration_seconds": 60
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-409",
+        "name": "threshold_alert_digest",
+        "cron_expression": "0 8 * * *",
+        "action": "汇总告警阈值并发送摘要给平台值班",
+        "enabled": true,
+        "last_run": "2026-03-01T08:00:00+08:00",
+        "next_run": "2026-03-02T08:00:00+08:00",
+        "last_status": "success",
+        "created_by": "sre",
+        "tags": [
+          "alerts",
+          "digest"
+        ],
+        "created_at": "2025-10-10T13:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T08:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 25
+          },
+          {
+            "run_time": "2026-02-28T08:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 24
+          },
+          {
+            "run_time": "2026-02-27T08:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 26
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-410",
+        "name": "monthly_cost_report",
+        "cron_expression": "0 9 1 * *",
+        "action": "月度成本报告生成并归档",
+        "enabled": true,
+        "last_run": "2026-03-01T09:00:00+08:00",
+        "next_run": "2026-04-01T09:00:00+08:00",
+        "last_status": "success",
+        "created_by": "finops",
+        "tags": [
+          "finance",
+          "report"
+        ],
+        "created_at": "2025-06-30T09:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T09:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 156
+          },
+          {
+            "run_time": "2026-02-01T09:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 149
+          },
+          {
+            "run_time": "2026-01-01T09:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 162
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-411",
+        "name": "temp_cookie_rotation",
+        "cron_expression": "0 4 * * *",
+        "action": "临时更换会话 cookie 密钥（temporary）",
+        "enabled": true,
+        "last_run": "2026-03-01T04:00:00+08:00",
+        "next_run": "2026-03-02T04:00:00+08:00",
+        "last_status": "success",
+        "created_by": "security_team",
+        "tags": [
+          "temporary",
+          "security",
+          "cookie"
+        ],
+        "created_at": "2026-01-10T10:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T04:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 17
+          },
+          {
+            "run_time": "2026-02-28T04:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 16
+          },
+          {
+            "run_time": "2026-02-27T04:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 18
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新任务将重点从磁盘/证书等问题改为“依赖服务导致的连续失败 + 补偿链条误禁用恢复 + 写入锁冲突的 cron 错峰”，并要求按知识库做根因归因与分流通知。",
+    "fixture_design_summary": [
+      "scheduler/jobs.json：共12个任务，包含2个连续失败的依赖类任务（JOB-401/402，历史连续3次失败，错误指向502/timeout）、1个补偿链条被误禁用任务（JOB-403，enabled=false 且 next_run=null）以及1个写入锁冲突偶发失败任务（JOB-405，错误包含写入锁冲突/duplicate key），并通过 JOB-404/405 同一 */20 分钟窗口制造调度冲突。",
+      "kb/articles.json：新增4篇与依赖连续失败、补偿链启用、写入锁冲突错峰、依赖故障分流归因直接相关的知识条目，便于智能体执行不同修复策略与通知分流。",
+      "gmail/inbox.json：加入1封来自 ops 告警协调人但包含误导归因（将依赖问题提到磁盘）的邮件，主题与正文不复用原数据，以支持时间线校验与纠偏。"
+    ]
+  }
+}

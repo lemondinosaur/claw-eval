@@ -1,0 +1,46 @@
+[
+  {
+    "contact_id": "CT-2401",
+    "name": "陈岚",
+    "department": "安全运营中心",
+    "title": "安全应急负责人",
+    "email": "lan.chen@company.com",
+    "phone": "13900142001",
+    "location": "深圳",
+    "specialization": "安全/风控",
+    "notes": "负责安全告警分级处置与取证策略批准；协调隔离、证据保全与应急恢复；通常作为VIP critical安全事件的执行负责人。"
+  },
+  {
+    "contact_id": "CT-2402",
+    "name": "胡煜",
+    "department": "应急与合规",
+    "title": "升级接收人",
+    "email": "yu.hu@company.com",
+    "phone": "13900142002",
+    "location": "北京",
+    "specialization": "应急升级",
+    "notes": "负责接收P0/P1/Pcritical安全升级通知；跟踪SLA节点并组织跨部门协同（安全/运维/法务）。"
+  },
+  {
+    "contact_id": "CT-2403",
+    "name": "郑妍",
+    "department": "客户运营部",
+    "title": "VIP客户对接人",
+    "email": "yan.zheng@company.com",
+    "phone": "13900142003",
+    "location": "上海",
+    "specialization": "VIP客户沟通",
+    "notes": "VIP客户对接窗口；负责把安全团队结论与恢复安排翻译成客户可理解的行动方案与时点承诺。"
+  },
+  {
+    "contact_id": "CT-2404",
+    "name": "周铭",
+    "department": "基础设施部",
+    "title": "运维技术经理",
+    "email": "ming.zhou@company.com",
+    "phone": "13900142004",
+    "location": "杭州",
+    "specialization": "基础设施与隔离联动",
+    "notes": "配合安全团队执行临时恢复（例如策略解封范围、只读模式切换、WAF/封禁规则回滚与审计）。"
+  }
+]

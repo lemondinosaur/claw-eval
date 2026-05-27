@@ -1,0 +1,74 @@
+[
+  {
+    "message_id": "SEC_MSG-2001",
+    "from": "soc_ops@company.com",
+    "to": "me@company.com",
+    "subject": "【紧急/复盘催办】事件 EV-2026-0412 初步处置报告待补充取证结果",
+    "date": "2026-04-12T08:35:00Z",
+    "body": "你好，关于异常访问事件 EV-2026-0412 的初步处置报告需要补充最新日志取证结果。请在今天 17:00 前更新“待补充日志取证”部分，并给出当前已完成与剩余风险点。\n——SOC值班经理",
+    "labels": [
+      "inbox",
+      "安全",
+      "复盘",
+      "催办",
+      "紧急"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "SEC_MSG-2002",
+    "from": "compliance_team@company.com",
+    "to": "me@company.com",
+    "subject": "【安全/复盘催办】EV-2026-0412 根因分析与缓解措施需尽快交付（法务合规卡点）",
+    "date": "2026-04-12T09:10:00Z",
+    "body": "请尽快提交 EV-2026-0412 的根因分析与缓解措施说明。当前版本中关于“责任边界/表述措辞”的部分仍在法务合规审阅，导致你方输出被阻塞。\n请在明天上午给出：已完成的分析结论、仍需法务确认的表述点、以及预计完成时间。\n——合规审阅协同",
+    "labels": [
+      "inbox",
+      "安全",
+      "复盘",
+      "催办"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "SEC_MSG-2003",
+    "from": "incident_coord@company.com",
+    "to": "me@company.com",
+    "subject": "【复盘/安全催办】整改闭环清单更新：EV-2026-0412 部分项已完成待安全负责人最终确认",
+    "date": "2026-04-12T10:02:00Z",
+    "body": "EV-2026-0412 的整改闭环清单需要更新最新状态：\n1) 已完成的访问策略回滚/告警阈值调整请你方在清单中标记；\n2) 仍需安全负责人最终确认的整改项请注明等待人/预计确认时间；\n3) 若有仍在进行的风险点，也请在回复中列出。\n请尽快给出本周内预计完成节点。\n——事件协调员",
+    "labels": [
+      "inbox",
+      "安全",
+      "复盘",
+      "催办",
+      "紧急"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "TICKET_SYS-3309",
+    "from": "workorder@itops.company.com",
+    "to": "me@company.com",
+    "subject": "工单系统通知：EV-2026-0412 状态已更新为“评估中”",
+    "date": "2026-04-12T06:40:00Z",
+    "body": "工单系统已自动完成状态变更：EV-2026-0412 从“已创建”更新为“评估中”。不需要你方回复本邮件。",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "SCHED-HANNA-0412",
+    "from": "hanna@company.com",
+    "to": "me@company.com",
+    "subject": "排班信息：本周五值班安排调整",
+    "date": "2026-04-11T18:20:00Z",
+    "body": "周五值班人员调整如下：我负责 09:00-13:00，你负责 13:00-18:00。请知悉，谢谢。",
+    "labels": [
+      "inbox"
+    ],
+    "is_read": true
+  }
+]

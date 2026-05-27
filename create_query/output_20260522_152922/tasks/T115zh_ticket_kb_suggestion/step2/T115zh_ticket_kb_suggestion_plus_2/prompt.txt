@@ -1,0 +1,333 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T115zh_ticket_kb_suggestion_plus_2",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/helpdesk/tickets.json",
+  "fixtures/kb/articles.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 2,
+  "new_task_id": "T115zh_ticket_kb_suggestion_plus_2",
+  "new_task_name": "支付回调与通知缺失",
+  "task_goal": "处理5个未解决工单：查看详情；在知识库中搜索并匹配相应解决方案；识别过时文章并在输出中提醒；无匹配则标注需人工处理；输出建议回复汇总表（不关闭工单）。",
+  "user_request": "目前有5个未解决工单，请你帮忙：逐个读取工单详情；针对每个问题去知识库检索并给出最相关的处理建议；如果找到的知识库文章显示可能过时请标注；找不到匹配方案的工单请标为需要人工处理；最后汇总输出建议回复表。",
+  "scenario": "场景为支付团队在对账周期内发现异常：1）支付回调接口偶发超时导致订单状态未更新；2）通知短信/邮件没有送达，工单描述包含“网关显示已发送但用户未收到”；3）Webhook签名校验失败但重试后恢复一部分；4）后台导出对账报表时报“格式不支持”，但实际上是选择了错误的导出模板；5）用户登录后能正常访问但API仍返回鉴权失败。干扰信息包括：工单里混用“网关/服务端/前端”的措辞、以及一条工单声称“已开启调试模式”但实际与问题无关。",
+  "difference_from_source": "原题的知识库主要覆盖API 500、导出、登录加载慢、打印机硬件、权限。此任务强调“支付回调超时、通知缺失、Webhook签名失败、鉴权失败、对账报表导出模板错误”。其中“导出”仍出现但与模板选择相关而不是单纯数量超时；并引入“鉴权失败发生在登录之后”的边界条件。还要求代理在多种相似故障描述中做更精细的语义归因以选择正确KB，而非简单按类别匹配。",
+  "service_and_tool_plan": "使用helpdesk_list_tickets列出open工单；逐个helpdesk_get_ticket获取关键信息（回调路径/签名失败/通知通道/导出模板错误/鉴权失败现象）；使用kb_search围绕“回调超时/通知未送达/签名校验失败/鉴权失败/导出模板”分别检索；对最相关文章用kb_get_article核对last_updated并抽取建议步骤；不调用helpdesk_close_ticket。",
+  "fixture_generation_plan": "构造helpdesk/tickets.json共5条，ticket_id与原题完全不同（如使用不同前缀但同为字符串），title与description改写为支付相关叙述；created_at设置为统一时间段但不要复用原日期与数值；tags与category使用新的词汇体系（如“支付回调”“通知”“Webhook”“鉴权”“对账导出”）。kb/articles.json生成至少7条：包含1条针对“回调超时/外部接口超时排查”的文章（设置last_updated为较新或中等，确保可匹配）；1条针对“签名校验失败/重试与密钥轮换”的文章（设置为较新）；1条针对“通知未送达/队列与重发机制”的文章（设置为较旧以触发过时标注）；1条针对“鉴权失败/登录后仍401”的通用排查；1条针对“对账报表导出模板选择与参数校验”；再加2条干扰文章（例如与“性能优化”或“打印机”相关但关键词相近）。确保至少1个工单在语义上故意无法匹配到任何KB条目（例如模板错误描述与现有导出文章不完全一致），以验证需人工处理逻辑。",
+  "expected_behavior": "代理应对每个工单输出：匹配到的KB文章或“无匹配”；若选到旧文章需标注“可能过时”；对“通知未送达”要把建议落在排队/重发/通道配置与核对日志的步骤；对“签名失败”要输出密钥/时间戳/重试策略方向；对“鉴权失败”要强调会话/令牌/权限缓存一致性检查；对“对账导出模板错误”要强调模板参数校验与选择正确导出方式；对无匹配项明确标注需人工处理。汇总表字段需包含：ticket_id、建议回复要点（可分点）、匹配文章title与article_id或人工处理标记、过时标注（若适用）。不关闭工单。",
+  "grading_plan": "检查：每条工单的KB匹配是否命中最相关主题（不是只要同类关键词就算）；过时标注是否仅出现在设为较旧last_updated的文章所对应工单；无匹配工单是否正确标为人工处理；建议要点是否与工单现象一致（如通知缺失不应套用签名失败步骤）；以及是否未调用helpdesk_close_ticket。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T115zh_ticket_kb_suggestion",
+  "task_name": "工单解答建议",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "helpdesk",
+    "kb"
+  ],
+  "tools": [
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "helpdesk_close_ticket",
+    "kb_search",
+    "kb_get_article"
+  ],
+  "fixture_paths": [
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/kb/articles.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T115zh_ticket_kb_suggestion
+task_name: 工单解答建议
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: tasks/T115zh_ticket_kb_suggestion/fixtures/helpdesk/tickets.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T115zh_ticket_kb_suggestion/fixtures/kb/articles.json
+prompt:
+  text: '当前有5个未解决的客户工单。请帮我：
+
+    1. 查看每个工单的详情
+
+    2. 在知识库中搜索相关文章，为每个工单匹配最相关的解决方案
+
+    3. 注意检查知识库文章的更新日期，标注过时的文章
+
+    4. 对于知识库中没有匹配方案的工单，标注为需要人工处理
+
+    5. 输出建议回复汇总表
+
+    '
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章全文
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-601",
+    "title": "API调用返回500错误",
+    "description": "调用/api/v2/orders接口时，间歇性返回500 Internal Server Error，大约每10次有3次失败。从昨天下午开始出现。",
+    "reporter": "开发部-陈工",
+    "department": "开发部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-25T14:00:00Z",
+    "tags": ["API", "500错误", "技术"],
+    "category": "技术"
+  },
+  {
+    "ticket_id": "TK-602",
+    "title": "如何批量导出数据",
+    "description": "需要导出最近3个月的客户订单数据，大约有20万条记录。在管理后台导出时一直超时，有没有其他方法？",
+    "reporter": "运营部-小刘",
+    "department": "运营部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-25T09:30:00Z",
+    "tags": ["导出", "数据", "使用咨询"],
+    "category": "使用咨询"
+  },
+  {
+    "ticket_id": "TK-603",
+    "title": "登录页面加载很慢",
+    "description": "从早上8点开始，登录页面加载需要15-20秒，有时甚至超时。其他页面正常。已清除浏览器缓存，问题依旧。",
+    "reporter": "市场部-赵经理",
+    "department": "市场部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-25T08:20:00Z",
+    "tags": ["性能", "登录", "加载慢"],
+    "category": "性能"
+  },
+  {
+    "ticket_id": "TK-604",
+    "title": "打印机无法连接",
+    "description": "4楼的网络打印机无法连接，重启打印机后仍然无法发现设备。",
+    "reporter": "行政部-小李",
+    "department": "行政部",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-25T10:00:00Z",
+    "tags": ["硬件", "打印机"],
+    "category": "硬件"
+  },
+  {
+    "ticket_id": "TK-605",
+    "title": "权限配置不生效",
+    "description": "在管理后台给3个用户配置了'数据分析师'角色权限，保存后用户反馈依然无法访问分析面板。已等待30分钟。",
+    "reporter": "数据部-王主管",
+    "department": "数据部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-25T11:00:00Z",
+    "tags": ["权限", "配置", "技术"],
+    "category": "技术"
+  }
+]
+
+--- END FILE: fixtures/helpdesk/tickets.json ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "KB-601",
+    "title": "API错误代码排查指南",
+    "category": "技术文档",
+    "tags": ["API", "错误", "500", "排查"],
+    "content": "## API错误排查指南\n\n### 500 Internal Server Error\n1. 检查服务端日志（/var/log/app/error.log）\n2. 确认数据库连接池状态\n3. 检查依赖服务健康状态\n4. 如果间歇性出现，可能是连接池耗尽或内存泄漏\n\n### 排查步骤\n- 使用curl直接调用接口确认问题\n- 检查Nginx access log中的上游响应时间\n- 查看JVM堆内存使用情况\n\n### 常见解决方案\n- 增大连接池max_connections\n- 重启应用服务释放连接\n- 添加请求限流保护",
+    "last_updated": "2026-03-15",
+    "views": 1523
+  },
+  {
+    "article_id": "KB-602",
+    "title": "数据导出操作手册",
+    "category": "使用指南",
+    "tags": ["导出", "数据", "批量", "操作"],
+    "content": "## 数据导出指南\n\n### 方法一：管理后台导出\n- 适用于10万条以内的数据\n- 设置时间范围后点击导出\n- 超时时缩小时间范围\n\n### 方法二：API批量导出\n- POST /api/v2/export/async\n- 支持100万条以上数据\n- 生成后通过邮件发送下载链接\n\n### 方法三：联系技术支持\n- 超过300万条数据建议联系技术支持\n- 可安排离线数据包交付",
+    "last_updated": "2026-02-20",
+    "views": 876
+  },
+  {
+    "article_id": "KB-603",
+    "title": "系统性能优化建议",
+    "category": "技术文档",
+    "tags": ["性能", "优化", "加载", "缓存"],
+    "content": "## 系统性能优化\n\n### 前端性能\n- 启用CDN加速静态资源\n- 开启Gzip压缩\n- 使用懒加载减少首屏时间\n\n### 后端性能\n- 数据库查询添加索引\n- 使用Redis缓存热点数据\n- 微服务间通信使用gRPC\n\n### 注意：本文上次更新于2025年6月，部分信息可能已过时",
+    "last_updated": "2025-06-01",
+    "views": 2100
+  },
+  {
+    "article_id": "KB-604",
+    "title": "权限管理最佳实践",
+    "category": "使用指南",
+    "tags": ["权限", "角色", "管理", "RBAC"],
+    "content": "## 权限管理指南\n\n### 角色权限配置\n1. 在管理后台 → 角色管理中修改角色权限\n2. 修改后需要用户重新登录才能生效\n3. 部分权限有缓存，最长需等待15分钟\n\n### 常见问题\n- 权限不生效：要求用户退出并重新登录\n- 权限冲突：检查用户是否属于多个角色组\n- 特殊权限：部分敏感权限需要管理员审批后才生效\n\n### 注意事项\n- 批量修改权限时，建议先在测试环境验证\n- 避免直接修改超级管理员权限",
+    "last_updated": "2026-03-01",
+    "views": 1350
+  },
+  {
+    "article_id": "KB-605",
+    "title": "新员工入职指南",
+    "category": "流程规范",
+    "tags": ["入职", "新员工", "流程"],
+    "content": "## 新员工入职流程\n\n1. 领取办公设备\n2. 开通企业邮箱和OA账号\n3. 完成安全培训\n4. 加入部门群组\n\n### IT相关\n- VPN配置请联系IT运维\n- 代码仓库权限找技术组长申请",
+    "last_updated": "2026-01-10",
+    "views": 3200
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

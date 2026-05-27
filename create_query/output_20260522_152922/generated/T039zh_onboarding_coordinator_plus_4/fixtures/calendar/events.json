@@ -1,0 +1,39 @@
+[
+  {
+    "event_id": "evt_731",
+    "title": "研发周报评审",
+    "organizer": "weekly_reviewer@company.com",
+    "attendees": [
+      "team_rnd@company.com"
+    ],
+    "start_time": "2026-03-09T10:30:00+08:00",
+    "end_time": "2026-03-09T11:30:00+08:00",
+    "location": "研发会议室2",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_732",
+    "title": "产品对齐会",
+    "organizer": "product_ops@company.com",
+    "attendees": [
+      "pm@company.com",
+      "design_lead@company.com"
+    ],
+    "start_time": "2026-03-09T09:30:00+08:00",
+    "end_time": "2026-03-09T10:15:00+08:00",
+    "location": "会议室A",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_733",
+    "title": "客户技术走查",
+    "organizer": "customer_owner@company.com",
+    "attendees": [
+      "tech_support@company.com"
+    ],
+    "start_time": "2026-03-09T13:30:00+08:00",
+    "end_time": "2026-03-09T14:30:00+08:00",
+    "location": "远程/腾讯会议",
+    "status": "confirmed"
+  }
+]

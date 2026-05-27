@@ -1,0 +1,71 @@
+[
+  {
+    "event_id": "evt_501",
+    "title": "产品路演-城市A评审会（已确认）",
+    "start_time": "2026-04-03T09:30:00+08:00",
+    "end_time": "2026-04-03T12:00:00+08:00",
+    "location": "城市A-会场1/三层",
+    "organizer": "张怡",
+    "attendees": [
+      "我",
+      "张怡",
+      "项目团队"
+    ],
+    "description": "面向城市A客户的产品路演评审，需现场出席。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_502",
+    "title": "客户高层电话会（已确认）",
+    "start_time": "2026-04-03T14:00:00+08:00",
+    "end_time": "2026-04-03T15:00:00+08:00",
+    "location": "线上/会议室B（远程接入）",
+    "organizer": "沈浩",
+    "attendees": [
+      "我",
+      "沈浩",
+      "法务代表"
+    ],
+    "description": "客户高层拜访前的要点同步电话会。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_503",
+    "title": "中午对接午餐会（待定）",
+    "start_time": "2026-04-03T12:15:00+08:00",
+    "end_time": "2026-04-03T13:00:00+08:00",
+    "location": "城市A-酒店餐厅",
+    "organizer": "陈昊",
+    "attendees": [
+      "我",
+      "陈昊"
+    ],
+    "description": "与城市A渠道方的午间对接安排（待定）。",
+    "status": "tentative"
+  },
+  {
+    "event_id": "evt_504",
+    "title": "城市B路演准备例会（已确认）",
+    "start_time": "2026-04-04T10:00:00+08:00",
+    "end_time": "2026-04-04T11:00:00+08:00",
+    "location": "城市B-楼宇C/5F-会议室",
+    "organizer": "周宁",
+    "attendees": [
+      "我",
+      "周宁"
+    ],
+    "description": "城市B路演资料与话术对齐。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_505",
+    "title": "自由窗口（干扰/空闲）",
+    "start_time": "2026-04-03T18:00:00+08:00",
+    "end_time": "2026-04-03T19:30:00+08:00",
+    "location": "",
+    "organizer": "",
+    "attendees": [],
+    "description": "空闲窗口，用于安排晚间交通/简餐。",
+    "status": "free"
+  }
+]

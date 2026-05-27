@@ -1,0 +1,72 @@
+[
+  {
+    "product_id": "INV-701",
+    "name": "TR-SK880 国产服务器（信创替代机型）",
+    "category": "服务器",
+    "current_stock": 2,
+    "min_stock_threshold": 12,
+    "reorder_quantity": 10,
+    "status": "critical",
+    "unit_price": 98000,
+    "supplier": "曙科智联",
+    "lead_time_days": 45,
+    "last_reorder_date": "2026-01-10",
+    "notes": "企业核心业务节点替代重点机型，要求满足信创合规与兼容性联调；当前缺口较大。"
+  },
+  {
+    "product_id": "INV-702",
+    "name": "TR-XH660 兼容性回归服务器（合规优先级较低）",
+    "category": "服务器",
+    "current_stock": 1,
+    "min_stock_threshold": 8,
+    "reorder_quantity": 12,
+    "status": "low_stock",
+    "unit_price": 89000,
+    "supplier": "星河云采",
+    "lead_time_days": 18,
+    "last_reorder_date": "2026-02-01",
+    "notes": "管理平台兼容性更稳、历史故障率更低；但信创‘优先品牌’条款覆盖度不足。"
+  },
+  {
+    "product_id": "INV-703",
+    "name": "TR-HR340 教学/办公服务器（干扰项）",
+    "category": "服务器",
+    "current_stock": 9,
+    "min_stock_threshold": 10,
+    "reorder_quantity": 6,
+    "status": "normal",
+    "unit_price": 54000,
+    "supplier": "恒睿数码",
+    "lead_time_days": 12,
+    "last_reorder_date": "2026-01-22",
+    "notes": "非核心替代机型，更多用于分支场景。"
+  },
+  {
+    "product_id": "INV-704",
+    "name": "千兆交换机 SX-9300（干扰项）",
+    "category": "网络设备",
+    "current_stock": 4,
+    "min_stock_threshold": 6,
+    "reorder_quantity": 8,
+    "status": "low_stock",
+    "unit_price": 3200,
+    "supplier": "北桥科技",
+    "lead_time_days": 25,
+    "last_reorder_date": "2026-02-08",
+    "notes": "核心交换层扩容相关，可能影响整体上线节奏。"
+  },
+  {
+    "product_id": "INV-705",
+    "name": "国产带外管理网卡 MC-SK210（干扰项）",
+    "category": "网络设备",
+    "current_stock": 7,
+    "min_stock_threshold": 9,
+    "reorder_quantity": 5,
+    "status": "normal",
+    "unit_price": 4600,
+    "supplier": "曙科智联",
+    "lead_time_days": 20,
+    "last_reorder_date": "2026-01-30",
+    "notes": "为管理平台远程运维服务配套部件。"
+  }
+]

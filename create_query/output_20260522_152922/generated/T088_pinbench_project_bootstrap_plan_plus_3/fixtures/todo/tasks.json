@@ -1,0 +1,51 @@
+[
+  {
+    "id": "T088-LOGFORGE-PLAN-001",
+    "title": "（噪声）收集团队偏好与命名约定",
+    "description": "为避免返工，先在团队内确认项目命名、命令风格（如驼峰/短横线）、以及 README 代码块格式偏好；不涉及任何 Go 代码或 CLI 行为实现。",
+    "priority": "low",
+    "due_date": "2026-06-01"
+  },
+  {
+    "id": "T088-LOGFORGE-PLAN-002",
+    "title": "创建 logforge Go CLI 项目骨架与 main 入口",
+    "description": "规划并准备目录结构（示例：cmd/logforge/main.go + 内部 packages 目录），确保 main 入口负责初始化命令执行与统一错误处理入口（占位即可）。验收点：计划中明确指出 main 入口位置与需要注册子命令/根命令的占位逻辑。",
+    "priority": "high",
+    "due_date": "2026-06-02"
+  },
+  {
+    "id": "T088-LOGFORGE-PLAN-003",
+    "title": "实现命令/Flag 解析占位：支持子命令与一致的错误输出",
+    "description": "设计 CLI 参数解析占位（例如 root command + subcommands），至少包含：\n- 支持子命令路由（即使尚未实现业务，只需占位函数）\n- flag/参数的解析与 usage/help 文案占位\n- 统一错误输出格式要求：无效子命令时必须返回非 0 退出码并打印可读错误到 stderr（格式要求在后续集成测试任务中具体化）\n- 记录日志级别来源需求：log level 既可能来自 flag，也可能来自环境变量，但在本阶段仅写“需求记录/待实现”说明，不实现环境变量读取。\n验收点：计划明确提到 exit code 与 stderr 错误可读性作为验收口径。",
+    "priority": "high",
+    "due_date": "2026-06-03"
+  },
+  {
+    "id": "T088-LOGFORGE-PLAN-004",
+    "title": "添加集成测试占位：通过运行 CLI 验证无效子命令的退出码与错误输出",
+    "description": "编写集成测试的计划（使用 Go 测试方式/通过构建后执行 CLI 的方式描述均可），要求包含可执行思路：\n- 测试命令示例：logforge --help 或 logforge <invalid-subcommand>（给出一个具体无效子命令名，如 \"warpdrive\"）\n- 核心验收点：当提供无效子命令时，程序返回非 0 退出码\n- 错误输出验收点：stderr 必须包含可读错误信息，并注明无效子命令名称（如包含 \"invalid subcommand: warpdrive\" 或等价结构；写出你希望采用的格式模板）\n- 约束说明：本阶段只写测试计划与断言意图，不要求实际实现。\n验收点：任务描述中必须出现“无效子命令→非 0 退出码+可读错误输出”的验收要求与断言格式模板。",
+    "priority": "high",
+    "due_date": "2026-06-04"
+  },
+  {
+    "id": "T088-LOGFORGE-PLAN-005",
+    "title": "编写 go.mod 元数据占位与构建/测试脚本说明",
+    "description": "提供 go.mod 的 requirements 占位（模块名/依赖占位不要求实际可用，但需自洽），并记录构建与测试脚本建议（例如 makefile 目标或 shell 脚本步骤）：\n- 构建：go build ./...\n- 测试：go test ./...\n- 集成测试：说明如何保证集成测试在同一环境下可执行（例如使用临时目录、构建可执行文件路径、清理逻辑等）\n验收点：计划中包含明确的构建/测试命令注释与元数据占位说明。",
+    "priority": "medium",
+    "due_date": "2026-06-05"
+  },
+  {
+    "id": "T088-LOGFORGE-PLAN-006",
+    "title": "撰写 README：用法示例、错误处理与常见失败模式",
+    "description": "编写 README（占位内容即可，但结构要完整），至少包含：\n- 安装/构建/运行示例（包括根命令、至少一个子命令示例）\n- flag 用法示例（例如 --log-level 的占位说明，说明来源可能来自 flag 或环境变量但当前只要求记录需求）\n- 常见失败模式章节：包括无效子命令时的行为说明（非 0 退出码 + stderr 可读错误；给出一个示例输出模板）\n- Troubleshooting：如命令拼写错误、缺少必填参数时的期望行为（占位描述即可）。\n验收点：README 章节应明确覆盖“无效子命令的退出码与错误输出格式”这一点，并与集成测试任务中的格式意图保持一致。",
+    "priority": "medium",
+    "due_date": "2026-06-06"
+  },
+  {
+    "id": "T088-LOGFORGE-PLAN-007",
+    "title": "总结依赖顺序的执行计划（从骨架到测试到文档）",
+    "description": "最后任务：输出一个按依赖顺序的计划总结，覆盖上述 1~5 的关键依赖关系；特别要回扣集成测试验收点：无效子命令→非 0 退出码+可读错误输出到 stderr，并说明 README 与测试断言模板保持一致。",
+    "priority": "medium",
+    "due_date": "2026-06-07"
+  }
+]

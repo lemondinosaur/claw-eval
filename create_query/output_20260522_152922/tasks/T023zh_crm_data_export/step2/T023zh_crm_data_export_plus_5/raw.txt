@@ -1,0 +1,134 @@
+{
+  "task_id": "T023zh_crm_data_export_plus_5",
+  "task_name": "Status Mixed 重连导出",
+  "prompt_text": "请从CRM系统导出一份“混合状态VIP回访清单”。要求：\n1）列出所有VIP客户（不区分状态）；\n2）获取每位VIP客户详细信息（系统可能间歇性报错，遇到错误请重试）；\n3）生成汇总报告，并按客户状态分组展示：active、inactive、churned（三组都要在报告中出现）；\n4）在summary中统计三组各自的客户数量，且数量需与分组列表一致。\n报告需包含每位客户的：客户名称、行业、年收入、最近联系日期。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "MXV-701",
+        "name": "青岛星河云计算有限公司",
+        "contact_person": "周晓岚",
+        "email": "xiaolan.zhou@xinghecloud.com",
+        "phone": "18661017001",
+        "industry": "云计算",
+        "tier": "VIP",
+        "annual_revenue": 12400000,
+        "last_contact_date": "2026-03-02",
+        "status": "active",
+        "notes": "云迁移项目推进中，需跟进里程碑"
+      },
+      {
+        "customer_id": "MXV-702",
+        "name": "宁波海潮智能制造有限公司",
+        "contact_person": "高伟",
+        "email": "wei.gao@haitsmart.cn",
+        "phone": "18661017002",
+        "industry": "智能制造",
+        "tier": "VIP",
+        "annual_revenue": 7300000,
+        "last_contact_date": "2026-02-14",
+        "status": "active",
+        "notes": "产线数字化升级，关注阶段验收"
+      },
+      {
+        "customer_id": "MXV-703",
+        "name": "厦门鹭岛金融科技有限公司",
+        "contact_person": "林雨彤",
+        "email": "yutong.lin@luzmoney.tech",
+        "phone": "18661017003",
+        "industry": "金融科技",
+        "tier": "VIP",
+        "annual_revenue": 8900000,
+        "last_contact_date": "2026-02-23",
+        "status": "inactive",
+        "notes": "续约窗口期临近，暂未确认需求"
+      },
+      {
+        "customer_id": "MXV-704",
+        "name": "长沙橘洲新能源科技有限公司",
+        "contact_person": "郑凯",
+        "email": "kai.zheng@juzhouenergy.cn",
+        "phone": "18661017004",
+        "industry": "新能源",
+        "tier": "VIP",
+        "annual_revenue": 5100000,
+        "last_contact_date": "2026-01-30",
+        "status": "active",
+        "notes": ""
+      },
+      {
+        "customer_id": "MXV-705",
+        "name": "合肥北辰网络安全有限公司",
+        "contact_person": "陈佳怡",
+        "email": "jiayi.chen@beichensec.com",
+        "phone": "18661017005",
+        "industry": "网络安全",
+        "tier": "VIP",
+        "annual_revenue": 9800000,
+        "last_contact_date": "2026-02-28",
+        "status": "inactive",
+        "notes": "对合规评估报告感兴趣，等待试点安排"
+      },
+      {
+        "customer_id": "MXV-706",
+        "name": "成都蓉城供应链管理有限公司",
+        "contact_person": "赵敏",
+        "email": "min.zhao@rongchain.cn",
+        "phone": "18661017006",
+        "industry": "供应链",
+        "tier": "VIP",
+        "annual_revenue": 6600000,
+        "last_contact_date": "2026-03-05",
+        "status": "active",
+        "notes": "采购平台对接完成，计划扩展范围"
+      },
+      {
+        "customer_id": "MXV-707",
+        "name": "武汉珞珈医疗健康有限公司",
+        "contact_person": "孙若宁",
+        "email": "ruoning.sun@luojamed.com",
+        "phone": "18661017007",
+        "industry": "医疗健康",
+        "tier": "VIP",
+        "annual_revenue": 14300000,
+        "last_contact_date": "2026-02-10",
+        "status": "churned",
+        "notes": "预算缩减导致合作终止"
+      },
+      {
+        "customer_id": "CUS-201",
+        "name": "北京高桥建筑工程有限公司",
+        "contact_person": "王磊",
+        "email": "lei.wang@gaoqiao-arch.cn",
+        "phone": "18661012001",
+        "industry": "建筑工程",
+        "tier": "standard",
+        "annual_revenue": 2500000,
+        "last_contact_date": "2026-02-08",
+        "status": "active",
+        "notes": "跟进招投标阶段"
+      },
+      {
+        "customer_id": "CUS-202",
+        "name": "郑州睿智数据服务有限公司",
+        "contact_person": "周然",
+        "email": "ran.zhou@ruizidata.com",
+        "phone": "18661012002",
+        "industry": "数据服务",
+        "tier": "standard",
+        "annual_revenue": 1200000,
+        "last_contact_date": "2025-12-21",
+        "status": "inactive",
+        "notes": "待评估，暂缓推进"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原VIP导出基础上新增按status（active/inactive/churned）分组展示与summary三组数量统计，并要求详情接口错误时重试。",
+    "fixture_design_summary": [
+      "fixtures/crm/customers.json新增全新VIP客户8条，覆盖active、inactive、churned三种状态且三组数量不均衡（churned最少）。",
+      "为每位VIP提供自洽字段：industry/annual_revenue/last_contact_date/status/notes（部分notes为空字符串，保证字段存在）。",
+      "保留2条standard客户用于验证导出时customer_ids仅包含tier=VIP的结果。"
+    ]
+  }
+}

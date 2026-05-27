@@ -1,0 +1,114 @@
+[
+  {
+    "task_id": "TD-412-compliance_pack",
+    "title": "合规材料包定稿并提交",
+    "description": "整理并提交合规审计所需材料包（含证据清单、流程记录导出）。需在 4/12 当天前完成提交。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-12",
+    "assignee": "我",
+    "tags": [
+      "合规",
+      "审计"
+    ],
+    "estimated_hours": 6
+  },
+  {
+    "task_id": "TD-414_integration_log",
+    "title": "接口联调记录（4/14 截止前）",
+    "description": "完成接口联调记录撰写与验收要点整理，并在 4/14 下午前提交。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-14",
+    "assignee": "我",
+    "tags": [
+      "接口",
+      "联调"
+    ],
+    "estimated_hours": 4
+  },
+  {
+    "task_id": "TD-415_phone_summary",
+    "title": "电话会议纪要与行动项",
+    "description": "针对 4/15 上午电话对接会议输出纪要，汇总行动项并形成可执行清单。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-15",
+    "assignee": "我",
+    "tags": [
+      "纪要",
+      "行动项"
+    ],
+    "estimated_hours": 3
+  },
+  {
+    "task_id": "TD-412_vendor_followup",
+    "title": "供应商对账与差异说明",
+    "description": "核对供应商发票与交付记录，若有差异则补充差异说明并回传。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-12",
+    "assignee": "我",
+    "tags": [
+      "对账",
+      "供应商"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TD-413_flow_diagram",
+    "title": "流程图补全：权限流转",
+    "description": "补全权限流转流程图（含申请/审批/撤销/审计追踪），保证与当前系统一致。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-04-13",
+    "assignee": "我",
+    "tags": [
+      "文档",
+      "流程图"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TD-414_training_refresh",
+    "title": "周边培训学习（短时）",
+    "description": "完成一节培训学习并产出 5 点要点总结，便于下周复用。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-04-14",
+    "assignee": "我",
+    "tags": [
+      "学习",
+      "复盘"
+    ],
+    "estimated_hours": 1.5
+  },
+  {
+    "task_id": "TD-411_prelog_completed",
+    "title": "已完成：审计前期需求汇总",
+    "description": "收集审计前期需求与目录结构，整理成初版清单。",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-04-11",
+    "assignee": "我",
+    "tags": [
+      "审计",
+      "已完成"
+    ],
+    "estimated_hours": 2
+  },
+  {
+    "task_id": "TD-413_meeting_prep_completed",
+    "title": "已完成：联调会前准备",
+    "description": "准备联调所需的用例清单与环境验证要点。",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-04-13",
+    "assignee": "我",
+    "tags": [
+      "联调",
+      "已完成"
+    ],
+    "estimated_hours": 1
+  }
+]

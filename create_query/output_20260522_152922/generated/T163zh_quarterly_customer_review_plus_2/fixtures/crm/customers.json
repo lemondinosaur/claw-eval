@@ -1,0 +1,101 @@
+[
+  {
+    "customer_id": "CUS-2201",
+    "name": "辰星云服务",
+    "tier": "vip",
+    "status": "active",
+    "industry": "云服务",
+    "satisfaction": 4.6,
+    "contract_end": "2026-10-15",
+    "sales_owner": "周怡",
+    "notes": "Q3稳定增购，SLA按期满足，续约节奏正常。",
+    "contact_person": "周怡",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2202",
+    "name": "北岸零售集团",
+    "tier": "standard",
+    "status": "active",
+    "industry": "零售",
+    "satisfaction": 3.0,
+    "contract_end": "2026-12-20",
+    "sales_owner": "陈晨",
+    "notes": "Q3有一次对账延迟反馈，业务团队仍在推进促销场景上线。",
+    "contact_person": "陈晨",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2203",
+    "name": "南方电商供应链",
+    "tier": "vip",
+    "status": "active",
+    "industry": "电商",
+    "satisfaction": 4.1,
+    "contract_end": "2026-11-30",
+    "sales_owner": "周怡",
+    "notes": "预付转结历史较多，Q3财务口径需要核对；技术侧部署顺利。",
+    "contact_person": "周怡",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2204",
+    "name": "东方教育集团",
+    "tier": "standard",
+    "status": "active",
+    "industry": "教育信息化",
+    "satisfaction": 2.7,
+    "contract_end": "2026-09-30",
+    "notes": "合同节点临近，满意度下滑；需确认续约里程碑与验收口径。",
+    "contact_person": "沈浩",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2205",
+    "name": "澄海电力能源",
+    "tier": "standard",
+    "status": "active",
+    "industry": "能源与电力",
+    "satisfaction": 3.4,
+    "contract_end": "2026-10-31",
+    "notes": "运行稳定但增长有限，需评估后续模块需求。",
+    "contact_person": "沈浩",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2206",
+    "name": "启程智慧物流",
+    "tier": "vip",
+    "status": "active",
+    "industry": "物流",
+    "satisfaction": 4.8,
+    "contract_end": "2026-12-05",
+    "notes": "物流数字化成效显著，Q3回款正常且沟通活跃。",
+    "contact_person": "周怡",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2207",
+    "name": "星港教育信息化",
+    "tier": "standard",
+    "status": "active",
+    "industry": "教育信息化",
+    "satisfaction": 2.2,
+    "contract_end": "2026-11-10",
+    "notes": "Q3邮件基本沉寂，疑似仅收到内部通知；需补采集真实对接记录。",
+    "contact_person": "陈晨",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2208",
+    "name": "华曜半导体制造",
+    "tier": "vip",
+    "status": "active",
+    "industry": "制造（半导体）",
+    "satisfaction": 3.7,
+    "contract_end": "2026-10-05",
+    "notes": "行业tags匹配偏弱但摘要相关；Q3财务交易呈现延后结算特征。",
+    "contact_person": "周怡",
+    "annual_revenue": 0
+  }
+]

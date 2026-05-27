@@ -1,0 +1,23 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:42:16",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T086_pinbench_calendar_event_creation",
+  "step1": {
+    "status": "failed",
+    "generated_at": "2026-05-22 15:42:16",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T086_pinbench_calendar_event_creation/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T086_pinbench_calendar_event_creation/step1/raw.txt",
+    "output": null,
+    "error": "Expecting ',' delimiter: line 53 column 156 (char 4173)"
+  },
+  "step2": {
+    "status": "not_started",
+    "generated_at": "",
+    "items": [],
+    "error": ""
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T086_pinbench_calendar_event_creation",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

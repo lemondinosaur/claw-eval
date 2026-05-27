@@ -1,0 +1,180 @@
+{
+  "task_id": "T127zh_ticket_assignment_plus_2",
+  "task_name": "按系统模块分派（多域共用）",
+  "prompt_text": "目前有5个未分配工单，请你做模块级分派建议：\n\n1. 查看每个工单详情（标题+描述+标签），识别其主要影响的“业务系统模块”（同一系统域内也要细分，如“CRM/审批流/消息通知/账户同步/导出报表”等）。\n2. 不能用简单的IT vs 非IT二分；必须在IT内部按模块归属到对应子岗/负责人。\n3. 在通讯录中搜索与该模块匹配的子岗/处理团队负责人，并完成分配。\n4. 注意：其中可能有“非IT但伪装成系统异常/平台故障”的工单。需结合描述证据判断并归为行政支持/设备资产等，而非误分到IT模块运维。\n5. 输出分配建议表（工单→建议处理人→分配理由）。\n\n要求：分配理由必须明确写出“模块关键词/现象证据 → 对应负责人职责”的映射关系，并解释非IT伪装工单为什么不分给IT模块。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-1001",
+        "name": "陈思源",
+        "department": "平台运维组",
+        "title": "平台运维负责人",
+        "email": "siyuan.chen@company.com",
+        "phone": "13900111001",
+        "location": "北京总部",
+        "notes": "负责平台基础服务稳定性、系统可用性、账号登录相关的运维处置"
+      },
+      {
+        "contact_id": "CT-1002",
+        "name": "刘子航",
+        "department": "CRM平台组",
+        "title": "CRM平台负责人",
+        "email": "zihang.liu@company.com",
+        "phone": "13900111002",
+        "location": "北京总部",
+        "notes": "负责CRM账户同步、用户数据一致性与核心CRM平台问题定位"
+      },
+      {
+        "contact_id": "CT-1003",
+        "name": "周婉婷",
+        "department": "审批流中台组",
+        "title": "审批流中台负责人",
+        "email": "wanting.zhou@company.com",
+        "phone": "13900111003",
+        "location": "北京总部",
+        "notes": "负责审批流引擎、流程节点、权限校验与审批状态异常处理"
+      },
+      {
+        "contact_id": "CT-1004",
+        "name": "赵凯文",
+        "department": "消息与通知组",
+        "title": "消息中间件负责人",
+        "email": "kaiwen.zhao@company.com",
+        "phone": "13900111004",
+        "location": "北京总部",
+        "notes": "负责消息队列、站内消息、短信/邮件通知通道与投递失败排查"
+      },
+      {
+        "contact_id": "CT-1005",
+        "name": "孙怡然",
+        "department": "数据报表组",
+        "title": "数据报表负责人",
+        "email": "yiran.sun@company.com",
+        "phone": "13900111005",
+        "location": "北京总部",
+        "notes": "负责数据导出器、报表口径一致性、BI指标校验与导出任务排障"
+      },
+      {
+        "contact_id": "CT-1006",
+        "name": "曹明哲",
+        "department": "支付运维组",
+        "title": "支付运维工程师",
+        "email": "mingzhe.cao@company.com",
+        "phone": "13900111006",
+        "location": "北京总部",
+        "notes": "负责支付网关联调、回调处理、交易状态对账与支付故障运维"
+      },
+      {
+        "contact_id": "CT-1007",
+        "name": "沈若宁",
+        "department": "设备与资产组",
+        "title": "资产与设备支持负责人",
+        "email": "ruoning.shen@company.com",
+        "phone": "13900111007",
+        "location": "北京总部",
+        "notes": "负责会议室设备、办公资产更换与维保协调（打印机/投影/座椅/会议终端等）"
+      },
+      {
+        "contact_id": "CT-1008",
+        "name": "王梓航",
+        "department": "行政支持组",
+        "title": "行政支持专员",
+        "email": "zihang.wang@company.com",
+        "phone": "13900111008",
+        "location": "北京总部",
+        "notes": "负责办公环境保障、临时设施申报与办公设备使用问题的对接处理"
+      },
+      {
+        "contact_id": "CT-1009",
+        "name": "周子墨",
+        "department": "合规安全组",
+        "title": "安全审计负责人",
+        "email": "zimmo.zhou@company.com",
+        "phone": "13900111009",
+        "location": "北京总部",
+        "notes": "负责权限变更审计、登录风控事件追查与合规检查"
+      },
+      {
+        "contact_id": "CT-1010",
+        "name": "郑海波",
+        "department": "技术架构组",
+        "title": "技术架构支持",
+        "email": "haibo.zheng@company.com",
+        "phone": "13900111010",
+        "location": "北京总部",
+        "notes": "负责跨系统联动排查、模块依赖梳理与架构级定位"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2101",
+        "title": "CRM账户同步失败（账户系统异常）",
+        "description": "从CRM后台触发账户同步任务后，部分用户无法在系统中完成状态更新。日志中出现“同步批次处理器耗尽”和“账户映射表缺失”。标签已标注账户同步相关模块关键词。",
+        "reporter": "运营部林主管",
+        "department": "运营部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-10T02:20:00Z",
+        "tags": ["CRM", "账户同步", "用户状态", "同步批次处理器"],
+        "category": "系统故障"
+      },
+      {
+        "ticket_id": "TK-2102",
+        "title": "审批流引擎卡住：提交后长期待处理",
+        "description": "在CRM审批场景中提交申请后，流程停留在“待审批”超过2小时，节点无法推进。描述里包含“审批流引擎/节点状态机/超时重试”关键字，且与审批链路有关。",
+        "reporter": "人力资源部陈经理",
+        "department": "人力资源部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-10T03:10:00Z",
+        "tags": ["审批流引擎", "节点状态机", "待审批", "超时重试"],
+        "category": "业务流程异常"
+      },
+      {
+        "ticket_id": "TK-2103",
+        "title": "消息队列积压导致通知延迟（系统异常）",
+        "description": "站内消息与邮件通知投递延迟：用户反馈“通知没收到”。系统监控提示“消息队列积压/投递重试失败/通道超时”。该工单标签包含消息模块关键词。",
+        "reporter": "客服部周主管",
+        "department": "客服部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-10T04:05:00Z",
+        "tags": ["消息队列", "投递重试失败", "通知通道", "站内消息"],
+        "category": "系统故障"
+      },
+      {
+        "ticket_id": "TK-2104",
+        "title": "导出报表结果缺列（数据导出器异常）",
+        "description": "当月业绩报表导出后缺少“城市维度”字段，且导出文件行数比预期少。描述中明确出现“数据导出器/字段映射/口径一致性”。请按数据报表导出模块排查。",
+        "reporter": "财务部赵会计",
+        "department": "财务部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-10T05:40:00Z",
+        "tags": ["数据导出器", "字段映射", "口径一致性", "报表导出缺列"],
+        "category": "数据问题"
+      },
+      {
+        "ticket_id": "TK-2105",
+        "title": "系统异常：会议室投影终端无法启动（平台故障）",
+        "description": "会议室投影终端无法开机，前台同事多次重启仍无反应。标题使用“系统异常/平台故障”词汇作为干扰，但实际描述明确是会议室设备无法启动、需要设备与资产组介入并评估更换/维保。标签包含办公设备/会议终端等非IT线索。",
+        "reporter": "行政部李助理",
+        "department": "行政部",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-10T06:15:00Z",
+        "tags": ["会议终端", "投影设备", "办公设备", "无法开机"],
+        "category": "系统故障"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原“IT/非IT归属”基础上新增模块级路由，并通过一条“系统异常”伪装工单干扰非IT识别。",
+    "fixture_design_summary": [
+      "contacts 设计10条联系人，覆盖CRM账户同步、审批流中台、消息通知、数据报表、平台运维、支付运维、设备与资产、行政支持等子岗，可直接用于模块级分派。",
+      "helpdesk 生成5条open工单：4条IT内部不同模块（账户同步/审批流引擎/消息队列/数据导出器），1条明确会议室投影设备问题但在title中使用“系统异常/平台故障”伪装。",
+      "工单 tags/description 含有可验证的“模块关键词”，确保理由中能写出关键词→对应负责人职责的映射关系。",
+      "ticket_id 全部使用新编号TK-2101~TK-2105，联系人ID与邮箱为全新值且跨fixture一致。"
+    ]
+  }
+}

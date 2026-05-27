@@ -1,0 +1,254 @@
+{
+  "task_id": "T129zh_business_trip_planning_plus_3",
+  "task_name": "会议串联与改期",
+  "prompt_text": "我收到两类出差邀请：\n- 一封“重要峰会参会”（单日，要求上午到场签到）；\n- 一封“技术分会演讲/讨论会”（跨两天：第一天演讲，第二天圆桌讨论）。\n\n请你规划出差并输出决策依据：\n1）从收件箱定位两类邀请并提取：城市、日期，以及关键时间（峰会签到时间、分会演讲/圆桌时段）；\n2）查询日历对应日期的事件，判断冲突：\n   - 将“强制/confirmed”的培训视为硬冲突；\n   - 将描述为 tentative/待定且正文包含“可调整/可与他人协调改期/候补”等线索的活动视为可协商冲突；\n3）分别检索峰会城市与分会城市的联系人清单；\n4）给出最终参加方案：是否需要改期、改期到哪一天/哪个时段更合理，并列出最终行程（按日期列出）；同时输出联系人清单（至少2名/城）。\n要求在不引入新多轮澄清的情况下完成推断与取舍，并说明你如何区分硬冲突与可协商冲突。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_901",
+        "title": "内部发布会（不可调整）",
+        "start_time": "2026-04-06T10:00:00+08:00",
+        "end_time": "2026-04-06T11:30:00+08:00",
+        "location": "上海-主会场B",
+        "organizer": "企业传播部",
+        "attendees": [
+          "我"
+        ],
+        "description": "Q2内部发布会（已确认）。所有参会人员请准时到场。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_902",
+        "title": "客户沟通（候补窗口）",
+        "start_time": "2026-04-06T15:00:00+08:00",
+        "end_time": "2026-04-06T16:00:00+08:00",
+        "location": "上海-会客区3",
+        "organizer": "客户成功团队",
+        "attendees": [
+          "我",
+          "陈秘书（内协）"
+        ],
+        "description": "如需调整，可与他人协调改期；当前为 tentative/待定，占用可能取消。",
+        "status": "tentative"
+      },
+      {
+        "event_id": "evt_903",
+        "title": "峰会签到后对接（空档前后可灵活）",
+        "start_time": "2026-04-06T13:30:00+08:00",
+        "end_time": "2026-04-06T14:30:00+08:00",
+        "location": "上海-国际会议中心A厅",
+        "organizer": "峰会联络组",
+        "attendees": [
+          "我"
+        ],
+        "description": "峰会签到后预留机动对接时间；可根据峰会流程调整。",
+        "status": "free"
+      },
+      {
+        "event_id": "evt_904",
+        "title": "技术分会-强制合规培训",
+        "start_time": "2026-04-09T13:30:00+08:00",
+        "end_time": "2026-04-09T15:00:00+08:00",
+        "location": "杭州-培训教室2",
+        "organizer": "合规与风控",
+        "attendees": [
+          "我"
+        ],
+        "description": "强制合规培训（confirmed）。请勿迟到，覆盖下午核心时段。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_905",
+        "title": "圆桌前准备会（内部）",
+        "start_time": "2026-04-09T09:30:00+08:00",
+        "end_time": "2026-04-09T10:30:00+08:00",
+        "location": "杭州-会议室C",
+        "organizer": "技术分会团队",
+        "attendees": [
+          "我"
+        ],
+        "description": "内部准备讨论，按时参加。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_906",
+        "title": "分会第一天机动（待观察）",
+        "start_time": "2026-04-08T12:10:00+08:00",
+        "end_time": "2026-04-08T13:00:00+08:00",
+        "location": "杭州-走廊咖啡区",
+        "organizer": "活动志愿者",
+        "attendees": [
+          "我"
+        ],
+        "description": "tentative：如与他人冲突可协商改期/候补时间段对齐。",
+        "status": "tentative"
+      },
+      {
+        "event_id": "evt_907",
+        "title": "差旅报销对接（不影响行程）",
+        "start_time": "2026-04-07T16:30:00+08:00",
+        "end_time": "2026-04-07T17:15:00+08:00",
+        "location": "本地-财务室",
+        "organizer": "财务BP",
+        "attendees": [
+          "我"
+        ],
+        "description": "仅进行报销资料核对。",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-501",
+        "name": "周怡",
+        "department": "上海分公司",
+        "title": "峰会运营负责人",
+        "email": "zhouyi@company-sh.com",
+        "phone": "13800111001",
+        "location": "上海",
+        "notes": "负责重要峰会现场对接与签到协调"
+      },
+      {
+        "contact_id": "CT-502",
+        "name": "邓然",
+        "department": "上海分公司",
+        "title": "合作伙伴经理",
+        "email": "dengran@company-sh.com",
+        "phone": "13800111002",
+        "location": "上海",
+        "notes": "负责峰会期间合作伙伴联络与会务安排"
+      },
+      {
+        "contact_id": "CT-503",
+        "name": "沈可",
+        "department": "上海分公司",
+        "title": "技术支持对接人",
+        "email": "shenke@company-sh.com",
+        "phone": "13800111003",
+        "location": "上海",
+        "notes": "协助峰会展台技术对接与人员调度"
+      },
+      {
+        "contact_id": "CT-504",
+        "name": "陈昊",
+        "department": "杭州研发中心",
+        "title": "技术分会讲演协调人",
+        "email": "chenhao@company-hz.com",
+        "phone": "13800222001",
+        "location": "杭州",
+        "notes": "对接技术分会演讲日程与参会材料"
+      },
+      {
+        "contact_id": "CT-505",
+        "name": "何婉",
+        "department": "杭州研发中心",
+        "title": "圆桌讨论主持联络",
+        "email": "hewans@company-hz.com",
+        "phone": "13800222002",
+        "location": "杭州",
+        "notes": "负责圆桌讨论参会席位与流程安排"
+      },
+      {
+        "contact_id": "CT-506",
+        "name": "贺宇",
+        "department": "杭州研发中心",
+        "title": "合规培训协同",
+        "email": "heyu@company-hz.com",
+        "phone": "13800222003",
+        "location": "杭州",
+        "notes": "协助处理强制培训时间与现场通行"
+      },
+      {
+        "contact_id": "CT-507",
+        "name": "赵明",
+        "department": "西安研发中心",
+        "title": "外部合作对接",
+        "email": "zhaoming@company-xa.com",
+        "phone": "13800333001",
+        "location": "西安",
+        "notes": "用于干扰：并非峰会/分会城市"
+      },
+      {
+        "contact_id": "CT-508",
+        "name": "林静",
+        "department": "成都分公司",
+        "title": "商务联络",
+        "email": "linjing@company-cd.com",
+        "phone": "13800444001",
+        "location": "成都",
+        "notes": "用于干扰：并非峰会/分会城市"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_9011",
+        "from": "ops@summit-orion.com",
+        "to": "me@company.com",
+        "subject": "重要峰会参会通知｜上海｜4月6日 上午签到",
+        "date": "2026-03-24T09:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "您好，您已被邀请参加“重要峰会（Orion 2026）”。\n城市：上海\n日期：2026-04-06（单日）\n签到要求：上午 09:30–10:00 到场完成签到（请准时）。\n会程重点：上午主会、下午对接交流。\n联系人：上海会务团队（如需替换会场或时间顺延请联系对应负责人）。"
+      },
+      {
+        "message_id": "msg_9012",
+        "from": "program@tech-society.org",
+        "to": "me@company.com",
+        "subject": "技术分会邀请｜杭州｜4/8-4/9 演讲与圆桌讨论",
+        "date": "2026-03-24T11:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "团队你好，现邀请你参与“技术分会（杭州）”。\n地点：杭州\n时间：2026-04-08 至 2026-04-09（跨两天）\n第一天（4/8）：演讲环节 10:30–11:15\n第二天（4/9）：圆桌讨论 14:30–16:00\n请携带演讲材料并按流程入场。若遇不可抗力冲突，主办方可协助调整座位与入场时段。"
+      },
+      {
+        "message_id": "msg_9013",
+        "from": "events@welcome-dinner.cn",
+        "to": "me@company.com",
+        "subject": "社交晚宴邀请｜杭州｜4月8日 周三 18:00-20:00",
+        "date": "2026-03-24T13:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好！我们诚邀您参加“社交晚宴”。\n城市：杭州\n时间：2026-04-08（周三）18:00-20:00。\n说明：本晚宴为交流性质，不影响主会程（演讲在上午/中午已安排）。"
+      },
+      {
+        "message_id": "msg_9014",
+        "from": "travel-support@company.com",
+        "to": "me@company.com",
+        "subject": "差旅报销提醒：请上传行程单（不含具体行程）",
+        "date": "2026-03-23T18:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "提醒：请在出差结束后上传行程单与票据。\n此邮件不包含具体行程安排。如需查询请使用差旅系统或联系差旅负责人。"
+      },
+      {
+        "message_id": "msg_9015",
+        "from": "newsletter@company.com",
+        "to": "me@company.com",
+        "subject": "本周产品更新简报",
+        "date": "2026-03-25T08:15:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "本周产品更新简报已发送，感谢关注。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新增题引入“可协商/候补”改期依据，并处理技术分会跨两天与强制合规培训的硬冲突组合。",
+    "fixture_design_summary": [
+      "Gmail 提供2封关键邀请（重要峰会-上海-4/6上午签到；技术分会-杭州-4/8演讲+4/9圆桌），另加入社交晚宴与差旅报销干扰邮件。",
+      "Calendar 构造硬冲突：4/9下午“强制合规培训 confirmed”；以及可协商空间：4/6的 tentative 活动文案含“可与他人协调改期”，并在 4/8 中午附近提供 tentative 机动。",
+      "Contacts 覆盖峰会城市上海与分会城市杭州各至少3名联系人，并额外加入西安/成都用于干扰，确保联系人检索不会只命中同一城市。"
+    ]
+  }
+}

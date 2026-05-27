@@ -1,0 +1,150 @@
+{
+  "task_id": "T003zh_calendar_scheduling_plus_2",
+  "task_name": "跨天延迟会议（必须在次日仍满足）",
+  "prompt_text": "我想在2026年4月10日（周五）安排“运营对齐会”1小时，参会者是蔡敏、程宇。请尽量在当天完成；如果当天两人都不存在共同1小时空闲窗口（即使存在碎片空闲也不足以凑满1小时），请顺延到最近可行日期并创建会议。地点：会议室B。请在输出中说明你为何需要顺延，以及最终选定的新日期与时间段。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_20260410_001",
+        "title": "蔡敏 - 协同评审",
+        "start_time": "2026-04-10T09:00:00Z",
+        "end_time": "2026-04-10T09:40:00Z",
+        "attendees": [
+          "蔡敏"
+        ],
+        "location": "会议室D",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260410_002",
+        "title": "蔡敏 - 客户跟进",
+        "start_time": "2026-04-10T10:30:00Z",
+        "end_time": "2026-04-10T11:20:00Z",
+        "attendees": [
+          "蔡敏"
+        ],
+        "location": "会议室E",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260410_003",
+        "title": "蔡敏 - 数据核对",
+        "start_time": "2026-04-10T14:00:00Z",
+        "end_time": "2026-04-10T14:30:00Z",
+        "attendees": [
+          "蔡敏"
+        ],
+        "location": "会议室F",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260410_004",
+        "title": "程宇 - 联合规划",
+        "start_time": "2026-04-10T09:10:00Z",
+        "end_time": "2026-04-10T09:55:00Z",
+        "attendees": [
+          "程宇"
+        ],
+        "location": "会议室G",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260410_005",
+        "title": "程宇 - 业务复盘",
+        "start_time": "2026-04-10T11:40:00Z",
+        "end_time": "2026-04-10T12:25:00Z",
+        "attendees": [
+          "程宇"
+        ],
+        "location": "会议室H",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260410_006",
+        "title": "程宇 - 需求澄清",
+        "start_time": "2026-04-10T15:10:00Z",
+        "end_time": "2026-04-10T15:55:00Z",
+        "attendees": [
+          "程宇"
+        ],
+        "location": "会议室I",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260410_007",
+        "title": "会议室B占用（非参会方）",
+        "start_time": "2026-04-10T10:00:00Z",
+        "end_time": "2026-04-10T10:45:00Z",
+        "attendees": [
+          "周博"
+        ],
+        "location": "会议室B",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260411_001",
+        "title": "蔡敏 - 复核检查",
+        "start_time": "2026-04-11T08:30:00Z",
+        "end_time": "2026-04-11T09:10:00Z",
+        "attendees": [
+          "蔡敏"
+        ],
+        "location": "会议室D",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260411_002",
+        "title": "程宇 - 系统对齐",
+        "start_time": "2026-04-11T11:00:00Z",
+        "end_time": "2026-04-11T11:40:00Z",
+        "attendees": [
+          "程宇"
+        ],
+        "location": "会议室G",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260411_003",
+        "title": "会议室B占用（干扰但不重叠最终窗口）",
+        "start_time": "2026-04-11T09:15:00Z",
+        "end_time": "2026-04-11T09:45:00Z",
+        "attendees": [
+          "何静"
+        ],
+        "location": "会议室B",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260411_004",
+        "title": "蔡敏 - 站会补充",
+        "start_time": "2026-04-11T13:30:00Z",
+        "end_time": "2026-04-11T14:10:00Z",
+        "attendees": [
+          "蔡敏"
+        ],
+        "location": "会议室E",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_20260411_005",
+        "title": "程宇 - 风险评审",
+        "start_time": "2026-04-11T16:00:00Z",
+        "end_time": "2026-04-11T16:40:00Z",
+        "attendees": [
+          "程宇"
+        ],
+        "location": "会议室H",
+        "recurring": false
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题从“当天可找到共同1小时”改为“4/10无共同1小时（仅碎片不足）则顺延到最近的可行日期4/11并创建”。",
+    "fixture_design_summary": [
+      "4/10为蔡敏与程宇分别布置多段<60分钟的占用时间，使两人共同可用区间无法达到>=1小时。",
+      "4/10加入一条仅占用会议室B但与最终顺延窗口不冲突的干扰事件（位置=会议室B）。",
+      "4/11给蔡敏与程宇安排零散占用，确保存在共同可用的>=1小时窗口可供创建“运营对齐会”。",
+      "4/11额外加入会议室B占用干扰，但不覆盖最终可用的共同1小时窗口。"
+    ]
+  }
+}

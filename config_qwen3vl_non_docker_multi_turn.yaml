@@ -1,0 +1,36 @@
+# Qwen3-VL served by vLLM for non-Docker multi-turn tasks.
+# Official judge and user-agent model for multi-turn tasks:
+# anthropic/claude-opus-4.6.
+
+model:
+  api_key: "EMPTY"
+  base_url: "http://127.0.0.1:8000/v1"
+  model_id: "qwen3_vl"
+  input_modalities: ["text"]
+  context_window: 131072
+  # extra_body: {}
+
+judge:
+  enabled: true
+  api_key: ""
+  base_url: ""
+  model_id: "anthropic/claude-opus-4.6"
+
+user_agent_model:
+  api_key: ""
+  base_url: ""
+  model_id: "anthropic/claude-opus-4.6"
+
+defaults:
+  trace_dir: traces/qwen3vl/non_docker_multi_turn
+  tasks_dir: tasks
+
+sandbox:
+  enabled: false
+
+media:
+  enabled: true
+  strict_mode: false
+  max_files: 6
+  max_bytes_per_file: 8388608
+  image_max_dimension: 2048

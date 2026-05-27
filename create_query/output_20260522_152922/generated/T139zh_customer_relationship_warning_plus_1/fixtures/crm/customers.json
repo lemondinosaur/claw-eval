@@ -1,0 +1,90 @@
+[
+  {
+    "customer_id": "CUS-211",
+    "name": "北辰医疗科技",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-06-14",
+    "annual_revenue": 1280000,
+    "industry": "医疗科技",
+    "sales_rep": "周岚",
+    "notes": "CRM风险：可能降级（客户评估降低套餐以压缩预算）。"
+  },
+  {
+    "customer_id": "CUS-212",
+    "name": "星图教育集团",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-06-27",
+    "annual_revenue": 420000,
+    "industry": "教育",
+    "sales_rep": "高昊",
+    "notes": "CRM提示：续约节奏偏后，需确认是否存在暂停服务意向。"
+  },
+  {
+    "customer_id": "CUS-213",
+    "name": "潮汐航运有限公司",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-06-30",
+    "annual_revenue": 990000,
+    "industry": "航运",
+    "sales_rep": "郑凯",
+    "notes": "CRM风险：暂停意向（近期提出短期内可能转为替代方案/竞品）。"
+  },
+  {
+    "customer_id": "CUS-214",
+    "name": "金桥金融服务",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-07-01",
+    "annual_revenue": 310000,
+    "industry": "金融服务",
+    "sales_rep": "高昊",
+    "notes": "无明确降级标记，但预算紧张传闻，需用邮件证据复核。"
+  },
+  {
+    "customer_id": "CUS-215",
+    "name": "云栈餐饮管理",
+    "tier": "standard",
+    "status": "inactive",
+    "contract_end": "2026-04-10",
+    "annual_revenue": 150000,
+    "industry": "餐饮管理",
+    "sales_rep": "高昊",
+    "notes": "非活跃客户，不纳入本次预警。"
+  },
+  {
+    "customer_id": "CUS-216",
+    "name": "明远制造股份",
+    "tier": "vip",
+    "status": "inactive",
+    "contract_end": "2026-09-18",
+    "annual_revenue": 1750000,
+    "industry": "制造业",
+    "sales_rep": "周岚",
+    "notes": "非活跃客户。"
+  },
+  {
+    "customer_id": "CUS-217",
+    "name": "绿野可再生能源",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-08-20",
+    "annual_revenue": 260000,
+    "industry": "新能源",
+    "sales_rep": "高昊",
+    "notes": "到期窗口不在45天内。"
+  },
+  {
+    "customer_id": "CUS-218",
+    "name": "长风安防系统",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-09-05",
+    "annual_revenue": 390000,
+    "industry": "安防",
+    "sales_rep": "郑凯",
+    "notes": "到期窗口不在45天内。"
+  }
+]

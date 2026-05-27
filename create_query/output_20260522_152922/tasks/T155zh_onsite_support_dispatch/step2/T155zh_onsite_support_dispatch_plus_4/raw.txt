@@ -1,0 +1,377 @@
+{
+  "task_id": "T155zh_onsite_support_dispatch_plus_4",
+  "task_name": "状态回退-已关闭工单不派遣",
+  "prompt_text": "mock_today=2026-04-15。请协助判断是否需要现场派遣，并在确有需要时完成工程师选择与邮件草稿保存。\n\n要求：\n1) 查看收件箱中与VIP客户相关的最新两封邮件内容，确认是否已撤回“需要现场支持”的请求。\n2) 查看 helpdesk 中所有相关工单（至少包含：已关闭/超SLA/演练干扰/未要求现场），逐条核对工单状态（open/closed/reopened）、requires_onsite、SLA_deadline、标签（如“演练/真实故障”等）。\n3) 结合CRM客户VIP政策：仅对“open + requires_onsite=true + 真实故障且未超SLA”的工单执行现场派遣决策；若不满足则必须拒绝派遣。\n4) 只有当存在满足派遣条件的工单时才需要工程师选择与排程；若不满足条件，则明确说明“不派遣”并给出原因。\n5) 不发送邮件：仅在需要时使用 gmail_save_draft 保存草稿。并确保邮件说明包含已核对的关键依据（状态/超期/演练/客户撤回等）。\n\n输出中必须体现最终派遣决策，并给出相应邮件草稿内容（如需要保存）。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_2101",
+        "title": "客户交付周会",
+        "start_time": "2026-04-15T09:30:00+08:00",
+        "end_time": "2026-04-15T10:15:00+08:00",
+        "location": "线上会议室",
+        "organizer": "吴敏",
+        "attendees": [
+          "工程师A",
+          "工程师B"
+        ],
+        "description": "本周客户交付进度同步",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_2102",
+        "title": "网络巡检与故障回放复盘",
+        "start_time": "2026-04-15T14:00:00+08:00",
+        "end_time": "2026-04-15T15:00:00+08:00",
+        "location": "上海总部机房",
+        "organizer": "陈晨",
+        "attendees": [
+          "工程师C"
+        ],
+        "description": "对昨日告警回放与巡检记录进行复盘",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-2101",
+        "name": "工程师A",
+        "department": "运维部",
+        "title": "资深运维工程师",
+        "email": "enga2101@company.com",
+        "phone": "13900111101",
+        "location": "上海总部",
+        "skills": [
+          "高可用排障",
+          "交换路由诊断",
+          "Linux系统故障",
+          "数据库连接池分析"
+        ],
+        "notes": "擅长生产链路排障与现场应急；可处理系统故障与网络隔离策略"
+      },
+      {
+        "contact_id": "CT-2102",
+        "name": "工程师B",
+        "department": "架构部",
+        "title": "后端技术专家",
+        "email": "engb2102@company.com",
+        "phone": "13900111102",
+        "location": "上海总部",
+        "skills": [
+          "微服务故障定位",
+          "性能优化",
+          "日志聚合分析",
+          "消息队列排障"
+        ],
+        "notes": "偏后端与应用层定位；对高并发与超时问题经验丰富"
+      },
+      {
+        "contact_id": "CT-2103",
+        "name": "工程师C",
+        "department": "安全与网络部",
+        "title": "网络安全工程师",
+        "email": "engc2103@company.com",
+        "phone": "13900111103",
+        "location": "上海总部",
+        "skills": [
+          "VPN与隧道排障",
+          "DNS解析异常定位",
+          "防火墙策略排查",
+          "安全告警研判"
+        ],
+        "notes": "适合网络/安全相关现场；对远程隔离与策略修复熟练"
+      },
+      {
+        "contact_id": "CT-2104",
+        "name": "韩薇",
+        "department": "客户成功部",
+        "title": "客户经理",
+        "email": "hanwei@company.com",
+        "phone": "13900111104",
+        "location": "上海总部",
+        "skills": [
+          "SLA管理",
+          "客户沟通",
+          "派遣协调"
+        ],
+        "notes": "负责蓝桥通信（CUS-2105）的日常对接与现场支持协调"
+      },
+      {
+        "contact_id": "CT-2105",
+        "name": "技术总监-张磊",
+        "department": "技术部",
+        "title": "技术总监",
+        "email": "zhanglei@company.com",
+        "phone": "13900111105",
+        "location": "上海总部",
+        "skills": [
+          "技术升级审批",
+          "应急资源调度监督"
+        ],
+        "notes": "当VIP关键工单需要拒派或需说明时，作为升级通知抄送对象"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2105",
+        "name": "蓝桥通信",
+        "contact_person": "董总",
+        "email": "dongzong@lanqiao-telecom.com",
+        "phone": "13900990001",
+        "industry": "通信",
+        "tier": "vip",
+        "annual_revenue": 3000000,
+        "last_contact_date": "2026-04-10",
+        "status": "active",
+        "location": "深圳南山区",
+        "sla_level": "platinum",
+        "sla_response": "4小时现场响应",
+        "notes": "VIP派遣策略：仅当工单状态为open、requires_onsite=true、且标签确认“真实故障”并且SLA_deadline未超时，才允许安排现场。若超SLA或状态为closed/reopened/或标签为“演练”，不补派；如客户通过邮件明确撤回现场需求，也应拒派并说明原因。对接客户经理：韩薇。抄送升级对象：技术总监张磊。"
+      },
+      {
+        "customer_id": "CUS-2106",
+        "name": "星云制造",
+        "contact_person": "周经理",
+        "email": "zhouj@xingyun-manufacture.com",
+        "phone": "13900990002",
+        "industry": "制造",
+        "tier": "standard",
+        "annual_revenue": 600000,
+        "last_contact_date": "2026-04-01",
+        "status": "active",
+        "location": "苏州工业园",
+        "sla_level": "standard",
+        "sla_response": "次日远程响应",
+        "notes": "非VIP客户，优先远程排障"
+      },
+      {
+        "customer_id": "CUS-2107",
+        "name": "云帆零售",
+        "contact_person": "赵总",
+        "email": "zhaoz@yunfan-retail.com",
+        "phone": "13900990003",
+        "industry": "零售",
+        "tier": "standard",
+        "annual_revenue": 420000,
+        "last_contact_date": "2026-03-29",
+        "status": "active",
+        "location": "杭州余杭",
+        "sla_level": "standard",
+        "sla_response": "次日远程响应",
+        "notes": "非VIP客户，除非requires_onsite=true且紧急，否则不安排现场"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2101",
+        "from": "dongzong@lanqiao-telecom.com",
+        "to": "support@company.com",
+        "subject": "蓝桥通信紧急：需要立刻现场支持（时间紧迫）",
+        "date": "2026-04-15T08:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important",
+          "urgent"
+        ],
+        "body": "您好，\n\n我们刚刚确认核心链路出现异常，需要现场工程师支持。我们已经在系统里提交了相关工单，希望你们今天上午安排技术人员到场。\n\n请尽快给出是否派遣的确认。\n\n董总\n蓝桥通信"
+      },
+      {
+        "message_id": "msg_2102",
+        "from": "account@lanqiao-telecom.com",
+        "to": "support@company.com",
+        "subject": "已通过应急远程处理解决：暂不需要现场支持",
+        "date": "2026-04-15T09:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "支持团队您好，\n\n更新说明：我们已经使用应急远程手段完成排障并验证恢复，当前问题已解决。\n\n因此暂不需要现场支持，请先不要安排工程师到场。若后续情况再现，我们会再重新开启工单并按要求升级。\n\n感谢！\n蓝桥通信客户经理"
+      },
+      {
+        "message_id": "msg_2103",
+        "from": "no-reply@monitoring-system.com",
+        "to": "support@company.com",
+        "subject": "告警汇总：检测到某服务重启（与当前请求无关）",
+        "date": "2026-04-15T07:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "告警汇总通知：服务svc-gateway在07:02发生一次重启。该事件已自动恢复，不影响当前工单调度。"
+      },
+      {
+        "message_id": "msg_2104",
+        "from": "service-desk@other-tenant.com",
+        "to": "support@company.com",
+        "subject": "关于工单信息同步的内部提示",
+        "date": "2026-04-15T11:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "内部提示：请勿直接从邮件中判断派遣，需以helpdesk状态与SLA为准。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-3101",
+        "title": "蓝桥通信：核心链路中断（演练应急已结束）",
+        "description": "蓝桥通信反馈核心链路出现中断迹象。最初被当作紧急现场工单处理，但随后确认属于演练/非真实故障流程触发。现已关闭并完成验证流程。\n\n需要确保不会因“表面紧急”而错误派遣。",
+        "customer_id": "CUS-2105",
+        "reporter": "董总",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "closed",
+        "created_at": "2026-04-15T06:10:00+08:00",
+        "tags": [
+          "演练",
+          "非真实故障",
+          "现场支持"
+        ],
+        "category": "网络中断",
+        "requires_onsite": true,
+        "closed_at": "2026-04-15T09:05:00+08:00",
+        "sla_deadline": "2026-04-15T10:10:00+08:00"
+      },
+      {
+        "ticket_id": "TK-3102",
+        "title": "蓝桥通信：链路抖动（超SLA且为演练）",
+        "description": "蓝桥通信上报链路抖动并要求现场支持。然而该问题最终被确认与演练场景相关，已通过应急远程处理完成恢复验证。\n\n当前SLA_deadline已过期10分钟，且标签为演练，按政策不补派。",
+        "customer_id": "CUS-2105",
+        "reporter": "客户经理",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-15T06:30:00+08:00",
+        "tags": [
+          "演练",
+          "非真实故障",
+          "应急远程已处理"
+        ],
+        "category": "链路稳定性",
+        "requires_onsite": true,
+        "sla_deadline": "2026-04-15T09:10:00+08:00"
+      },
+      {
+        "ticket_id": "TK-3103",
+        "title": "蓝桥通信：日志分析与报表导出咨询",
+        "description": "请求协助检查报表导出超时问题，当前可通过远程方式处理，无需现场。",
+        "customer_id": "CUS-2105",
+        "reporter": "董总助理",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-15T07:50:00+08:00",
+        "tags": [
+          "远程支持",
+          "日志分析"
+        ],
+        "category": "功能故障",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-16T07:30:00+08:00"
+      },
+      {
+        "ticket_id": "TK-3104",
+        "title": "星云制造：VPN连接失败排查",
+        "description": "VPN连接偶发失败，需要网络侧定位。该工单非VIP客户。",
+        "customer_id": "CUS-2106",
+        "reporter": "周经理",
+        "department": "技术支持",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-14T16:20:00+08:00",
+        "tags": [
+          "VPN",
+          "网络"
+        ],
+        "category": "连接故障",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-15T18:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-3105",
+        "title": "云帆零售：数据库慢查询",
+        "description": "慢查询明显增加，需要评估索引与查询计划。可远程完成，非现场要求。",
+        "customer_id": "CUS-2107",
+        "reporter": "赵总",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-13T10:05:00+08:00",
+        "tags": [
+          "数据库",
+          "性能"
+        ],
+        "category": "性能问题",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-16T10:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-3106",
+        "title": "蓝桥通信：应急远程处理回顾报告（内部）",
+        "description": "内部留档：记录应急远程处理动作与结果，用于归档。",
+        "customer_id": "CUS-2105",
+        "reporter": "技术值班",
+        "department": "技术支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-15T09:30:00+08:00",
+        "tags": [
+          "归档",
+          "远程已恢复"
+        ],
+        "category": "运维记录",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-20T09:30:00+08:00"
+      },
+      {
+        "ticket_id": "TK-3107",
+        "title": "星云制造：服务器磁盘告警（临时处理）",
+        "description": "磁盘告警已通过远程清理与容量扩展处理，现场不需要。",
+        "customer_id": "CUS-2106",
+        "reporter": "值班工程师",
+        "department": "技术支持",
+        "priority": "high",
+        "status": "closed",
+        "created_at": "2026-04-14T11:15:00+08:00",
+        "tags": [
+          "磁盘告警",
+          "远程处理"
+        ],
+        "category": "容量告警",
+        "requires_onsite": false,
+        "closed_at": "2026-04-14T18:40:00+08:00",
+        "sla_deadline": "2026-04-15T11:15:00+08:00"
+      },
+      {
+        "ticket_id": "TK-3108",
+        "title": "云帆零售：权限重置请求",
+        "description": "客户提交权限重置申请，属于操作支持，非现场。",
+        "customer_id": "CUS-2107",
+        "reporter": "赵总",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-15T10:25:00+08:00",
+        "tags": [
+          "权限",
+          "账号"
+        ],
+        "category": "账号权限",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-18T10:25:00+08:00"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "加入“已关闭/超SLA且演练/需要现场但已撤回需求”的干扰工单与邮件更新，要求最终拒绝派遣并保存不派遣说明草稿而非执行派遣。",
+    "fixture_design_summary": [
+      "Gmail：两封蓝桥通信相关邮件中，第二封明确“已通过应急远程处理解决，暂不需要现场支持”。",
+      "Helpdesk：TK-3101为closed且requires_onsite=true但closed_at在今天早上；TK-3102为open且requires_onsite=true但SLA_deadline已过期且标签为演练；TK-3103为medium且requires_onsite=false。",
+      "CRM：仅对“open+requires_onsite=true+真实故障+未超SLA”允许现场，超SLA/演练/closed一律拒派，并在notes写明客户经理与技术总监抄送规则。",
+      "Calendar：提供少量已确认事件以保证存在“工程师当日有空/不依赖排程”的背景，但由于本题应拒派，工程师选择应被跳过。"
+    ]
+  }
+}

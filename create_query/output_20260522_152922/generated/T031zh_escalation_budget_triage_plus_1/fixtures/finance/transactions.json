@@ -1,0 +1,28 @@
+[
+  {
+    "transaction_id": "TXN-2401",
+    "date": "2025-11-12",
+    "amount": 150000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-105",
+    "customer_name": "晨曦能源",
+    "type": "客户补偿",
+    "category": "补偿支出",
+    "description": "晨曦能源2025年Q4先前SLA违约补偿记录（干扰核验）",
+    "approved_by": "陈晓宁",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-2402",
+    "date": "2025-10-05",
+    "amount": 90000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-103",
+    "customer_name": "银海银行科技",
+    "type": "客户补偿",
+    "category": "补偿支出",
+    "description": "银海银行科技2025年Q3服务中断补偿（用于核验）",
+    "approved_by": "陈晓宁",
+    "status": "completed"
+  }
+]

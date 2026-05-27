@@ -1,0 +1,50 @@
+[
+  {
+    "transaction_id": "TXN-901",
+    "type": "预算拨付",
+    "description": "2026年Q2 信创替代专项预算",
+    "amount": 3200000,
+    "currency": "CNY",
+    "date": "2026-02-12",
+    "category": "预算",
+    "department": "信息化部",
+    "approved_by": "CIO",
+    "notes": "覆盖国产服务器替代试点与兼容性验证费用"
+  },
+  {
+    "transaction_id": "TXN-902",
+    "type": "采购支出",
+    "description": "曙科智联 关键国产服务器试点采购",
+    "amount": 1050000,
+    "currency": "CNY",
+    "date": "2026-01-18",
+    "category": "设备采购",
+    "department": "信息化部",
+    "supplier": "曙科智联",
+    "notes": "服务器型号：TR-SK880（4台）+ 维保服务"
+  },
+  {
+    "transaction_id": "TXN-903",
+    "type": "退货退款",
+    "description": "曙科智联 批次返修后退货退款（净预算影响）",
+    "amount": 168000,
+    "currency": "CNY",
+    "date": "2026-02-23",
+    "category": "退款",
+    "department": "信息化部",
+    "supplier": "曙科智联",
+    "notes": "试点批次中2台因返修结果不达标退货：退款包含部分硬件与维保抵扣。按保守口径，可用净预算仅约156万（表面预算320万需扣减相关退款/预期抵扣）。"
+  },
+  {
+    "transaction_id": "TXN-904",
+    "type": "采购支出",
+    "description": "星河云采 兼容性更稳方案采购（对比用）",
+    "amount": 720000,
+    "currency": "CNY",
+    "date": "2026-02-05",
+    "category": "设备采购",
+    "department": "信息化部",
+    "supplier": "星河云采",
+    "notes": "服务器型号：TR-XH660（2台）用于管理平台兼容性回归验证"
+  }
+]

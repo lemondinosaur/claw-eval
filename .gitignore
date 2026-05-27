@@ -9,17 +9,18 @@ build/
 uv.lock
 
 # Traces (generated output, don't commit)
-model_traces/
-traces/
-traces_*/
+# model_traces/
+# traces/
+# traces_*/
 .vscode/
 CLAUDE.md
 
 tasks/*/fixtures/*.mp4
 tasks/*/fixtures/*.webm
 
-logs/
-
+# logs/
+# create_query/log/
+mutlimodal_create_query
 docs/
 
 # Configs (contain API keys and internal endpoints)

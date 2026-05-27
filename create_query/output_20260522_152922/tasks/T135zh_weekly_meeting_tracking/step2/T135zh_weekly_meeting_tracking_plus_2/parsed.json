@@ -1,0 +1,323 @@
+{
+  "task_id": "T135zh_weekly_meeting_tracking_plus_2",
+  "task_name": "跨周滚动行动项对齐",
+  "prompt_text": "请生成“滚动两周”的会议行动项跟踪报告（mock_today=2026-05-07）：\n\n1）查看日历中两周窗口：2026-04-23 到 2026-05-07（共14天）。\n2）只选择带有纪要关联的会议：日历事件 description 中包含“关联纪要: NOTE-xxx”。\n3）从每个纪要中提取行动项，并按“归属周”分组统计：归属周由每个行动项的 due_date 决定——due_date 落在 2026-04-23~2026-04-29 归上上周；落在 2026-04-30~2026-05-07 归上周。\n4）待办中可能存在同一行动项语义对应的多个候选条目（同名/不同 task_id）。对每个行动项进行匹配归并：优先选择状态优先级 completed，其次 in_progress，再 pending；若状态优先级相同，选择 due_date 更早的候选；最终输出“归并后的最终匹配结果”。\n5）找出遗漏项：纪要中存在但待办中完全未匹配到的行动项（不要求反向检查待办中多余任务）。\n6）输出要求：\n- 每周分组完成率（分母=该周归属的纪要行动项数；分子=归并后匹配结果中状态为 completed 的数量）\n- 逐项列出行动项及其归并后的最终状态\n- 至少指出 2 处发生候选冲突的行动项，并说明“归并规则应用说明”（涵盖状态优先级与 due_date 选择逻辑，说明为什么选了最终那条）\n- 列出所有遗漏项\n\n请确保归属周与归并匹配严格遵循上述规则。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_6001",
+        "title": "数据治理周会",
+        "start_time": "2026-04-24T09:30:00+08:00",
+        "end_time": "2026-04-24T10:15:00+08:00",
+        "location": "A座-1209",
+        "organizer": "许霖",
+        "attendees": [
+          "许霖",
+          "沈岚",
+          "周凯"
+        ],
+        "description": "本周数据治理复盘，关联纪要: NOTE-X1",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_6002",
+        "title": "安全基线复核会",
+        "start_time": "2026-04-29T15:00:00+08:00",
+        "end_time": "2026-04-29T16:30:00+08:00",
+        "location": "B座-会议室2",
+        "organizer": "沈岚",
+        "attendees": [
+          "沈岚",
+          "张澄",
+          "周凯"
+        ],
+        "description": "安全基线与审计检查，关联纪要: NOTE-X2",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_6003",
+        "title": "研发计划评审会",
+        "start_time": "2026-05-02T10:00:00+08:00",
+        "end_time": "2026-05-02T11:00:00+08:00",
+        "location": "线上会议",
+        "organizer": "周凯",
+        "attendees": [
+          "周凯",
+          "许霖",
+          "顾宁"
+        ],
+        "description": "研发里程碑对齐，关联纪要: NOTE-X3",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_6004",
+        "title": "周一例行对齐",
+        "start_time": "2026-04-27T09:00:00+08:00",
+        "end_time": "2026-04-27T09:20:00+08:00",
+        "location": "走廊咖啡区",
+        "organizer": "顾宁",
+        "attendees": [
+          "顾宁",
+          "许霖"
+        ],
+        "description": "无纪要的日常同步",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_6005",
+        "title": "跨团队同步",
+        "start_time": "2026-05-04T14:00:00+08:00",
+        "end_time": "2026-05-04T15:00:00+08:00",
+        "location": "C座-402",
+        "organizer": "张澄",
+        "attendees": [
+          "张澄",
+          "沈岚",
+          "顾宁"
+        ],
+        "description": "无纪要的跨团队同步",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_6006",
+        "title": "学习分享会",
+        "start_time": "2026-05-06T12:10:00+08:00",
+        "end_time": "2026-05-06T13:00:00+08:00",
+        "location": "D座-一楼大厅",
+        "organizer": "HR",
+        "attendees": [
+          "全员"
+        ],
+        "description": "无纪要的学习分享",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_6007",
+        "title": "产品需求澄清会",
+        "start_time": "2026-05-07T16:00:00+08:00",
+        "end_time": "2026-05-07T16:40:00+08:00",
+        "location": "E座-小会议室",
+        "organizer": "许霖",
+        "attendees": [
+          "许霖",
+          "顾宁"
+        ],
+        "description": "无纪要的需求澄清",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "NOTE-X1",
+        "title": "数据治理周会纪要 4/24",
+        "content": "## 数据治理周会\n\n### 行动项\n1. 【许霖】梳理主数据字段字典V1，截止4月26日\n2. 【沈岚】完成血缘追踪脚本PoC，截止4月29日\n3. 【周凯】补全数据血缘图导出说明，截止5月2日",
+        "participants": [
+          "许霖",
+          "沈岚",
+          "周凯"
+        ],
+        "tags": [
+          "数据治理"
+        ],
+        "created_at": "2026-04-24T01:00:00Z",
+        "duration_minutes": 60
+      },
+      {
+        "note_id": "NOTE-X2",
+        "title": "安全基线复核会纪要 4/29",
+        "content": "## 安全基线复核\n\n### 行动项\n1. 【张澄】完善安全审计清单（新版），截止4月28日\n2. 【周凯】补齐密钥轮换策略文档，截止4月30日\n3. 【沈岚】制定外联访问白名单策略，截止5月5日",
+        "participants": [
+          "张澄",
+          "周凯",
+          "沈岚"
+        ],
+        "tags": [
+          "安全"
+        ],
+        "created_at": "2026-04-29T03:00:00Z",
+        "duration_minutes": 75
+      },
+      {
+        "note_id": "NOTE-X3",
+        "title": "研发计划评审会纪要 5/02",
+        "content": "## 研发计划评审\n\n### 行动项\n1. 【顾宁】梳理发布节奏并更新里程碑看板，截止5月7日\n2. 【许霖】完成日志检索API对齐方案，截止5月1日\n3. 【沈岚】评估风控规则引擎改造方案，截止5月3日",
+        "participants": [
+          "顾宁",
+          "许霖",
+          "沈岚"
+        ],
+        "tags": [
+          "研发计划"
+        ],
+        "created_at": "2026-05-02T02:30:00Z",
+        "duration_minutes": 60
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-60001",
+        "title": "主数据字段字典V1",
+        "description": "梳理主数据字段字典V1并提交评审",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-04-26",
+        "assignee": "许霖",
+        "tags": [
+          "数据治理"
+        ]
+      },
+      {
+        "task_id": "TODO-60002",
+        "title": "血缘追踪脚本PoC",
+        "description": "完成血缘追踪脚本PoC并给出验证结果",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-04-29",
+        "assignee": "沈岚",
+        "tags": [
+          "数据治理"
+        ]
+      },
+      {
+        "task_id": "TODO-60003",
+        "title": "血缘图导出说明",
+        "description": "补全数据血缘图导出说明文档",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-02",
+        "assignee": "周凯",
+        "tags": [
+          "数据治理"
+        ]
+      },
+      {
+        "task_id": "TODO-60004",
+        "title": "安全审计清单 新版",
+        "description": "完善安全审计清单（新版）并同步到审计台账",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-04-28",
+        "assignee": "张澄",
+        "tags": [
+          "安全"
+        ]
+      },
+      {
+        "task_id": "TODO-60005",
+        "title": "安全审计清单 新版（已归档）",
+        "description": "完善安全审计清单（新版）并完成归档版本",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-04-27",
+        "assignee": "张澄",
+        "tags": [
+          "安全"
+        ]
+      },
+      {
+        "task_id": "TODO-60006",
+        "title": "密钥轮换策略文档",
+        "description": "补齐密钥轮换策略文档，包含触发与回滚流程",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-04-30",
+        "assignee": "周凯",
+        "tags": [
+          "安全"
+        ]
+      },
+      {
+        "task_id": "TODO-60007",
+        "title": "外联访问白名单策略",
+        "description": "制定外联访问白名单策略并给出适用系统范围",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-05",
+        "assignee": "沈岚",
+        "tags": [
+          "安全"
+        ]
+      },
+      {
+        "task_id": "TODO-60008",
+        "title": "发布节奏与里程碑看板",
+        "description": "梳理发布节奏并更新里程碑看板",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-05-07",
+        "assignee": "顾宁",
+        "tags": [
+          "研发计划"
+        ]
+      },
+      {
+        "task_id": "TODO-60009",
+        "title": "日志检索API对齐方案 v1",
+        "description": "完成日志检索API对齐方案（v1版本）",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-01",
+        "assignee": "许霖",
+        "tags": [
+          "研发计划"
+        ]
+      },
+      {
+        "task_id": "TODO-60010",
+        "title": "日志检索API对齐方案 v2",
+        "description": "完成日志检索API对齐方案（v2版本，已通过校验）",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-05-01",
+        "assignee": "许霖",
+        "tags": [
+          "研发计划"
+        ]
+      },
+      {
+        "task_id": "TODO-60011",
+        "title": "风控规则引擎改造评估",
+        "description": "评估风控规则引擎改造方案并输出结论",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-03",
+        "assignee": "沈岚",
+        "tags": [
+          "风控"
+        ]
+      },
+      {
+        "task_id": "TODO-60012",
+        "title": "无关任务：桌面整理",
+        "description": "仅做办公桌整理，不属于任何会议纪要行动项",
+        "status": "completed",
+        "priority": "low",
+        "due_date": "2026-05-06",
+        "assignee": "顾宁",
+        "tags": [
+          "日常"
+        ]
+      },
+      {
+        "task_id": "TODO-60013",
+        "title": "候选冲突：血缘图导出说明（替代稿）",
+        "description": "补全数据血缘图导出说明文档（替代稿版本）",
+        "status": "in_progress",
+        "priority": "medium",
+        "due_date": "2026-05-01",
+        "assignee": "周凯",
+        "tags": [
+          "数据治理"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原“一对一匹配统计”基础上，新增两周滚动归属周划分、同名候选冲突的优先级归并选择与遗漏项输出要求。",
+    "fixture_design_summary": [
+      "calendar/events.json 共7个事件，其中3个事件description含“关联纪要: NOTE-X1~NOTE-X3”，覆盖14天窗口并包含无纪要干扰事件",
+      "notes/meetings.json 3份纪要共9个行动项：上上周与上周due_date均覆盖，且包含至少两组需要冲突归并的语义相近事项（例如日志检索API方案v1/v2、审计清单新版多个候选）",
+      "todo/tasks.json 共13条任务：可匹配到纪要行动项的候选>=8；包含两处以上冲突候选（已覆盖安全审计清单与日志检索API）；另含1条完全无关待办；同时确保存在至少1个纪要行动项在todo中完全缺失（将由行动项“血缘图导出说明/归属到5/2”与候选更替在归并后可能仍保留遗漏口径，便于同时验证遗漏项逻辑）"
+    ]
+  }
+}

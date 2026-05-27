@@ -1,0 +1,164 @@
+{
+  "task_id": "T029zh_cross_service_meeting_plus_3",
+  "task_name": "跨时区线上会（夜间边界）",
+  "prompt_text": "请协助协调来自“GreenWave Partners”的线上会议邀请，并完成跨时区时间换算与日程安排。\n\n你的任务：\n1）阅读收件箱中的会议邀请邮件，确认会议主题为“增长实验评审”，会议时长为2小时；邮件中给出的是纽约时间（UTC-5）的可选窗口：周一 15:00-19:00（连续2小时，需完全落在该窗口内）。\n2）在通讯录中找到我方三位参会人：沈烨、蒋莉、孙凯（仅邮件给出姓名线索），获取他们的邮箱。\n3）将对方纽约时间窗口换算到北京时间（UTC+8），确定对应的北京时间日期/时间范围（可能跨天）。\n4）在换算后的北京时间日期上查询这三人的日程，计算共同可用且满足“完全落在换算窗口内”的最早连续2小时，并处理边界冲突。\n5）创建日历事件：地点为“WebEx线上”，标题为“增长实验评审”。\n6）给发起方回复并发送确认邮件：邮件正文需写明按北京时间给出的会议开始/结束时间、主题与参会人姓名及邮箱，并说明该时间是由纽约窗口（UTC-5→UTC+8）换算得到。\n\n注意：请确保所选会议时段是最早可行的2小时，且不与任一人的现有日程冲突。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_701",
+        "title": "实验复盘（冲突片段A）",
+        "organizer": "shenye@company.com",
+        "attendees": [
+          "shenye@company.com"
+        ],
+        "start_time": "2026-03-10T03:00:00+08:00",
+        "end_time": "2026-03-10T03:45:00+08:00",
+        "location": "会议室C",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_702",
+        "title": "周会（冲突片段B）",
+        "organizer": "jiangli@company.com",
+        "attendees": [
+          "jiangli@company.com"
+        ],
+        "start_time": "2026-03-10T02:30:00+08:00",
+        "end_time": "2026-03-10T03:15:00+08:00",
+        "location": "会议室D",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_703",
+        "title": "数据审阅（冲突片段C）",
+        "organizer": "sunkai@company.com",
+        "attendees": [
+          "sunkai@company.com"
+        ],
+        "start_time": "2026-03-10T05:00:00+08:00",
+        "end_time": "2026-03-10T05:30:00+08:00",
+        "location": "线上",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_704",
+        "title": "个人时间（干扰）",
+        "organizer": "me@company.com",
+        "attendees": [
+          "me@company.com"
+        ],
+        "start_time": "2026-03-10T06:30:00+08:00",
+        "end_time": "2026-03-10T07:00:00+08:00",
+        "location": "",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_705",
+        "title": "同步会议（干扰片段）",
+        "organizer": "liangchen@company.com",
+        "attendees": [
+          "liangchen@company.com",
+          "me@company.com"
+        ],
+        "start_time": "2026-03-10T01:00:00+08:00",
+        "end_time": "2026-03-10T01:30:00+08:00",
+        "location": "会议室A",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-201",
+        "name": "沈烨",
+        "department": "研发平台",
+        "title": "高级产品经理",
+        "email": "shenye@company.com",
+        "phone": "13701010101",
+        "location": "北京总部"
+      },
+      {
+        "contact_id": "CT-202",
+        "name": "蒋莉",
+        "department": "数据与分析",
+        "title": "数据分析师",
+        "email": "jiangli@company.com",
+        "phone": "13701010102",
+        "location": "上海分部"
+      },
+      {
+        "contact_id": "CT-203",
+        "name": "孙凯",
+        "department": "增长团队",
+        "title": "增长运营",
+        "email": "sunkai@company.com",
+        "phone": "13701010103",
+        "location": "北京总部"
+      },
+      {
+        "contact_id": "CT-204",
+        "name": "梁辰",
+        "department": "工程部",
+        "title": "工程师",
+        "email": "liangchen@company.com",
+        "phone": "13701010104",
+        "location": "深圳分部"
+      },
+      {
+        "contact_id": "CT-205",
+        "name": "周雅",
+        "department": "运营支持",
+        "title": "项目协调",
+        "email": "zhouya@company.com",
+        "phone": "13701010105",
+        "location": "北京总部"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_601",
+        "from": "meetings@greenwave-partners.com",
+        "to": "me@company.com",
+        "subject": "GreenWave 邀请：增长实验评审（纽约时间窗口）",
+        "date": "2026-03-02T18:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "你好，\n\n我们来自 GreenWave Partners，想邀请贵方参加“增长实验评审”（2小时）。\n\n会议候选窗口（纽约时间，UTC-5）为：\n- 周一 15:00-19:00（要求连续2小时，需完全落在该窗口内）\n\n参会人（请协助邀请）：\n- 沈烨\n- 蒋莉\n- 孙凯\n\n地点：WebEx线上\n\n如果需要，请在回复中使用北京时间（UTC+8）确认开始/结束时间，并简单说明这是由纽约窗口换算得到。\n\n谢谢，\nGreenWave Partners 团队"
+      },
+      {
+        "message_id": "msg_602",
+        "from": "news@greenwave-partners.com",
+        "to": "me@company.com",
+        "subject": "每周快讯（干扰邮件）",
+        "date": "2026-03-02T09:20:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "这是一封无关邮件。"
+      },
+      {
+        "message_id": "msg_603",
+        "from": "hr@greenwave-partners.com",
+        "to": "me@company.com",
+        "subject": "面试安排确认（干扰邮件）",
+        "date": "2026-03-03T11:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "面试时间已确认。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原题基础上加入纽约时间（UTC-5）到北京时间（UTC+8）换算并处理跨天夜间边界，同时参会人数扩展为3人。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 新增来自 GreenWave Partners 的“增长实验评审”邀请邮件，包含纽约周一15:00-19:00窗口与3位参会人姓名线索。",
+      "contacts/contacts.json 提供沈烨/蒋莉/孙凯的全新邮箱，并额外加入干扰联系人。",
+      "calendar/events.json 在北京时间 2026-03-10 的换算窗口内放入3段冲突：沈烨 03:00-03:45、蒋莉 02:30-03:15、孙凯 05:00-05:30，使最早可行的2小时落在 03:15-05:15（且在02:00-06:00窗口内）。"
+    ]
+  }
+}

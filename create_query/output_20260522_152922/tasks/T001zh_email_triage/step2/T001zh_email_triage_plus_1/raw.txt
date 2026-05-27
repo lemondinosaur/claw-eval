@@ -1,0 +1,148 @@
+{
+  "task_id": "T001zh_email_triage_plus_1",
+  "task_name": "紧急工单回执识别",
+  "prompt_text": "请帮我分拣邮箱收件箱里的所有邮件：逐条判断哪些“必须回复”（需回复）、哪些只是“信息/通知”（仅供参考）、哪些是明显垃圾或可疑钓鱼（垃圾邮件）。\n\n要求：对每封邮件输出发送方、主题、判定类别（只能从“需回复/仅供参考/垃圾邮件”三者中选）以及简明理由（说明是否要求回执/签署/确认、是否索要敏感信息或包含可疑链接与诱导）。不得调用发送邮件工具。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "inbox_msg_1041",
+        "from": "delivery-team@skyline-deliver.com",
+        "to": "user@company.com",
+        "subject": "紧急：验收联系人回执确认（请在今天17:30前回复）",
+        "body": "您好，\n\n本项目交付进入验收阶段。请您确认“验收联系人”信息并回传确认。\n\n回执要求：\n1) 回复邮件确认联系人姓名与联系方式（可直接粘贴模板）。\n2) 若信息无误，请在今天17:30前回复“已确认”。\n\n模板：\n验收联系人：\n电话：\n\n如未在截止时间前回执，我们将无法完成验收流程。\n\n交付项目组\nSkyline Delivery",
+        "date": "2026-05-22T09:10:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "inbox_msg_1042",
+        "from": "compliance@northbank-securecenter.net",
+        "to": "user@company.com",
+        "subject": "安全中心：身份验证失败（立即提交信息以避免账户受限）",
+        "body": "亲爱的客户：\n\n我们检测到您的账户存在异常登录行为。为避免访问受限，请在2小时内完成身份信息提交。\n\n请点击以下链接进入验证页面（注意：不要关闭此窗口）：\nhttps://northbank-securecenter.net/verify?ref=7Kp2\n\n页面将提示您上传身份证件并补充银行卡相关信息，以完成“实时风控校验”。\n\n温馨提示：如果您未按时提交，将触发临时冻结。\n\n安全中心团队",
+        "date": "2026-05-22T10:40:00Z",
+        "labels": [
+          "INBOX",
+          "SPAM"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "inbox_msg_1043",
+        "from": "product-updates@orbitcloud.com",
+        "to": "user@company.com",
+        "subject": "功能上线通知：OrbitCloud 报表下载增强（无需操作）",
+        "body": "您好！\n\n我们已上线新的报表下载能力：\n- 支持按时间范围批量导出\n- 下载失败将自动重试\n- 导出的文件格式与权限策略已同步\n\n本次更新无需您执行任何操作。若您在使用过程中遇到异常，可在系统内工单提交反馈。\n\n更新内容详见：\nhttps://orbitcloud.com/help/reports-download\n\nOrbitCloud 团队",
+        "date": "2026-05-21T15:05:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_UPDATES"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "inbox_msg_1044",
+        "from": "docs@orbitcloud.com",
+        "to": "user@company.com",
+        "subject": "用户指南更新：API 鉴权方式变更说明（阅读即可）",
+        "body": "您好，\n\n我们更新了《API 鉴权》用户指南，主要变更：\n1) 新增“Token 前缀”说明\n2) 请求头示例补充\n3) 兼容旧版的过渡期限说明\n\n这是一封信息通知，不需要回复邮件。\n\n请查阅最新文档：\nhttps://orbitcloud.com/docs/auth-v2\n\n如需帮助，可联系支持中心。\n\nOrbitCloud 文档团队",
+        "date": "2026-05-21T08:20:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_UPDATES"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "inbox_msg_1045",
+        "from": "legal-compliance@quartz-legal.cn",
+        "to": "user@company.com",
+        "subject": "合规签署：请在截止日前签署并回传附件（2026/05/29前）",
+        "body": "尊敬的同事：\n\n请您完成一份合规附件的签署与回传。\n\n截止时间：2026年5月29日（含当天）18:00前。\n\n签署方式（请按以下步骤完成回传）：\n1) 打开附件并确认签署页内容\n2) 在电子签署区域完成签名\n3) 回传签署后的文件至本邮件所述的回传邮箱\n\n本邮件正文仅提供签署与截止信息。若您已完成签署，请忽略本提醒。\n\n法务/合规部\nQuartz Legal",
+        "date": "2026-05-22T07:55:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "inbox_msg_1046",
+        "from": "helpdesk@service-fairtrade.co",
+        "to": "user@company.com",
+        "subject": "通知：关于工单状态的更新（请查看详情）",
+        "body": "您好！\n\n您的工单 FY-77219 已进入“处理中”状态。\n\n本阶段安排：\n- 专家将在24小时内评估\n- 相关材料将通过内部系统同步\n\n无需直接回复本邮件。如需补充信息，请在工单页面提交。\n\nFairTrade Helpdesk",
+        "date": "2026-05-20T12:10:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "inbox_msg_1047",
+        "from": "lottery-alert@brightgold-claims.biz",
+        "to": "user@company.com",
+        "subject": "恭喜！72小时内领取大奖（需提供账户信息）",
+        "body": "尊敬的用户：\n\n您已被选为“幸运候选人”。我们即将发放一笔超额现金奖励。\n\n为了确保资金快速到账，请在72小时内完成以下操作：\n1) 点击领取链接并填写收款信息\n2) 提交银行账户/身份证号用于验证\n3) 完成“快速入账”流程\n\n领取链接：\nhttp://brightgold-claims.biz/receive?code=Z9mX\n\n注意：若未在限期内提交，将失去领奖资格。\n\nInternational Lottery Committee",
+        "date": "2026-05-22T02:25:00Z",
+        "labels": [
+          "INBOX",
+          "SPAM"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "inbox_msg_1048",
+        "from": "security-center@intranet-guard.org",
+        "to": "user@company.com",
+        "subject": "账户异常提醒：请登录内部系统检查（未要求回执）",
+        "body": "您好，\n\n系统记录到您的账户在近期出现异常访问迹象。请您尽快登录内部安全控制台检查会话与设备。\n\n建议操作：\n- 进入 https://intranet-guard.org/console 查看登录设备\n- 如发现异常设备，立即更换密码并退出可疑会话\n\n本邮件仅为提醒通知，不要求您回复本邮件。\n\n安全运营团队",
+        "date": "2026-05-21T23:35:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "inbox_msg_1049",
+        "from": "release@orbitcloud.com",
+        "to": "user@company.com",
+        "subject": "产品更新：Beta 版界面调整（将于本周五生效）",
+        "body": "你好！\n\n我们将在本周五（5月22日）上线 Beta 版界面调整：\n- 导航栏布局优化\n- “设置”页面新增快捷入口\n- 部分按钮文案微调\n\n这是产品更新通知，不需要回复。若需要反馈，请在系统内使用“意见提交”功能。\n\nOrbitCloud 发行团队",
+        "date": "2026-05-22T05:50:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_UPDATES"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "inbox_msg_1050",
+        "from": "advisory@finshield-care.com",
+        "to": "user@company.com",
+        "subject": "安全咨询：账户验证后才能继续使用（请尽快处理）",
+        "body": "尊敬的客户：\n\n为了保障资金安全，我们需要您尽快完成账户验证，否则可能影响后续操作。\n\n请在今天晚些时候前点击如下地址登录验证：\nhttps://finshield-care.com/verify\n\n验证内容包括：\n- 输入一次性验证码\n- 提供账户尾号与开户信息\n- 按提示确认敏感资料\n\n此邮件为紧急通知，请勿忽略。\n\nFinShield 安全顾问",
+        "date": "2026-05-22T12:05:00Z",
+        "labels": [
+          "INBOX",
+          "SPAM"
+        ],
+        "is_read": false
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原邮件分流基础上加入“回执/签署截止时间”与更强的银行安全中心/抽奖诈骗钓鱼语义，并加入“只需登录检查但不要求回复”的边界案例。",
+    "fixture_design_summary": [
+      "共10封邮件：6未读、4已读；labels含INBOX与SPAM/IMPORTANT/CATEGORY_UPDATES混合。",
+      "“需回复”覆盖：验收联系人回执确认、合规签署回传（明确截止与回传要求）。",
+      "“仅供参考”覆盖：产品上线/用户指南更新、工单状态通知、账户异常提醒（明确不要求回复）。",
+      "“垃圾邮件”覆盖：安全中心索要身份信息且含可疑链接、抽奖诈骗要求提供账户信息、紧迫验证诱导。",
+      "所有发件人域名、主题措辞、工单号与截止日期均为全新数据，确保与源fixtures不复用具体内容。"
+    ]
+  }
+}

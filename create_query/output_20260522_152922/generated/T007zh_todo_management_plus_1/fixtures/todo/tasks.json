@@ -1,0 +1,172 @@
+[
+  {
+    "task_id": "t1_export_clients_a",
+    "title": "客户数据导出",
+    "description": "导出客户主数据（CRM）并生成Excel给运营团队。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-05",
+    "tags": [
+      "客户",
+      "数据导出",
+      "CRM"
+    ],
+    "created_at": "2026-03-20T09:10:00Z"
+  },
+  {
+    "task_id": "t1_export_clients_b",
+    "title": "客户数据 导出（CRM）",
+    "description": "导出客户主数据（CRM）并生成Excel交付运营团队使用。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-12",
+    "tags": [
+      "数据导出",
+      "CRM"
+    ],
+    "created_at": "2026-03-21T11:40:00Z"
+  },
+  {
+    "task_id": "t1_export_clients_c",
+    "title": "月度巡检报告",
+    "description": "编写并提交月度巡检报告：系统健康检查、告警统计与整改跟踪。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-18",
+    "tags": [
+      "巡检",
+      "报告"
+    ],
+    "created_at": "2026-03-25T10:05:00Z"
+  },
+  {
+    "task_id": "t1_inspection_report_d",
+    "title": "月 度 巡检报告",
+    "description": "编写并提交月度巡检报告：系统健康检查、告警统计与整改跟踪。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-16",
+    "tags": [
+      "报告",
+      "巡检"
+    ],
+    "created_at": "2026-03-26T12:20:00Z"
+  },
+  {
+    "task_id": "t1_inspection_report_e",
+    "title": "月度巡检报告（故障复盘版）",
+    "description": "整理本月故障复盘材料并总结根因、采取的修复与预防措施，不包含常规巡检汇总。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-20",
+    "tags": [
+      "复盘",
+      "故障"
+    ],
+    "created_at": "2026-03-27T15:30:00Z"
+  },
+  {
+    "task_id": "t1_export_clients_hist_completed",
+    "title": "客户数据导出（历史）",
+    "description": "导出客户主数据（用于归档报表），无需再次交付运营。",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-04-01",
+    "tags": [
+      "归档",
+      "CRM"
+    ],
+    "created_at": "2026-03-10T08:00:00Z"
+  },
+  {
+    "task_id": "t1_printer_driver_install",
+    "title": "安装打印机驱动",
+    "description": "为财务电脑安装打印机驱动并完成基础测试页打印。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": null,
+    "tags": [
+      "设备",
+      "安装"
+    ],
+    "created_at": "2026-04-02T13:12:00Z"
+  },
+  {
+    "task_id": "t1_health_check_booking",
+    "title": "预约 体检",
+    "description": "联系体检机构并预约本季度体检时间。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": null,
+    "tags": [
+      "个人",
+      "健康"
+    ],
+    "created_at": "2026-04-03T09:45:00Z"
+  },
+  {
+    "task_id": "t1_pitch_deck_prep",
+    "title": "准备路演素材",
+    "description": "整理路演PPT的市场数据、竞品对比与问答提纲。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-22",
+    "tags": [
+      "路演",
+      "PPT"
+    ],
+    "created_at": "2026-04-01T16:10:00Z"
+  },
+  {
+    "task_id": "t1_monthly_qc_report",
+    "title": "月度数据质量检查",
+    "description": "对上月数据做质量抽查：字段完整性、重复率与异常值分布。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-10",
+    "tags": [
+      "数据质量",
+      "检查"
+    ],
+    "created_at": "2026-04-04T10:25:00Z"
+  },
+  {
+    "task_id": "t1_backup_routine",
+    "title": "例行备份校验",
+    "description": "检查备份任务是否成功并抽样验证可恢复性。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-07",
+    "tags": [
+      "运维",
+      "备份"
+    ],
+    "created_at": "2026-03-28T18:05:00Z"
+  },
+  {
+    "task_id": "t1_security_patch",
+    "title": "安全补丁更新",
+    "description": "对关键系统应用安全补丁并记录升级变更单。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-08",
+    "tags": [
+      "安全",
+      "运维"
+    ],
+    "created_at": "2026-03-29T09:30:00Z"
+  },
+  {
+    "task_id": "t1_backup_rehearsal",
+    "title": "备份恢复演练",
+    "description": "按计划进行备份恢复演练，形成演练记录与改进清单。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-09",
+    "tags": [
+      "演练",
+      "运维"
+    ],
+    "created_at": "2026-03-31T14:00:00Z"
+  }
+]

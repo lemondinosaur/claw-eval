@@ -1,0 +1,281 @@
+task_id: T033zh_ops_review_dashboard_plus_2
+task_name: 周报：搜索索引失活与舆情工单
+version: '1.0'
+category: ops
+difficulty: hard
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T033zh_ops_review_dashboard_plus_2/fixtures/kb/articles.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T033zh_ops_review_dashboard_plus_2/fixtures/helpdesk/tickets.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T033zh_ops_review_dashboard_plus_2/fixtures/inventory/products.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T033zh_ops_review_dashboard_plus_2/fixtures/crm/customers.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: create_query/output_20260522_152922/generated/T033zh_ops_review_dashboard_plus_2/fixtures/config/integrations.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: create_query/output_20260522_152922/generated/T033zh_ops_review_dashboard_plus_2/fixtures/scheduler/jobs.json
+prompt:
+  text: '请帮我准备一份本周运营周报（只读审查与分析）。需要综合以下系统模块的数据：系统集成状态、工单系统、库存状况、CRM客户动态、知识库文章与定时任务状态。
+
+
+    重点围绕“站内搜索结果长时间不更新/检索失败”的跨系统关联进行排查与归因：
+
+    1) 集成侧需重点解释“搜索索引/内容分发相关集成 error_rate 为 0 或极低但调用量本周显著骤降”的指标悖论，结合 integration notes
+    给出可能原因；
+
+    2) 工单侧需要按类别聚类“搜索结果滞后/索引缺失/类目索引不生效/商品无法被搜索到/排序异常”等线索，并在报告中量化聚簇结果（如数量与比例）；
+
+    3) 调度侧需要确认“索引回填/增量同步/重建索引”等任务 enabled=true 但最近一次运行异常久、或历史显示失败/跳过/被锁导致间隔异常，并与工单时间点相互印证；
+
+    4) 库存与CRM仅用于排除误判（例如避免把用户体验问题误归因库存或客户数据源本身故障）；
+
+    5) 知识库侧请检查是否存在关于“索引回填/重建/增量同步规则”的文章最后更新时间过久，提示流程或字段映射可能已不适配。
+
+
+    约束：不要修改任何数据、不要发送邮件、不要更新或创建工单；最终仅输出报告与可执行的只读行动建议。'
+  language: zh
+tools:
+- name: config_list_integrations
+  description: 获取所有第三方集成的列表（概览信息）
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选：active, degraded, expired
+    required: []
+- name: config_get_integration
+  description: 获取单个集成的完整配置信息
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选：open, closed, all
+      priority:
+        type: string
+        description: 按优先级筛选：high, medium, low
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取单个工单的详细信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: inventory_list_products
+  description: 获取商品库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: inventory_get_product
+  description: 获取单个商品的详细库存信息
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+    required:
+    - product_id
+- name: crm_list_customers
+  description: 获取客户列表
+  input_schema:
+    type: object
+    properties:
+      tier:
+        type: string
+        description: 按客户等级筛选：vip, standard
+      status:
+        type: string
+        description: 按状态筛选：active, inactive
+    required: []
+- name: crm_get_customer
+  description: 获取单个客户的详细信息
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: scheduler_list_jobs
+  description: 列出所有定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按最近运行状态筛选 (success/failed)
+      enabled:
+        type: boolean
+        description: 按启用状态筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_job_history
+  description: 查看定时任务执行历史
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      limit:
+        type: integer
+        description: 返回条数
+        default: 10
+    required:
+    - job_id
+tool_endpoints:
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: scheduler_job_history
+  url: http://localhost:9112/scheduler/jobs/history
+  method: POST
+sandbox_files:
+- fixtures/config/integrations.json
+- fixtures/helpdesk/tickets.json
+- fixtures/inventory/products.json
+- fixtures/crm/customers.json
+- fixtures/kb/articles.json
+- fixtures/scheduler/jobs.json
+environment:
+  timeout_seconds: 900
+  max_turns: 40

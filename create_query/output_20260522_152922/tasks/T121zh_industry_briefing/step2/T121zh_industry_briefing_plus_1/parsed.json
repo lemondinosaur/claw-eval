@@ -1,0 +1,259 @@
+{
+  "task_id": "T121zh_industry_briefing_plus_1",
+  "task_name": "AIGC安全雷达简报",
+  "prompt_text": "老板要我做下周AIGC内容安全与合规治理简报（治理优先、尽量少提营销）。\n\n请你：\n1）从RSS源筛选与AIGC安全、合规治理、内容审核、模型对齐、安全评估、以及“水印/溯源”相关的近期文章；遇到“通用隐私合规”这类边界内容时：只有在明确涉及AIGC水印、内容审核、对齐、安全评估等时才纳入。\n2）将筛选通过的文章按三类整理：政策合规 / 技术防护 / 落地案例。\n3）每类给出2-3条结构化要点摘要，并补充一句话结论（每类一句）。\n4）把简报整理成邮件草稿：包含简报标题、分栏结构、每类要点摘要与一句话结论。只保存草稿，不发送。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_908",
+        "from": "legal_lead@hangzhou-example.com",
+        "to": "me@company.com",
+        "subject": "法务评审周报：AIGC治理优先（截止周五）",
+        "date": "2026-04-02T09:30:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "请协助准备下周法务与产品联合评审用的邮件草稿：主题聚焦“AIGC内容安全与合规治理”。\n\n要求：\n- 治理优先、少营销：正文中尽量不写市场推广导向的表述。\n- 结构清晰：建议按“政策合规 / 技术防护 / 落地案例”三栏呈现。\n- 每一栏最后必须有一句话结论，便于我们快速对齐监管口径与可落地方案。\n- 边界要处理：如出现“通用隐私合规”但未明确AIGC水印/溯源/内容审核/对齐/安全评估，请不要纳入。\n\n截止时间：2026-04-10 17:00（周五）前把邮件草稿发给负责人内部团队邮箱。\n\n内部团队收件人：product-legal-review@company.com"
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "AIGC-201",
+        "title": "生成式内容安全合规要点：审核留痕、责任链条与平台义务（草案解读）",
+        "category": "政策解读",
+        "content": "文章聚焦生成式内容的合规框架：强调事前审核与事后处置联动、责任链条留痕、以及平台在内容流转中的注意义务。文末给出企业落地清单与内控建议。",
+        "url": "https://governance.example.com/genai-compliance-audit-trace",
+        "tags": [
+          "AIGC安全",
+          "合规治理",
+          "内容审核",
+          "留痕",
+          "责任链"
+        ],
+        "source": "合规观察",
+        "published_at": "2026-04-01T01:20:00Z",
+        "summary": "解读生成式内容合规框架，强调审核留痕与责任链条；给出平台义务与企业内控落地清单。",
+        "word_count": 188
+      },
+      {
+        "article_id": "AIGC-202",
+        "title": "水印与溯源治理：从“可识别”到“可取证”的技术-法务协同路径",
+        "category": "合规治理",
+        "content": "讨论AIGC水印在合规治理中的作用：如何将可识别性转化为可取证证据链，包括密钥管理、分发策略、以及取证接口与日志规范。还对“弱溯源”风险进行了边界说明。",
+        "url": "https://security.example.com/watermark-forensics-workflow",
+        "tags": [
+          "AIGC水印",
+          "溯源",
+          "取证",
+          "合规治理",
+          "日志规范"
+        ],
+        "source": "安全与法务",
+        "published_at": "2026-03-31T12:45:00Z",
+        "summary": "提出水印从识别到取证的证据链方案：密钥管理、分发策略与取证接口/日志规范协同。",
+        "word_count": 214
+      },
+      {
+        "article_id": "AIGC-203",
+        "title": "模型对齐与安全评估新口径：面向越狱/越权的红队指标体系",
+        "category": "安全评估",
+        "content": "文章提出对齐后的安全评估指标：覆盖越狱（jailbreak）、越权（authorization bypass）、以及高风险意图的拦截表现。重点在指标可复现实验、样本构建与回归验证流程。",
+        "url": "https://alignment.example.com/redteam-kpi-alignment-eval",
+        "tags": [
+          "模型对齐",
+          "安全评估",
+          "红队",
+          "越狱",
+          "越权"
+        ],
+        "source": "模型安全前沿",
+        "published_at": "2026-04-01T06:10:00Z",
+        "summary": "给出面向越狱/越权的红队指标体系与回归验证流程，强调实验可复现与样本构建。",
+        "word_count": 176
+      },
+      {
+        "article_id": "AIGC-301",
+        "title": "多维内容审核：把“提示词风险”与“生成结果风险”拆成两级闸门",
+        "category": "技术防护",
+        "content": "讲解审核架构：对输入侧提示词风险进行预判（策略匹配、意图分类），对输出侧生成结果做二次审查（敏感实体、违规意图、可执行指令）。并给出降误杀的阈值自适应思路。",
+        "url": "https://protect.example.com/two-stage-content-moderation",
+        "tags": [
+          "技术防护",
+          "内容审核",
+          "AIGC安全",
+          "阈值自适应",
+          "闸门架构"
+        ],
+        "source": "工程实践",
+        "published_at": "2026-03-30T23:30:00Z",
+        "summary": "提出两级闸门审核：输入侧提示词风险预判+输出侧生成结果审查，包含阈值自适应以降低误杀。",
+        "word_count": 203
+      },
+      {
+        "article_id": "AIGC-302",
+        "title": "安全对齐落地：偏好优化之外的“拒答一致性”约束训练",
+        "category": "模型防护",
+        "content": "强调除了偏好优化，还需要加入拒答一致性约束：对同类越界请求保持稳定拒答，并通过合成对抗样本训练与线上监控实现回归。文章包含训练/监控流程图。",
+        "url": "https://alignment.example.com/refusal-consistency-training",
+        "tags": [
+          "对齐",
+          "安全训练",
+          "拒答一致性",
+          "在线监控",
+          "AIGC"
+        ],
+        "source": "对齐与防护",
+        "published_at": "2026-04-01T09:00:00Z",
+        "summary": "从训练与线上监控两端实现拒答一致性，使用合成对抗样本与回归验证提升稳定性。",
+        "word_count": 162
+      },
+      {
+        "article_id": "AIGC-303",
+        "title": "安全评测平台：把“红队样本”纳入版本化供应链（含API与日志）",
+        "category": "技术防护",
+        "content": "介绍如何构建版本化红队样本与评测API：样本集、评测配置、模型版本与结果日志绑定，支持审计追溯与对齐策略迭代。还讨论了数据最小化与脱敏要求。",
+        "url": "https://evalops.example.com/redteam-versioned-eval-platform",
+        "tags": [
+          "安全评测",
+          "审计追溯",
+          "日志",
+          "API",
+          "AIGC安全"
+        ],
+        "source": "评测工程",
+        "published_at": "2026-03-29T15:25:00Z",
+        "summary": "构建版本化红队样本与评测API：绑定模型版本与结果日志，支持审计追溯与对齐迭代。",
+        "word_count": 194
+      },
+      {
+        "article_id": "AIGC-401",
+        "title": "电商客服AIGC落地：引入“意图白名单+敏感生成拦截”后投诉率下降",
+        "category": "落地案例",
+        "content": "分享某零售平台客服AIGC治理实践：先做意图白名单控制范围，再对生成结果实施敏感拦截与可解释理由提示。上线后投诉与二次申诉显著下降，并对复盘流程做了说明。",
+        "url": "https://case.example.com/ecommerce-customer-ai-moderation",
+        "tags": [
+          "落地案例",
+          "客服",
+          "内容审核",
+          "AIGC治理",
+          "指标复盘"
+        ],
+        "source": "行业案例",
+        "published_at": "2026-03-30T08:00:00Z",
+        "summary": "客服AIGC采用意图白名单+敏感拦截；上线后投诉率与二次申诉下降，并建立复盘指标体系。",
+        "word_count": 220
+      },
+      {
+        "article_id": "AIGC-402",
+        "title": "金融合同摘要对齐治理：水印溯源+人工复核闭环实现可追责",
+        "category": "落地案例",
+        "content": "描述金融场景的合同摘要AIGC治理：对生成摘要加固水印并记录溯源链路；对高风险条款触发人工复核，形成“自动审核-人工复核-审计归档”闭环。强调可追责能力。",
+        "url": "https://case.example.com/finance-contract-summary-watermark",
+        "tags": [
+          "水印溯源",
+          "落地案例",
+          "合规治理",
+          "人工复核",
+          "可追责"
+        ],
+        "source": "金融合规技术",
+        "published_at": "2026-04-01T14:30:00Z",
+        "summary": "金融合同摘要治理：水印溯源链路+高风险条款人工复核，构建自动审核-人工复核-审计归档闭环。",
+        "word_count": 236
+      },
+      {
+        "article_id": "AIGC-403",
+        "title": "企业知识库安全评估：对齐后仍需“数据泄露风险回归测试”",
+        "category": "落地案例",
+        "content": "文章指出：即使模型对齐也不能忽略知识库侧风险。提出在版本迭代时进行数据泄露回归测试，包括敏感字段触发、检索增强场景与日志抽检，并给出失败处置流程。",
+        "url": "https://case.example.com/enterprise-kb-leakage-regression",
+        "tags": [
+          "安全评估",
+          "数据泄露",
+          "知识库",
+          "AIGC安全",
+          "回归测试"
+        ],
+        "source": "安全实践",
+        "published_at": "2026-03-28T19:10:00Z",
+        "summary": "强调对齐后仍需知识库侧数据泄露回归测试，覆盖检索增强与日志抽检，并给出失败处置流程。",
+        "word_count": 205
+      },
+      {
+        "article_id": "MISC-501",
+        "title": "通用多模态发布：模型能同时生成图文视频与音频（行业速览）",
+        "category": "通用多模态",
+        "content": "介绍新一代通用多模态模型的能力扩展，包括图文视频联动与跨模态理解，但未涉及AIGC内容安全、审核或水印。",
+        "url": "https://capability.example.com/multimodal-release",
+        "tags": [
+          "多模态",
+          "发布",
+          "能力升级"
+        ],
+        "source": "科技速览",
+        "published_at": "2026-04-01T03:00:00Z",
+        "summary": "通用多模态能力升级综述，重点在生成能力展示，未提AIGC治理、安全评估或水印溯源。",
+        "word_count": 145
+      },
+      {
+        "article_id": "MISC-502",
+        "title": "营销活动即将上线：A/B测试助力创意转化（不含治理）",
+        "category": "营销运营",
+        "content": "讲述A/B测试与创意分发策略以提升转化率，内容聚焦增长指标与活动节奏，不涉及合规治理或安全控制。",
+        "url": "https://growth.example.com/ab-test-campaign",
+        "tags": [
+          "营销",
+          "A/B测试",
+          "创意"
+        ],
+        "source": "增长快报",
+        "published_at": "2026-03-27T10:05:00Z",
+        "summary": "活动与A/B测试策略文章，核心是转化与投放节奏，未涉及AIGC安全与合规治理。",
+        "word_count": 132
+      },
+      {
+        "article_id": "MISC-503",
+        "title": "通用隐私合规指南：个人信息处理最小化与授权管理（不区分AIGC）",
+        "category": "隐私合规",
+        "content": "介绍隐私合规的一般原则，如最小化与授权管理。文章未明确提及AIGC水印、内容审核、模型对齐或安全评估。",
+        "url": "https://privacy.example.com/general-privacy-compliance",
+        "tags": [
+          "隐私合规",
+          "个人信息",
+          "最小化"
+        ],
+        "source": "隐私合规通用",
+        "published_at": "2026-03-30T05:50:00Z",
+        "summary": "通用隐私合规指南，强调最小化与授权管理；未涉及AIGC水印/审核/对齐安全评估。",
+        "word_count": 168
+      },
+      {
+        "article_id": "MISC-504",
+        "title": "数据脱敏最佳实践综述：从字段脱敏到访问审计",
+        "category": "数据安全",
+        "content": "内容主要围绕数据脱敏和访问审计方法论，并未专指AIGC内容安全机制，也没有水印溯源或内容审核细节。",
+        "url": "https://data.example.com/data-masking-best-practices",
+        "tags": [
+          "数据安全",
+          "脱敏",
+          "审计"
+        ],
+        "source": "数据安全研究",
+        "published_at": "2026-03-26T13:20:00Z",
+        "summary": "字段脱敏与访问审计综述，偏数据安全通用方法；不包含AIGC安全要点。",
+        "word_count": 156
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原本“AI/大模型行业简报”改为专注AIGC内容安全与合规治理，并新增更强的边界干扰（通用多模态/营销/通用隐私合规）。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 新增1封来自法务负责人的邮件，明确“治理优先、少营销、每栏一句话结论、边界不纳入”的偏好与收件人邮箱。",
+      "rss/feeds.json 共13条：其中AIGC安全/合规/溯源/对齐/安全评估相关9条，覆盖政策合规/技术防护/落地案例三类；其余4条为通用多模态、营销、通用隐私合规、数据脱敏等干扰项。",
+      "AIGC相关文章包含水印/溯源/内容审核/模型对齐/安全评估/红队指标/证据链等关键词，便于代理正确筛选并区分边界内容。",
+      "跨fixture收件人邮箱与邮件主题匹配，便于代理从邮件提取“目标收件团队与写作偏好”。"
+    ]
+  }
+}

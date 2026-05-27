@@ -1,0 +1,179 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:33:11",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T011zh_expense_report",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:31:27",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:31:27",
+      "source_task_id": "T011zh_expense_report",
+      "source_summary": {
+        "task_id": "T011zh_expense_report",
+        "task_name": "Expense Report",
+        "task_type": "从交易列表检索并汇总费用，完成分类、去重/退款识别与总额核对后提交报销报告的财务任务",
+        "category": "finance",
+        "difficulty": "easy",
+        "tags": [
+          "general"
+        ],
+        "language": "zh",
+        "services": [
+          "finance"
+        ],
+        "tools": [
+          "finance_list_transactions",
+          "finance_get_transaction",
+          "finance_submit_report"
+        ],
+        "fixture_paths": [
+          "fixtures/finance/transactions.json"
+        ],
+        "sandbox_files": [
+          "fixtures/finance/transactions.json"
+        ],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "finance"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T011zh_expense_report_plus_1",
+          "new_task_name": "3月差旅与餐饮报销",
+          "task_goal": "整理并提交2026年3月的费用报销报告，完成交易分类、退款/重复识别、总金额核对，并在提交时排除应排除的重复项。",
+          "user_request": "帮我整理提交2026年3月的报销，并确认哪些是退款或重复交易。请不要把重复或退款当作普通支出重复统计。",
+          "scenario": "交易涵盖差旅（车票/住宿）、餐饮（团队聚餐/咖啡）、办公（耗材/软件服务）与少量云服务。数据包含：同一商户同一天的重复刷卡（金额完全一致），以及金额略有差异但文案相似的“疑似重复”；同时存在1笔退款（金额为负），且该退款对应的原始消费在同月但金额相同商户也相同。另有一笔与退款同商户但日期不同的退换差异，不能误判为退款抵扣。",
+          "difference_from_source": "月份与业务组合变为3月，退款/重复的对应关系改为“同月同商户的精确重复 + 1笔负数退款”，并引入“同商户但日期不同”的干扰项，且最终去重/抵扣逻辑与原题的具体txn关系不同。",
+          "service_and_tool_plan": "使用finance服务；先调用finance_list_transactions按日期范围拉取3月交易；再对可能的疑似重复与退款交易用finance_get_transaction核对交易详情（如日期、描述、金额、商户匹配要点）；最后调用finance_submit_report提交标题、交易ID列表（排除重复）、以及核对后的total_amount。",
+          "fixture_generation_plan": "生成fixtures/finance/transactions.json的全新记录集（例如15条），所有transaction_id保持唯一且不复用原题任何ID。日期覆盖2026-03-01至2026-03-31：包含差旅类至少5条、餐饮类至少4条、办公类至少4条、云服务类至少1条；加入2条完全一致的重复交易（同日同商户同金额同描述），加入1条疑似重复（金额差0.01或0.02、描述高度相似但不完全一致），加入1条退款交易（负数金额，商户与原消费匹配且原消费在同月），再加入1条干扰退换（同商户但日期不同或描述不同，金额为正）。确保总金额可通过“剔除应排除的重复项、包含退款负数入总额”得到唯一正确值。",
+          "expected_behavior": "agent应：1）调用finance_list_transactions获取3月范围记录；2）为每笔交易分配类别（差旅/餐饮/办公/IT或云服务），并对疑似重复给出判断依据；3）识别完全一致的重复交易并从最终transactions列表中剔除其中一笔（或按规则保留一笔，要求提交不含重复）；4）识别负数退款作为退款处理（应纳入total_amount计算且不当普通支出重复计入同一消费）；5）对日期不同的同商户干扰项不要误判为重复或退款抵扣；6）校验提交的total_amount与最终transactions求和一致；7）调用finance_submit_report并在输出中只提交最终transaction_id集合与正确total_amount。",
+          "grading_plan": "grader生成时应检查：是否至少调用一次finance_list_transactions；最终调用finance_submit_report的transactions列表不包含被判定为“精确重复”的多余项；total_amount与最终transactions按金额求和一致（退款为负需正确纳入）；输出文本中包含对“退款/重复”的明确说明关键词（如“退款”“重复/疑似重复”“未误判”）；如存在疑似重复，应给出差异点依据而不是直接当作重复合并。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T011zh_expense_report_plus_2",
+          "new_task_name": "费用报销（含税票与培训）",
+          "task_goal": "整理提交2026年1月的报销报告，处理带税票字段的交易描述、识别重复凭证，并对培训相关支出做准确分类，最终提交正确总额且避免重复提交。",
+          "user_request": "帮我整理并提交2026年1月的费用报销。注意：部分交易描述里包含“增值税专票/电子发票”，请据此判断是否为重复凭证，不要把同一笔多次提交。",
+          "scenario": "1月包含办公用品、差旅交通、餐饮以及培训/课程订阅。数据中出现：两条交易金额与商户完全相同，但描述差异仅在“发票类型”（例如一条含“电子发票”，另一条含“增值税专票”），应识别为重复凭证；另有1条金额相近但商户不同的“相似支出”不应当重复。还存在一笔负数交易作为退货退款，退款描述中包含“退货”关键词且与某条正数交易日期相邻但不相同天，要求按规则仍视为退款匹配（通过商户+金额+关键词判断），并避免将退款与同商户的其他正数支出混同。",
+          "difference_from_source": "原题是2月且包含特定重复txn编号/接近金额干扰。本题改为1月，干扰从“接近金额0.01”变为“发票类型导致的重复凭证”与“相似但商户不同的非重复”；退款匹配通过描述关键词与金额而非仅日期。",
+          "service_and_tool_plan": "调用finance_list_transactions拉取1月交易；对包含“发票/专票/电子发票/退货”字样的交易调用finance_get_transaction核对描述细节；完成去重与分类后调用finance_submit_report提交报告。",
+          "fixture_generation_plan": "生成一份新的fixtures/finance/transactions.json，建议14条：覆盖2026-01-03到2026-01-29；包含餐饮2-3条、差旅交通3-4条、办公用品2-3条、培训/课程或IT订阅3条左右；加入1组重复凭证（2条：同商户同金额同日期，描述只差发票类型字样）；加入1条相似支出（金额差不为0且商户不同）；加入1条退货退款（负数金额，商户与其中一条正数消费匹配，日期不要求一致但描述含“退货”或“退款”）；其余确保分布不形成新的重复对。确保total_amount唯一可推导。",
+          "expected_behavior": "agent应：1）拉取1月交易列表；2）识别发票类型差异导致的重复凭证，并在最终提交transactions中仅保留一笔（或按固定规则只保留一笔）；3）对金额相近但商户不同的交易明确说明不是重复；4）识别退货退款为负数并纳入total_amount计算，同时不把退款对应的正数消费重复剔除（只剔除重复凭证）；5）将培训/课程/订阅类按IT或云服务/办公类中的对应类别归类（需在输出中体现类别逻辑）；6）提交finance_submit_report时transactions无重复凭证，total_amount为最终求和。",
+          "grading_plan": "grader应验证：最终提交中被判定为“重复凭证”的那一对交易不会同时出现；total_amount与提交transactions金额求和一致（退款为负计入）；输出包含“电子发票/专票”“重复凭证/非重复”“退货/退款”相关关键词或等价表述；对相似支出应给出至少一个差异点（如商户不同或描述不同）。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T011zh_expense_report_plus_3",
+          "new_task_name": "跨月截止的5月结转",
+          "task_goal": "整理并提交2026年5月的报销，但要严格处理跨月交易：仅纳入在5月的费用，识别5月内的撤销/撤单退款（负数）并避免把6月入账误算进总额。",
+          "user_request": "帮我整理提交2026年5月的报销。对跨月的可能错入账请严格按日期范围处理：只统计5月发生的交易。",
+          "scenario": "5月数据中混入“入账日期”与“消费日期”概念差异（描述里可能写“上月入账”）。需以交易字段的date为准筛选5月。存在：1组完全一致的重复交易（同日同金额同商户但描述带不同“订单号后四位”），要识别为重复并剔除；存在一笔负数撤销（退款）且描述含“撤销/撤单”，退款日期在5月，应纳入5月汇总；还有一笔正数交易日期为4月末但描述写“5月可报”，以及一笔交易日期为6月初但描述写“5月项目”，均应严格排除在5月范围之外。",
+          "difference_from_source": "与原题相比，本题强调日期边界与跨月干扰：包含明示“上月入账/可报/项目”文案，但筛选必须依date字段；重复与退款识别仍存在，但重点从“差旅餐饮金额特定对”转为“订单号后四位差异的重复 + date边界错误风险”。",
+          "service_and_tool_plan": "调用finance_list_transactions并确保传入start_date=2026-05-01 end_date=2026-05-31；对于疑似重复和撤销退款交易调用finance_get_transaction核对描述；最终调用finance_submit_report提交只含5月交易的transactions与total_amount。",
+          "fixture_generation_plan": "生成新的fixtures/finance/transactions.json（例如16条）：其中至少10条date落在2026-05，至少3条落在2026-04末与2026-06初用于跨月干扰。5月内部包含：重复对1组（2条完全一致，描述里仅订单尾号不同）；退款1条（负数金额，描述含“撤销/撤单”；与一条正数交易商户相同但金额不必完全相同，需仍按负数直接纳入）；类别覆盖差旅、餐饮、办公、IT/云服务至少各1-2条。保证当仅取5月date并剔除重复后，总额唯一。",
+          "expected_behavior": "agent应：1）按日期范围调用finance_list_transactions获取5月交易；2）不管描述如何暗示“上月入账/可报/项目”，都只使用5月date筛选；3）识别5月内重复交易并从提交列表剔除其中一笔；4）识别5月内负数撤销作为退款处理并纳入total_amount；5）排除date不在5月的交易（即使描述声称5月可报）；6）核对total_amount=提交transactions金额求和后提交finance_submit_report。",
+          "grading_plan": "grader应检查：提交的transactions仅来自5月date范围；重复交易对不会同时出现；total_amount与提交transactions求和一致且含退款负数；输出中明确提到“以date为准/跨月不纳入/撤销退款已计入”；并检查至少一次对可能重复或撤销交易的finance_get_transaction核对调用（若grader支持调用次数阈值）。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T011zh_expense_report_plus_4",
+          "new_task_name": "费用清单（含合并报销的单位变更）",
+          "task_goal": "整理提交2026年4月的报销报告，处理同一笔支出在不同报销单位重复上报的情况：需去重但保留正确的交易ID；同时识别部分交易属于“补贴/代付”需归入办公或IT类，不得误作餐饮/差旅。",
+          "user_request": "请帮我整理提交2026年4月报销。遇到同一支出被不同报销单位重复录入的情况，请只提交一次，并把补贴/代付类费用放到合适类别。",
+          "scenario": "4月交易中包含：差旅交通、住宿、餐饮、办公软件与“出差补贴/交通补贴/代付餐费”。数据出现：同一商户同金额同日期的两条交易，但描述里报销单位不同（例如“单位A报销/单位B代付”），要求将其视为重复并只提交一次；另有一笔看似相同商户但金额不同（例如补贴金额被调整）不应当去重。还存在一笔“代付后退款”负数交易，描述含“代付退款”，应纳入总额但不与之前重复对合并。干扰信息包括：部分描述出现“客户用餐”字样但交易实为报销补贴，不应被错误归为餐饮。",
+          "difference_from_source": "原题主要比对差旅/餐饮/办公/IT与重复txn编号。本题增加“报销单位不同导致的重复上报”这一去重依据，并引入“补贴/代付”作为分类干扰：需要判断业务语义而非仅凭“客户用餐”等文本关键词。",
+          "service_and_tool_plan": "先用finance_list_transactions获取4月交易；对带“单位/代付/补贴/退款”关键词的交易使用finance_get_transaction检查描述与商户字段；分类完成后调用finance_submit_report提交最终无重复的transactions与正确total_amount。",
+          "fixture_generation_plan": "生成新的fixtures/finance/transactions.json（建议13-17条）：date覆盖2026-04-01到2026-04-30；包含差旅至少4条、餐饮至少3条、办公/软件/云服务至少4条，补贴/代付至少2条。加入重复上报对1组（2条：商户+金额+日期相同，描述里报销单位不同且含“代付/报销单位”字样）；加入非重复相似项1条（同商户但金额不同）；加入代付退款1条（负数金额，描述含“代付退款”，商户与其中一笔正数相关）；其余确保不会出现新的重复对。数值需能被正确求和核对。",
+          "expected_behavior": "agent应：1）按4月date拉取交易；2）识别报销单位不同但本质相同的重复上报，只保留一条交易ID提交；3）把补贴/代付相关交易归入办公或IT等指定类别（需在输出里体现分类理由或关键词）；4）识别代付退款作为负数纳入total_amount，但不与重复对合并；5）避免被“客户用餐”字样误导为餐饮支出（以交易类型/描述关键词“补贴/代付”为准）；6）提交finance_submit_report时transactions无重复上报项且total_amount正确。",
+          "grading_plan": "grader应检查：提交transactions中是否去除了“报销单位不同但交易本质相同”的重复之一；total_amount与提交transactions金额求和一致（含负数代付退款）；输出文本中包含“补贴/代付/代付退款”相关说明；以及对“客户用餐”出现但实际为补贴的交易，分类不应落在餐饮类（可用关键字或类别字段校验）。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T011zh_expense_report_plus_5",
+          "new_task_name": "多币种换算与币种一致性校验（仅提交本币）",
+          "task_goal": "整理并提交2026年6月的报销报告，处理多币种交易：仅将指定币种（如CNY）纳入报告并明确说明其余币种被排除；对重复交易做安全去重；计算提交总额时保证币种一致。",
+          "user_request": "帮我整理提交2026年6月的报销报告。系统只允许提交人民币（CNY）费用：如果有非CNY交易，请先排除并说明原因；同时处理重复交易，确保不提交重复或币种不一致的记录。",
+          "scenario": "6月交易包含：部分为CNY，另有少量USD/EUR的机票或软件订阅费用，但要求只提交CNY。数据包含：1组重复交易为CNY且完全一致；另有一组“同商户同日期但币种不同”的干扰（例如同一天同商户一条CNY、一条USD），不能互相视为重复或合并。还有一笔CNY退款为负数，需要纳入total_amount。干扰信息：部分非CNY交易描述里写“已按汇率折算”，但由于规则只提交CNY，仍需排除并不使用其折算金额。",
+          "difference_from_source": "原题默认同币种汇总。本题增加币种一致性约束：需要排除非CNY并避免把“同商户同日不同币种”当作重复；退款处理继续存在但只对CNY进行。",
+          "service_and_tool_plan": "调用finance_list_transactions拉取6月记录；筛选币种为CNY的交易；对CNY内疑似重复与退款交易调用finance_get_transaction核对；最后调用finance_submit_report提交CNY交易IDs与total_amount（只对CNY求和）。",
+          "fixture_generation_plan": "生成新的fixtures/finance/transactions.json（建议18条）：date覆盖2026-06-01到2026-06-29；币种分布：CNY至少10条，USD/EUR至少4-6条。加入重复对1组（CNY完全一致同日同金额同商户）；加入跨币种相似对（同日同商户同金额但币种不同）；加入CNY退款1条（负数金额，商户与某条正数消费匹配）；其余为正常支出，类别覆盖差旅/餐饮/办公/IT或云服务。确保CNY可独立求和出唯一正确total_amount。",
+          "expected_behavior": "agent应：1）拉取6月交易；2）只保留币种为CNY的交易进入候选列表；3）在CNY候选中识别并去重完全一致重复对（不提交两条）；4）识别CNY退款负数纳入total_amount；5）对非CNY交易即便描述“已折算”也必须排除并在输出说明原因；6）确认最终提交transactions全部币种一致且total_amount为CNY求和；7）调用finance_submit_report提交标题、CNY交易IDs与正确total_amount。",
+          "grading_plan": "grader应检查：finance_submit_report提交的transactions对应的记录币种全部为CNY；非CNY交易不出现在提交列表；CNY重复对未同时提交；total_amount等于提交CNY交易金额求和（含负数退款）；输出文本包含明确的“只提交CNY/排除非CNY/不使用折算金额”等说明。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:33:11",
+    "items": [
+      {
+        "task_id": "T011zh_expense_report_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:31:48",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T011zh_expense_report_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T011zh_expense_report_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:32:05",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T011zh_expense_report_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T011zh_expense_report_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:32:28",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T011zh_expense_report_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T011zh_expense_report_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:32:45",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T011zh_expense_report_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T011zh_expense_report_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:33:11",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/T011zh_expense_report_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T011zh_expense_report_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T011zh_expense_report/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T011zh_expense_report",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

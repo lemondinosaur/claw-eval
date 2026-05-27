@@ -1,0 +1,38 @@
+[
+  {
+    "message_id": "msg_305",
+    "from": "service-team@company.com",
+    "to": "me@company.com",
+    "subject": "紧急：客户投诉升级处理",
+    "date": "2026-05-22T11:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位同事好，现有客户投诉需要启动升级流程。\n\n要求：在工作日当日完成升级工单的指派，并把初步处理路径请“周负责人”确认后再继续推进。\n升级工单要点：\n1）先完成工单指派到“周负责人”；\n2）由“周负责人”确认初步处理路径（例如走客服管理/运营处置/合规评估的哪一条路线）；\n3）确认完成后再由相关团队执行。\n\n（邮件末尾仅列“周负责人”，无具体名字或邮箱。）\n周负责人"
+  },
+  {
+    "message_id": "msg_306",
+    "from": "aftercare@company.com",
+    "to": "me@company.com",
+    "subject": "售后回访-本周安排",
+    "date": "2026-05-22T09:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "关于本周售后回访安排请留意。\n\n需要与“周主管”确认回访话术与抽样名单，避免重复触达。\n\n如有变更，请尽快通知“周主管”。\n\n谢谢！\n售后团队"
+  },
+  {
+    "message_id": "msg_304",
+    "from": "it-ops@company.com",
+    "to": "me@company.com",
+    "subject": "系统维护通知",
+    "date": "2026-05-21T18:40:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "今晚 23:00-01:00 进行系统维护，期间部分功能可能不可用。\n\n请提前做好相关工作安排。\n\n运维团队"
+  }
+]

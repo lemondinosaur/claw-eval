@@ -1,0 +1,143 @@
+[
+  {
+    "job_id": "JOB-201",
+    "name": "index_incremental_sync",
+    "description": "增量同步：content_updated 触发后将增量文档写入索引",
+    "cron_expression": "*/10 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-05-12T02:10:00+08:00",
+    "next_run": "2026-05-22T02:10:00+08:00",
+    "average_duration_seconds": 38,
+    "tags": [
+      "search",
+      "index_incremental"
+    ]
+  },
+  {
+    "job_id": "JOB-202",
+    "name": "index_backfill_by_category",
+    "description": "索引回填：按类目回填漏斗文档，防止索引缺失",
+    "cron_expression": "0 */2 * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-05-03T18:00:00+08:00",
+    "next_run": "2026-05-22T20:00:00+08:00",
+    "average_duration_seconds": 120,
+    "error": "schema mismatch: index_doc_id 字段缺失（可能映射到旧字段）",
+    "tags": [
+      "index_backfill",
+      "search"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-03T18:00:00+08:00",
+        "status": "failed",
+        "error": "schema mismatch: index_doc_id 字段缺失（可能映射到旧字段）",
+        "duration_seconds": 33
+      },
+      {
+        "run_at": "2026-05-01T18:00:00+08:00",
+        "status": "skipped",
+        "error": "distributed lock held by previous run（上次任务未释放锁）",
+        "duration_seconds": 0
+      },
+      {
+        "run_at": "2026-04-29T18:00:00+08:00",
+        "status": "failed",
+        "error": "upstream 503 from content_distribution during batch trigger",
+        "duration_seconds": 41
+      },
+      {
+        "run_at": "2026-04-27T18:00:00+08:00",
+        "status": "failed",
+        "error": "timeout waiting for taxonomy map response",
+        "duration_seconds": 70
+      }
+    ],
+    "notes": "enabled=true 但最近多次运行失败/跳过，容易导致按类目回填链路失效，解释“类目索引不生效/搜索为空”。"
+  },
+  {
+    "job_id": "JOB-203",
+    "name": "index_rebuild_all",
+    "description": "重建索引：当增量同步失败达到阈值时触发全量重建",
+    "cron_expression": "0 3 * * *",
+    "enabled": false,
+    "last_status": "success",
+    "last_run": "2026-02-18T03:00:00+08:00",
+    "next_run": "2026-05-22T03:00:00+08:00",
+    "average_duration_seconds": 5400,
+    "tags": [
+      "index_rebuild",
+      "search"
+    ],
+    "notes": "该任务近期处于 disabled= false 之外的停用状态；若需要全量重建需重新启用并确认schema版本。"
+  },
+  {
+    "job_id": "JOB-204",
+    "name": "notification_pipeline_health",
+    "description": "通知管道健康检查",
+    "cron_expression": "*/15 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-05-21T10:15:00+08:00",
+    "next_run": "2026-05-22T10:30:00+08:00",
+    "average_duration_seconds": 8,
+    "tags": [
+      "monitoring",
+      "notification"
+    ]
+  },
+  {
+    "job_id": "JOB-205",
+    "name": "content_event_deadletter_replay",
+    "description": "内容事件死信重放（用于补偿丢失的索引触发事件）",
+    "cron_expression": "0 */6 * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-05-08T04:00:00+08:00",
+    "next_run": "2026-05-22T10:00:00+08:00",
+    "average_duration_seconds": 180,
+    "error": "upstream 504 during deadletter scan",
+    "tags": [
+      "replay",
+      "search"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-08T04:00:00+08:00",
+        "status": "failed",
+        "error": "upstream 504 during deadletter scan",
+        "duration_seconds": 77
+      },
+      {
+        "run_at": "2026-05-07T04:00:00+08:00",
+        "status": "skipped",
+        "error": "no deadletter backlog (based on last watermark)",
+        "duration_seconds": 0
+      },
+      {
+        "run_at": "2026-05-05T04:00:00+08:00",
+        "status": "failed",
+        "error": "timeout while reading event cursor",
+        "duration_seconds": 95
+      }
+    ],
+    "notes": "死信重放也发生失败/跳过，可能导致索引触发事件未被补偿，进一步造成搜索数据滞后。"
+  },
+  {
+    "job_id": "JOB-206",
+    "name": "inventory_to_index_consistency_check",
+    "description": "库存与索引一致性检查（干扰项）",
+    "cron_expression": "0 */3 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-05-21T09:00:00+08:00",
+    "next_run": "2026-05-22T12:00:00+08:00",
+    "average_duration_seconds": 25,
+    "tags": [
+      "consistency",
+      "inventory"
+    ]
+  }
+]

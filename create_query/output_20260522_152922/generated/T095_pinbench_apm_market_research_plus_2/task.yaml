@@ -1,0 +1,71 @@
+task_id: T095_pinbench_apm_market_research_plus_2
+task_name: 企业采购对账版（预算与合同风险）
+version: '1.0'
+category: research
+difficulty: easy
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T095_pinbench_apm_market_research_plus_2/fixtures/kb/articles.json
+prompt:
+  text: '请基于知识库为一家多云企业的APM采购团队撰写“竞争对账式”研究。要求至少覆盖5家厂商；对每家厂商都必须输出三项内容：1）差异化/优势点；2）可能的采购或落地风险；3）其定价模型中容易导致成本上升的触发因素（用资源数、摄入/处理量、用户席位、数据保留策略、自动发现范围、集成工作量等描述性方式体现，避免编造具体价格数字）。
+
+
+    同时提炼至少3条市场趋势（可包含OTel、AI与平台整合、成本治理/摄入效率、企业级自动化兑现等方向）。
+
+
+    最后按固定结构输出：
+
+    1）对比表（包含所有厂商，并体现上述三项要点）；
+
+    2）采购风险清单（按风险类型分组，至少3组，且与文中内容一致）；
+
+    3）结论段落（不超过150字，落到“预算可预测+合规落地+OTel兼容+AI定位价值”的权衡）。
+
+
+    请确保所有风险、触发因素与趋势尽量来自知识库语义复述，不要杜撰具体合同条款或价格数字。'
+  language: en
+tools:
+- name: kb_search
+  description: Search the KB
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+      category:
+        type: string
+      max_results:
+        type: integer
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: Get one KB article
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+sandbox_files:
+- fixtures/kb/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 16

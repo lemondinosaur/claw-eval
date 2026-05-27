@@ -1,0 +1,177 @@
+{
+  "task_id": "T149zh_project_progress_report_plus_2",
+  "task_name": "里程碑对齐复盘",
+  "prompt_text": "请为3个并行项目（Summit / Willow / Zenith）生成里程碑对齐周报：\n- 只关注每个项目最近一场里程碑相关会议：会议标题包含“里程碑/验收预告/阶段评审”等关键词；\n- 阅读该会议对应纪要里的行动项；\n- 对比 todo 待办任务状态，找出是否存在“不一致”：\n  1) 纪要行动项标注“已完成/完成✓”，但待办仍为 pending / in_progress；\n  2) 纪要行动项标注“pending/未完成”，但待办仍为 completed；\n- 输出每项目：会议结论、行动项状态表、待办完成率、不一致风险与需要补做的动作（尽量对应到具体待办标题）；\n- 查找每项目项目负责人联系方式（邮箱+电话），并在报告末尾列出。\n- 若纪要行动项存在字段缺失（例如责任人缺失/写为待确认），需在风险中明确指出并给出补确认建议。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_801",
+        "title": "Summit里程碑阶段评审（A1）",
+        "start_time": "2026-04-26T10:00:00+08:00",
+        "end_time": "2026-04-26T11:30:00+08:00",
+        "location": "5号会议室",
+        "organizer": "周岚",
+        "attendees": [
+          "周岚",
+          "陈瑜",
+          "林浩"
+        ],
+        "description": "Summit里程碑阶段评审，验收口径确认，关联纪要 NOTE-SU-826",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_802",
+        "title": "Summit每周例会（例行）",
+        "start_time": "2026-04-20T09:00:00+08:00",
+        "end_time": "2026-04-20T09:45:00+08:00",
+        "location": "线上会议",
+        "organizer": "周岚",
+        "attendees": [
+          "周岚",
+          "邵凯"
+        ],
+        "description": "周例会回顾与事项同步（非里程碑），关联纪要 NOTE-SU-812",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_803",
+        "title": "Summit对外路演同步（非里程碑）",
+        "start_time": "2026-04-22T14:00:00+08:00",
+        "end_time": "2026-04-22T15:00:00+08:00",
+        "location": "共享演示间",
+        "organizer": "周岚",
+        "attendees": [
+          "周岚",
+          "郑敏",
+          "王卓"
+        ],
+        "description": "对外沟通与演示材料对齐（非里程碑），关联纪要 NOTE-SU-819",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_804",
+        "title": "Willow验收预告会（W2）",
+        "start_time": "2026-04-25T15:00:00+08:00",
+        "end_time": "2026-04-25T16:30:00+08:00",
+        "location": "12号会议室",
+        "organizer": "顾然",
+        "attendees": [
+          "顾然",
+          "曹宁",
+          "姚洁"
+        ],
+        "description": "Willow阶段验收预告，关键输出清单确认，关联纪要 NOTE-WI-825",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_805",
+        "title": "Willow产品周例会",
+        "start_time": "2026-04-21T10:30:00+08:00",
+        "end_time": "2026-04-21T11:15:00+08:00",
+        "location": "线上会议",
+        "organizer": "顾然",
+        "attendees": [
+          "顾然",
+          "赵辰"
+        ],
+        "description": "周例会更新（非里程碑），关联纪要 NOTE-WI-811",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_806",
+        "title": "Willow供应商对接会（非里程碑）",
+        "start_time": "2026-04-23T16:00:00+08:00",
+        "end_time": "2026-04-23T17:00:00+08:00",
+        "location": "会议室3",
+        "organizer": "顾然",
+        "attendees": [
+          "顾然",
+          "汪涛"
+        ],
+        "description": "供应商对接（非里程碑），关联纪要 NOTE-WI-818",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_807",
+        "title": "Zenith里程碑验收预告（Z1）",
+        "start_time": "2026-04-27T11:00:00+08:00",
+        "end_time": "2026-04-27T12:20:00+08:00",
+        "location": "9号会议室",
+        "organizer": "沈岚",
+        "attendees": [
+          "沈岚",
+          "周驰",
+          "何晴"
+        ],
+        "description": "Zenith里程碑验收预告，验收材料复核，关联纪要 NOTE-ZE-827",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_808",
+        "title": "Zenith技术对外宣讲（非里程碑）",
+        "start_time": "2026-04-24T13:00:00+08:00",
+        "end_time": "2026-04-24T14:00:00+08:00",
+        "location": "线上会议",
+        "organizer": "沈岚",
+        "attendees": [
+          "沈岚",
+          "李牧"
+        ],
+        "description": "对外宣讲同步（非里程碑），关联纪要 NOTE-ZE-816",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_809",
+        "title": "Zenith阶段评审（早期备忘）",
+        "start_time": "2026-04-19T09:30:00+08:00",
+        "end_time": "2026-04-19T10:50:00+08:00",
+        "location": "会议室7",
+        "organizer": "沈岚",
+        "attendees": [
+          "沈岚",
+          "何晴"
+        ],
+        "description": "早期阶段评审备忘（不作为最近里程碑），关联纪要 NOTE-ZE-803",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_810",
+        "title": "架构月度论坛（干扰）",
+        "start_time": "2026-04-26T16:00:00+08:00",
+        "end_time": "2026-04-26T17:30:00+08:00",
+        "location": "报告厅",
+        "organizer": "架构委员会",
+        "attendees": [
+          "林浩",
+          "王卓"
+        ],
+        "description": "公司架构交流（非项目里程碑），关联纪要 NOTE-INT-901",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_811",
+        "title": "跨项目资源协调会（干扰）",
+        "start_time": "2026-04-25T09:30:00+08:00",
+        "end_time": "2026-04-25T10:30:00+08:00",
+        "location": "线上会议",
+        "organizer": "PMO",
+        "attendees": [
+          "顾然",
+          "周岚",
+          "沈岚"
+        ],
+        "description": "资源协调（非里程碑），关联纪要 NOTE-INT-902",
+        "status": "confirmed"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "从固定项目的全量会议进度汇报升级为“每项目最近一次里程碑会议”的纪要-待办一致性对齐，并新增双向不一致与行动项字段缺失风险识别。",
+    "fixture_design_summary": [
+      "为Summit/Willow/Zenith各准备一场最近里程碑会议（标题含里程碑/验收预告），并加入干扰会议确保只取最近匹配项。",
+      "Summit制造“纪要完成✓但todo为in_progress”的不一致；Willow制造“纪要pending但todo存在completed”的另一类差异。",
+      "Zenith在纪要行动项中加入责任人字段缺失/写为待确认，todo仍可部分完成，用于触发“记录不完整”风险。",
+      "contacts中为三项目负责人提供可唯一检索的姓名与邮箱/电话，并保证纪要行动项责任人名称能命中联系人。"
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "transaction_id": "TXN-901",
+    "type": "预算拨付",
+    "description": "2026年灾备专项预算拨付（拟）",
+    "amount": 1800000,
+    "currency": "CNY",
+    "date": "2026-02-02",
+    "category": "预算",
+    "department": "IT灾备办",
+    "approved_by": "CFO",
+    "notes": "计划用于灾备服务器补齐与应急扩容。"
+  },
+  {
+    "transaction_id": "TXN-902",
+    "type": "预算冻结",
+    "description": "灾备专项预算冻结（拨付延后口径）",
+    "amount": 600000,
+    "currency": "CNY",
+    "date": "2026-02-10",
+    "category": "预算冻结",
+    "department": "IT灾备办",
+    "approved_by": "FinanceOps",
+    "notes": "财务口径：部分额度冻结，需通过审批后才可视为可用。乐观口径可用额度=180万；保守口径可用额度=120万。"
+  },
+  {
+    "transaction_id": "TXN-903",
+    "type": "采购支出",
+    "description": "Q1前置服务器预采购（已到货）",
+    "amount": 720000,
+    "currency": "CNY",
+    "date": "2026-01-20",
+    "category": "设备采购",
+    "department": "IT灾备办",
+    "supplier": "北域科技",
+    "notes": "用于灾备冷备环境。"
+  },
+  {
+    "transaction_id": "TXN-904",
+    "type": "退货退款",
+    "description": "北域科技维保争议退款",
+    "amount": 54000,
+    "currency": "CNY",
+    "date": "2026-02-14",
+    "category": "退款",
+    "department": "IT灾备办",
+    "supplier": "北域科技",
+    "notes": "维保升级后首单退款（争议单）。涉及2台设备性能验收不达标，已退回部分款项；财务留档显示可追溯整改记录。"
+  }
+]

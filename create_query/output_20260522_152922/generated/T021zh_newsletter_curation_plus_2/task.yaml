@@ -1,0 +1,96 @@
+task_id: T021zh_newsletter_curation_plus_2
+task_name: Security & AI 风险观察
+version: '1.0'
+category: content
+difficulty: easy
+tags:
+- general
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T021zh_newsletter_curation_plus_2/fixtures/rss/articles.json
+prompt:
+  text: '请为团队整理并发布《AI安全风险观察》newsletter：从RSS中挑选与AI安全（提示注入/越狱、数据隐私、提示与检索内容安全、合规治理、红队评估、对抗测试、日志审计）相关的文章。Newsletter必须包含：1）导读段；2）风险分级表（至少4个等级，从低到高；每级包含威胁类型与可执行的建议防护）；3）精选要点（至少6条，来源需来自入选文章的可提取细节）；4）“本期不采纳/降权”的文章说明（至少1条，必须指出其缺少哪些关键可验证细节，如评估指标/实验设置/可复现流程/审计字段等，并说明因此不采纳或降权）。
+
+
+    同时：优先挑选有可验证细节的稿件；对主题“看似安全”但缺乏评估基准或实验/复现流程的边界稿件进行降权或不采纳。入选文章不少于6篇，且需要对入选与至少1篇降权稿件调用rss_get_article提取关键信息后再发布。'
+  language: zh
+tools:
+- name: rss_list_feeds
+  description: 获取所有RSS订阅源
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: rss_list_articles
+  description: 获取文章列表
+  input_schema:
+    type: object
+    properties:
+      source:
+        type: string
+        description: 按来源筛选
+      category:
+        type: string
+        description: 按类别筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章完整内容
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: rss_publish
+  description: 发布Newsletter
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: Newsletter标题
+      content:
+        type: string
+        description: Newsletter内容
+      recipients:
+        type: array
+        items:
+          type: string
+        description: 接收者列表
+    required:
+    - title
+    - content
+tool_endpoints:
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: rss_publish
+  url: http://localhost:9109/rss/publish
+  method: POST
+sandbox_files:
+- fixtures/rss/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

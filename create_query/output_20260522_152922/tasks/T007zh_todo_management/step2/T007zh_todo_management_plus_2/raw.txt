@@ -1,0 +1,165 @@
+{
+  "task_id": "T007zh_todo_management_plus_2",
+  "task_name": "周内计划去重+紧急排序",
+  "prompt_text": "帮我整理一下待办清单：\n1) 对“同一项目”的重复行动进行去重合并——不要删除任何待办项，而是把重复项更新为“标记完成”(status=completed)；\n2) 同时进行语义分流：若标题/描述涉及“电子版/纸质归档”等关键词差异，应避免把它们合并错（电子版与纸质归档属于不同子任务）。\n3) 重点排序：把“本周内到期”的待办排到前面，并在输出中明确标注分组；过期的也要标出来，但不要改变它们的优先级语义；due_date 为空的待办不要当作过期。\n当前日期锚点：2026-05-06（周三）。",
+  "files": {
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "todo_eg_101",
+        "title": "合规培训报名（讲师端）",
+        "description": "为讲师参加的合规培训完成报名登记，请同步确认参会资格。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-05-07",
+        "tags": [
+          "合规培训",
+          "报名",
+          "讲师端"
+        ],
+        "created_at": "2026-04-25T09:10:00Z"
+      },
+      {
+        "task_id": "todo_eg_102",
+        "title": "合规 培训报名-讲师端（全角前后缀差异）",
+        "description": "为讲师参加的合规培训完成报名登记（同一项目）。需要提交报名信息并等待审核。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-05-12",
+        "tags": [
+          "合规培训",
+          "报名",
+          "讲师端"
+        ],
+        "created_at": "2026-04-26T11:30:00Z"
+      },
+      {
+        "task_id": "todo_audit_201",
+        "title": "审计资料归档-电子版（已归档后发邮件）",
+        "description": "将审计资料整理为电子版，并进行归档；同时发送邮件给审计联系人索取确认。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-06",
+        "tags": [
+          "审计资料",
+          "电子版归档"
+        ],
+        "created_at": "2026-04-10T08:00:00Z"
+      },
+      {
+        "task_id": "todo_audit_202",
+        "title": "审计资料归档：PDF归档（语义一致）",
+        "description": "把审计资料转换并完成 PDF归档；要点：保持文件命名规范与索引目录。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-08",
+        "tags": [
+          "审计资料",
+          "PDF归档"
+        ],
+        "created_at": "2026-04-11T09:20:00Z"
+      },
+      {
+        "task_id": "todo_audit_203",
+        "title": "审计资料归档-纸质归档（独立子任务）",
+        "description": "完成审计资料的纸质归档：打印、装订并登记归档编号；不包含电子版/ PDF归档流程。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-05-09",
+        "tags": [
+          "审计资料",
+          "纸质归档"
+        ],
+        "created_at": "2026-04-12T10:40:00Z"
+      },
+      {
+        "task_id": "todo_clean_301",
+        "title": "清理临时文件（例行）",
+        "description": "清理开发机上的临时文件与缓存目录，释放磁盘空间；不涉及线上变更。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": null,
+        "tags": [
+          "运维",
+          "清理"
+        ],
+        "created_at": "2026-04-20T17:55:00Z"
+      },
+      {
+        "task_id": "todo_exp_401",
+        "title": "更新供应商合同版本",
+        "description": "将供应商合同版本更新到最新签署文本，并同步存档到共享目录。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-01",
+        "tags": [
+          "合同",
+          "供应商"
+        ],
+        "created_at": "2026-04-05T13:25:00Z"
+      },
+      {
+        "task_id": "todo_exp_402",
+        "title": "完成客户对账单核对",
+        "description": "核对客户对账单明细差异，形成差异清单并提交给财务负责人。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-05-02",
+        "tags": [
+          "对账",
+          "财务"
+        ],
+        "created_at": "2026-04-06T15:40:00Z"
+      },
+      {
+        "task_id": "todo_done_501",
+        "title": "提交合规培训报名材料（已完成）",
+        "description": "整理并提交合规培训报名所需材料，等待内部审核完成。",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-05-08",
+        "tags": [
+          "合规培训",
+          "材料提交"
+        ],
+        "created_at": "2026-05-03T10:10:00Z"
+      },
+      {
+        "task_id": "todo_other_601",
+        "title": "准备周报封面与数据汇总",
+        "description": "汇总本周关键数据并更新周报封面要点，确保数字来源可追溯。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-13",
+        "tags": [
+          "周报",
+          "数据"
+        ],
+        "created_at": "2026-04-28T09:05:00Z"
+      },
+      {
+        "task_id": "todo_other_602",
+        "title": "安装合规标识牌到办公室楼层",
+        "description": "根据合规规范，将标识牌安装到指定楼层，并拍照留档。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-05-15",
+        "tags": [
+          "合规",
+          "标识"
+        ],
+        "created_at": "2026-04-29T12:00:00Z"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原待办整理基础上加入“本周内到期优先排序”要求，并通过电子版/PDF归档与纸质归档关键词差异来避免错误去重，同时对重复项用标记完成实现合并。",
+    "fixture_design_summary": [
+      "合规培训报名设置两条：一条 due_date 在本周内，一条在下周，标题存在全角/半角与前后缀差异用于触发去重与排序。",
+      "审计资料归档设置三条：两条电子版/PDF语义一致的重复（应被标记完成），一条纸质归档独立行动（不应被误合并）。",
+      "包含 due_date 为空的待办“清理临时文件（例行）”，用于验证不应被当作过期。",
+      "包含两条 pending 过期任务（due_date 早于 2026-05-06），用于验证“过期标记但不改变优先级语义”。",
+      "包含一条 completed 且 due_date 在本周内的任务，用于验证已完成状态仍被正确展示且不参与过期标注/本周优先合并逻辑。",
+      "优先级覆盖 high/medium/low，并确保本周内任务能按 priority 与 due_date 升序出现在更靠前位置。"
+    ]
+  }
+}

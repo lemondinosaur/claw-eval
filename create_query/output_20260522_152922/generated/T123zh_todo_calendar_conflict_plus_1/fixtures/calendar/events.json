@@ -1,0 +1,86 @@
+[
+  {
+    "event_id": "evt_410",
+    "title": "合规审计现场走访（全天）",
+    "start_time": "2026-04-12T09:00:00+08:00",
+    "end_time": "2026-04-12T18:00:00+08:00",
+    "location": "甲方现场",
+    "organizer": "审计部",
+    "attendees": [
+      "我",
+      "审计同事"
+    ],
+    "description": "合规审计现场走访，全天不可缺席（confirmed）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_412_am",
+    "title": "内部对齐会（上午）",
+    "start_time": "2026-04-14T10:00:00+08:00",
+    "end_time": "2026-04-14T11:30:00+08:00",
+    "location": "会议室B",
+    "organizer": "PMO",
+    "attendees": [
+      "我",
+      "周敏"
+    ],
+    "description": "阶段对齐与风险确认（短会，影响午前时段）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_414_pm_lock",
+    "title": "客户联调会（下午不可改期）",
+    "start_time": "2026-04-14T13:30:00+08:00",
+    "end_time": "2026-04-14T16:30:00+08:00",
+    "location": "客户云会议室",
+    "organizer": "客户交付团队",
+    "attendees": [
+      "我",
+      "客户交付负责人",
+      "技术负责人"
+    ],
+    "description": "接口联调关键窗口，下午不可改期（confirmed）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_415_am_boundary",
+    "title": "电话对接会议（上午关键段）",
+    "start_time": "2026-04-15T09:00:00+08:00",
+    "end_time": "2026-04-15T12:00:00+08:00",
+    "location": "办公区",
+    "organizer": "运营支持",
+    "attendees": [
+      "我",
+      "运营支持同事"
+    ],
+    "description": "需在 12:00 前完成对接（边界型，占用上午关键工作时段，confirmed）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_413_lunch_noise",
+    "title": "午间简会：数据口径",
+    "start_time": "2026-04-13T12:15:00+08:00",
+    "end_time": "2026-04-13T12:45:00+08:00",
+    "location": "茶水间旁小会议位",
+    "organizer": "数据组",
+    "attendees": [
+      "我",
+      "数据组同事"
+    ],
+    "description": "短时简会，仅占用午间一小段（干扰项，非长时占用）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_416_canceled",
+    "title": "外部评审会（已取消）",
+    "start_time": "2026-04-16T14:00:00+08:00",
+    "end_time": "2026-04-16T16:00:00+08:00",
+    "location": "评审中心",
+    "organizer": "外部评审方",
+    "attendees": [
+      "我"
+    ],
+    "description": "原计划两小时评审，但已取消（canceled，用于验证忽略）",
+    "status": "canceled"
+  }
+]

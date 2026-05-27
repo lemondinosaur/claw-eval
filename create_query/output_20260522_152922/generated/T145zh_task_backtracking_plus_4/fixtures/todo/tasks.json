@@ -1,0 +1,93 @@
+[
+  {
+    "task_id": "SEC-TASK-5101",
+    "title": "EV-2026-0412 初步处置报告：补齐日志取证并提交草稿",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-13",
+    "progress": 55,
+    "notes": "已完成账号封禁/会话隔离与基础日志汇总；待补充日志取证：补齐源IP到目标资源映射及可疑外传窗口关键字段。",
+    "created_at": "2026-04-10T15:00:00Z"
+  },
+  {
+    "task_id": "SEC-TASK-5102",
+    "title": "EV-2026-0412 根因分析与缓解措施：法务合规表述定稿后提交",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-13",
+    "progress": 35,
+    "notes": "已形成权限配置缺口与会话复用窗口的分析结论；需法务合规确认两处表述口径后才能定稿。",
+    "blocked_by": "法务合规审阅：责任边界/有效性措辞确认（阻塞在合规审阅表述）",
+    "created_at": "2026-04-10T18:10:00Z"
+  },
+  {
+    "task_id": "SEC-TASK-5103",
+    "title": "EV-2026-0412 整改闭环清单：完成项标记并等待安全负责人最终确认",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-04-14",
+    "progress": 100,
+    "notes": "已完成访问策略回滚与告警阈值/规则调整并已更新至清单草稿；仍需安全负责人最终确认敏感资源最小权限重分配范围，完成后补充闭环说明。",
+    "completed_at": "2026-04-12T11:20:00Z"
+  },
+  {
+    "task_id": "SEC-TASK-5104",
+    "title": "EV-2026-0317 协助台账归档（非本次复盘）",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-04-20",
+    "progress": 10,
+    "notes": "仅用于干扰：与EV-2026-0412不同事件，不参与催办回溯。",
+    "created_at": "2026-04-09T09:05:00Z"
+  },
+  {
+    "task_id": "SEC-TASK-5105",
+    "title": "生成事件时间线图（模板复用）",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-04-15",
+    "progress": 25,
+    "notes": "为多事件准备时间线可视化模板，当前未与EV-2026-0412催办绑定。",
+    "created_at": "2026-04-12T12:05:00Z"
+  },
+  {
+    "task_id": "SEC-TASK-5106",
+    "title": "撰写通用复盘摘要（等待其他材料汇总）",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-16",
+    "progress": 20,
+    "notes": "仅通用摘要，不包含EV-2026-0412的处置项明细。",
+    "created_at": "2026-04-11T10:30:00Z"
+  },
+  {
+    "task_id": "SEC-TASK-5107",
+    "title": "安全培训材料更新（季度任务）",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-04-10",
+    "progress": 100,
+    "notes": "与安全告警催办无关，仅用于干扰。",
+    "completed_at": "2026-04-10T16:40:00Z"
+  },
+  {
+    "task_id": "SEC-TASK-5108",
+    "title": "核对告警规则变更影响范围",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-04-17",
+    "progress": 40,
+    "notes": "进行告警规则影响评估，尚未输出最终结论。",
+    "created_at": "2026-04-12T13:20:00Z"
+  },
+  {
+    "task_id": "SEC-TASK-5109",
+    "title": "EV-2026-0412 复盘补充说明：外传证据链字段核验",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-14",
+    "progress": 50,
+    "notes": "风险点：疑似数据外传窗口的证据链仍需最终日志字段核验；若核验失败需补做链路对照并更新风险等级。",
+    "created_at": "2026-04-12T11:50:00Z"
+  }
+]

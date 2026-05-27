@@ -1,0 +1,60 @@
+[
+  {
+    "integration_id": "INT-2201",
+    "name": "multi_currency_payment",
+    "display_name": "多币种收款网关",
+    "service": "payment",
+    "status": "active",
+    "last_verified": "2026-04-26T10:15:00+08:00",
+    "monthly_calls": 15400,
+    "error_rate": 0.08,
+    "notes": "运行正常，USD/EUR收款均能入账到财务流水"
+  },
+  {
+    "integration_id": "INT-2202",
+    "name": "invoice_dispatch",
+    "display_name": "发票出具服务",
+    "service": "invoice",
+    "status": "degraded",
+    "last_verified": "2026-04-26T09:05:00+08:00",
+    "monthly_calls": 6200,
+    "error_rate": 2.6,
+    "last_sync": "2026-04-25T15:40:00+08:00",
+    "notes": "自4月25日切换含税/不含税标记映射后出现partial_error：部分发票明细被错误标记为“不含税”，导致税费扣除行取值偏小。最近一次成功同步为4/25 15:40"
+  },
+  {
+    "integration_id": "INT-2203",
+    "name": "vat_tax_calc",
+    "display_name": "VAT/税费计算器",
+    "service": "tax",
+    "status": "partial_error",
+    "last_verified": "2026-04-26T11:20:00+08:00",
+    "monthly_calls": 8300,
+    "error_rate": 6.2,
+    "last_sync": "2026-04-25T18:10:00+08:00",
+    "notes": "税费口径更新滞后一天：税率版本v2026.04.10在4/25晚间才全量生效；4/26早高峰仍有小比例旧版本计算。与CRM期望的“净应收”口径对齐需要用新版税映射"
+  },
+  {
+    "integration_id": "INT-2204",
+    "name": "fx_rate_sync",
+    "display_name": "汇兑汇率同步",
+    "service": "fx",
+    "status": "active",
+    "last_verified": "2026-04-26T08:40:00+08:00",
+    "monthly_calls": 2400,
+    "error_rate": 0.3,
+    "notes": "汇率源正常，但与月末批处理任务存在1天延迟（job维度体现）"
+  },
+  {
+    "integration_id": "INT-2205",
+    "name": "tax_reconciliation_bridge",
+    "display_name": "税务对账桥接",
+    "service": "reconciliation",
+    "status": "active",
+    "last_verified": "2026-04-26T08:55:00+08:00",
+    "monthly_calls": 1800,
+    "error_rate": 1.1,
+    "last_sync": "2026-04-26T08:55:00+08:00",
+    "notes": "桥接服务本月正常，但需要依赖税费计算器与发票系统的字段版本一致"
+  }
+]

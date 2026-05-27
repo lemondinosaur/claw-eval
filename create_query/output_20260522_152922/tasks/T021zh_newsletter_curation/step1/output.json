@@ -1,0 +1,101 @@
+{
+  "schema_version": "step1.task_descriptions.v2",
+  "generated_at": "2026-05-22 15:36:12",
+  "source_task_id": "T021zh_newsletter_curation",
+  "source_summary": {
+    "task_id": "T021zh_newsletter_curation",
+    "task_name": "Newsletter Curation",
+    "task_type": "基于RSS订阅挑选与指定主题相关的内容，阅读原文并撰写技术编辑稿，再发布成Newsletter",
+    "category": "content",
+    "difficulty": "easy",
+    "tags": [
+      "general"
+    ],
+    "language": "zh",
+    "services": [
+      "rss"
+    ],
+    "tools": [
+      "rss_list_feeds",
+      "rss_list_articles",
+      "rss_get_article",
+      "rss_publish"
+    ],
+    "fixture_paths": [
+      "fixtures/rss/articles.json"
+    ],
+    "sandbox_files": [
+      "fixtures/rss/articles.json"
+    ],
+    "has_user_agent": false,
+    "has_grader": true,
+    "core_capability": "内容筛选与编辑性总结（含边界判断）并通过发布接口生成Newsletter"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T021zh_newsletter_curation_plus_1",
+      "new_task_name": "AI Ops 周报精选",
+      "task_goal": "从RSS中挑选与“AI运维/生产化”相关的文章，阅读完整内容后撰写一期结构化技术周报，并发布给指定收件人列表；要求对两篇边界文章给出明确取舍与理由。",
+      "user_request": "请从RSS源里挑选本周与AI运维、模型上线、监控告警、可观测性相关的内容，整理成一份《AI Ops 技术周报》并发布。边界内容请说明为什么保留或剔除。Newsletter需要包含：标题、导读（3-4句）、精选要点（按条目）、“本周值得关注的指标/实践”（不少于5条）、以及结尾的行动建议（给研发/运维分别一句）。",
+      "scenario": "RSS里有多种类别混杂内容：部分文章是AI工程的建设方法（如训练/推理管线、灰度发布、可观测性、成本优化），但也存在娱乐、医疗、泛云计算泛科普文章。你需要优先选择“与上线运行强相关”的稿件；其中两篇：一篇偏‘通用DevOps’，另一篇偏‘数据科学但不直接讲上线运维’。此外，RSS源列表里同一主题可能来自不同source，存在重复角度的文章，需要避免把重复点堆在一起。",
+      "difference_from_source": "原题聚焦LLM/RAG/Agent/Kubernetes的技术周报且用关键词判定；本任务聚焦“AI运维/生产化”并要求更强的指标与实践清单，同时加入两篇“接近但不够AI运维”的边界剔除/取舍论证，且不以Llama/Qwen/DeepSeek/RAG核心关键词作为唯一主题锚点。",
+      "service_and_tool_plan": "继续使用rss服务与其工具：先调用rss_list_feeds获取可用来源，再调用rss_list_articles按类别与来源特征缩小范围，随后对最终入选的文章逐篇调用rss_get_article读取完整内容，最后用rss_publish发布Newsletter。这样可复用同一schema并确保编辑稿基于原文而非猜测。",
+      "fixture_generation_plan": "生成fixtures/rss/articles.json（建议12-16条记录）。必须包含：至少6条“AI Ops/生产化相关”文章、至少4条明显无关干扰（娱乐/健康/体育/生活任选），至少2条“边界相关”文章（例如DevOps通用、数据分析但缺少上线运维细节）。每条记录包含唯一article_id、title、source、category、published_at、summary、content（需覆盖上线/监控/告警/成本/发布等要点以供总结）、relevance_tags与word_count。published_at分布在连续一周内但顺序打乱；relevance_tags覆盖“observability/monitoring/deployment/cost/incident/model registry”等。",
+      "expected_behavior": "代理应：1）调用rss_list_feeds与rss_list_articles完成浏览与筛选；2）最终选择不少于5篇入选文章（其中至少3篇需要明确提供可操作的运维实践或指标口径）；3）对入选文章全部调用rss_get_article；4）对两篇边界文章给出明确取舍理由（写入导读或精选要点中），并确保Newsletter中不出现与主题无关的娱乐/生活内容；5）使用rss_publish提交title与content，recipients为任务描述中隐含的团队群组邮箱列表（由fixture/生成器在fixtures中提供可用收件人字符串）。内容要求使用中文、包含指定结构与不低于5条“指标/实践”条目；6）发布后输出应表明已发布（grader将通过rss_publish调用判定）。",
+      "grading_plan": "检查：是否调用rss_list_articles至少1次且rss_list_feeds至少1次；是否对入选文章调用rss_get_article达到阈值（建议>=5）；是否调用rss_publish且content包含“导读/精选要点/指标实践/行动建议”结构关键词；是否能在内容中体现AI运维语义（监控告警、可观测性、灰度/回滚、成本、事故响应等各至少出现若干）；是否对两篇边界文章出现取舍理由；是否排除了明显无关类别。LLM judge应评估编辑性（非原文复制）、实践可落地程度与边界判断合理性。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T021zh_newsletter_curation_plus_2",
+      "new_task_name": "Security & AI 风险观察",
+      "task_goal": "从RSS中挑选与“AI安全/对抗、隐私合规、提示注入防护、红队评估”相关的文章，阅读后撰写《AI安全风险观察》newsletter并发布；要求输出风险分级表，并针对一篇“看似安全但缺少可验证细节”的文章给出不采纳或降权处理。",
+      "user_request": "请为团队整理一份《AI安全风险观察》newsletter并发布：从RSS中挑选与AI安全（提示注入/越狱、数据隐私、合规治理、红队评估、对抗测试）有关的内容。Newsletter必须包含：1）一段导读；2）风险分级表（至少4个风险等级，从低到高，给出每级对应的威胁类型与建议防护）；3）精选要点（至少6条）；4）“本期不采纳/降权”的文章说明（至少1条，解释缺乏哪些关键细节）。",
+      "scenario": "RSS里存在多个安全相关但粒度不同的文章：有的讲威胁建模与评估方法，有的只描述行业新闻；还有内容涉及通用网络安全但与LLM应用关联弱。另有一篇文章主题确实是‘安全’，但正文只给了高层宣称，没有提供评估基准/实验设置/可复现的防护流程。你要识别这种“信息不足”的边界稿件，执行降权或不采纳。",
+      "difference_from_source": "原题是选LLM/RAG/Agent/Kubernetes并以关键词硬锚点评分；本任务要求把内容转成“风险分级表”和防护建议，并强调对‘宣称式安全但缺少可验证细节’的识别与处理，而不是单纯挑主题词出现的文章。",
+      "service_and_tool_plan": "使用rss：先rss_list_feeds定位相关类别来源，再rss_list_articles筛选安全相关条目，随后对最终入选与需降权说明的文章调用rss_get_article以提取可用于风险分级表的关键信息，最后用rss_publish发布。",
+      "fixture_generation_plan": "生成新的fixtures/rss/articles.json（14-18条）。确保：至少7条强相关（威胁建模、提示注入防护、隐私/数据治理、红队评估、对抗测试、日志审计等）；至少4条干扰（如娱乐、运动、家居、心理健康或纯云计算无AI安全）；至少2条边界：a）通用安全但缺少LLM/Agent场景；b）安全宣称但缺少评估/实验细节（用于降权说明）。每条记录提供内容段落中要出现可提取信息（例如‘评估基准/成功率/日志字段/过滤策略/访问控制’等），避免只有标题或summary信息。",
+      "expected_behavior": "代理应完成：1）RSS浏览与筛选，入选文章不少于6篇；2）对入选文章与至少1篇“降权/不采纳”文章调用rss_get_article；3）在Newsletter中给出风险分级表（4级及以上），每级包括威胁类型+建议防护（防护建议要与文章内容一致，且至少覆盖：输入过滤/提示约束、检索内容安全、权限与数据最小化、审计与评估）；4）在不采纳/降权说明中明确指出缺少的关键细节（例如：没有定义评估指标/没有实验设置/没有复现步骤）；5）输出结构严格包含导读、风险分级表、精选要点、降权说明；6）调用rss_publish提交Newsletter标题与content，并确保不发布无关内容。",
+      "grading_plan": "检查：内容结构是否包含风险分级表四级以上；是否出现与AI安全相关的关键概念词（提示注入/越狱/红队/隐私/合规/审计等若干）；是否对至少1篇边界宣称稿件给出具体的“不采纳原因”而不是泛泛而谈；是否对入选与边界稿件调用rss_get_article；是否触发rss_publish一次且content不包含干扰类主题。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T021zh_newsletter_curation_plus_3",
+      "new_task_name": "产品经理 AI 白皮书导读",
+      "task_goal": "从RSS中挑选面向“产品落地”的AI技术文章，阅读后生成《产品经理AI白皮书导读》newsletter；要求将技术内容转化为“用户价值叙事+产品策略”，并对两篇‘技术很深但几乎没有产品化路径’的文章做取舍。",
+      "user_request": "请从RSS里挑选更适合产品经理快速理解与落地的AI内容，整理成《产品经理AI白皮书导读》newsletter并发布。Newsletter需要：标题；导读（强调如何把技术变成产品决策）；精选要点（至少7条，每条包含：用户价值、关键能力/机制、落地建议、潜在风险）；包含一个“场景优先级建议”列表（至少5个场景，按从易到难/从短期到长期）；对两篇“深但难落地”的文章给出取舍理由与替代方案建议。",
+      "scenario": "RSS文章类别混合：除了AI技术，有数据工程、云服务、学术论文摘要、以及与业务无关的生活内容。部分‘深技术’文章包含算法细节，但缺少如何集成到产品：例如没有提到端到端流程、监控指标、用户反馈闭环或商业模式。需要在筛选阶段识别“产品化缺口”，保留少量深度但必须能提炼为策略；其余深但难落地的文章需要解释为何不作为主要内容。",
+      "difference_from_source": "原题强调关键词相关性与编辑摘要；本任务更偏“面向产品的叙事翻译”，要求每条精选要点都包含用户价值/机制/落地建议/风险，并额外提供场景优先级与对‘深但不落地’的替代建议。",
+      "service_and_tool_plan": "继续使用rss工具链：rss_list_feeds确定可用源，rss_list_articles按类别与source筛选出潜在产品化文章，再对最终入选及待取舍的文章调用rss_get_article提取可用于用户价值与产品策略的内容要点，最后用rss_publish发布。",
+      "fixture_generation_plan": "生成fixtures/rss/articles.json（15-20条）。包含：至少7条“产品化/工程化思路”文章（需在content里出现流程、集成方式、指标、A/B或用户反馈、成本或合规等），至少4条干扰（生活/体育/娱乐/健康/纯法律新闻等），至少2条‘深但难落地’边界文章（正文偏理论或框架推导，缺少落地路径）。其余可为工程实践但与产品角色关联弱。确保article_id与字段唯一，published_at覆盖同一月内且打乱顺序，content中包含可供抽取“用户价值/风险/落地建议”的句子。",
+      "expected_behavior": "代理应：1）浏览并筛选；2）入选文章不少于6篇，且至少有3篇在内容中明确给出集成/流程/指标/闭环；3）对入选文章逐篇调用rss_get_article；4）Newsletter严格按要求组织：每条精选要点必须四要素齐全；5）场景优先级至少5项并说明为何易/难或短期/长期；6）对两篇‘深但难落地’文章明确取舍：写出取舍原因（缺少产品化路径的具体点）并提出替代建议（例如替换为更强调闭环与指标的文章或给出“如果要采用需补齐哪些数据/指标”的建议）；7）最终调用rss_publish发布Newsletter且不包含干扰类内容。",
+      "grading_plan": "检查：rss_get_article调用次数与入选文章数匹配；最终content包含要求的结构与字段（用户价值/关键能力/落地建议/潜在风险）；场景优先级数量>=5且有排序逻辑；对两篇边界稿件给出具体缺口与替代建议；编辑性判断：是否将技术要点转成产品化语言而非照抄；安全检查：不发布与产品目标无关的干扰内容。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T021zh_newsletter_curation_plus_4",
+      "new_task_name": "多语言内容编排精选",
+      "task_goal": "从RSS中挑选适合“多语言内容分发与本地化”主题的文章，阅读并生成《多语言内容编排精选》newsletter并发布；要求输出中英文对照的小结（不要求整篇翻译，但必须包含至少3段对照小结），并处理一篇明显与翻译技术无关但提到‘语言’的干扰文章。",
+      "user_request": "请为团队整理《多语言内容编排精选》newsletter并发布。请从RSS中挑选与机器翻译/同声传译/本地化策略/术语一致性/内容治理相关的内容（只要是“语言处理技术或本地化流程”，不要选娱乐八卦）。Newsletter需要：标题；导读（中文）；精选要点（至少6条，中文）；并附上“中英对照小结”至少3段（每段给出中文一句 + 英文一句，英文要求自然且不生硬翻译）；最后给出‘术语与风格指南’建议（至少5条）。对一篇看似与语言相关但实为其他主题的文章，必须解释为什么排除。",
+      "scenario": "RSS里有多条“翻译/口译/语言处理”相关内容，也有“语言=方言/语言学习/语言游戏/影视剧情语言”类文章，其中一篇会误导：标题带‘语言能力提升’，但正文重点是娱乐行业访谈或学习方法，不包含可用于技术/本地化工程的做法。还存在同主题不同粒度文章：需要避免把相同观点重复展开。",
+      "difference_from_source": "原题全中文技术周报并依赖关键词评估；本任务要求在newsletter中加入至少3段中英文对照小结和术语/风格指南，并包含“语言字面相关但技术不相关”的干扰排除解释。",
+      "service_and_tool_plan": "仍使用rss服务与工具：rss_list_feeds获取来源集合，rss_list_articles筛选出多语言相关类别与来源，rss_get_article读取最终入选文章以及需解释排除的干扰文章内容，最后rss_publish发布。",
+      "fixture_generation_plan": "生成fixtures/rss/articles.json（13-17条）。包含：至少6条多语言/本地化/翻译技术相关（content里需出现术语库/风格指南/一致性/治理流程/评估指标如BLEU或人评等），至少4条干扰（娱乐/生活/体育/健康等，或‘语言学习方法’但无技术细节），至少1条“语言相关但非技术/工程”干扰（用于排除说明）。另有1-2条边界稿：讲的是通用NLP但与本地化落地弱。字段保持与原schema一致，article_id全新，数值与实体名不沿用原fixture。",
+      "expected_behavior": "代理应：1）调用rss_list_feeds和rss_list_articles完成筛选；2）最终入选不少于5篇文章，并调用rss_get_article逐篇读取；3）生成newsletter包含中文导读、中文精选要点>=6条；4）中英对照小结>=3段且每段为一中文句+一英文句；5）术语与风格指南建议>=5条，内容要与文章提到的方法或流程一致；6）对至少1篇“语言字面相关但与翻译/本地化技术无关”的文章写出排除原因（引用其正文缺失的关键要点，例如没有术语治理/没有翻译评估/没有本地化流程）；7）调用rss_publish并通过title与content完成发布。",
+      "grading_plan": "检查：是否出现中英文对照小结（至少3段且格式清晰）；是否有术语与风格指南>=5条；是否对排除文章给出基于正文内容的理由；是否有足够的rss_get_article调用；是否rss_publish的content不包含无关主题。LLM judge应评估英文自然度、对照小结是否准确反映中文要点、编辑性是否良好。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T021zh_newsletter_curation_plus_5",
+      "new_task_name": "工程研发洞察：框架复盘与对比",
+      "task_goal": "从RSS中挑选与“工程框架复盘/评测对比/性能权衡”相关的文章，阅读后撰写《工程研发洞察》newsletter并发布；要求给出对比维度表（至少4维度）并提出‘选型建议’；对一篇内容只给了结论但缺少对比方法的文章做降采纳。",
+      "user_request": "请从RSS挑选与工程框架选型、性能评测、方法论对比、系统权衡相关的文章，整理成《工程研发洞察》newsletter并发布。Newsletter需要：导读（中文）；精选要点（至少6条）；对比维度表（至少4个维度，例如：吞吐/延迟、可扩展性、可观测性、成本、迁移难度、工程维护）；然后给出‘选型建议’（至少3条，每条包含适用条件与不适用条件）；最后对一篇“只讲结论不讲方法/指标”的文章写降采纳说明。",
+      "scenario": "RSS中有工程框架类文章：包括架构对比、性能评测、以及系统迁移案例；也有营销式文章或只摘录新闻摘要、缺少评测方法与指标定义。需要识别“方法缺失”的文章并降采纳：仍可提到但不应作为选型依据。另有一篇同为对比文章，但对比维度不全或指标不可复现，应作为边界条目处理。",
+      "difference_from_source": "原题是内容主题筛选+编辑摘要；本任务核心是把文章转成“评测对比维度表”和“选型建议（含适用/不适用条件）”，并新增对‘只讲结论缺少方法指标’的降采纳说明。",
+      "service_and_tool_plan": "使用rss链路：rss_list_feeds->rss_list_articles用于候选收集与筛选，rss_get_article用于读取最终入选文章与待降采纳文章的内容，最后rss_publish发布newsletter。这样可最大程度复用schema并保证表格依据原文。",
+      "fixture_generation_plan": "生成fixtures/rss/articles.json（14-18条）。包含：至少7条工程框架/系统评测相关（content需含至少一套可提取的指标/维度、对比对象、或实验设置/测试方法）；至少4条干扰（生活/娱乐/体育/健康等，或偏学术但无工程评测）；至少2条边界：a）只给结论没给方法/指标定义；b）指标有但不可复现或维度缺失。article_id、title、source、category、summary、content、relevance_tags、word_count全部为全新数据；published_at随机打乱但集中在近一周。",
+      "expected_behavior": "代理应：1）完成rss浏览与筛选；2）最终选不少于6篇入选并对其调用rss_get_article；3）生成newsletter包含：导读；精选要点>=6条；对比维度表（>=4维度，表内维度与文章内容对齐）；4）选型建议>=3条，每条明确适用条件与不适用条件（例如资源约束、团队经验、延迟要求、可观测性要求等）；5）对至少1篇“只讲结论缺少方法指标”的文章给出降采纳说明（点出缺失：无指标定义/无实验环境/无对比基线/无统计口径）；6）调用rss_publish提交并确保content中不出现干扰类内容。",
+      "grading_plan": "检查：是否生成对比维度表且维度数量>=4；选型建议数量>=3且每条含适用与不适用条件；降采纳说明是否具体指出方法/指标缺失；是否调用rss_get_article覆盖入选与降采纳文章；是否调用rss_publish一次且内容结构完整。LLM judge评估表格与建议的可解释性、基于原文信息的一致性以及编辑质量。"
+    }
+  ]
+}

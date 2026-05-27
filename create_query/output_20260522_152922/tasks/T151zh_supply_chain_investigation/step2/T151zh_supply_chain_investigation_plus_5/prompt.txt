@@ -1,0 +1,727 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T151zh_supply_chain_investigation_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/crm/customers.json",
+  "fixtures/finance/transactions.json",
+  "fixtures/helpdesk/tickets.json",
+  "fixtures/inventory/items.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T151zh_supply_chain_investigation_plus_5",
+  "new_task_name": "海外交付通关滞留导致的模块缺口",
+  "task_goal": "针对“海外交付延迟”工单，追查通关/合规滞留引发的模块到货延后，从工单定位受影响模块→库存体现短缺或到货等待→finance显示跨境采购的状态变更→CRM显示供应商的合规/文件问题。输出问题链与风险缓释方案（包括替代渠道与文件准备）。",
+  "user_request": "我们有多笔海外交付的模块订单出现延迟，客户抱怨一直等不到。请你追查并还原完整问题链：哪些工单属于同一跨境模块延迟、库存里哪些模块短缺或处于“待到货/冻结”状态、财务上哪些跨境采购交易被卡在不同阶段（如pending/部分取消）、CRM里哪个供应商因合规文件/清关问题导致交付受阻。最后给出可执行的缓释与客户承诺计划。",
+  "scenario": "工单描述包含“跨境清关未放行/文件补充中”，但同时存在一类干扰工单为“本地门店装配预约延迟”，与供应链无关。库存里某些模块 quantity=0或接近0，并且notes=“在途冻结/清关未放行”；另一类模块数量正常但不在海外订单范围（用于干扰）。Finance 侧体现跨境采购的金额分段：初始采购为pending（已支付定金），随后部分取消为cancelled（退回定金），再有部分交易completed对应其他模块。CRM里根因供应商 status=suspended或notes里明确“海关文件不齐/需补正，否则不发”；另有供应商active但其模块不属于缺口链路。代理必须结合“海外工单线索+库存notes+finance状态+CRM合规原因”才能正确定位。",
+  "difference_from_source": "原题是供应商暂停合作直接导致停供；本题根因是“跨境清关/合规文件问题导致在途冻结”，即使供应商在CRM中可能为suspended或合规受限，关键证据需要来自库存notes与finance分段状态（定金pending、部分cancelled、部分completed）。此外存在“本地预约延迟”技术/运营干扰工单。",
+  "service_and_tool_plan": "helpdesk_list_tickets 找到包含“海外交付/清关/模块延迟”关键词的工单；helpdesk_get_ticket 解析受影响模块名称/订单批次线索。inventory_list_items 选择模块类目后 inventory_get_item 获取quantity与notes中的“在途冻结/待到货”。finance_list_transactions 在海外订单相关时间窗筛选采购与定金/退款，finance_get_transaction 核验pending/cancelled/completed及原因与reference。crm_list_customers 切换到 status=suspended（如有）或读取 notes 关键字“清关/文件补正”，crm_get_customer 验证与缺口模块供应商的对应关系，并排除不相关供应商造成的误判。",
+  "fixture_generation_plan": "生成新 fixtures：1) helpdesk/tickets：10-14条；至少4条明确“海外交付延迟/清关未放行/文件补充”，分别对应不同客户与不同模块批次；至少2条干扰为“本地装配预约延迟/售后排班”，且不出现清关语义。状态open为主，另有in_progress/closed各1条用于干扰（但仍不应由代理去关闭）。2) inventory/items：至少8-10条；其中2-3个模块 quantity=0或极低，notes含“在途冻结/待清关放行”；另有1-2个模块quantity正常但不对应海外延迟工单。3) finance/transactions：至少14笔；跨境采购含：定金pending（原因=等待清关），部分cancelled（原因=文件补正失败/退回定金），以及其他模块completed（完成交付）作为对比干扰；reference 需能对应模块product_id或约定采购参考。4) crm/customers：至少6条；根因供应商 status=suspended（或active但notes明确“文件不齐/需补正”）并与缺口模块supplier一致；再提供至少2个供应商active notes常规交付用于干扰。",
+  "expected_behavior": "代理应生成报告：a) 用helpdesk_get_ticket识别同一海外模块延迟工单集合并列出受影响客户；b) 用inventory_get_item指出哪些模块在库存中“不可立即出库”（quantity低+notes在途冻结）；c) 用finance_get_transaction还原跨境资金链：定金pending、部分取消/退款、完成交付的对比，确保每笔交易reference与对应模块对上；d) 用crm_get_customer锁定清关/文件问题供应商为根因并给出证据摘录（notes/原因字段）；e) 说明为什么干扰工单（本地预约延迟）与根因链无关；f) 给出缓释方案：替代供货渠道、补正文件清单与责任人安排、客户承诺更新频率与替代方案（分批发货/临时替换模块）；不关闭工单。",
+  "grading_plan": "grader 应检查：是否同时使用库存notes与finance分段状态来支持“清关/在途冻结”根因；是否正确对齐reference避免把completed误当缺口；是否排除本地运营干扰工单；是否在CRM中找到清关文件补正或类似合规原因并锁定根因供应商；并确认未调用 helpdesk_close_ticket。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T151zh_supply_chain_investigation",
+  "task_name": "供应链异常追查与问题链还原",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "hard",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "finance",
+    "inventory",
+    "crm",
+    "helpdesk"
+  ],
+  "tools": [
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "helpdesk_update_ticket",
+    "helpdesk_close_ticket",
+    "inventory_list_items",
+    "inventory_get_item",
+    "finance_list_transactions",
+    "finance_get_transaction",
+    "crm_list_customers",
+    "crm_get_customer"
+  ],
+  "fixture_paths": [
+    "fixtures/crm/customers.json",
+    "fixtures/finance/transactions.json",
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/inventory/items.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T151zh_supply_chain_investigation
+task_name: 供应链异常追查与问题链还原
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: tasks/T151zh_supply_chain_investigation/fixtures/finance/transactions.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: tasks/T151zh_supply_chain_investigation/fixtures/inventory/items.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: tasks/T151zh_supply_chain_investigation/fixtures/crm/customers.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: tasks/T151zh_supply_chain_investigation/fixtures/helpdesk/tickets.json
+prompt:
+  text: '最近收到多个客户工单反映发货延迟，请帮我追查原因：
+
+    1. 查看相关工单了解客户诉求
+
+    2. 检查库存系统找出缺货产品
+
+    3. 查看采购记录和财务流水
+
+    4. 在CRM中查看供应商状态
+
+    5. 输出一份供应链异常分析报告，还原完整问题链
+
+    '
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单（优先级、标签、分类）
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 工单分类
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: inventory_list_items
+  description: 查看库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取库存品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: crm_list_customers
+  description: 列出客户和供应商
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(active/suspended)
+      tier:
+        type: string
+        description: 等级筛选(vip/standard/core)
+    required: []
+- name: crm_get_customer
+  description: 获取客户或供应商详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户/供应商ID
+    required:
+    - customer_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-1101",
+    "name": "鼎新软件",
+    "type": "customer",
+    "contact_person": "周经理",
+    "email": "zhoujl@dingxin-soft.com",
+    "phone": "13900110001",
+    "industry": "软件",
+    "tier": "vip",
+    "annual_revenue": 4800000,
+    "last_contact_date": "2026-03-22",
+    "status": "active",
+    "notes": "长期合作伙伴，订单#A001包含智能路由器X1×20台、交换机S200×10台，已付款待发货"
+  },
+  {
+    "customer_id": "CUS-1102",
+    "name": "瀚海电商",
+    "type": "customer",
+    "contact_person": "林总",
+    "email": "lin@hanhai-ec.com",
+    "phone": "13900110002",
+    "industry": "电商",
+    "tier": "standard",
+    "annual_revenue": 1200000,
+    "last_contact_date": "2026-03-23",
+    "status": "active",
+    "notes": "数据中心扩建项目，订单#A002包含交换机S200×5台、防火墙F500×5台，已付款待发货"
+  },
+  {
+    "customer_id": "CUS-1103",
+    "name": "万通物流",
+    "type": "customer",
+    "contact_person": "赵总监",
+    "email": "zhao@wantong-logistics.com",
+    "phone": "13900110003",
+    "industry": "物流",
+    "tier": "vip",
+    "annual_revenue": 6500000,
+    "last_contact_date": "2026-03-24",
+    "status": "active",
+    "notes": "VIP大客户，订单#A003包含智能路由器X1×30台、防火墙F500×5台、光纤模块×20个，已付款待发货，催促紧急"
+  },
+  {
+    "customer_id": "CUS-1104",
+    "name": "前锋科技",
+    "type": "customer",
+    "contact_person": "张工",
+    "email": "zhang@qianfeng-tech.com",
+    "phone": "13900110004",
+    "industry": "科技",
+    "tier": "standard",
+    "annual_revenue": 500000,
+    "last_contact_date": "2026-03-23",
+    "status": "active",
+    "notes": "小型客户，主要使用SaaS服务，无未交付订单"
+  },
+  {
+    "customer_id": "SUP-1001",
+    "name": "华通科技",
+    "type": "supplier",
+    "contact_person": "王总",
+    "email": "wang@huatong-tech.com",
+    "phone": "13900110101",
+    "industry": "网络设备制造",
+    "tier": "core",
+    "annual_revenue": 0,
+    "last_contact_date": "2026-03-15",
+    "status": "suspended",
+    "notes": "供应商A。因产品质量问题（路由器批次返修率超标），经采购部评审后于3月15日起暂停合作，停止一切供货。待质量整改完成后重新评估。"
+  },
+  {
+    "customer_id": "SUP-1002",
+    "name": "中科配件",
+    "type": "supplier",
+    "contact_person": "李经理",
+    "email": "li@zhongke-parts.com",
+    "phone": "13900110102",
+    "industry": "配件供应",
+    "tier": "standard",
+    "annual_revenue": 0,
+    "last_contact_date": "2026-03-20",
+    "status": "active",
+    "notes": "供应商B。主要供应网线、UPS电源等配件，交货稳定，质量合格。"
+  },
+  {
+    "customer_id": "SUP-1003",
+    "name": "天河服务器",
+    "type": "supplier",
+    "contact_person": "陈主管",
+    "email": "chen@tianhe-server.com",
+    "phone": "13900110103",
+    "industry": "服务器制造",
+    "tier": "standard",
+    "annual_revenue": 0,
+    "last_contact_date": "2026-03-18",
+    "status": "active",
+    "notes": "供应商C。交货正常，但3月底有产能调整，需提前沟通排期。"
+  }
+]
+
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/finance/transactions.json ---
+[
+  {
+    "transaction_id": "TXN-1101",
+    "date": "2026-03-05",
+    "amount": 150000.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "网络设备",
+    "description": "采购供应商A 智能路由器X1 50台 × 3000元/台",
+    "status": "cancelled",
+    "reference": "ITEM-1101",
+    "supplier": "供应商A",
+    "cancel_reason": "供应商暂停发货"
+  },
+  {
+    "transaction_id": "TXN-1102",
+    "date": "2026-03-06",
+    "amount": 80000.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "网络设备",
+    "description": "采购供应商A 交换机S200 20台 × 4000元/台",
+    "status": "cancelled",
+    "reference": "ITEM-1102",
+    "supplier": "供应商A",
+    "cancel_reason": "供应商暂停发货"
+  },
+  {
+    "transaction_id": "TXN-1103",
+    "date": "2026-03-07",
+    "amount": 60000.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "安全设备",
+    "description": "采购供应商A 防火墙F500 10台 × 6000元/台",
+    "status": "cancelled",
+    "reference": "ITEM-1103",
+    "supplier": "供应商A",
+    "cancel_reason": "供应商暂停发货"
+  },
+  {
+    "transaction_id": "TXN-1104",
+    "date": "2026-03-08",
+    "amount": 45000.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "网络设备",
+    "description": "采购供应商A 光纤模块 30个 × 1500元/个",
+    "status": "cancelled",
+    "reference": "ITEM-1108",
+    "supplier": "供应商A",
+    "cancel_reason": "供应商暂停发货"
+  },
+  {
+    "transaction_id": "TXN-1105",
+    "date": "2026-03-10",
+    "amount": 25000.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "配件",
+    "description": "采购供应商B 网线Cat6 500箱 × 50元/箱",
+    "status": "completed",
+    "reference": "ITEM-1104",
+    "supplier": "供应商B"
+  },
+  {
+    "transaction_id": "TXN-1106",
+    "date": "2026-03-12",
+    "amount": 35000.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "电力设备",
+    "description": "采购供应商B UPS电源 10台 × 3500元/台",
+    "status": "completed",
+    "reference": "ITEM-1106",
+    "supplier": "供应商B"
+  },
+  {
+    "transaction_id": "TXN-1107",
+    "date": "2026-03-11",
+    "amount": 240000.00,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "服务器",
+    "description": "采购供应商C 服务器R720 8台 × 30000元/台",
+    "status": "completed",
+    "reference": "ITEM-1105",
+    "supplier": "供应商C"
+  },
+  {
+    "transaction_id": "TXN-1108",
+    "date": "2026-03-15",
+    "amount": 180000.00,
+    "currency": "CNY",
+    "type": "销售收款",
+    "category": "客户收款",
+    "description": "客户CUS-1101鼎新软件 订单#A001收款 路由器+交换机",
+    "status": "completed",
+    "reference": "CUS-1101"
+  },
+  {
+    "transaction_id": "TXN-1109",
+    "date": "2026-03-16",
+    "amount": 95000.00,
+    "currency": "CNY",
+    "type": "销售收款",
+    "category": "客户收款",
+    "description": "客户CUS-1102瀚海电商 订单#A002收款 交换机+防火墙",
+    "status": "completed",
+    "reference": "CUS-1102"
+  },
+  {
+    "transaction_id": "TXN-1110",
+    "date": "2026-03-17",
+    "amount": 220000.00,
+    "currency": "CNY",
+    "type": "销售收款",
+    "category": "客户收款",
+    "description": "客户CUS-1103万通物流 订单#A003收款 路由器+防火墙+光纤模块",
+    "status": "completed",
+    "reference": "CUS-1103"
+  }
+]
+
+--- END FILE: fixtures/finance/transactions.json ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-1101",
+    "title": "订单#A001发货延迟",
+    "description": "鼎新软件（CUS-1101）周经理反馈：订单#A001已下单一周，包含智能路由器X1和交换机S200，至今未发货，客户催促多次。请尽快处理。",
+    "customer_id": "CUS-1101",
+    "reporter": "周经理",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-22T10:00:00Z",
+    "tags": ["发货延迟", "订单"],
+    "category": "订单问题"
+  },
+  {
+    "ticket_id": "TK-1102",
+    "title": "订单#A002发货延迟",
+    "description": "瀚海电商（CUS-1102）林总反馈：订单#A002（交换机S200和防火墙F500）已超过承诺交付日期5天，影响其数据中心部署进度。",
+    "customer_id": "CUS-1102",
+    "reporter": "林总",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-23T09:30:00Z",
+    "tags": ["发货延迟", "订单"],
+    "category": "订单问题"
+  },
+  {
+    "ticket_id": "TK-1103",
+    "title": "订单#A003产品缺货",
+    "description": "万通物流（CUS-1103）赵总监紧急反馈：订单#A003包含智能路由器X1、防火墙F500和光纤模块，客服回复说缺货但无法给出预计到货时间。VIP客户要求给出明确答复。",
+    "customer_id": "CUS-1103",
+    "reporter": "赵总监",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-24T08:15:00Z",
+    "tags": ["缺货", "订单", "VIP", "紧急"],
+    "category": "订单问题"
+  },
+  {
+    "ticket_id": "TK-1104",
+    "title": "软件登录异常",
+    "description": "前锋科技（CUS-1104）张工反馈：管理后台登录时偶尔出现502错误，需要刷新2-3次才能进入。",
+    "customer_id": "CUS-1104",
+    "reporter": "张工",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-23T14:00:00Z",
+    "tags": ["登录", "系统故障"],
+    "category": "技术问题"
+  },
+  {
+    "ticket_id": "TK-1105",
+    "title": "发票信息修改",
+    "description": "鼎新软件（CUS-1101）财务部申请修改上月发票的开票信息，税号有误需要重新开具。",
+    "customer_id": "CUS-1101",
+    "reporter": "财务部",
+    "department": "财务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-24T16:00:00Z",
+    "tags": ["发票", "修改"],
+    "category": "财务问题"
+  }
+]
+
+--- END FILE: fixtures/helpdesk/tickets.json ---
+--- FILE: fixtures/inventory/items.json ---
+[
+  {
+    "product_id": "ITEM-1101",
+    "name": "智能路由器X1",
+    "category": "网络设备",
+    "quantity": 0,
+    "unit": "台",
+    "unit_cost": 3000.00,
+    "location": "仓库A-01",
+    "reorder_level": 50,
+    "supplier": "供应商A",
+    "last_restock_date": "2026-02-28",
+    "notes": "库存已清零，待补货"
+  },
+  {
+    "product_id": "ITEM-1102",
+    "name": "交换机S200",
+    "category": "网络设备",
+    "quantity": 3,
+    "unit": "台",
+    "unit_cost": 4000.00,
+    "location": "仓库A-02",
+    "reorder_level": 20,
+    "supplier": "供应商A",
+    "last_restock_date": "2026-02-25",
+    "notes": "库存严重不足，远低于安全库存"
+  },
+  {
+    "product_id": "ITEM-1103",
+    "name": "防火墙F500",
+    "category": "安全设备",
+    "quantity": 0,
+    "unit": "台",
+    "unit_cost": 6000.00,
+    "location": "仓库B-01",
+    "reorder_level": 10,
+    "supplier": "供应商A",
+    "last_restock_date": "2026-02-20",
+    "notes": "库存已清零，待补货"
+  },
+  {
+    "product_id": "ITEM-1104",
+    "name": "网线Cat6",
+    "category": "配件",
+    "quantity": 500,
+    "unit": "箱",
+    "unit_cost": 50.00,
+    "location": "仓库C-01",
+    "reorder_level": 100,
+    "supplier": "供应商B",
+    "last_restock_date": "2026-03-15",
+    "notes": "库存充足"
+  },
+  {
+    "product_id": "ITEM-1105",
+    "name": "服务器R720",
+    "category": "服务器",
+    "quantity": 8,
+    "unit": "台",
+    "unit_cost": 30000.00,
+    "location": "仓库D-01",
+    "reorder_level": 5,
+    "supplier": "供应商C",
+    "last_restock_date": "2026-03-10",
+    "notes": "库存正常"
+  },
+  {
+    "product_id": "ITEM-1106",
+    "name": "UPS电源",
+    "category": "电力设备",
+    "quantity": 15,
+    "unit": "台",
+    "unit_cost": 3500.00,
+    "location": "仓库D-02",
+    "reorder_level": 10,
+    "supplier": "供应商B",
+    "last_restock_date": "2026-03-12",
+    "notes": "库存正常"
+  },
+  {
+    "product_id": "ITEM-1107",
+    "name": "机柜42U",
+    "category": "机房设备",
+    "quantity": 6,
+    "unit": "个",
+    "unit_cost": 8000.00,
+    "location": "仓库D-03",
+    "reorder_level": 3,
+    "supplier": "供应商C",
+    "last_restock_date": "2026-03-08",
+    "notes": "库存正常"
+  },
+  {
+    "product_id": "ITEM-1108",
+    "name": "光纤模块",
+    "category": "网络设备",
+    "quantity": 2,
+    "unit": "个",
+    "unit_cost": 1500.00,
+    "location": "仓库A-03",
+    "reorder_level": 30,
+    "supplier": "供应商A",
+    "last_restock_date": "2026-02-18",
+    "notes": "库存严重不足，远低于安全库存"
+  }
+]
+
+--- END FILE: fixtures/inventory/items.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

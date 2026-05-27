@@ -1,0 +1,88 @@
+[
+  {
+    "event_id": "evt_701",
+    "title": "Neon资源与预算对齐会",
+    "start_time": "2026-03-18T10:00:00+08:00",
+    "end_time": "2026-03-18T11:00:00+08:00",
+    "location": "会议室C",
+    "organizer": "周岚",
+    "attendees": [
+      "周岚",
+      "韩昊",
+      "沈婉"
+    ],
+    "description": "Neon资源对齐：成本核算口径、预算审批等待、关键里程碑资源分配；关联纪要NOTE-701",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_702",
+    "title": "Omega关键人力与排产对齐会",
+    "start_time": "2026-03-19T14:00:00+08:00",
+    "end_time": "2026-03-19T15:30:00+08:00",
+    "location": "线上会议",
+    "organizer": "沈婉",
+    "attendees": [
+      "沈婉",
+      "韩昊",
+      "陆川"
+    ],
+    "description": "Omega资源对齐：关键人员临时抽调影响排产；关联纪要NOTE-702",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_703",
+    "title": "Pulse设备窗口冲突与替代方案对齐会",
+    "start_time": "2026-03-21T09:30:00+08:00",
+    "end_time": "2026-03-21T10:30:00+08:00",
+    "location": "会议室D",
+    "organizer": "周岚",
+    "attendees": [
+      "周岚",
+      "陆川",
+      "程诺"
+    ],
+    "description": "Pulse设备窗口冲突：已有备选窗口方案；关联纪要NOTE-703",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_704",
+    "title": "公司财务对账会（季度）",
+    "start_time": "2026-03-20T10:30:00+08:00",
+    "end_time": "2026-03-20T11:30:00+08:00",
+    "location": "会议室A",
+    "organizer": "财务部-刘琪",
+    "attendees": [
+      "财务部-刘琪",
+      "董晨"
+    ],
+    "description": "季度财务对账与科目核对，非项目资源对齐纪要",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_705",
+    "title": "质量管理例会",
+    "start_time": "2026-03-22T16:00:00+08:00",
+    "end_time": "2026-03-22T17:00:00+08:00",
+    "location": "会议室B",
+    "organizer": "QA-王珂",
+    "attendees": [
+      "QA-王珂",
+      "董晨"
+    ],
+    "description": "质量风险通报与缺陷复盘，非资源约束相关",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_706",
+    "title": "通用培训：预算合规与审批流程",
+    "start_time": "2026-03-23T13:00:00+08:00",
+    "end_time": "2026-03-23T14:00:00+08:00",
+    "location": "培训室1",
+    "organizer": "合规-林薇",
+    "attendees": [
+      "合规-林薇"
+    ],
+    "description": "预算审批流程培训（干扰会议）",
+    "status": "confirmed"
+  }
+]

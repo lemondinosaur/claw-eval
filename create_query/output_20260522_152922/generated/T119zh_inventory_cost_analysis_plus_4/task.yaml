@@ -1,0 +1,93 @@
+task_id: T119zh_inventory_cost_analysis_plus_4
+task_name: 异常交易类型排除核对
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T119zh_inventory_cost_analysis_plus_4/fixtures/inventory/items.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T119zh_inventory_cost_analysis_plus_4/fixtures/finance/transactions.json
+prompt:
+  text: "请帮我做一次库存与采购成本的交叉核对（重点：排除非采购/退货/折扣抵扣/运费/内部转拨等交易类型，只纳入可作为采购成本依据的交易）。\n\n要求：\n\
+    1）查看库存品数量与单位成本\n2）从财务拉取对应品类相关交易\n3）识别交易类型：仅当交易符合“采购”且 status=completed，并且 description\
+    \ 语义上是采购成本（不含退货/已冲回/折扣/抵扣/运费/内部转拨等字样）时才计入核对；否则要排除或单独列为干扰\n4）对每个品类比对库存 unit_cost\
+    \ 与采购单价/加权平均（若有多笔采购则以可核对采购交易的加权平均为准）\n5）输出成本分析报告：\n   - 核对表：给出每个品类用于核对的“有效采购交易”口径与计算结果\n\
+    \   - 被排除的异常交易清单：交易ID、品类/关联物料、排除理由（必须对应到交易的 type/status/description/category）\n\
+    \   - 最终异常结论：指出真实异常品类，并说明“排除干扰后假异常消失”的情况（若适用）"
+  language: zh
+tools:
+- name: inventory_list_items
+  description: 查看库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取库存品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

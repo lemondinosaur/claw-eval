@@ -1,0 +1,122 @@
+[
+  {
+    "transaction_id": "TXN-7011",
+    "date": "2026-03-10",
+    "amount": 392000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-701",
+    "customer_name": "海辰智能",
+    "type": "里程碑1收款",
+    "category": "收款",
+    "description": "海辰智能里程碑1款项收款（40%）",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-7012",
+    "date": "2026-03-13",
+    "amount": 392000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-701",
+    "customer_name": "海辰智能",
+    "type": "开票生成",
+    "category": "开票",
+    "description": "海辰智能发票生成请求（应在T+3触发）",
+    "status": "pending"
+  },
+  {
+    "transaction_id": "TXN-7013",
+    "date": "2026-03-20",
+    "amount": 392000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-701",
+    "customer_name": "海辰智能",
+    "type": "开票更正（冲账）",
+    "category": "开票更正",
+    "description": "系统更正：发票金额字段更换版本（尚未对外开出）",
+    "status": "pending"
+  },
+  {
+    "transaction_id": "TXN-7021",
+    "date": "2026-03-08",
+    "amount": 160000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-702",
+    "customer_name": "北陆云联",
+    "type": "年度订阅收款",
+    "category": "收款",
+    "description": "北陆云联2026年度订阅收款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-7022",
+    "date": "2026-03-14",
+    "amount": 160000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-702",
+    "customer_name": "北陆云联",
+    "type": "年度发票开具",
+    "category": "开票",
+    "description": "北陆云联年度发票补开请求",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-7023",
+    "date": "2026-03-19",
+    "amount": -5000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-702",
+    "customer_name": "北陆云联",
+    "type": "对账更正冲账",
+    "category": "更正/冲账",
+    "description": "因税点差异冲账（客户原付款金额与合同含税口径不一致）",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-7031",
+    "date": "2026-03-12",
+    "amount": 80000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-703",
+    "customer_name": "星岚资本",
+    "type": "收款completed（异常匹配）",
+    "category": "收款",
+    "description": "疑似对账噪音：内部录入的旧合同账目（需与当前合同核验）",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-7032",
+    "date": "2026-03-12",
+    "amount": 75000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-703",
+    "customer_name": "星岚资本",
+    "type": "开票生成",
+    "category": "开票",
+    "description": "对应旧合同的开票pending（但客户已inactive）",
+    "status": "pending"
+  },
+  {
+    "transaction_id": "TXN-7041",
+    "date": "2026-03-17",
+    "amount": 120000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-701",
+    "customer_name": "海辰智能",
+    "type": "里程碑1款项（重复对账记录-干扰）",
+    "category": "收款",
+    "description": "对账系统重复导入记录：用于匹配错误金额（干扰项）",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-7042",
+    "date": "2026-03-17",
+    "amount": 120000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-701",
+    "customer_name": "海辰智能",
+    "type": "对账凭证（金额不一致记录-干扰）",
+    "category": "对账差异",
+    "description": "金额与邮件声称不符：仅用于对账比对，不代表实际待开票",
+    "status": "completed"
+  }
+]

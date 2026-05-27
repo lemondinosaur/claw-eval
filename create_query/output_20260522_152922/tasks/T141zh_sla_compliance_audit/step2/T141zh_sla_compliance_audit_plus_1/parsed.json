@@ -1,0 +1,243 @@
+{
+  "task_id": "T141zh_sla_compliance_audit_plus_1",
+  "task_name": "SLA夜间告警漏发排查",
+  "prompt_text": "请帮我做一次 SLA 合规审查（重点排查夜间告警漏发）：\n1) 从系统配置读取“分级响应”SLA规则（critical/high/medium/low 的响应时间分钟阈值）。\n2) 检查过去24小时内所有与“客服外呼”相关、且状态为 open 的工单：逐单读取 created_at 与 first_response_at，计算首次响应用时（first_response_at - created_at），按对应优先级分钟阈值判断达标/超标，并标出临界情况（等于或紧贴阈值）。同时标注 first_response_at 为 null 的未响应风险（不计入达标/超标）。\n3) 检查 scheduler 中与“超时告警/工单提醒/夜间提醒”相关的自动化任务运行状态：定位失败任务，读取失败次数、首次失败时间与错误信息。结合 config 中短信类集成的健康状态，推断夜间“告警应已触达但未触达”的影响范围。\n4) 输出 SLA 合规分析报告：包含（a）达标/超标/临界工单明细表；（b）异常任务影响分析（哪些告警可能未按时触达、影响到哪些夜间窗口与工单）；（c）可执行改进建议（通知冗余：短信失败切 IM 备用、夜间重试策略、阈值校准等）。\n注意：仅做审查与分析，不要关闭工单。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-A01",
+        "name": "SLA分级响应规则集",
+        "status": "active",
+        "config": {
+          "critical": {
+            "response_time_minutes": 30,
+            "resolution_time_hours": 6,
+            "escalation_after_minutes": 15
+          },
+          "high": {
+            "response_time_minutes": 90,
+            "resolution_time_hours": 18,
+            "escalation_after_minutes": 45
+          },
+          "medium": {
+            "response_time_minutes": 240,
+            "resolution_time_hours": 30,
+            "escalation_after_minutes": 120
+          },
+          "low": {
+            "response_time_minutes": 720,
+            "resolution_time_hours": 72,
+            "escalation_after_minutes": 360
+          }
+        },
+        "service": "sla_policy",
+        "last_verified": "2026-05-01",
+        "monthly_calls": 0,
+        "error_rate": 0.0
+      },
+      {
+        "integration_id": "INT-B01",
+        "name": "短信网关通知",
+        "status": "error",
+        "config": {
+          "provider": "TwilioLike",
+          "region": "cn-north",
+          "gateway_route": "sms-prod-route-7"
+        },
+        "error_message": "短信网关不可达：connect timeout (3.5s)；已触发熔断",
+        "service": "sms_gateway",
+        "last_verified": "2026-05-18",
+        "monthly_calls": 0,
+        "error_rate": 0.37
+      },
+      {
+        "integration_id": "INT-C01",
+        "name": "即时消息备用通道",
+        "status": "active",
+        "config": {
+          "im_webhook_url": "https://im-ops.example.com/hooks/alert-night",
+          "channels": [
+            "#customer-ops-night",
+            "#customer-ops-core"
+          ]
+        },
+        "service": "webhook",
+        "last_verified": "2026-05-20",
+        "monthly_calls": 0,
+        "error_rate": 0.0
+      },
+      {
+        "integration_id": "INT-D01",
+        "name": "语音呼叫旁路集成",
+        "status": "disabled",
+        "config": {
+          "endpoint": "https://voice-bridge.example.com/api/v2/callouts"
+        },
+        "service": "api",
+        "last_verified": "2026-04-12",
+        "monthly_calls": 0,
+        "error_rate": 0.0
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-N041",
+        "title": "客服外呼：欠费提醒未触达",
+        "subject": "客服外呼：欠费提醒未触达",
+        "customer_id": "CUS-801",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-21T23:35:00",
+        "first_response_at": "2026-05-22T00:04:00",
+        "assigned_to": "客服-北区A",
+        "category": "客服外呼",
+        "description": "用户反馈夜间未收到外呼提醒；工单打标显示依赖晚间告警触达",
+        "tags": [
+          "awaiting_alert",
+          "night_depend_sms"
+        ],
+        "reporter": "客服-北区A",
+        "department": "运营"
+      },
+      {
+        "ticket_id": "TK-N042",
+        "title": "客服外呼：预约回访未按时开始",
+        "subject": "客服外呼：预约回访未按时开始",
+        "customer_id": "CUS-802",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-22T01:10:00",
+        "first_response_at": "2026-05-22T02:40:00",
+        "assigned_to": "客服-北区B",
+        "category": "客服外呼",
+        "description": "夜间排班回访触发延迟；外呼链路依赖告警通知",
+        "tags": [
+          "awaiting_alert",
+          "callout_escalation_trigger"
+        ],
+        "reporter": "客服-北区B",
+        "department": "运营"
+      },
+      {
+        "ticket_id": "TK-N043",
+        "title": "客服外呼：升级工单响应超时",
+        "subject": "客服外呼：升级工单响应超时",
+        "customer_id": "CUS-803",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-22T00:55:00",
+        "first_response_at": "2026-05-22T05:20:00",
+        "assigned_to": "客服-西区C",
+        "category": "客服外呼",
+        "description": "疑似夜间告警漏触达导致首次响应延后；系统提示依赖备用推送",
+        "tags": [
+          "night_missing_notice",
+          "fallback_needed_im"
+        ],
+        "reporter": "客服-西区C",
+        "department": "运营"
+      },
+      {
+        "ticket_id": "TK-N044",
+        "title": "客服外呼：权限校验失败疑点",
+        "subject": "客服外呼：权限校验失败疑点",
+        "customer_id": "CUS-804",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-21T21:20:00",
+        "first_response_at": "2026-05-21T23:05:00",
+        "assigned_to": "客服-南区D",
+        "category": "客服外呼",
+        "description": "非紧急咨询；夜间仅需被动跟进",
+        "tags": [
+          "info_only"
+        ],
+        "reporter": "客服-南区D",
+        "department": "运营"
+      },
+      {
+        "ticket_id": "TK-D061",
+        "title": "客服外呼：退款进度咨询",
+        "subject": "客服外呼：退款进度咨询",
+        "customer_id": "CUS-805",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-22T10:15:00",
+        "first_response_at": "2026-05-22T11:33:00",
+        "assigned_to": "客服-北区B",
+        "category": "客服外呼",
+        "description": "工作日正常外呼流程，首次响应在阈值内",
+        "tags": [
+          "customer_inquiry"
+        ],
+        "reporter": "客服-北区B",
+        "department": "运营"
+      },
+      {
+        "ticket_id": "TK-D062",
+        "title": "客服外呼：停机续费协助",
+        "subject": "客服外呼：停机续费协助",
+        "customer_id": "CUS-806",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-22T12:05:00",
+        "first_response_at": "2026-05-22T12:31:00",
+        "assigned_to": "客服-北区A",
+        "category": "客服外呼",
+        "description": "处理及时，临界表现：首次响应接近关键阈值",
+        "tags": [
+          "edge_of_sla"
+        ],
+        "reporter": "客服-北区A",
+        "department": "运营"
+      },
+      {
+        "ticket_id": "TK-N045",
+        "title": "客服外呼：工单未被标记提醒",
+        "subject": "客服外呼：工单未被标记提醒",
+        "customer_id": "CUS-807",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-22T23:10:00",
+        "first_response_at": null,
+        "assigned_to": "客服-西区C",
+        "category": "客服外呼",
+        "description": "未收到任何首次响应记录；描述中出现“疑似夜间告警链路未触达”提示",
+        "tags": [
+          "awaiting_alert",
+          "no_response_yet"
+        ],
+        "reporter": "客服-西区C",
+        "department": "运营"
+      },
+      {
+        "ticket_id": "TK-INT071",
+        "title": "内部客服工具：外呼队列测试",
+        "subject": "内部客服工具：外呼队列测试",
+        "customer_id": "internal",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-22T01:40:00",
+        "first_response_at": "2026-05-22T02:05:00",
+        "assigned_to": "内部-自动化",
+        "category": "内部",
+        "description": "内部测试用例，不要求满足外呼 SLA",
+        "internal": true,
+        "tags": [
+          "internal_test"
+        ],
+        "reporter": "内部-自动化",
+        "department": "研发"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将异常链路从“邮件OAuth过期”替换为“短信网关不可用导致夜间超时/提醒告警失败”，并要求结合夜间工单标签推断告警漏发影响与IM备用补救。",
+    "fixture_design_summary": [
+      "config/integrations.json 提供一组全新INT-A01/INT-B01/INT-C01规则与短信错误状态，短信error与IM active形成备用通道前提。",
+      "helpdesk/tickets.json 共8条open工单，全部为全新ticket_id；包含4条夜间(22:00-02:00附近)并以tags提示awaiting_alert/night_missing_notice等来支撑漏发影响分析。",
+      "tickets 覆盖达标、超标、临界(如critical 30分钟阈值附近)、以及至少1条first_response_at=null未响应风险；包含1条internal=true用于排除SLA计算。",
+      "scheduler/jobs.json 生成失败的“夜间超时告警/短信触达”任务（failure_count 2-6范围内、error_message指向短信网关连接失败），并保留success的对照任务用于排除分派链路问题。"
+    ]
+  }
+}

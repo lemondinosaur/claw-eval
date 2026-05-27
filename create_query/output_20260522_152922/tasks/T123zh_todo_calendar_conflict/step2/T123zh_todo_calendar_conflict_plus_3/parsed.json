@@ -1,0 +1,197 @@
+{
+  "task_id": "T123zh_todo_calendar_conflict_plus_3",
+  "task_name": "候选会议可替换冲突",
+  "prompt_text": "请判断我的待办事项和日历安排是否冲突，并区分“硬冲突/软冲突”，给出两套建议并输出最终推荐方案。\n\n要求：\n1) 先列出所有 pending 待办及其截止日期。\n2) 再查询日历覆盖 1/19-1/21 的事件，并获取事件描述。\n3) 若事件描述明确包含“不可改期”（例如：confirmed 且含‘不可改期/确认后不可随意调整’等），则判为硬冲突：相关 due_date 的高优先级待办需要必须重排（前置到更早可用时段），并给出必须重排方案。\n4) 若事件描述明确包含“可改期/可联系对方调整”（例如：可联系对方调整、可能申请改期等），则判为软冲突：对相关待办给出两套方案并标注前提：\n   - 方案A：不改期的重排（把待办拆到不可占用的上午/下午可用时段）\n   - 方案B：申请改期后的替代安排（给出更集中、更理想的完成时间）\n5) 若某个待办因 tags/描述表达“跟随型”，即使其与占用时间重叠，也不要把它作为硬冲突主线；只允许在最终推荐方案后给出次要插入/延后建议。\n6) 最终输出：对每个冲突待办写明冲突原因、冲突分类（硬/软/跟随型软处理）、并给出包含具体日期与上午/下午拆分的最终推荐方案（同时给出软冲突两套方案）。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_401",
+        "title": "全天合规访谈",
+        "start_time": "2026-01-19T09:00:00+08:00",
+        "end_time": "2026-01-19T18:00:00+08:00",
+        "location": "合规中心",
+        "organizer": "法务合规部",
+        "attendees": [
+          "我"
+        ],
+        "description": "confirmed 且标注为不可改期：必须准时参加，确认后不可随意调整。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_402",
+        "title": "需求澄清会",
+        "start_time": "2026-01-20T09:30:00+08:00",
+        "end_time": "2026-01-20T11:30:00+08:00",
+        "location": "线上会议室B",
+        "organizer": "产品负责人",
+        "attendees": [
+          "我",
+          "客户代表"
+        ],
+        "description": "可改期但仍占用：如有需要可联系对方调整会议时间，但当前仍已安排占用上午时段。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_403",
+        "title": "下午简短对齐会",
+        "start_time": "2026-01-20T14:30:00+08:00",
+        "end_time": "2026-01-20T15:30:00+08:00",
+        "location": "会议室C",
+        "organizer": "项目经理",
+        "attendees": [
+          "我"
+        ],
+        "description": "短会，预计 1 小时，用于阶段对齐。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_404",
+        "title": "系统上线演练（确认后不可调整）",
+        "start_time": "2026-01-21T13:00:00+08:00",
+        "end_time": "2026-01-21T16:00:00+08:00",
+        "location": "演练环境",
+        "organizer": "运维团队",
+        "attendees": [
+          "我",
+          "运维负责人"
+        ],
+        "description": "确认后不可改期：演练必须按计划执行，任何调整会影响放行窗口。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_405",
+        "title": "补充说明电话会（可灵活插入）",
+        "start_time": "2026-01-20T16:00:00+08:00",
+        "end_time": "2026-01-20T16:30:00+08:00",
+        "location": "电话会议",
+        "organizer": "合作方",
+        "attendees": [
+          "我"
+        ],
+        "description": "30 分钟电话会，可灵活插入或顺延，但仍算占用时段。",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-501",
+        "title": "回填审计证据",
+        "description": "收集并回填审计所需证据材料，确保可追溯性。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-01-19",
+        "assignee": "我",
+        "tags": [
+          "审计",
+          "证据"
+        ],
+        "estimated_hours": 6
+      },
+      {
+        "task_id": "TODO-502",
+        "title": "需求规格补齐",
+        "description": "完善需求规格中缺失的字段、接口约束与验收口径。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-01-20",
+        "assignee": "我",
+        "tags": [
+          "需求",
+          "规格"
+        ],
+        "estimated_hours": 3
+      },
+      {
+        "task_id": "TODO-503",
+        "title": "上线演练检查清单",
+        "description": "根据演练脚本完成检查清单逐项核对并记录问题。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-01-21",
+        "assignee": "我",
+        "tags": [
+          "上线",
+          "演练"
+        ],
+        "estimated_hours": 2
+      },
+      {
+        "task_id": "TODO-504",
+        "title": "整理会议纪要草稿",
+        "description": "把前一轮会议纪要整理成可直接发送的草稿版本。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-01-20",
+        "assignee": "我",
+        "tags": [
+          "纪要"
+        ],
+        "estimated_hours": 1
+      },
+      {
+        "task_id": "TODO-505",
+        "title": "跟随型：支持临时补充项",
+        "description": "跟随型任务：根据当天会议后补充的信息调整文档/材料，允许延后并不影响主计划。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-01-20",
+        "assignee": "我",
+        "tags": [
+          "跟随型",
+          "补充项"
+        ],
+        "estimated_hours": 5
+      },
+      {
+        "task_id": "TODO-506",
+        "title": "准备演练材料包",
+        "description": "整理演练所需材料包（脚本、记录表、排障要点）。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-01-19",
+        "assignee": "我",
+        "tags": [
+          "演练",
+          "材料"
+        ],
+        "estimated_hours": 2
+      },
+      {
+        "task_id": "TODO-507",
+        "title": "完成需求接口自检",
+        "description": "核对需求规格中的接口契约与边界条件，输出自检结果。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-01-20",
+        "assignee": "我",
+        "tags": [
+          "接口",
+          "自检"
+        ],
+        "estimated_hours": 2
+      },
+      {
+        "task_id": "TODO-508",
+        "title": "演练前风险回顾",
+        "description": "对上线演练相关风险点做简短回顾并确认责任人。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-01-21",
+        "assignee": "我",
+        "tags": [
+          "风险",
+          "回顾"
+        ],
+        "estimated_hours": 1
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原有“待办与日历冲突检测”基础上加入硬冲突/软冲突分类：对“不可改期”做必须重排，对“可改期”给出不改期重排与申请改期替代两套方案，并通过“跟随型”任务标签模拟软干扰。",
+    "fixture_design_summary": [
+      "calendar/events.json：覆盖 1/19 全天“不可改期”、1/20 上午“可改期但仍占用”、1/20 下午短会、1/21 下午“确认后不可调整”的关键事件。",
+      "todo/tasks.json：设置 1/19 高优先级 6 小时任务需因全天硬占用前置；1/20 包含 medium 3 小时与 low 1 小时任务，以及一条估时较长但带“跟随型”标签的软干扰任务（不作为硬冲突主线）。",
+      "任务 due_date 在 1/19/1/20/1/21 三天分布，并通过 estimated_hours 设计可拆分到上午/下午以支撑双路径建议。"
+    ]
+  }
+}

@@ -1,0 +1,332 @@
+{
+  "task_id": "T135zh_weekly_meeting_tracking_plus_4",
+  "task_name": "跨标签过滤与资源干扰",
+  "prompt_text": "请为我生成“目标主题周会”的行动项跟踪报告：\n\n1）在本周日历范围内找到所有会议事件；\n2）从事件中挑出主题为“治理与合规”的会议；\n3）对这些会议：只加载与事件关联的纪要（notes中可能存在同主题但不属于该会议的干扰纪要，必须排除）；\n4）抽取纪要里的行动项，并与待办匹配输出状态；\n5）识别纪要中有但待办缺失的行动项（遗漏）；\n6）报告按“治理与合规会议标题”分组，并给出每组完成率与遗漏清单。\n\n要求：如果同一会议存在多个同标签纪要候选，要用事件关联信息排除不相关的纪要。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_611",
+        "title": "治理与合规周会：审计准备",
+        "start_time": "2026-06-15T10:00:00+08:00",
+        "end_time": "2026-06-15T11:00:00+08:00",
+        "location": "A座会议室1",
+        "organizer": "陈岚",
+        "attendees": [
+          "陈岚",
+          "周远",
+          "刘敏"
+        ],
+        "description": "本周治理与合规重点：审计准备与整改路线图。关联纪要: NOTE-GA",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_612",
+        "title": "治理与合规周会：隐私与数据治理",
+        "start_time": "2026-06-16T15:00:00+08:00",
+        "end_time": "2026-06-16T16:00:00+08:00",
+        "location": "A座会议室2",
+        "organizer": "周远",
+        "attendees": [
+          "周远",
+          "韩雪",
+          "刘敏"
+        ],
+        "description": "聚焦隐私合规、数据分类分级与最小化原则。关联纪要: NOTE-GB",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_613",
+        "title": "治理与合规周会：反欺诈与风控复盘",
+        "start_time": "2026-06-18T09:30:00+08:00",
+        "end_time": "2026-06-18T10:30:00+08:00",
+        "location": "B座会议室1",
+        "organizer": "韩雪",
+        "attendees": [
+          "韩雪",
+          "王涛",
+          "刘敏"
+        ],
+        "description": "围绕反欺诈策略更新、风控指标复盘与合规口径。关联纪要: NOTE-GC",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_614",
+        "title": "供应链对齐会",
+        "start_time": "2026-06-15T14:00:00+08:00",
+        "end_time": "2026-06-15T14:45:00+08:00",
+        "location": "线上会议",
+        "organizer": "王涛",
+        "attendees": [
+          "王涛",
+          "李娜"
+        ],
+        "description": "供应链排产与交付对齐。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_615",
+        "title": "产品需求对齐：版本规划",
+        "start_time": "2026-06-17T11:00:00+08:00",
+        "end_time": "2026-06-17T12:00:00+08:00",
+        "location": "A座会议室3",
+        "organizer": "李娜",
+        "attendees": [
+          "李娜",
+          "赵磊"
+        ],
+        "description": "版本规划讨论。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_616",
+        "title": "运维例会：故障复盘",
+        "start_time": "2026-06-17T16:00:00+08:00",
+        "end_time": "2026-06-17T17:00:00+08:00",
+        "location": "B座会议室2",
+        "organizer": "张宇",
+        "attendees": [
+          "张宇",
+          "周远"
+        ],
+        "description": "故障复盘与改进措施。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_617",
+        "title": "市场活动筹备会",
+        "start_time": "2026-06-18T14:00:00+08:00",
+        "end_time": "2026-06-18T15:00:00+08:00",
+        "location": "线上会议",
+        "organizer": "刘敏",
+        "attendees": [
+          "刘敏",
+          "赵磊"
+        ],
+        "description": "市场活动内容与资源协调。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_618",
+        "title": "周会回顾：跨部门协同",
+        "start_time": "2026-06-19T10:30:00+08:00",
+        "end_time": "2026-06-19T11:15:00+08:00",
+        "location": "C座会议室1",
+        "organizer": "陈岚",
+        "attendees": [
+          "陈岚",
+          "韩雪"
+        ],
+        "description": "跨部门协同问题回顾。",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "NOTE-GA",
+        "title": "治理与合规纪要：审计准备（6/15）",
+        "content": "## 治理与合规：审计准备\n\n### 行动项\n1. 【陈岚】整理审计证据清单并完成自查，截止6/20\n2. 【周远】更新整改计划甘特图并同步负责人，截止6/22\n3. 【刘敏】完成数据访问权限抽样核验报告，截止6/24",
+        "participants": [
+          "陈岚",
+          "周远",
+          "刘敏"
+        ],
+        "tags": [
+          "治理与合规",
+          "审计"
+        ],
+        "created_at": "2026-06-15T02:00:00Z",
+        "duration_minutes": 60
+      },
+      {
+        "note_id": "NOTE-GB",
+        "title": "治理与合规纪要：隐私与数据治理（6/16）",
+        "content": "## 隐私与数据治理\n\n### 行动项\n1. 【韩雪】完成数据分类分级策略说明书，截止6/21\n2. 【刘敏】梳理新业务处理记录（ROPA）差距并给出修订建议，截止6/23",
+        "participants": [
+          "韩雪",
+          "刘敏"
+        ],
+        "tags": [
+          "治理与合规",
+          "隐私"
+        ],
+        "created_at": "2026-06-16T07:00:00Z",
+        "duration_minutes": 60
+      },
+      {
+        "note_id": "NOTE-GC",
+        "title": "治理与合规纪要：反欺诈与风控复盘（6/18）",
+        "content": "## 反欺诈与风控复盘\n\n### 行动项\n1. 【王涛】输出反欺诈策略变更影响评估表，截止6/22\n2. 【韩雪】复盘近30天误报率与处置闭环，截止6/24\n3. 【刘敏】更新合规口径文档并发布到知识库，截止6/25\n4. 【周远】对重点渠道进行风控阈值校验，截止6/26",
+        "participants": [
+          "王涛",
+          "韩雪",
+          "刘敏",
+          "周远"
+        ],
+        "tags": [
+          "治理与合规",
+          "风控"
+        ],
+        "created_at": "2026-06-18T01:00:00Z",
+        "duration_minutes": 60
+      },
+      {
+        "note_id": "NOTE-D1",
+        "title": "治理与合规干扰纪要：供应商合规抽查（非关联）",
+        "content": "## 供应商合规抽查（干扰）\n\n### 行动项\n1. 【李娜】完成供应商合规问卷收集与归档，截止6/21\n2. 【周远】准备第三方审计陪同排期表，截止6/23",
+        "participants": [
+          "李娜",
+          "周远"
+        ],
+        "tags": [
+          "治理与合规",
+          "供应商"
+        ],
+        "created_at": "2026-06-16T12:00:00Z",
+        "duration_minutes": 45
+      },
+      {
+        "note_id": "NOTE-D2",
+        "title": "治理与合规干扰纪要：合同合规要点（非关联）",
+        "content": "## 合同合规要点（干扰）\n\n### 行动项\n1. 【赵磊】审核模板条款并输出风险提示清单，截止6/20\n2. 【陈岚】梳理合同签署流程并补充审批节点，截止6/22\n3. 【刘敏】整理合规培训材料并安排宣讲，截止6/24",
+        "participants": [
+          "赵磊",
+          "陈岚",
+          "刘敏"
+        ],
+        "tags": [
+          "治理与合规",
+          "合同"
+        ],
+        "created_at": "2026-06-17T03:30:00Z",
+        "duration_minutes": 50
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-611",
+        "title": "审计证据清单整理与自查",
+        "description": "整理审计证据清单并完成自查，输出整改差距摘要",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-06-20",
+        "assignee": "陈岚",
+        "tags": [
+          "治理与合规",
+          "审计"
+        ]
+      },
+      {
+        "task_id": "TODO-612",
+        "title": "整改计划甘特图同步",
+        "description": "更新整改计划甘特图并同步负责人，确保里程碑可追踪",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-06-22",
+        "assignee": "周远",
+        "tags": [
+          "治理与合规",
+          "审计"
+        ]
+      },
+      {
+        "task_id": "TODO-613",
+        "title": "数据访问权限抽样核验报告",
+        "description": "完成数据访问权限抽样核验报告并形成证据包",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-06-24",
+        "assignee": "刘敏",
+        "tags": [
+          "治理与合规",
+          "数据治理"
+        ]
+      },
+      {
+        "task_id": "TODO-614",
+        "title": "数据分类分级策略说明书",
+        "description": "完成数据分类分级策略说明书并提交评审",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-06-21",
+        "assignee": "韩雪",
+        "tags": [
+          "治理与合规",
+          "隐私"
+        ]
+      },
+      {
+        "task_id": "TODO-615",
+        "title": "ROPA差距梳理与修订建议",
+        "description": "梳理新业务处理记录差距并给出修订建议，形成修订要点",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-06-23",
+        "assignee": "刘敏",
+        "tags": [
+          "治理与合规",
+          "隐私"
+        ]
+      },
+      {
+        "task_id": "TODO-616",
+        "title": "反欺诈策略变更影响评估表",
+        "description": "输出反欺诈策略变更影响评估表并附合规口径说明",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-06-22",
+        "assignee": "王涛",
+        "tags": [
+          "治理与合规",
+          "风控"
+        ]
+      },
+      {
+        "task_id": "TODO-617",
+        "title": "反欺诈误报率复盘与处置闭环",
+        "description": "复盘近30天误报率与处置闭环，输出改进建议",
+        "status": "completed",
+        "priority": "medium",
+        "due_date": "2026-06-24",
+        "assignee": "韩雪",
+        "tags": [
+          "治理与合规",
+          "风控"
+        ]
+      },
+      {
+        "task_id": "TODO-618",
+        "title": "合规口径文档更新与发布",
+        "description": "更新合规口径文档并发布到知识库，包含变更记录",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-06-25",
+        "assignee": "刘敏",
+        "tags": [
+          "治理与合规",
+          "合规"
+        ]
+      },
+      {
+        "task_id": "TODO-619",
+        "title": "重点渠道风控阈值校验",
+        "description": "对重点渠道进行风控阈值校验，形成校验结果表",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-06-26",
+        "assignee": "周远",
+        "tags": [
+          "治理与合规",
+          "风控"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在“治理与合规”会议的纪要选择上增加了基于事件关联线索的精确过滤，防止同主题干扰纪要被误纳入。",
+    "fixture_design_summary": [
+      "calendar 里共8个事件，3个标题/描述含“治理与合规”并分别关联 NOTE-GA/GB/GC，其余5个为无关会议。",
+      "notes/meetings.json 提供5份纪要：3份与目标会议关联（NOTE-GA/GB/GC）+2份同标签干扰（NOTE-D1/D2），且干扰 note_id 不出现在任何事件关联线索中。",
+      "todo/tasks.json 共9条待办：覆盖目标纪要的大部分行动项，并刻意缺失部分行动项以产生“遗漏”，同时包含由干扰纪要独有的行动项不应出现在统计中的情况（因报告只统计与目标事件关联的纪要行动项）。"
+    ]
+  }
+}

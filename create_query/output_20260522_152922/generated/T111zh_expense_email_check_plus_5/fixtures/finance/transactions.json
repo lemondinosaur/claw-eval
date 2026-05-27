@@ -1,0 +1,68 @@
+[
+  {
+    "transaction_id": "TXE-501",
+    "date": "2026-03-26",
+    "amount": 2380.0,
+    "currency": "CNY",
+    "type": "出差住宿报销",
+    "category": "费用报销",
+    "description": "住宿报销，发票号INV-E901",
+    "status": "completed",
+    "approved_by": "财务王主管"
+  },
+  {
+    "transaction_id": "TXE-502",
+    "date": "2026-03-26",
+    "amount": 1560.0,
+    "currency": "CNY",
+    "type": "差旅交通报销",
+    "category": "费用报销",
+    "description": "交通报销，发票号INV-E902",
+    "status": "completed",
+    "approved_by": "财务王主管"
+  },
+  {
+    "transaction_id": "TXE-503",
+    "date": "2026-03-26",
+    "amount": 7800.0,
+    "currency": "CNY",
+    "type": "项目外包协作报销",
+    "category": "费用报销",
+    "description": "外包协作费，发票号INV-E903",
+    "status": "completed",
+    "approved_by": "财务王主管"
+  },
+  {
+    "transaction_id": "TXE-504",
+    "date": "2026-03-26",
+    "amount": 1299.0,
+    "currency": "CNY",
+    "type": "客户招待报销",
+    "category": "费用报销",
+    "description": "招待餐费，发票号INV-E904",
+    "status": "pending",
+    "approved_by": "财务王主管"
+  },
+  {
+    "transaction_id": "TXE-505",
+    "date": "2026-03-25",
+    "amount": 499.0,
+    "currency": "CNY",
+    "type": "杂项报销",
+    "category": "费用报销",
+    "description": "杂项报销，发票号INV-X501",
+    "status": "completed",
+    "approved_by": "行政李经理"
+  },
+  {
+    "transaction_id": "TXE-506",
+    "date": "2026-03-24",
+    "amount": 2600.0,
+    "currency": "CNY",
+    "type": "办公设备维护",
+    "category": "费用报销",
+    "description": "设备维护，发票号INV-X502",
+    "status": "completed",
+    "approved_by": "行政李经理"
+  }
+]

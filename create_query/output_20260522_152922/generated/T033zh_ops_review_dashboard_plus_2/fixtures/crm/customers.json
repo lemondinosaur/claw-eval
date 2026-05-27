@@ -1,0 +1,62 @@
+[
+  {
+    "customer_id": "CUS-401",
+    "name": "星澜云采",
+    "tier": "vip",
+    "status": "active",
+    "annual_revenue": 16800000,
+    "contact_person": "周总",
+    "contact_email": "zhou.zlcloud@example.com",
+    "contact_phone": "186-0001-4401",
+    "industry": "内容分发与SaaS",
+    "contract_end_date": "2027-02-28",
+    "recent_interactions": [
+      {
+        "date": "2026-05-16",
+        "type": "complaint",
+        "channel": "工单",
+        "notes": "合作内容在站内搜索中长时间无法被检索到；对方认为是“索引回填触发”延迟。非库存问题，内容本身可正常访问但检索入口缺失。"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-402",
+    "name": "北桥零售联盟",
+    "tier": "standard",
+    "status": "active",
+    "annual_revenue": 5400000,
+    "contact_person": "沈经理",
+    "contact_email": "shen@qiaoretail.example.com",
+    "contact_phone": "186-0001-4402",
+    "industry": "零售渠道",
+    "contract_end_date": "2026-11-30",
+    "recent_interactions": [
+      {
+        "date": "2026-05-10",
+        "type": "inquiry",
+        "channel": "邮件",
+        "notes": "询问某类目商品是否支持“增量同步后立即可搜”。本周无明显下单异常。"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-403",
+    "name": "金鼎数码贸易",
+    "tier": "standard",
+    "status": "active",
+    "annual_revenue": 7200000,
+    "contact_person": "顾工",
+    "contact_email": "gu@gindigital.example.com",
+    "contact_phone": "186-0001-4403",
+    "industry": "电子产品贸易",
+    "contract_end_date": "2026-08-15",
+    "recent_interactions": [
+      {
+        "date": "2026-05-17",
+        "type": "meeting",
+        "channel": "视频会议",
+        "notes": "对比发现在相同关键词下排序回退到旧内容；怀疑索引版本未刷新。"
+      }
+    ]
+  }
+]

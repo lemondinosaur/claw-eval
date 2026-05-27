@@ -1,0 +1,90 @@
+[
+  {
+    "ticket_id": "TK-2301",
+    "title": "callback timeout spike：回调超时触发重试风暴，资金状态不一致风险扩散",
+    "description": "星澜商户集团（CUS-2301）报告：支付回调接口在特定交易批次出现超时，随后触发重试风暴，导致对账差异扩大与资金状态不一致风险。工单数据：持续约35分钟，已影响多个下游商户连锁对账。\n\n现象要点：\n- 回调请求延迟显著升高\n- 重试次数异常增长\n- 对账差异在扩大\n\n客户要求：按VIP SLA 1小时内给出止损方案与预计恢复窗口。",
+    "customer_id": "CUS-2301",
+    "reporter": "林总（运营负责人）",
+    "department": "商户支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-13T08:30:00Z",
+    "tags": [
+      "支付回调",
+      "callback timeout",
+      "重试风暴",
+      "资金一致性",
+      "VIP",
+      "止损"
+    ],
+    "category": "支付链路故障"
+  },
+  {
+    "ticket_id": "TK-2302",
+    "title": "数据库慢查询导致部分商户响应抖动",
+    "description": "北极星零售（CUS-2302）反馈：高峰期接口偶发慢查询，导致响应抖动但未出现重试风暴。现象持续约15分钟，影响单一商户链路。",
+    "customer_id": "CUS-2302",
+    "reporter": "周经理",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-13T09:10:00Z",
+    "tags": [
+      "数据库",
+      "慢查询",
+      "性能"
+    ],
+    "category": "性能问题"
+  },
+  {
+    "ticket_id": "TK-2303",
+    "title": "API网关偶发超时（非关键批次）",
+    "description": "珊瑚云服务（CUS-2303）反馈：订单查询API在非关键批次上偶发超时，重试次数正常范围内，影响较小。",
+    "customer_id": "CUS-2303",
+    "reporter": "贾主管",
+    "department": "技术支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-13T08:05:00Z",
+    "tags": [
+      "API",
+      "超时",
+      "偶发"
+    ],
+    "category": "性能问题"
+  },
+  {
+    "ticket_id": "TK-2304",
+    "title": "支付回调幂等校验失败（单商户）",
+    "description": "皓月出行（CUS-2304）反馈：仅单商户出现幂等校验失败，未触发重试风暴，但对账有延迟。",
+    "customer_id": "CUS-2304",
+    "reporter": "刘总监",
+    "department": "支付支持",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-13T07:55:00Z",
+    "tags": [
+      "幂等",
+      "回调",
+      "对账延迟"
+    ],
+    "category": "支付链路问题"
+  },
+  {
+    "ticket_id": "TK-2305",
+    "title": "下游渠道回传数据格式不一致导致解析失败",
+    "description": "天桥物流（CUS-2305）反馈：部分渠道回传字段格式变更，导致解析失败，需要调整映射规则。",
+    "customer_id": "CUS-2305",
+    "reporter": "蒋经理",
+    "department": "集成支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-13T06:50:00Z",
+    "tags": [
+      "数据格式",
+      "解析失败",
+      "集成"
+    ],
+    "category": "接口对接"
+  }
+]

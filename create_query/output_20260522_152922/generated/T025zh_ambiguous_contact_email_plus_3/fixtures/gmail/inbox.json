@@ -1,0 +1,38 @@
+[
+  {
+    "message_id": "msg_301",
+    "from": "finance-shared@company.com",
+    "to": "me@company.com",
+    "subject": "本月供应商对账确认-请回执",
+    "date": "2026-05-22T16:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好：\n\n本月供应商对账已汇总，请你协助通知“陈会计”在24小时内回执对账结果（已完成/差异需核对/无需处理均需回执）。\n\n附件包含供应商对账明细，但本邮件未附带具体收件邮箱信息。\n\n麻烦尽快处理，谢谢。\n\n财务共享服务"
+  },
+  {
+    "message_id": "msg_302",
+    "from": "procurement@company.com",
+    "to": "me@company.com",
+    "subject": "采购部对账回执提醒",
+    "date": "2026-05-22T15:00:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "采购部对账回执已开放，请采购主管/采购经理在今日下班前完成回执。\n\n谢谢！\n采购管理"
+  },
+  {
+    "message_id": "msg_303",
+    "from": "hr-notice@company.com",
+    "to": "me@company.com",
+    "subject": "员工关怀活动通知",
+    "date": "2026-05-21T11:20:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位同事好：\n\n本周末有员工关怀活动，具体安排请查看内部公告。\n\n感谢关注！\n人事团队"
+  }
+]

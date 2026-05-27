@@ -1,0 +1,80 @@
+[
+  {
+    "contact_id": "CT-2101",
+    "name": "王琦",
+    "department": "运维部",
+    "title": "网络可靠性工程师",
+    "email": "wangqi.network@company.com",
+    "phone": "13901002101",
+    "location": "上海总部",
+    "skills": [
+      "网络故障定位",
+      "BGP/路由诊断",
+      "跨境专线排障",
+      "链路切换回滚"
+    ],
+    "notes": "擅长BGP/路由定位与抓包分析。今天13:00-18:00有长会议且通勤受限，预计从上海出发到青岛需要约2.5小时；18:00后到达风险较高。对安全加固经验偏弱。"
+  },
+  {
+    "contact_id": "CT-2102",
+    "name": "周澄",
+    "department": "运维部",
+    "title": "专线与网络工程师",
+    "email": "zhouqing.line@company.com",
+    "phone": "13901002102",
+    "location": "上海总部",
+    "skills": [
+      "专线切换",
+      "策略路由验证",
+      "BGP会话检查",
+      "故障联动脚本"
+    ],
+    "notes": "全天日程可出勤。缺少系统化安全加固经验（例如ACL/策略下发与加固验证流程需补位支持）。更适合在现场先做链路与路由恢复的初始处置。"
+  },
+  {
+    "contact_id": "CT-2103",
+    "name": "陈昊",
+    "department": "安全部",
+    "title": "安全加固专家",
+    "email": "chenhao.sec@company.com",
+    "phone": "13901002103",
+    "location": "上海总部",
+    "skills": [
+      "安全加固排障",
+      "访问控制策略验证",
+      "风控网段隔离与恢复",
+      "专线安全联动检查"
+    ],
+    "notes": "安全加固强项，能快速验证风控网段不可用的安全策略影响并给出加固方案。今天16:15后有培训，无法确保在培训结束前完成初始排障；对纯BGP路由定位需要配合网络工程师。"
+  },
+  {
+    "contact_id": "CT-2104",
+    "name": "吴晓岚",
+    "department": "客户成功部",
+    "title": "客户经理",
+    "email": "wuxiaolan.csm@company.com",
+    "phone": "13901002104",
+    "location": "上海总部",
+    "skills": [
+      "SLA管理",
+      "客户沟通",
+      "现场协调"
+    ],
+    "notes": "对“北辰金融”VIP现场SLA沟通负责。需要在邮件中同步换算后的截止口径与派遣风险点。"
+  },
+  {
+    "contact_id": "CT-2105",
+    "name": "蒋承志",
+    "department": "技术部",
+    "title": "技术总监",
+    "email": "jiangchengzhi.tec@company.com",
+    "phone": "13901002105",
+    "location": "上海总部",
+    "skills": [
+      "技术管理",
+      "升级评审",
+      "VIP工单应急响应"
+    ],
+    "notes": "作为升级通知抄送联系人。收到派遣与风险要点后进行技术决策把关。"
+  }
+]

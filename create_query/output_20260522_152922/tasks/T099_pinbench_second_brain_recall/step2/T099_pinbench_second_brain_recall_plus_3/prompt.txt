@@ -1,0 +1,169 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T099_pinbench_second_brain_recall_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/notes/memory.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T099_pinbench_second_brain_recall_plus_3",
+  "new_task_name": "Second Brain: Startup Launch Capsule",
+  "task_goal": "从 notes 中找出“启动复盘”记忆笔记并回忆 5 条事实：产品类型、首次发布时段（具体到季度或月份）、负责人姓名与公司、产品项目名称与功能描述、以及发布团队的私钥短语。",
+  "user_request": "Use the notes service as my persisted second brain. Locate the stored launch recap note and answer: 1) What product type am I working on? 2) When was the first release (use the exact time window I wrote)? 3) Who is the owner and what company are they from? 4) What is the product project called and what does it do? 5) What is the release team’s private key phrase?",
+  "scenario": "notes 内有多条“产品草案”但只有一条是“launch recap capsule”，其中写明首次发布时段以“YYYY-MM”或“Qx YYYY”形式出现，且私钥短语以多词短语保存。干扰笔记同样写了 owner 或 company，但与目标不一致；另有一条笔记包含与私钥相似但少一个词的短语，测试精确匹配。",
+  "difference_from_source": "原题考编程语言学习与团队秘密短语。本新题改为产品类型、首次发布时段（时间粒度改变）、负责人与公司、项目功能描述、私钥短语；并通过“相似短语缺词”的干扰提高区分度。",
+  "service_and_tool_plan": "notes_list 获取候选，notes_get 读取内容并查找同时包含 product type / first release time window / owner+company / project name+what it does / private key phrase 的笔记。",
+  "fixture_generation_plan": "生成 fixtures 共 5 条或 6 条。目标笔记 1 条，content 包含五行字段（必须可映射到 1~5 问题）。其余笔记包含：a) 仅有产品与时间但无私钥；b) 仅有 owner+company；c) 项目名但功能描述缺失；d) 私钥短语相似但不完全相同。note_id 与 title 不复用原题实体/短语/数值；created_at 在同一天内也要有不同时间以增加干扰。participants 固定为 ['user']。",
+  "expected_behavior": "Agent 必须严格选择目标笔记，并输出精确匹配：首次发布时段的原始格式/私钥短语的每个词都要一致。输出按 1~5 编号。",
+  "grading_plan": "grader 检查 5 个答案的逐字一致性（尤其是 time window 与 private key phrase）；确认它们对应同一 note_id。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T099_pinbench_second_brain_recall",
+  "task_name": "Pinbench Second Brain Recall",
+  "task_type": "memory",
+  "category": "memory",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "en",
+  "services": [
+    "notes"
+  ],
+  "tools": [
+    "notes_list",
+    "notes_get"
+  ],
+  "fixture_paths": [
+    "fixtures/notes/memory.json"
+  ],
+  "sandbox_files": [
+    "fixtures/notes/memory.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "memory"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T099_pinbench_second_brain_recall
+task_name: Pinbench Second Brain Recall
+version: '1.0'
+category: memory
+difficulty: easy
+tags:
+- general
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: tasks/T099_pinbench_second_brain_recall/fixtures/notes/memory.json
+prompt:
+  text: 'Treat the notes service as a persisted second brain. Find the stored memory
+    note
+
+    and answer these questions:
+
+    1. What is my favorite programming language?
+
+    2. When did I start learning it?
+
+    3. What is my mentor''s name and affiliation?
+
+    4. What is my project called and what does it do?
+
+    5. What is my team''s secret code phrase?
+
+    '
+  language: en
+tools:
+- name: notes_list
+  description: List notes
+  input_schema:
+    type: object
+    properties:
+      max_results:
+        type: integer
+        default: 10
+    required: []
+- name: notes_get
+  description: Get one note
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+    required:
+    - note_id
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+sandbox_files:
+- fixtures/notes/memory.json
+environment:
+  timeout_seconds: 180
+  max_turns: 8
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/notes/memory.json ---
+[
+  {
+    "note_id": "mem_001",
+    "title": "Stored personal memory",
+    "content": "Favorite programming language: Rust\nStarted learning: January 15, 2024\nMentor: Dr. Elena Vasquez from Stanford\nProject: NeonDB, a distributed key-value store\nSecret phrase: purple elephant sunrise",
+    "created_at": "2026-02-10T09:00:00Z",
+    "participants": ["user"],
+    "duration_minutes": 5
+  }
+]
+
+--- END FILE: fixtures/notes/memory.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

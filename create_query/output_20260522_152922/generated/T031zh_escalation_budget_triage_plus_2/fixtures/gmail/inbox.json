@@ -1,0 +1,85 @@
+[
+  {
+    "message_id": "gmsg_3011",
+    "from": "disputes@vendor-claims.com",
+    "to": "me@company.com",
+    "subject": "多供应商争议退款升级【PRJ-77A】——是否包含合同内请立即确认",
+    "date": "2026-03-04T09:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "refund-dispute"
+    ],
+    "body": "您好，\n\n我们就项目 PRJ-77A 发起争议退款升级。相关客户要求书面说明“该赔付是否包含在合同内”。\n\n客户编号：CUST-201\n争议赔付金额：260,000\n争议发生方：供应商A\n\n客户诉求：\n- 认为部分费用不应由合同覆盖，要求贵司进行退款/赔付升级处理。\n- 请不要拖延响应。\n\n（注：未要求外部法务接管，但明确要求退款/赔付口径一致。）\n\n供应商A对接人"
+  },
+  {
+    "message_id": "gmsg_3012",
+    "from": "accounts@partner-claims.net",
+    "to": "me@company.com",
+    "subject": "退款升级【PRJ-88B】外部法务接管通知（含供应商B争议）",
+    "date": "2026-03-04T10:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "legal-hold"
+    ],
+    "body": "您好，\n\n针对项目 PRJ-88B 提交退款升级，并声明：外部法务接管（External Legal Takeover）。\n\n客户编号：CUST-202\n争议赔付金额：410,000\n争议发生方：供应商B\n\n邮件要点：\n1) 请贵司停止对客户做任何“已批准退款/赔付”的承诺性答复。\n2) 争议金额与合同覆盖边界仍在法务阶段确认。\n\n我们要求同步告知贵司法务。\n\n供应商B法务协作"
+  },
+  {
+    "message_id": "gmsg_3013",
+    "from": "support@internal-ops.com",
+    "to": "me@company.com",
+    "subject": "多供应商争议退款升级【PRJ-91C】——预算外需上级",
+    "date": "2026-03-04T11:35:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation"
+    ],
+    "body": "你好，\n\n关于项目 PRJ-91C 的争议退款升级，具体如下：\n\n客户编号：CUST-204\n争议赔付金额：420,000\n争议发生方：我方\n\n客户在邮件中提到：若不在约定周期内处理，将升级至管理层审批。\n\n同时请确认“赔付是否包含在合同内”的解释口径。\n\n内部运营"
+  },
+  {
+    "message_id": "gmsg_3014",
+    "from": "claims@vendor-portal.org",
+    "to": "me@company.com",
+    "subject": "退款升级【PRJ-77A】金额=0但要求升级处理",
+    "date": "2026-03-04T12:50:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "noise"
+    ],
+    "body": "您好，\n\n关于项目 PRJ-77A 我们要求“退款升级”，但系统显示争议赔付金额为0。\n\n客户编号：CUST-203\n争议赔付金额：0\n争议发生方：供应商A\n\n尽管金额为0，客户仍要求贵司走升级流程并出具书面说明。\n\n供应商A代表"
+  },
+  {
+    "message_id": "gmsg_3015",
+    "from": "customer-replies@client-mail.com",
+    "to": "me@company.com",
+    "subject": "争议退款升级【PRJ-99D】仅提供项目代码（无客户编号）",
+    "date": "2026-03-04T14:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "missing-fields"
+    ],
+    "body": "你好，\n\n我们对项目 PRJ-99D 提交争议退款升级。\n\n（问题）：邮件中不便提供客户编号。\n争议赔付金额：55,000\n争议发生方：供应商B\n\n请根据项目代码尽快处理。\n\n匿名来信"
+  },
+  {
+    "message_id": "gmsg_3016",
+    "from": "legal-notice@outside-counsel.biz",
+    "to": "me@company.com",
+    "subject": "多供应商争议退款升级【PRJ-88B】——churned客户，外部法务接管字样",
+    "date": "2026-03-04T15:25:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "legal"
+    ],
+    "body": "您好，\n\n这是针对项目 PRJ-88B 的争议退款升级通知。\n\n客户编号：CUST-206\n争议赔付金额：30,000\n争议发生方：供应商B\n\n声明：外部法务接管（外部法务接管）。\n同时该客户已流失（churned），请在法务流程中处理。\n\n外部法务代表"
+  }
+]

@@ -1,0 +1,41 @@
+[
+  {
+    "customer_id": "CUS-701",
+    "name": "海辰智能",
+    "contact_person": "许菲",
+    "email": "fei.xu@hechen-xx.com",
+    "phone": "13900651001",
+    "industry": "硬件与制造",
+    "tier": "vip",
+    "annual_revenue": 980000,
+    "last_contact_date": "2026-03-22",
+    "status": "active",
+    "notes": "合同类型：里程碑付款（40%/30%/30%）。里程碑1完成后：收款completed且系统收到交付确认后，通常T+3工作日触发开票；发票pending超过7天需人工复核。"
+  },
+  {
+    "customer_id": "CUS-702",
+    "name": "北陆云联",
+    "contact_person": "姜哲",
+    "email": "zhe.jiang@beilu-xx.com",
+    "phone": "13900651002",
+    "industry": "软件服务",
+    "tier": "standard",
+    "annual_revenue": 320000,
+    "last_contact_date": "2026-03-18",
+    "status": "active",
+    "notes": "合同类型：年度订阅。发票按年度开具；若发生更正/冲账，需以财务更正交易为准并在T+5工作日补开发票。"
+  },
+  {
+    "customer_id": "CUS-703",
+    "name": "星岚资本",
+    "contact_person": "陈洛",
+    "email": "luo.chen@xinglan-xx.com",
+    "phone": "13900651003",
+    "industry": "金融",
+    "tier": "standard",
+    "annual_revenue": 210000,
+    "last_contact_date": "2026-01-15",
+    "status": "inactive",
+    "notes": "疑似重复线索/旧合同终止：2026-01-10后不再触发新账单。若邮件声称付款，请先核实客户状态与合同编号。"
+  }
+]

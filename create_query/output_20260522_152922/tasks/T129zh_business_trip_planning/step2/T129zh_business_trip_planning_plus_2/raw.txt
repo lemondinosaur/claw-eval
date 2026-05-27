@@ -1,0 +1,254 @@
+{
+  "task_id": "T129zh_business_trip_planning_plus_2",
+  "task_name": "跨区售后巡检",
+  "prompt_text": "我需要规划一次跨区售后巡检。请基于收件箱中的“现场巡检/故障回访/到访”邮件，结合日历现有安排判断是否需要调整行程，并为多个区域找到对接联系人。要求：\n1）从收件箱筛出所有需要我去现场的“到访邀请”（排除/不执行线上会议；对缺信息的变更邮件仅视为干扰或提醒，不当作可执行邀请）；\n2）对每个到访邀请对应日期，在日历里核对是否存在冲突；若事件跨天也要正确纳入冲突判断；\n3）重点处理“最迟在某日中午前到达”的边界条件：若日历在该日中午前被硬占用，则必须调整到空闲时段或调整先后顺序；\n4）为每个涉及的区域在通讯录中检索当地对接联系人（联系人需归属正确）；\n5）最终输出：建议的巡检路线（按顺序：去哪些区域、对应日期、到达/离开时段建议）、需要改期/调整的原因，以及每个区域的联系人清单（每区不少于2人）。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_901",
+        "title": "北区-故障复盘会",
+        "start_time": "2026-03-31T09:15:00+08:00",
+        "end_time": "2026-03-31T11:45:00+08:00",
+        "location": "北区-会议室1",
+        "organizer": "技术支持组",
+        "attendees": [
+          "我",
+          "support_owner"
+        ],
+        "description": "内部故障复盘（上午占用到中午前，影响到达边界）",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_902",
+        "title": "北区-供应商评审",
+        "start_time": "2026-03-31T14:00:00+08:00",
+        "end_time": "2026-03-31T16:30:00+08:00",
+        "location": "北区-会议室2",
+        "organizer": "采购部",
+        "attendees": [
+          "我",
+          "buyer_mgr"
+        ],
+        "description": "已确认的供应商评审（下午占用）",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_903",
+        "title": "西区-跨天维护窗口",
+        "start_time": "2026-03-30T20:30:00+08:00",
+        "end_time": "2026-03-31T10:30:00+08:00",
+        "location": "西区机房",
+        "organizer": "运维值班",
+        "attendees": [
+          "我",
+          "ops_oncall"
+        ],
+        "description": "跨天维护（从晚间持续到次日上午，占用到中午前的边界要点）",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_904",
+        "title": "西区-白天缓冲（全天空闲）",
+        "start_time": "2026-03-30T00:00:00+08:00",
+        "end_time": "2026-03-30T23:59:00+08:00",
+        "location": "",
+        "organizer": "",
+        "attendees": [],
+        "description": "可用于安排到达/离开缓冲",
+        "status": "free"
+      },
+      {
+        "event_id": "evt_905",
+        "title": "区域同步例会（干扰）",
+        "start_time": "2026-04-01T15:00:00+08:00",
+        "end_time": "2026-04-01T16:00:00+08:00",
+        "location": "本地-远程",
+        "organizer": "PMO",
+        "attendees": [
+          "我",
+          "pmo_mgr"
+        ],
+        "description": "状态为 busy 的例会（非到访邀请日期核心冲突，用于干扰）",
+        "status": "busy"
+      },
+      {
+        "event_id": "evt_906",
+        "title": "北区-晚间回访准备（不冲突）",
+        "start_time": "2026-04-01T19:00:00+08:00",
+        "end_time": "2026-04-01T20:30:00+08:00",
+        "location": "本地-办公室",
+        "organizer": "售后支持",
+        "attendees": [
+          "我"
+        ],
+        "description": "用于准备次日材料，不影响到中午前到达判断",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-N01",
+        "name": "赵岚",
+        "department": "北区运维中心",
+        "title": "售后对接经理",
+        "email": "anlzhao@company-north.com",
+        "phone": "13901010011",
+        "location": "北区",
+        "notes": "负责北区现场巡检对接与现场协调"
+      },
+      {
+        "contact_id": "CT-N02",
+        "name": "钱志",
+        "department": "北区解决方案团队",
+        "title": "技术交付负责人",
+        "email": "qianzhi@company-north.com",
+        "phone": "13901010022",
+        "location": "北区",
+        "notes": "负责北区故障回访技术确认与资料归档"
+      },
+      {
+        "contact_id": "CT-N03",
+        "name": "孙敏",
+        "department": "北区客户成功",
+        "title": "客户成功专员",
+        "email": "sunmin@company-north.com",
+        "phone": "13901010033",
+        "location": "北区",
+        "notes": "对接北区客户现场安排与联络窗口"
+      },
+      {
+        "contact_id": "CT-W01",
+        "name": "周澄",
+        "department": "西区售后服务站",
+        "title": "现场对接主管",
+        "email": "zhoucheng@company-west.com",
+        "phone": "13902020011",
+        "location": "西区",
+        "notes": "负责西区到访接待、现场门禁与路线指引"
+      },
+      {
+        "contact_id": "CT-W02",
+        "name": "吴桐",
+        "department": "西区运维保障",
+        "title": "运维技术支持",
+        "email": "wutong@company-west.com",
+        "phone": "13902020022",
+        "location": "西区",
+        "notes": "负责西区维护窗口期间的技术联动与回溯"
+      },
+      {
+        "contact_id": "CT-W03",
+        "name": "郑琪",
+        "department": "西区客户关系",
+        "title": "客户经理",
+        "email": "qizheng@company-west.com",
+        "phone": "13902020033",
+        "location": "西区",
+        "notes": "负责西区客户沟通、到访确认与时间协调"
+      },
+      {
+        "contact_id": "CT-S01",
+        "name": "林澄",
+        "department": "南区服务团队",
+        "title": "售后工程师（干扰）",
+        "email": "lincheng@company-south.com",
+        "phone": "13903030011",
+        "location": "南区",
+        "notes": "非目标区域联系人，用于干扰"
+      },
+      {
+        "contact_id": "CT-E01",
+        "name": "何霖",
+        "department": "东区技术支持（干扰）",
+        "title": "技术支持工程师（干扰）",
+        "email": "helin@company-east.com",
+        "phone": "13904040011",
+        "location": "东区",
+        "notes": "非目标区域联系人，用于干扰"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_901a",
+        "from": "north-ops@client-north.com",
+        "to": "me@company.com",
+        "subject": "北区现场巡检邀请：最迟 3/31 中午前到达（需现场确认）",
+        "date": "2026-03-24T11:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "您好！我们在北区安排现场巡检/故障回访。请您在【3月31日 中午前】完成到达并进行现场确认（到访窗口：09:00-12:00）。\n联系人线索：北区售后对接人将协助您进场；如需要对接，请按北区当地同事信息沟通。\n谢谢！"
+      },
+      {
+        "message_id": "msg_902b",
+        "from": "west-service@client-west.com",
+        "to": "me@company.com",
+        "subject": "西区故障回访到访邀请：最迟 3/31 中午前到达（处理现场联动）",
+        "date": "2026-03-24T09:30:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "团队您好，我们需要安排西区现场故障回访。请您【最迟在3月31日 中午前到达】并完成联动处理（到访窗口：08:30-12:00）。\n到访当天我们可能有维护影响，请提前与西区运维同事对接。\n联系人线索：西区现场对接主管负责到访接待与现场路线。"
+      },
+      {
+        "message_id": "msg_903c",
+        "from": "meeting-room@client.com",
+        "to": "me@company.com",
+        "subject": "线上会议邀请：4/1 10:00-11:00（干扰项）",
+        "date": "2026-03-24T13:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，已邀请您参加线上会议（非现场到访）。时间：4月1日 10:00-11:00。\n本会议与现场巡检无关，请勿将其当作到访安排。"
+      },
+      {
+        "message_id": "msg_904d",
+        "from": "ops-update@client.com",
+        "to": "me@company.com",
+        "subject": "日程变更提醒（缺少城市信息）：请关注后续通知（干扰项）",
+        "date": "2026-03-24T08:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "通知：部分计划将有变更，但邮件中未包含具体城市/区域与明确到访截止时间。\n如果后续补充信息再确认，请以补充邮件为准。本邮件仅用于提醒，不要当作可执行到访邀请。"
+      },
+      {
+        "message_id": "msg_905e",
+        "from": "billing@client-north.com",
+        "to": "me@company.com",
+        "subject": "北区月度结算进度（非到访通知）",
+        "date": "2026-03-23T19:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，以下是北区月度结算进度更新：请查收附件并确认回款安排。\n（此邮件不涉及现场到访。）"
+      },
+      {
+        "message_id": "msg_906f",
+        "from": "it-support@client-west.com",
+        "to": "me@company.com",
+        "subject": "西区系统健康检查结果（非到访通知）",
+        "date": "2026-03-22T15:25:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "西区系统健康检查已完成，整体状态良好。如需进一步现场支持，将另行发送邀请。\n（此邮件不含到访截止时间。）"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新任务以“到达截止时间=中午前”与“跨天维护窗口”作为主要边界条件来决定巡检顺序与改期，而非仅处理同日硬冲突。",
+    "fixture_design_summary": [
+      "gmail：包含2封北区/西区现场到访邀请（均含“最迟在3/31中午前到达”），1封线上会议干扰，1封缺城市信息的变更提醒干扰，另含2封非到访通知干扰。",
+      "calendar：北区在3/31上午存在confirmed占用到中午前、3/31下午另有confirmed评审；西区在3/30晚间至3/31上午跨天confirmed维护窗口，且提供free全天缓冲用于排序调整。",
+      "contacts：北区提供≥3人、西区提供≥3人，并额外加入南区/东区联系人作为干扰，确保区域归属一致。"
+    ]
+  }
+}

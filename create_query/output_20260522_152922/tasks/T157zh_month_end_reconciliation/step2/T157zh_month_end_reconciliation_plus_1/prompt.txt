@@ -1,0 +1,976 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T157zh_month_end_reconciliation_plus_1",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/config/integrations.json",
+  "fixtures/crm/customers.json",
+  "fixtures/finance/transactions.json",
+  "fixtures/inventory/items.json",
+  "fixtures/scheduler/jobs.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 1,
+  "new_task_id": "T157zh_month_end_reconciliation_plus_1",
+  "new_task_name": "月末补录差异核查",
+  "task_goal": "在月末对账窗口内，识别并解释因“补录/冲正”导致的财务流水与客户应收不一致，并给出对应的异常清单与处理建议。",
+  "user_request": "月末了，请对本月“补录/冲正”相关数据做定向对账核查：\n1）检查定时任务是否存在部分失败或被人工暂停；\n2）核对支付与发票集成的异常配置；\n3）从财务流水中筛出本月的冲正/重试交易，与CRM客户expected应收对齐，找出短收或多扣的客户；\n4）核对采购支出与库存最近出入库记录是否合理对应，找出差额来源；\n5）输出一份对账报告，至少包含：异常类型、影响金额区间、可能根因、建议的补救动作。",
+  "scenario": "结算系统发生了“部分回滚补录”：支付网关侧生成了两次相同订单的冲正流水，CRM侧应收通过批量导入已更新但财务侧补录尚未完全同步；与此同时发票生成任务在月末前一周因集成退回到降级模式而延迟。库存同步正常，但某类耗材存在入库记录多了一笔采购对账行（可能是重复入账），导致采购金额与库存消耗差额。任务需要先用 scheduler/config 找到延迟与降级，再用 finance/crm 对齐expected与实收，最后用 inventory 将采购支出与入库数量成本校验。",
+  "difference_from_source": "不再追求原题那种固定的三类异常样式（重复扣款/特定采购差额/特定应收短收及其相同根因链），而是改为“冲正/重试+延迟导入”造成的应收错配与“采购对账行重复入账”造成的库存成本差额；异常判定重点从具体已知ID模式，转为识别交易类型（冲正/重试/重发）、金额符号与订单幂等性问题。",
+  "service_and_tool_plan": "继续使用 scheduler_list_jobs/scheduler_get_job/scheduler_job_history 先定位月末前后任务是否失败、是否降级/暂停；config_list_integrations/config_get_integration 检查支付/发票集成状态与last_sync；finance_list_transactions/finance_get_transaction 拉取本月冲正/重试/成功交易并按客户汇总；crm_list_customers/crm_get_customer 获取expected_monthly与notes用于判定是否为补录后状态；inventory_list_products/inventory_get_product 校验采购支出对应的库存入库数量与单位成本是否匹配。这样同一套schema可复用，但数据关联逻辑变为按“交易类型+冲正配对”对账。",
+  "fixture_generation_plan": "生成5组记录量的 fixtures（保持与原schema一致但实体名/ID/数值全新）：\n- scheduler/jobs：5条作业，其中2条在月末前一周出现failed或degraded（一个“补录队列处理”任务，另一个“发票生成”任务）；1条enabled=true但历史显示部分暂停/跳过（用execution_history体现）；其余2条success。\n- config/integrations：4个集成（支付、对账/同步、发票、库存对账或报表）；其中支付为active但有error_rate波动，发票为degraded或error，某个同步集成出现last_sync落后3-7天。\n- crm/customers：7-9位客户，包含active与inactive混合；其中至少3位客户expected_monthly存在但notes标记“导入后调整/补录中”。\n- finance/transactions：18-25笔交易，包含至少8笔与冲正/重试相关（transaction.type需体现为“冲正/重试/重发/回滚”，并通过amount正负与description匹配），并覆盖至少3位客户的短收或多扣。\n- inventory/items：10-14个产品，至少1-2个耗材/配件出现“入库重复或成本不一致”导致采购支出与库存成本计算差额；last_in_qty/last_out_qty要让核算可得差额。\n关键字段状态分布：冲正/重试交易在finance中占比显著；CRM notes用于引导异常归因；库存仅1类产品出现差额以保证聚焦。",
+  "expected_behavior": "代理应：\n1）先用scheduler_list_jobs筛出failed或异常状态作业，并对关键job用scheduler_get_job与scheduler_job_history确认失败/降级持续时长与时间窗口；\n2）用config_list_integrations找到支付/发票/同步相关集成异常与last_sync落后天数；\n3）用finance_list_transactions按本月日期范围拉取交易，并进一步逐笔用finance_get_transaction检查冲正/重试交易的customer_id与description/related_order（如fixture字段包含），在输出里说明如何将冲正与原交易配对抵消；\n4）用crm_list_customers获取客户expected_monthly，再对冲正抵消后的净实收与expected_monthly比对，识别短收/多扣客户，并在报告中给出差额区间与影响；\n5）用inventory_list_products拉取本月相关类目（或全量），对被标记可能重复入账的产品用inventory_get_product核算“unit_cost*last_in_qty 与采购支出金额”的差额来源。\n6）最终输出对账报告：列出异常清单（至少3类：任务异常、应收错配、采购-库存成本差额）、每类给出根因假设链条与建议动作（如补录队列重跑、回滚幂等修复、发票SDK升级/回补）。",
+  "grading_plan": "grader应检查：\n- 是否覆盖“任务状态检查、集成配置检查、应收错配核对（冲正配对与净额计算）、采购-库存差额核算、输出异常报告完整性”五部分；\n- 是否至少识别3位客户存在补录导致的短收或多扣，并解释冲正/重试如何影响净额；\n- 是否能定位到与发票/同步延迟相关的集成或job（通过scheduler/config字段时序一致性判定）；\n- 是否能对1-2个库存产品给出采购-库存成本差额的可核算计算过程与差额方向；\n- 报告中的建议动作必须与发现的异常类型一一对应（不是泛泛“修复系统”）。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T157zh_month_end_reconciliation",
+  "task_name": "月末全面对账",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "hard",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "finance",
+    "crm",
+    "config",
+    "inventory",
+    "scheduler"
+  ],
+  "tools": [
+    "finance_list_transactions",
+    "finance_get_transaction",
+    "crm_list_customers",
+    "crm_get_customer",
+    "config_list_integrations",
+    "config_get_integration",
+    "inventory_list_products",
+    "inventory_get_product",
+    "scheduler_list_jobs",
+    "scheduler_get_job",
+    "scheduler_job_history"
+  ],
+  "fixture_paths": [
+    "fixtures/config/integrations.json",
+    "fixtures/crm/customers.json",
+    "fixtures/finance/transactions.json",
+    "fixtures/inventory/items.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T157zh_month_end_reconciliation
+task_name: 月末全面对账
+version: '1.0'
+category: ops
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: tasks/T157zh_month_end_reconciliation/fixtures/finance/transactions.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: tasks/T157zh_month_end_reconciliation/fixtures/crm/customers.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: tasks/T157zh_month_end_reconciliation/fixtures/config/integrations.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: tasks/T157zh_month_end_reconciliation/fixtures/inventory/items.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: tasks/T157zh_month_end_reconciliation/fixtures/scheduler/jobs.json
+prompt:
+  text: '月末了，请帮我做一次全面对账：
+
+    1. 检查对账相关自动化任务的执行状态
+
+    2. 检查支付和发票系统集成配置
+
+    3. 核对财务流水与CRM客户应收
+
+    4. 核对采购记录与库存变动
+
+    5. 找出所有异常并输出对账报告
+
+    '
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 查看财务交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: crm_list_customers
+  description: 查看客户列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(active/inactive/churned)
+      tier:
+        type: string
+        description: 按等级筛选(VIP/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: config_list_integrations
+  description: 查看所有系统集成配置
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(active/error/degraded)
+    required: []
+- name: config_get_integration
+  description: 获取集成配置详情
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: inventory_list_products
+  description: 查看库存产品列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_product
+  description: 获取库存产品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: scheduler_list_jobs
+  description: 列出所有定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按最近运行状态筛选(success/failed)
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情（含执行历史）
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_job_history
+  description: 查看定时任务执行历史
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      limit:
+        type: integer
+        description: 返回条数
+        default: 10
+    required:
+    - job_id
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: scheduler_job_history
+  url: http://localhost:9112/scheduler/jobs/history
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/config/integrations.json ---
+[
+  {
+    "integration_id": "INT-1301",
+    "name": "primary_payment_gateway",
+    "display_name": "主支付网关",
+    "service": "payment",
+    "status": "active",
+    "last_verified": "2026-03-25T10:00:00+08:00",
+    "monthly_calls": 12500,
+    "error_rate": 0.2,
+    "notes": "运行正常，处理所有在线支付"
+  },
+  {
+    "integration_id": "INT-1302",
+    "name": "backup_payment_gateway",
+    "display_name": "备用支付网关",
+    "service": "payment",
+    "status": "active",
+    "last_verified": "2026-03-25T10:00:00+08:00",
+    "monthly_calls": 800,
+    "error_rate": 0.1,
+    "notes": "备用通道，主通道故障时自动切换"
+  },
+  {
+    "integration_id": "INT-1303",
+    "name": "reconciliation_system",
+    "display_name": "对账系统",
+    "service": "reconciliation",
+    "status": "active",
+    "last_verified": "2026-03-20T08:00:00+08:00",
+    "monthly_calls": 3200,
+    "error_rate": 15.0,
+    "last_sync": "2026-03-20T08:00:00+08:00",
+    "notes": "自3月20日起同步失败，最后一次成功同步为3月20日。错误：API连接超时，对账数据已有6天未同步。"
+  },
+  {
+    "integration_id": "INT-1304",
+    "name": "invoice_system",
+    "display_name": "发票系统",
+    "service": "invoice",
+    "status": "error",
+    "last_verified": "2026-03-18T14:00:00+08:00",
+    "monthly_calls": 4500,
+    "error_rate": 100.0,
+    "notes": "状态异常：API版本不兼容。供应商于3月18日升级了API至v3，我方系统仍在调用v2接口，导致所有发票请求返回400错误。需要升级SDK。"
+  }
+]
+
+--- END FILE: fixtures/config/integrations.json ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-1301",
+    "name": "鼎盛信息技术有限公司",
+    "contact_person": "张伟",
+    "email": "zhangwei@dingsheng.cn",
+    "phone": "13800131301",
+    "industry": "信息技术",
+    "tier": "VIP",
+    "annual_revenue": 10200000,
+    "last_contact_date": "2026-03-20",
+    "status": "active",
+    "contract_amount": 85000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 85000,
+    "notes": "VIP大客户，月度订阅85000元，按月扣款"
+  },
+  {
+    "customer_id": "CUS-1302",
+    "name": "明远商贸有限公司",
+    "contact_person": "李娜",
+    "email": "lina@mingyuan.com",
+    "phone": "13900131302",
+    "industry": "贸易",
+    "tier": "standard",
+    "annual_revenue": 3600000,
+    "last_contact_date": "2026-03-15",
+    "status": "active",
+    "contract_amount": 45000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 45000,
+    "notes": "标准客户，月度服务费45000元，付款正常"
+  },
+  {
+    "customer_id": "CUS-1303",
+    "name": "锦程国际物流有限公司",
+    "contact_person": "王磊",
+    "email": "wanglei@jincheng-logistics.cn",
+    "phone": "13700131303",
+    "industry": "物流",
+    "tier": "VIP",
+    "annual_revenue": 18000000,
+    "last_contact_date": "2026-03-12",
+    "status": "active",
+    "contract_amount": 150000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 150000,
+    "notes": "VIP战略客户，年合同180万，月度应收150000元。3月实际到账120000，差额30000待确认，状态：partial"
+  },
+  {
+    "customer_id": "CUS-1304",
+    "name": "华创网络科技有限公司",
+    "contact_person": "赵芳",
+    "email": "zhaofang@huachuang.net",
+    "phone": "13600131304",
+    "industry": "科技",
+    "tier": "standard",
+    "annual_revenue": 2400000,
+    "last_contact_date": "2026-03-18",
+    "status": "active",
+    "contract_amount": 30000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 30000,
+    "notes": "标准客户，月度服务费30000元，付款正常"
+  },
+  {
+    "customer_id": "CUS-1305",
+    "name": "瑞安电子商务有限公司",
+    "contact_person": "陈刚",
+    "email": "chengang@ruian-ec.com",
+    "phone": "13500131305",
+    "industry": "电商",
+    "tier": "standard",
+    "annual_revenue": 1800000,
+    "last_contact_date": "2026-03-10",
+    "status": "active",
+    "contract_amount": 25000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 25000,
+    "notes": "标准客户，月度服务费25000元，付款正常"
+  },
+  {
+    "customer_id": "CUS-1306",
+    "name": "天宇广告传媒有限公司",
+    "contact_person": "孙莉",
+    "email": "sunli@tianyu-media.cn",
+    "phone": "13400131306",
+    "industry": "传媒",
+    "tier": "standard",
+    "annual_revenue": 900000,
+    "last_contact_date": "2025-12-20",
+    "status": "churned",
+    "contract_amount": 0,
+    "payment_cycle": "monthly",
+    "expected_monthly": 0,
+    "notes": "已流失客户，2025年12月合同到期未续约"
+  }
+]
+
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/finance/transactions.json ---
+[
+  {
+    "transaction_id": "TXN-1301",
+    "date": "2026-03-01",
+    "amount": 85000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-1301",
+    "customer_name": "鼎盛信息技术有限公司",
+    "type": "客户付款",
+    "category": "服务收入",
+    "description": "CUS-1301 3月订阅费",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1302",
+    "date": "2026-03-01",
+    "amount": 85000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-1301",
+    "customer_name": "鼎盛信息技术有限公司",
+    "type": "客户付款",
+    "category": "服务收入",
+    "description": "CUS-1301 3月订阅费",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1303",
+    "date": "2026-03-02",
+    "amount": 45000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-1302",
+    "customer_name": "明远商贸有限公司",
+    "type": "客户付款",
+    "category": "服务收入",
+    "description": "CUS-1302 3月服务费",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1304",
+    "date": "2026-03-03",
+    "amount": -12000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-1302",
+    "customer_name": "明远商贸有限公司",
+    "type": "退款",
+    "category": "退款支出",
+    "description": "CUS-1302 2月多收退款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1305",
+    "date": "2026-03-05",
+    "amount": -45000.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "采购",
+    "category": "采购支出",
+    "description": "采购ITEM-1303 服务器硬盘 20块",
+    "related_item": "ITEM-1303",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1306",
+    "date": "2026-03-05",
+    "amount": -8000.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "采购",
+    "category": "采购支出",
+    "description": "采购ITEM-1304 网线 200根",
+    "related_item": "ITEM-1304",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1307",
+    "date": "2026-03-06",
+    "amount": 30000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-1304",
+    "customer_name": "华创网络科技有限公司",
+    "type": "客户付款",
+    "category": "服务收入",
+    "description": "CUS-1304 3月服务费",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1308",
+    "date": "2026-03-07",
+    "amount": 25000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-1305",
+    "customer_name": "瑞安电子商务有限公司",
+    "type": "客户付款",
+    "category": "服务收入",
+    "description": "CUS-1305 3月服务费",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1309",
+    "date": "2026-03-08",
+    "amount": -15000.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "采购",
+    "category": "采购支出",
+    "description": "采购ITEM-1305 交换机 5台",
+    "related_item": "ITEM-1305",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1310",
+    "date": "2026-03-10",
+    "amount": 120000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-1303",
+    "customer_name": "锦程国际物流有限公司",
+    "type": "客户付款",
+    "category": "服务收入",
+    "description": "CUS-1303 3月合同款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1311",
+    "date": "2026-03-11",
+    "amount": -6000.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "采购",
+    "category": "采购支出",
+    "description": "采购ITEM-1306 显示器支架 30个",
+    "related_item": "ITEM-1306",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1312",
+    "date": "2026-03-12",
+    "amount": -3500.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "采购",
+    "category": "采购支出",
+    "description": "采购ITEM-1309 键盘 50个",
+    "related_item": "ITEM-1309",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1313",
+    "date": "2026-03-13",
+    "amount": -2500.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "采购",
+    "category": "采购支出",
+    "description": "采购ITEM-1310 鼠标 100个",
+    "related_item": "ITEM-1310",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1314",
+    "date": "2026-03-15",
+    "amount": -85000.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "办公租金",
+    "category": "运营支出",
+    "description": "3月办公室租金",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1315",
+    "date": "2026-03-16",
+    "amount": -32000.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "工资",
+    "category": "人力支出",
+    "description": "3月中旬工资预支",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1316",
+    "date": "2026-03-18",
+    "amount": -4200.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "采购",
+    "category": "采购支出",
+    "description": "采购ITEM-1301 打印纸 200箱",
+    "related_item": "ITEM-1301",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1317",
+    "date": "2026-03-19",
+    "amount": -9600.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "采购",
+    "category": "采购支出",
+    "description": "采购ITEM-1302 墨盒 60个",
+    "related_item": "ITEM-1302",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1318",
+    "date": "2026-03-20",
+    "amount": -5500.00,
+    "currency": "CNY",
+    "customer_id": "CUS-1304",
+    "customer_name": "华创网络科技有限公司",
+    "type": "退款",
+    "category": "退款支出",
+    "description": "CUS-1304 服务补偿退款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1319",
+    "date": "2026-03-22",
+    "amount": -18000.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "采购",
+    "category": "采购支出",
+    "description": "采购ITEM-1308 UPS电源 6台",
+    "related_item": "ITEM-1308",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-1320",
+    "date": "2026-03-25",
+    "amount": -12000.00,
+    "currency": "CNY",
+    "customer_id": null,
+    "customer_name": null,
+    "type": "水电费",
+    "category": "运营支出",
+    "description": "3月水电费",
+    "status": "completed"
+  }
+]
+
+--- END FILE: fixtures/finance/transactions.json ---
+--- FILE: fixtures/inventory/items.json ---
+[
+  {
+    "product_id": "ITEM-1301",
+    "name": "A4打印纸",
+    "category": "办公用品",
+    "quantity": 200,
+    "unit": "箱",
+    "unit_cost": 21.00,
+    "location": "仓库A-01",
+    "last_in": "2026-03-18",
+    "last_in_qty": 200,
+    "last_out": "2026-03-22",
+    "last_out_qty": 50,
+    "supplier": "办公易",
+    "notes": "正常库存"
+  },
+  {
+    "product_id": "ITEM-1302",
+    "name": "墨盒HP-80A",
+    "category": "耗材",
+    "quantity": 60,
+    "unit": "个",
+    "unit_cost": 160.00,
+    "location": "仓库A-02",
+    "last_in": "2026-03-19",
+    "last_in_qty": 60,
+    "last_out": "2026-03-23",
+    "last_out_qty": 15,
+    "supplier": "惠普授权",
+    "notes": "正常库存"
+  },
+  {
+    "product_id": "ITEM-1303",
+    "name": "服务器硬盘2TB",
+    "category": "IT设备",
+    "quantity": 20,
+    "unit": "块",
+    "unit_cost": 1900.00,
+    "location": "仓库B-01",
+    "last_in": "2026-03-05",
+    "last_in_qty": 20,
+    "last_out": "2026-03-10",
+    "last_out_qty": 8,
+    "supplier": "希捷直销",
+    "notes": "入库单价1900×20=38000，但采购付款TXN-1305为45000元，差额7000元待核实"
+  },
+  {
+    "product_id": "ITEM-1304",
+    "name": "超六类网线",
+    "category": "网络设备",
+    "quantity": 200,
+    "unit": "根",
+    "unit_cost": 40.00,
+    "location": "仓库B-02",
+    "last_in": "2026-03-05",
+    "last_in_qty": 200,
+    "last_out": "2026-03-15",
+    "last_out_qty": 80,
+    "supplier": "安普网络",
+    "notes": "正常库存"
+  },
+  {
+    "product_id": "ITEM-1305",
+    "name": "千兆交换机",
+    "category": "网络设备",
+    "quantity": 5,
+    "unit": "台",
+    "unit_cost": 3000.00,
+    "location": "仓库B-03",
+    "last_in": "2026-03-08",
+    "last_in_qty": 5,
+    "last_out": "2026-03-12",
+    "last_out_qty": 2,
+    "supplier": "华为企业",
+    "notes": "正常库存"
+  },
+  {
+    "product_id": "ITEM-1306",
+    "name": "显示器支架",
+    "category": "办公用品",
+    "quantity": 30,
+    "unit": "个",
+    "unit_cost": 200.00,
+    "location": "仓库A-03",
+    "last_in": "2026-03-11",
+    "last_in_qty": 30,
+    "last_out": "2026-03-18",
+    "last_out_qty": 10,
+    "supplier": "办公易",
+    "notes": "正常库存"
+  },
+  {
+    "product_id": "ITEM-1307",
+    "name": "固态硬盘512GB",
+    "category": "IT设备",
+    "quantity": 10,
+    "unit": "块",
+    "unit_cost": 450.00,
+    "location": "仓库B-01",
+    "last_in": "2026-02-20",
+    "last_in_qty": 15,
+    "last_out": "2026-03-15",
+    "last_out_qty": 5,
+    "supplier": "三星直销",
+    "notes": "3月15日出库5块，但无对应销售交易记录"
+  },
+  {
+    "product_id": "ITEM-1308",
+    "name": "UPS不间断电源",
+    "category": "IT设备",
+    "quantity": 6,
+    "unit": "台",
+    "unit_cost": 3000.00,
+    "location": "仓库B-04",
+    "last_in": "2026-03-22",
+    "last_in_qty": 6,
+    "last_out": "2026-03-24",
+    "last_out_qty": 3,
+    "sale_txn": "TXN-1319",
+    "supplier": "施耐德",
+    "notes": "出库3台但销售记录显示出库2台，数量不匹配"
+  },
+  {
+    "product_id": "ITEM-1309",
+    "name": "机械键盘",
+    "category": "外设",
+    "quantity": 50,
+    "unit": "个",
+    "unit_cost": 70.00,
+    "location": "仓库A-04",
+    "last_in": "2026-03-12",
+    "last_in_qty": 50,
+    "last_out": "2026-03-20",
+    "last_out_qty": 20,
+    "supplier": "京东企业购",
+    "notes": "正常库存"
+  },
+  {
+    "product_id": "ITEM-1310",
+    "name": "无线鼠标",
+    "category": "外设",
+    "quantity": 100,
+    "unit": "个",
+    "unit_cost": 25.00,
+    "location": "仓库A-04",
+    "last_in": "2026-03-13",
+    "last_in_qty": 100,
+    "last_out": "2026-03-21",
+    "last_out_qty": 35,
+    "supplier": "京东企业购",
+    "notes": "正常库存"
+  }
+]
+
+--- END FILE: fixtures/inventory/items.json ---
+--- FILE: fixtures/scheduler/jobs.json ---
+[
+  {
+    "job_id": "JOB-1301",
+    "name": "每日对账",
+    "cron_expression": "0 6 * * *",
+    "action": "daily_reconciliation",
+    "enabled": true,
+    "last_run": "2026-03-26T06:00:00Z",
+    "next_run": "2026-03-27T06:00:00Z",
+    "last_status": "failed",
+    "created_by": "finance_team",
+    "tags": ["finance", "reconciliation", "daily"],
+    "created_at": "2025-06-01T00:00:00Z",
+    "execution_history": [
+      {"run_at": "2026-03-26T06:00:00Z", "status": "failed", "duration_s": 30, "error": "ConnectionTimeoutError: 对账系统API超时，无法连接到reconciliation_system (INT-1303)"},
+      {"run_at": "2026-03-25T06:00:00Z", "status": "failed", "duration_s": 30, "error": "ConnectionTimeoutError: 对账系统API超时，无法连接到reconciliation_system (INT-1303)"},
+      {"run_at": "2026-03-24T06:00:00Z", "status": "failed", "duration_s": 30, "error": "ConnectionTimeoutError: 对账系统API超时，无法连接到reconciliation_system (INT-1303)"},
+      {"run_at": "2026-03-23T06:00:00Z", "status": "failed", "duration_s": 30, "error": "ConnectionTimeoutError: 对账系统API超时，无法连接到reconciliation_system (INT-1303)"},
+      {"run_at": "2026-03-22T06:00:00Z", "status": "failed", "duration_s": 30, "error": "ConnectionTimeoutError: 对账系统API超时，无法连接到reconciliation_system (INT-1303)"},
+      {"run_at": "2026-03-21T06:00:00Z", "status": "failed", "duration_s": 30, "error": "ConnectionTimeoutError: 对账系统API超时，无法连接到reconciliation_system (INT-1303)"},
+      {"run_at": "2026-03-20T06:00:00Z", "status": "success", "duration_s": 120}
+    ]
+  },
+  {
+    "job_id": "JOB-1302",
+    "name": "发票自动生成",
+    "cron_expression": "0 8 * * 1-5",
+    "action": "auto_generate_invoices",
+    "enabled": true,
+    "last_run": "2026-03-26T08:00:00Z",
+    "next_run": "2026-03-27T08:00:00Z",
+    "last_status": "failed",
+    "created_by": "finance_team",
+    "tags": ["finance", "invoice", "daily"],
+    "created_at": "2025-08-15T00:00:00Z",
+    "execution_history": [
+      {"run_at": "2026-03-26T08:00:00Z", "status": "failed", "duration_s": 5, "error": "HTTP 400 BadRequest: 发票系统API返回错误 — API版本不兼容(v2已弃用)，关联INT-1304"},
+      {"run_at": "2026-03-25T08:00:00Z", "status": "failed", "duration_s": 5, "error": "HTTP 400 BadRequest: 发票系统API返回错误 — API版本不兼容(v2已弃用)，关联INT-1304"},
+      {"run_at": "2026-03-24T08:00:00Z", "status": "failed", "duration_s": 5, "error": "HTTP 400 BadRequest: 发票系统API返回错误 — API版本不兼容(v2已弃用)，关联INT-1304"},
+      {"run_at": "2026-03-19T08:00:00Z", "status": "failed", "duration_s": 5, "error": "HTTP 400 BadRequest: 发票系统API返回错误 — API版本不兼容(v2已弃用)，关联INT-1304"},
+      {"run_at": "2026-03-18T08:00:00Z", "status": "success", "duration_s": 45}
+    ]
+  },
+  {
+    "job_id": "JOB-1303",
+    "name": "库存同步",
+    "cron_expression": "0 7 * * *",
+    "action": "sync_inventory",
+    "enabled": true,
+    "last_run": "2026-03-26T07:00:00Z",
+    "next_run": "2026-03-27T07:00:00Z",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": ["inventory", "sync", "daily"],
+    "created_at": "2025-09-01T00:00:00Z",
+    "execution_history": [
+      {"run_at": "2026-03-26T07:00:00Z", "status": "success", "duration_s": 60},
+      {"run_at": "2026-03-25T07:00:00Z", "status": "success", "duration_s": 55}
+    ]
+  },
+  {
+    "job_id": "JOB-1304",
+    "name": "月末汇总报告",
+    "cron_expression": "0 9 25-31 * *",
+    "action": "month_end_summary",
+    "enabled": true,
+    "last_run": "2026-03-25T09:00:00Z",
+    "next_run": "2026-03-26T09:00:00Z",
+    "last_status": "success",
+    "created_by": "finance_team",
+    "tags": ["finance", "report", "monthly"],
+    "created_at": "2025-07-01T00:00:00Z",
+    "execution_history": [
+      {"run_at": "2026-03-25T09:00:00Z", "status": "success", "duration_s": 180}
+    ]
+  }
+]
+
+--- END FILE: fixtures/scheduler/jobs.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

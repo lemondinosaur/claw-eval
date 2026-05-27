@@ -1,0 +1,74 @@
+[
+  {
+    "message_id": "msg_d01",
+    "from": "zhaomin@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：差旅 2560元（发票INV-D112）",
+    "date": "2026-04-10T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，我是赵敏。本次出差差旅费用合计2560元，发票号INV-D112。请财务审核报销。谢谢！"
+  },
+  {
+    "message_id": "msg_d02",
+    "from": "zhoutao@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：办公用品 1500元，需对账",
+    "date": "2026-04-10T10:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "财务部您好，我已完成办公用品采购，共计1500元，发票号INV-D205。若与系统金额有差异请核对。"
+  },
+  {
+    "message_id": "msg_d03",
+    "from": "chenrui@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：培训资料费 3200元",
+    "date": "2026-04-10T11:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "你好，请处理培训资料费报销：金额3200元，发票号INV-D778（本次发票信息已确认）。请审核。"
+  },
+  {
+    "message_id": "msg_d04",
+    "from": "ops@vendor.com",
+    "to": "ap@company.com",
+    "subject": "对账沟通：付款参考号 205xxxx（非发票）",
+    "date": "2026-04-10T13:40:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们收到贵司的对账请求。当前付款参考号为20588712，金额为1399元左右（请注意：该参考号不是INV格式发票号）。如需发票请以INV-前缀的编号为准。"
+  },
+  {
+    "message_id": "msg_d05",
+    "from": "it-support@company.com",
+    "to": "finance@company.com",
+    "subject": "沟通邮件：发票号疑似D-205（请确认INV-）",
+    "date": "2026-04-10T15:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位好，关于某笔费用我们看到疑似编号为D-205，但该字符串不包含INV-前缀。请以系统中的INV-发票号为准进行匹配。此邮件非报销申请。"
+  },
+  {
+    "message_id": "msg_d06",
+    "from": "hr@company.com",
+    "to": "all@company.com",
+    "subject": "审批提醒：请在今日17:00前提交报销单",
+    "date": "2026-04-10T16:00:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位同事注意，报销相关审批请在今天17:00前完成提交。此为通用提醒，不包含具体发票号与金额。"
+  }
+]

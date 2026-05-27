@@ -1,0 +1,58 @@
+[
+  {
+    "integration_id": "INT-2301",
+    "name": "促销价格写回服务",
+    "service": "promotion_price_writer",
+    "status": "active",
+    "endpoint": "https://price-writer.internal.example.com/api/v1/writeback",
+    "api_key": "sk-pw-xxxx-REDACTED-2301",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-18T09:10:00Z",
+    "monthly_calls": 430000,
+    "error_rate": 0.087,
+    "notes": "当前写回使用的定价规则集ID为 PRSET-4A7C（标记为deprecated）。写回接口可调用但会在规则集版本检查阶段拒绝更新并返回HTTP 422。需切换到非deprecated规则集并核对版本推进机制。"
+  },
+  {
+    "integration_id": "INT-2302",
+    "name": "定价规则中心（可用新版本）",
+    "service": "pricing_rules_center",
+    "status": "inactive",
+    "endpoint": "https://rules-center.internal.example.com/api/ruleset/v3",
+    "api_key": "sk-rules-xxxx-REDACTED-2302",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-17T13:45:00Z",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "notes": "该规则集版本对应PRSET-8C12（非deprecated），已通过测试但尚未在写回链路中启用。需要将INT-2301的ruleset_id切换到PRSET-8C12。"
+  },
+  {
+    "integration_id": "INT-2303",
+    "name": "促销规则拉取服务",
+    "service": "promotion_rules_fetcher",
+    "status": "active",
+    "endpoint": "https://promo-fetch.internal.example.com/api/v2/rules/pull",
+    "api_key": "sk-prf-xxxx-REDACTED-2303",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-20T11:05:00Z",
+    "monthly_calls": 275000,
+    "error_rate": 0.004,
+    "notes": "运行正常。可持续拉取到最新促销规则集，但下游写回失败会导致last_applied无法推进。"
+  },
+  {
+    "integration_id": "INT-2304",
+    "name": "退款处理服务（噪声链路）",
+    "service": "refund_processor",
+    "status": "active",
+    "endpoint": "https://refunds.internal.example.com/api/v2/refunds",
+    "api_key": "sk-rfd-xxxx-REDACTED-2304",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-19T08:25:00Z",
+    "monthly_calls": 90000,
+    "error_rate": 0.021,
+    "notes": "退款链路偶发失败，错误原因集中在订单状态校验；与促销价格链路无依赖关系。"
+  }
+]

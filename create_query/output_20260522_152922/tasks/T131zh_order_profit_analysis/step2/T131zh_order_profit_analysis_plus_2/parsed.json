@@ -1,0 +1,409 @@
+{
+  "task_id": "T131zh_order_profit_analysis_plus_2",
+  "task_name": "高毛利组合对比与成本口径校验",
+  "prompt_text": "请帮我分析各客户订单利润并做组合对比：\n\n1) 从CRM获取每个客户的最近订单及产品清单\n2) 从库存系统核算每个产品的成本价；特别注意服务类产品可能有不同计量单位（例如“人天/工时/个”），需在报告中说明你的成本口径是否直接使用unit_cost进行成本核算\n3) 从财务匹配该客户在指定月份的订单交易状态（仅纳入月份内且与订单相关的交易；日期落在月份外的交易不纳入计算）\n4) 计算利润率=(售价-成本)/售价；若库存中缺失成本信息（如unit_cost为null/缺失），或订单日期超出交易范围导致无法核算，请在报告中明确标记为“利润无法完整核算”，并说明原因\n5) 输出按利润率从高到低排序的客户清单；无法核算的放在末尾或单独分组\n6) 给出简要洞察：高毛利组合主要由哪些产品类别/组合构成\n\n请严格按上述边界条件标记异常与“利润无法完整核算”。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-901",
+        "name": "星阔科技",
+        "contact_person": "陈总",
+        "email": "chen@xingkuo-tech.cn",
+        "phone": "13900111001",
+        "industry": "硬件与IoT",
+        "tier": "vip",
+        "annual_revenue": 9200000,
+        "last_contact_date": "2026-03-26",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-901",
+            "products": [
+              "SKU-901A",
+              "SKU-901B",
+              "SKU-901S"
+            ],
+            "total_price": 210000,
+            "date": "2026-03-12"
+          }
+        ],
+        "notes": "重点战略客户"
+      },
+      {
+        "customer_id": "CUS-902",
+        "name": "海澜零售",
+        "contact_person": "周经理",
+        "email": "zhou@hailan-retail.com",
+        "phone": "13900111002",
+        "industry": "零售",
+        "tier": "vip",
+        "annual_revenue": 4100000,
+        "last_contact_date": "2026-03-18",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-902",
+            "products": [
+              "SKU-902A",
+              "SKU-902S"
+            ],
+            "total_price": 120000,
+            "date": "2026-03-20"
+          }
+        ],
+        "notes": "续航加购中"
+      },
+      {
+        "customer_id": "CUS-903",
+        "name": "北辰教育",
+        "contact_person": "李校长",
+        "email": "li@beichen-edu.org",
+        "phone": "13900111003",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 1600000,
+        "last_contact_date": "2026-03-14",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-903",
+            "products": [
+              "SKU-903A",
+              "SKU-903C",
+              "SKU-903S"
+            ],
+            "total_price": 95000,
+            "date": "2026-03-08"
+          }
+        ],
+        "notes": "按季度结算"
+      },
+      {
+        "customer_id": "CUS-904",
+        "name": "青岚咨询",
+        "contact_person": "孙总监",
+        "email": "sun@qinglan-consult.com",
+        "phone": "13900111004",
+        "industry": "咨询服务",
+        "tier": "standard",
+        "annual_revenue": 600000,
+        "last_contact_date": "2026-03-30",
+        "status": "active",
+        "recent_orders": [],
+        "notes": "近期沟通频繁但近期订单为空"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-901",
+        "date": "2026-03-13",
+        "amount": 160000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "星阔科技",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "星阔科技ORD-901部分收款（第一笔）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-902",
+        "date": "2026-03-15",
+        "amount": -10000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "星阔科技",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "星阔科技ORD-901退款（部分实施变更）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-903",
+        "date": "2026-03-28",
+        "amount": 50000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "星阔科技",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "星阔科技ORD-901第二笔收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-904",
+        "date": "2026-03-21",
+        "amount": 60000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-902",
+        "customer_name": "海澜零售",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "海澜零售ORD-902首款收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-905",
+        "date": "2026-03-25",
+        "amount": -5000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-902",
+        "customer_name": "海澜零售",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "海澜零售ORD-902退款（产品替换差额）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-906",
+        "date": "2026-03-30",
+        "amount": 0.0,
+        "currency": "CNY",
+        "customer_id": "CUS-902",
+        "customer_name": "海澜零售",
+        "type": "冲正",
+        "category": "其他",
+        "description": "海澜零售ORD-902冲正记录（测试净额影响）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-907",
+        "date": "2026-03-09",
+        "amount": 70000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-903",
+        "customer_name": "北辰教育",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "北辰教育ORD-903首笔收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-908",
+        "date": "2026-03-10",
+        "amount": 25000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-903",
+        "customer_name": "北辰教育",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "北辰教育ORD-903第二笔收款（补齐部分）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-909",
+        "date": "2026-02-21",
+        "amount": 120000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "星阔科技",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "星阔科技ORD-901月份外收款（应被排除）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-910",
+        "date": "2026-04-02",
+        "amount": 30000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-903",
+        "customer_name": "北辰教育",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "北辰教育ORD-903月份外退款（应被排除）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-911",
+        "date": "2026-03-16",
+        "amount": 18000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-904",
+        "customer_name": "青岚咨询",
+        "type": "广告费",
+        "category": "市场费用",
+        "description": "青岚咨询投放广告费（无订单归因）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-912",
+        "date": "2026-03-18",
+        "amount": 7200.0,
+        "currency": "CNY",
+        "customer_id": "CUS-904",
+        "customer_name": "青岚咨询",
+        "type": "工单结算",
+        "category": "运营支出",
+        "description": "青岚咨询工单结算（无订单归因）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-913",
+        "date": "2026-02-05",
+        "amount": 24000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-902",
+        "customer_name": "海澜零售",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "海澜零售ORD-902月份外交易（应被排除）",
+        "status": "completed"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "SKU-901A",
+        "name": "企业SaaS许可-Pro",
+        "category": "软件许可",
+        "quantity": 800,
+        "unit": "个",
+        "unit_cost": 14000.0,
+        "selling_price": 52000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-901B",
+        "name": "增强分析模块X",
+        "category": "增值模块",
+        "quantity": 420,
+        "unit": "个",
+        "unit_cost": 6000.0,
+        "selling_price": 46000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-901S",
+        "name": "交付服务-巡检包",
+        "category": "服务",
+        "quantity": 60,
+        "unit": "工时",
+        "unit_cost": 320.0,
+        "selling_price": 18000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "交付中心"
+      },
+      {
+        "product_id": "SKU-902A",
+        "name": "企业SaaS许可-Standard",
+        "category": "软件许可",
+        "quantity": 1000,
+        "unit": "个",
+        "unit_cost": 18000.0,
+        "selling_price": 52000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-902S",
+        "name": "培训服务-现场课",
+        "category": "服务",
+        "quantity": 40,
+        "unit": "人天",
+        "unit_cost": null,
+        "selling_price": 52000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "学院合作方"
+      },
+      {
+        "product_id": "SKU-903A",
+        "name": "教学SaaS许可-Basic",
+        "category": "软件许可",
+        "quantity": 650,
+        "unit": "个",
+        "unit_cost": 9000.0,
+        "selling_price": 26000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-903C",
+        "name": "集成适配器",
+        "category": "工具类",
+        "quantity": 300,
+        "unit": "个",
+        "unit_cost": 10000.0,
+        "selling_price": 42000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "生态伙伴"
+      },
+      {
+        "product_id": "SKU-903S",
+        "name": "年度运维服务",
+        "category": "服务",
+        "quantity": 25,
+        "unit": "个",
+        "unit_cost": 5000.0,
+        "selling_price": 27000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "运维团队"
+      },
+      {
+        "product_id": "SKU-904D",
+        "name": "权限包-扩展",
+        "category": "增值模块",
+        "quantity": 900,
+        "unit": "个",
+        "unit_cost": 2000.0,
+        "selling_price": 8800.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-905E",
+        "name": "风控模块Xtreme",
+        "category": "增值模块",
+        "quantity": 250,
+        "unit": "个",
+        "unit_cost": 12000.0,
+        "selling_price": 62000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-906F",
+        "name": "迁移服务-数据搬迁",
+        "category": "服务",
+        "quantity": 18,
+        "unit": "工时",
+        "unit_cost": 210.0,
+        "selling_price": 12000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "交付中心"
+      },
+      {
+        "product_id": "SKU-907G",
+        "name": "SaaS许可-教育版",
+        "category": "软件许可",
+        "quantity": 400,
+        "unit": "个",
+        "unit_cost": 6500.0,
+        "selling_price": 18000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原订单利润分析基础上加入库存成本缺失（unit_cost为null）与月份内外交易日期不匹配的边界条件，并要求对服务类计量单位口径做说明后再进行利润率排序与“无法完整核算”标记。",
+    "fixture_design_summary": [
+      "CRM共4个客户：3个有recent_orders（包含许可/模块/服务），1个recent_orders为空用于交易干扰过滤。",
+      "库存包含至少12个SKU：其中SKU-902S的unit_cost为null，用于触发“利润无法完整核算”；另有SKU-903C category非预期但仍提供unit_cost用于成本可用性判断。",
+      "财务交易约13条：对有订单的客户提供部分收款/退款/冲正以制造净回款与售价不一致的情形；同时包含2笔月份外交易用于严格日期排除；对recent_orders为空的客户提供月份内“广告费/工单结算”用于归因失败说明。"
+    ]
+  }
+}

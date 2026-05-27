@@ -1,0 +1,56 @@
+[
+  {
+    "article_id": "KB-601",
+    "title": "多时区 cron 与 UTC 意图修正（含错峰）",
+    "category": "运维排查",
+    "tags": [
+      "多时区",
+      "cron",
+      "UTC",
+      "错峰"
+    ],
+    "content": "# 多时区 cron 与 UTC 意图修正（含错峰）\n\n## 核心背景\n当调度器运行在东八区，但任务标签/动作描述标注了“UTC 意图”（如 [timezone:utc]），常见现象包括：\n- 触发时间整体偏移（早触发或晚触发）\n- 与错峰窗口不一致，导致下游并发抖动\n\n## 修复思路\n1. 先以 scheduler_get_job 获取：\n   - cron_expression\n   - tags（尤其 timezone/utc 类标签）\n   - action 文本里是否声明以 UTC 语义计算\n2. 若判定为“UTC 意图但被按本地时区解释”，则：\n   - 调整 cron_expression，使其在东八区环境下仍命中同一“UTC 目标窗口”\n   - 或将 job tags/启用策略切换到与目标系统一致的时区策略（本题以调整 cron_expression 为主）\n3. 错峰原则：同一类下游接口的写入任务需错开至少 10 分钟。\n\n## 建议输出\n报告中应写明：\n- 触发窗口偏移方向（提前/延后）\n- 调整前后 cron_expression 对应的预计触发时间段\n- 是否已应用错峰（避免与其他任务并发冲突）",
+    "last_updated": "2026-03-01",
+    "views": 412
+  },
+  {
+    "article_id": "KB-602",
+    "title": "判断延迟漂移：基于 next_run/last_run 的窗口偏差",
+    "category": "故障排查",
+    "tags": [
+      "延迟漂移",
+      "next_run",
+      "last_run"
+    ],
+    "content": "# 判断延迟漂移：基于 next_run/last_run 的窗口偏差\n\n## 观察指标（本题可直接使用）\n1. 计算 last_run 与 next_run 的实际间隔：\n   - interval_minutes = (next_run - last_run) / 60\n2. 对比理论周期（由 cron_expression 推导的目标频率）：\n   - 若 interval_minutes 持续偏离理论周期，且偏离量达到 30~60 分钟量级，通常可判定为延迟漂移或解析偏差。\n3. 进一步结合 error 字段：\n   - 如果 error 提示“触发时间偏移/下游超时”等，应将其归类为时区/漂移导致的错误触发。\n\n## 处理建议\n- 对 suspected 漂移任务：优先查 timezone/utc 意图标签；\n- 若确认为 cron 时间语义不一致：\n  - 调整 cron_expression 对齐预期窗口；\n  - 保持 enabled=true（不随意禁用），避免影响链路。\n\n## 报告要求\n- 必须给出：偏差量（分钟级）或区间描述（如“比预期晚 30-60 分钟”）\n- 必须给出：采取的 scheduler_update_job 动作（调整 cron_expression 或启用状态）",
+    "last_updated": "2026-03-04",
+    "views": 287
+  },
+  {
+    "article_id": "KB-603",
+    "title": "空数据告警聚合器的健康判定与纠正建议",
+    "category": "运维排查",
+    "tags": [
+      "空数据",
+      "告警聚合器",
+      "健康判定",
+      "纠正"
+    ],
+    "content": "# 空数据告警聚合器的健康判定与纠正建议\n\n## 为什么 last_status=success 仍可能异常\n聚合器任务可能在执行完成后发现下游数据尚未到达，于是产生空结果，但执行本身仍可标记为 success。\n\n## 如何从 job_history 判断异常\n在 job_history 中出现以下任一模式即可判定为“空报风险”或潜在调度问题：\n- 多次出现文本：\"empty result\" / \"no data\" / \"no results\" / \"空数据\" / \"无结果\"\n- 空结果连续出现次数达到阈值（建议 >=3 次）\n\n## 纠正策略（优先）\n1. 调整触发错峰：让聚合发生在下游数据到达之后。\n2. 若聚合器包含 UTC 意图标签：仍需按“多时区 cron 修正”对齐触发语义。\n3. 若无法准确预测延迟：可以先整体后移 10~20 分钟，并在后续验证 job_history 是否减少空结果。\n\n## 输出建议\n- 报告中要明确：\n  - 该任务 last_status 的表面成功\n  - 但 job_history 的空结果证据\n  - 你采取的调度修正（cron 或启用策略）\n- 必须给出预计效果：减少空结果、恢复正常告警产出",
+    "last_updated": "2026-03-06",
+    "views": 198
+  },
+  {
+    "article_id": "KB-604",
+    "title": "影响下游时的通知准则（包含邮件内容要点）",
+    "category": "运维规范",
+    "tags": [
+      "通知",
+      "下游接口",
+      "邮件"
+    ],
+    "content": "# 影响下游时的通知准则（包含邮件内容要点）\n\n## 何时必须通知\n当调度修正可能影响下游接口负载或触发时序（例如：同步/聚合任务错峰调整、UTC 意图 cron 修正、避免空报/超时），需要通知运维。\n\n## 邮件必须包含要点\n1. 任务名与 job_id\n2. 调整前后触发窗口（用“提前/延后 X 分钟/落在某时间段”的描述）\n3. 风险影响说明：\n   - 可能导致下游接口超时/排队\n   - 或导致聚合空报风险\n4. 观察建议：\n   - 调整后至少观察最近 2~3 个周期的 job_history\n   - 重点查看是否消除 error（如 time offset）或空结果条目\n\n## 建议语气\n客观描述事实、给出行动与验证步骤，避免猜测无依据。",
+    "last_updated": "2026-03-07",
+    "views": 156
+  }
+]

@@ -1,0 +1,447 @@
+{
+  "task_id": "T131zh_order_profit_analysis_plus_3",
+  "task_name": "退款后净利润与异常分级",
+  "prompt_text": "请分析每个客户最近订单的利润情况，并按异常严重程度（轻微/严重）分级。\n\n要求：\n1) 从CRM获取每个客户的最近订单及其产品组合；\n2) 从库存系统获取每个产品的 unit_cost（成本价）与 selling_price（售价，需用于和订单售价一致性校验）；\n3) 从财务系统在给定区间内核对与该订单相关的收款与退款：仅计入“订单相关交易”（订单收款/订单退款/收款冲正等与订单利润相关的type/category组合）；对于“服务费退款”等非订单退款交易，需依赖type/category判断并排除；\n4) 计算账面利润：账面利润 = 售价 - 成本；账面利润率 = (售价-成本)/售价；\n5) 计算净回款：净回款 = 相关收款金额合计 + 相关退款金额合计（退款为负数）；\n6) 计算净影响利润率（口径在报告中说明并保持自洽）：按 (净回款-成本)/售价；\n7) 异常分级规则：当净回款 < 售价 且退款比例（|退款合计|/售价）超过阈值时，或出现净亏损（净回款-成本 < 0）则判定为“严重”；否则判定为“轻微”；并简要说明判定依据（如：净回款低于售价、退款比例、是否净亏损、是否存在超额退款表象）。\n\n输出：为每位客户生成一份报告，包含字段：售价、成本、账面利润、净回款、净影响利润率、异常分级（并在异常分级处给出判定依据）。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-911",
+        "name": "旭达智联",
+        "contact_person": "陈女士",
+        "email": "chen@xuda-zhilian.com",
+        "phone": "13900112233",
+        "industry": "制造",
+        "tier": "vip",
+        "annual_revenue": 6200000,
+        "last_contact_date": "2026-04-12",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-911",
+            "products": [
+              "SKU-ALPHA-1",
+              "SKU-SVC-EDGE-1",
+              "SKU-MOD-NOVA-1"
+            ],
+            "total_price": 112000,
+            "date": "2026-04-10"
+          }
+        ],
+        "notes": "产线数字化升级"
+      },
+      {
+        "customer_id": "CUS-912",
+        "name": "天衡商贸",
+        "contact_person": "赵先生",
+        "email": "zhao@tianheng-trade.cn",
+        "phone": "13900445566",
+        "industry": "贸易",
+        "tier": "standard",
+        "annual_revenue": 950000,
+        "last_contact_date": "2026-04-18",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-912",
+            "products": [
+              "SKU-ALPHA-2",
+              "SKU-SVC-EDGE-2"
+            ],
+            "total_price": 86000,
+            "date": "2026-04-16"
+          }
+        ],
+        "notes": "年内扩容"
+      },
+      {
+        "customer_id": "CUS-913",
+        "name": "蓝鲸医疗科技",
+        "contact_person": "周博士",
+        "email": "zhou@bluewhale-medtech.com",
+        "phone": "13900778899",
+        "industry": "医疗科技",
+        "tier": "vip",
+        "annual_revenue": 4100000,
+        "last_contact_date": "2026-04-21",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-913",
+            "products": [
+              "SKU-MOD-NOVA-2",
+              "SKU-MOD-ORBIT-1",
+              "SKU-SVC-CARE-1",
+              "SKU-SVC-CARE-2"
+            ],
+            "total_price": 196000,
+            "date": "2026-04-19"
+          }
+        ],
+        "notes": "合规与数据治理项目"
+      },
+      {
+        "customer_id": "CUS-914",
+        "name": "金曜教育",
+        "contact_person": "孙老师",
+        "email": "sun@jinyao-edu.cn",
+        "phone": "13901012244",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 540000,
+        "last_contact_date": "2026-04-24",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-914",
+            "products": [
+              "SKU-ALPHA-1",
+              "SKU-SVC-CARE-1"
+            ],
+            "total_price": 72000,
+            "date": "2026-04-20"
+          }
+        ],
+        "notes": "课程平台续费"
+      },
+      {
+        "customer_id": "CUS-915",
+        "name": "北辰能源",
+        "contact_person": "李工",
+        "email": "li@beichen-energy.com",
+        "phone": "13903334455",
+        "industry": "能源",
+        "tier": "vip",
+        "annual_revenue": 2700000,
+        "last_contact_date": "2026-04-26",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-915",
+            "products": [
+              "SKU-ALPHA-2",
+              "SKU-MOD-ORBIT-1",
+              "SKU-SVC-EDGE-2"
+            ],
+            "total_price": 154000,
+            "date": "2026-04-23"
+          }
+        ],
+        "notes": "设备监测平台"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-1001",
+        "date": "2026-04-10",
+        "amount": 112000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-911",
+        "customer_name": "旭达智联",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "旭达智联ORD-911首笔收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1002",
+        "date": "2026-04-12",
+        "amount": -70000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-911",
+        "customer_name": "旭达智联",
+        "type": "订单退款",
+        "category": "销售退款",
+        "description": "旭达智联ORD-911超额退款（部分取消+超额补偿）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1003",
+        "date": "2026-04-13",
+        "amount": -25000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-911",
+        "customer_name": "旭达智联",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "旭达智联ORD-911追加退款（结算差异）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1004",
+        "date": "2026-04-15",
+        "amount": 16000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-911",
+        "customer_name": "旭达智联",
+        "type": "收款冲正",
+        "category": "收入冲正",
+        "description": "旭达智联ORD-911收款冲正（退回预留款）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1005",
+        "date": "2026-04-16",
+        "amount": 60000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-912",
+        "customer_name": "天衡商贸",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "天衡商贸ORD-912首款到账",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1006",
+        "date": "2026-04-18",
+        "amount": -26000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-912",
+        "customer_name": "天衡商贸",
+        "type": "订单退款",
+        "category": "销售退款",
+        "description": "天衡商贸ORD-912退款（交付延期补偿）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1007",
+        "date": "2026-04-19",
+        "amount": 32000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-912",
+        "customer_name": "天衡商贸",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "天衡商贸ORD-912补齐款项（净回款接近售价）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1008",
+        "date": "2026-04-20",
+        "amount": 196000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-913",
+        "customer_name": "蓝鲸医疗科技",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "蓝鲸医疗科技ORD-913全额收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1009",
+        "date": "2026-04-22",
+        "amount": -18000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-913",
+        "customer_name": "蓝鲸医疗科技",
+        "type": "订单退款",
+        "category": "销售退款",
+        "description": "蓝鲸医疗科技ORD-913小额退款（轻微差异）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1010",
+        "date": "2026-04-21",
+        "amount": 72000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-914",
+        "customer_name": "金曜教育",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "金曜教育ORD-914全额收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1011",
+        "date": "2026-04-23",
+        "amount": 150000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-915",
+        "customer_name": "北辰能源",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "北辰能源ORD-915阶段一收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1012",
+        "date": "2026-04-25",
+        "amount": 40000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-915",
+        "customer_name": "北辰能源",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "北辰能源ORD-915阶段二收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1013",
+        "date": "2026-04-24",
+        "amount": -9000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-915",
+        "customer_name": "北辰能源",
+        "type": "服务费退款",
+        "category": "服务退款",
+        "description": "北辰能源服务费退款（非订单退款干扰项）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1014",
+        "date": "2026-04-18",
+        "amount": -5000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-912",
+        "customer_name": "天衡商贸",
+        "type": "服务费退款",
+        "category": "服务退款",
+        "description": "天衡商贸服务费退款（与ORD-912无关的干扰项）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1015",
+        "date": "2026-04-11",
+        "amount": -12000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-911",
+        "customer_name": "旭达智联",
+        "type": "预付款冲正",
+        "category": "预付款冲正",
+        "description": "旭达智联预付款冲正（应被识别为订单相关收款冲正）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1016",
+        "date": "2026-04-26",
+        "amount": 23000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-913",
+        "customer_name": "蓝鲸医疗科技",
+        "type": "收款冲正",
+        "category": "收入冲正",
+        "description": "蓝鲸医疗科技ORD-913收款冲正（补账）",
+        "status": "completed"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "SKU-ALPHA-1",
+        "name": "企业工单许可-基础",
+        "category": "软件许可",
+        "quantity": 120,
+        "unit": "套",
+        "unit_cost": 9000.0,
+        "selling_price": 28000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研"
+      },
+      {
+        "product_id": "SKU-ALPHA-2",
+        "name": "企业工单许可-专业",
+        "category": "软件许可",
+        "quantity": 80,
+        "unit": "套",
+        "unit_cost": 17000.0,
+        "selling_price": 42000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研"
+      },
+      {
+        "product_id": "SKU-MOD-NOVA-1",
+        "name": "Nova数据分析模块",
+        "category": "增值模块",
+        "quantity": 60,
+        "unit": "套",
+        "unit_cost": 12000.0,
+        "selling_price": 26000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研"
+      },
+      {
+        "product_id": "SKU-MOD-NOVA-2",
+        "name": "Nova数据分析模块-高阶",
+        "category": "增值模块",
+        "quantity": 45,
+        "unit": "套",
+        "unit_cost": 22000.0,
+        "selling_price": 48000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研"
+      },
+      {
+        "product_id": "SKU-MOD-ORBIT-1",
+        "name": "Orbit运维监控模块",
+        "category": "增值模块",
+        "quantity": 90,
+        "unit": "套",
+        "unit_cost": 15000.0,
+        "selling_price": 36000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研"
+      },
+      {
+        "product_id": "SKU-SVC-EDGE-1",
+        "name": "Edge实施服务-标准",
+        "category": "服务",
+        "quantity": 40,
+        "unit": "人天",
+        "unit_cost": 5200.0,
+        "selling_price": 14000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "交付团队"
+      },
+      {
+        "product_id": "SKU-SVC-EDGE-2",
+        "name": "Edge实施服务-加急",
+        "category": "服务",
+        "quantity": 35,
+        "unit": "人天",
+        "unit_cost": 6800.0,
+        "selling_price": 17000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "交付团队"
+      },
+      {
+        "product_id": "SKU-SVC-CARE-1",
+        "name": "Care客户支持服务",
+        "category": "服务",
+        "quantity": 25,
+        "unit": "月",
+        "unit_cost": 6000.0,
+        "selling_price": 15000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "支持团队"
+      },
+      {
+        "product_id": "SKU-SVC-CARE-2",
+        "name": "Care高级支持服务",
+        "category": "服务",
+        "quantity": 18,
+        "unit": "月",
+        "unit_cost": 9000.0,
+        "selling_price": 22000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "支持团队"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原有订单利润分析基础上，新增“净回款驱动的净影响利润率”与“轻微/严重”异常分级，并加入服务费退款等非订单退款干扰以测试筛选。",
+    "fixture_design_summary": [
+      "CRM新增5名全新客户与各自最近订单；产品组合同时覆盖许可类与服务类。",
+      "Inventory提供全新SKU，确保订单售价可由SKU售价加总得到（与CRM total_price匹配），用于核算成本与账面利润率。",
+      "Finance为其中两位客户构造多笔退款情形：CUS-911出现退款合计大于首笔收款的超额退款表象；CUS-912有额外收款补齐但退款比例仍偏高。",
+      "Finance额外插入type/category为“服务费退款/服务退款”等干扰交易，要求代理依赖字段筛除非订单退款。",
+      "所有交易status均为completed，且跨fixture引用customer_id与customer_name保持一致。"
+    ]
+  }
+}

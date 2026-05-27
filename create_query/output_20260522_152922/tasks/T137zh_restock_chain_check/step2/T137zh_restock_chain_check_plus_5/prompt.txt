@@ -1,0 +1,312 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T137zh_restock_chain_check_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/config/integrations.json",
+  "fixtures/inventory/items.json",
+  "fixtures/scheduler/jobs.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T137zh_restock_chain_check_plus_5",
+  "new_task_name": "缓存过期引发的接口降级",
+  "task_goal": "排查因缓存过期与接口降级导致补货链路异常的情况：输出3条故障链，并对“延迟/降级并非真正低库存原因”的边界条件进行说明。",
+  "user_request": "补货系统的部分品类出现补货不稳定。请你进行链路排查并输出报告：\n1）列出所有补货定时任务，找到失败或重试频繁的任务；\n2）查看每个任务的失败详情，提取错误是否指向缓存过期/降级/限流等；\n3）检查关联API集成配置是否存在限流策略、降级开关或错误率异常；\n4）在库存中识别低于安全线的产品，并判断这些低库存是否确实由链路故障导致；\n5）输出3条故障链（任务→集成→库存）并在报告末尾补充一段边界条件：哪些“仅延迟/降级”不会导致低库存，以及你如何区分。",
+  "scenario": "系统最近上线了接口缓存：当缓存过期未刷新时，供应方API会触发降级响应，调度任务表现为短时失败并产生重试记录。库存侧则并非所有受影响品类都会破线：例如某些SKU即使遇到降级，仍因现有库存与补货周期覆盖而未跌破安全线。任务要区分“因降级导致失败的链路”与“仅延迟但不影响库存底线”的边界。要求输出3条故障链，其中至少1条故障链的低库存产品数量较少，考察对边界条件的描述准确性。",
+  "difference_from_source": "原题主要是超时/停用/凭证过期三类；本题引入“缓存过期→接口降级/限流→任务失败或重试”的新故障模式，并要求额外输出“边界条件说明段”，区分延迟/降级与真正导致低库存的链路。故障链中的库存破线数量与分布也会变化。",
+  "service_and_tool_plan": "使用scheduler_list_jobs根据last_status与execution_history中的失败/错误摘要识别重试频繁任务；scheduler_get_job提取缓存过期/降级类错误；config_list_integrations/config_get_integration检查集成notes或字段中的degraded_mode、rate_limit或high_error_rate等线索；inventory_list_items识别低于安全线产品，再inventory_get_item用于精确给出quantity与reorder_level对比。报告末尾根据数据与链路因果关系写边界说明。",
+  "fixture_generation_plan": "fixture生成需覆盖“失败但不必然低库存”的边界：\n- scheduler/jobs.json：至少8个任务；其中3个任务为目标故障链，last_status=failed或execution_history包含多次error但最终未成功；错误类型需包含缓存过期/降级/限流信号。再加入2个任务显示重试但last_status=success或库存未破线，用于边界对比。\n- config/integrations.json：至少7条集成；至少2条存在高error_rate或限流策略被触发（例如rate_limit_enabled=true且notes表明降级）；其中1条集成需为正常但出现在重试成功任务中以制造边界。\n- inventory/items.json：至少18个产品；为3条链分别准备低于安全线产品（每链≥2个），并确保至少1条链只涉及1个或2个产品破线以体现边界；同时准备至少2个“任务失败/降级相关但库存仍未破线”的产品用于边界段说明。\n所有实体名、ID、名称、数值均全新且不与原题复用。",
+  "expected_behavior": "代理应输出3条故障链：\n- 每条链必须包含：任务失败/重试证据（从任务详情归纳缓存过期/降级/限流类错误）、对应集成异常（degraded/rate_limit/high_error_rate相关字段或notes）、至少2个低于安全线的产品与明确对比。\n- 边界条件段：指出为何某些任务虽然出现降级/重试但不导致低库存（例如相关SKU quantity≥reorder_level或其supplier_integration并非同一异常集成），并说明区分依据（使用库存破线与集成异常的匹配关系）。",
+  "grading_plan": "grader应检查：①三条故障链的错误类型与集成配置线索是否一致（缓存过期/降级/限流→对应集成字段或notes）；②低库存判断是否准确；③边界条件段是否基于fixture数据给出区分逻辑（不是空泛）；④对“重试但最终success/不破线”的任务是否被正确处理为非故障链或被用于边界说明。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T137zh_restock_chain_check",
+  "task_name": "补货链路检查",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "scheduler",
+    "config",
+    "inventory"
+  ],
+  "tools": [
+    "scheduler_list_jobs",
+    "scheduler_get_job",
+    "config_list_integrations",
+    "config_get_integration",
+    "inventory_list_items",
+    "inventory_get_item"
+  ],
+  "fixture_paths": [
+    "fixtures/config/integrations.json",
+    "fixtures/inventory/items.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T137zh_restock_chain_check
+task_name: 补货链路检查
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: tasks/T137zh_restock_chain_check/fixtures/scheduler/jobs.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: tasks/T137zh_restock_chain_check/fixtures/config/integrations.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: tasks/T137zh_restock_chain_check/fixtures/inventory/items.json
+prompt:
+  text: '自动补货系统最近出了问题，多个品类缺货。请帮我排查：
+
+    1. 查看所有补货定时任务的状态
+
+    2. 检查相关API集成配置是否正常
+
+    3. 查看库存水位，找出低于安全线的品类
+
+    4. 追踪每条故障链：失败任务 → 配置问题 → 库存影响
+
+    5. 输出排查报告，包含根因分析和修复建议
+
+    '
+  language: zh
+tools:
+- name: scheduler_list_jobs
+  description: 列出定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(all/enabled/disabled)
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: config_list_integrations
+  description: 查看集成配置列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(active/inactive/all)
+    required: []
+- name: config_get_integration
+  description: 获取集成配置详情
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: inventory_list_items
+  description: 查看库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取库存品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+tool_endpoints:
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/config/integrations.json ---
+[
+  {
+    "integration_id": "INT-801",
+    "name": "文具供应商API",
+    "status": "active",
+    "endpoint": "https://api.stationery-supplier.com/v2",
+    "api_key": "sk-stat-xxxx-REDACTED",
+    "error_rate": 0.01,
+    "credentials_expired": false,
+    "notes": "运行稳定",
+    "service": "supplier_api",
+    "last_verified": "2026-03-26T00:00:00Z",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-802",
+    "name": "IT设备供应商API",
+    "status": "active",
+    "endpoint": "https://api.it-supplier.com/v1",
+    "api_key": "sk-it-xxxx-REDACTED",
+    "error_rate": 0.35,
+    "credentials_expired": false,
+    "notes": "近期错误率偏高，供应商服务不稳定",
+    "service": "supplier_api",
+    "last_verified": "2026-03-26T00:00:00Z",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-803",
+    "name": "清洁用品供应商API",
+    "status": "inactive",
+    "endpoint": "https://api.cleaning-supplier.com/v1",
+    "api_key": "sk-clean-xxxx-REDACTED",
+    "error_rate": 0,
+    "credentials_expired": false,
+    "notes": "供应商合作终止，2月停用",
+    "service": "supplier_api",
+    "last_verified": "2026-02-15T00:00:00Z",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-804",
+    "name": "耗材供应商API",
+    "status": "active",
+    "endpoint": "https://api.consumable-supplier.com/v2",
+    "api_key": "sk-cons-xxxx-EXPIRED",
+    "error_rate": 0.05,
+    "credentials_expired": true,
+    "notes": "API密钥已过期，需更新",
+    "service": "supplier_api",
+    "last_verified": "2026-03-26T00:00:00Z",
+    "monthly_calls": 0
+  }
+]
+--- END FILE: fixtures/config/integrations.json ---
+--- FILE: fixtures/inventory/items.json ---
+[
+  {"product_id": "INV-801", "name": "A4打印纸", "category": "文具", "quantity": 80, "unit": "箱", "reorder_level": 50, "supplier_integration": "INT-801", "last_restock": "2026-03-23"},
+  {"product_id": "INV-802", "name": "签字笔", "category": "文具", "quantity": 200, "unit": "支", "reorder_level": 100, "supplier_integration": "INT-801", "last_restock": "2026-03-23"},
+  {"product_id": "INV-803", "name": "显示器27寸", "category": "IT设备", "quantity": 2, "unit": "台", "reorder_level": 5, "supplier_integration": "INT-802", "last_restock": "2026-02-15"},
+  {"product_id": "INV-804", "name": "机械键盘", "category": "IT设备", "quantity": 3, "unit": "个", "reorder_level": 10, "supplier_integration": "INT-802", "last_restock": "2026-02-15"},
+  {"product_id": "INV-805", "name": "洗手液", "category": "清洁用品", "quantity": 5, "unit": "瓶", "reorder_level": 20, "supplier_integration": "INT-803", "last_restock": "2026-02-01"},
+  {"product_id": "INV-806", "name": "垃圾袋", "category": "清洁用品", "quantity": 10, "unit": "卷", "reorder_level": 30, "supplier_integration": "INT-803", "last_restock": "2026-02-01"},
+  {"product_id": "INV-807", "name": "墨盒", "category": "耗材", "quantity": 1, "unit": "个", "reorder_level": 5, "supplier_integration": "INT-804", "last_restock": "2026-03-05"},
+  {"product_id": "INV-808", "name": "办公椅", "category": "家具", "quantity": 15, "unit": "把", "reorder_level": 5, "supplier_integration": "INT-801", "last_restock": "2026-03-01"}
+]
+
+--- END FILE: fixtures/inventory/items.json ---
+--- FILE: fixtures/scheduler/jobs.json ---
+[
+  {"job_id": "JOB-801", "name": "文具自动补货", "cron_expression": "0 8 * * 1", "action": "restock_stationery", "enabled": true, "last_run": "2026-03-23T08:00:00Z", "next_run": "2026-03-30T08:00:00Z", "last_status": "success", "created_by": "采购部", "tags": ["补货","文具"], "created_at": "2025-06-01T00:00:00Z", "execution_history": [{"run_at": "2026-03-23T08:00:00Z", "status": "success", "duration_s": 30}]},
+  {"job_id": "JOB-802", "name": "IT设备自动补货", "cron_expression": "0 8 * * 1", "action": "restock_it_equipment", "enabled": true, "last_run": "2026-03-23T08:00:00Z", "next_run": "2026-03-30T08:00:00Z", "last_status": "failed", "created_by": "采购部", "tags": ["补货","IT设备"], "created_at": "2025-06-01T00:00:00Z", "execution_history": [{"run_at": "2026-03-23T08:00:00Z", "status": "failed", "duration_s": 120, "error": "APITimeoutError: supplier API timed out after 120s"}, {"run_at": "2026-03-16T08:00:00Z", "status": "failed", "duration_s": 120, "error": "APITimeoutError: supplier API timed out after 120s"}]},
+  {"job_id": "JOB-803", "name": "清洁用品自动补货", "cron_expression": "0 8 1,15 * *", "action": "restock_cleaning", "enabled": false, "last_run": "2026-03-01T08:00:00Z", "next_run": null, "last_status": "failed", "created_by": "行政部", "tags": ["补货","清洁"], "created_at": "2025-08-01T00:00:00Z", "execution_history": [{"run_at": "2026-03-01T08:00:00Z", "status": "failed", "duration_s": 5, "error": "IntegrationInactiveError: cleaning_supplier integration is inactive"}]},
+  {"job_id": "JOB-804", "name": "耗材自动补货", "cron_expression": "0 8 * * 3", "action": "restock_consumables", "enabled": true, "last_run": "2026-03-25T08:00:00Z", "next_run": "2026-04-01T08:00:00Z", "last_status": "failed", "created_by": "采购部", "tags": ["补货","耗材"], "created_at": "2025-07-01T00:00:00Z", "execution_history": [{"run_at": "2026-03-25T08:00:00Z", "status": "failed", "duration_s": 3, "error": "AuthenticationError: API credentials expired for consumable_supplier"}, {"run_at": "2026-03-18T08:00:00Z", "status": "failed", "duration_s": 3, "error": "AuthenticationError: API credentials expired for consumable_supplier"}]},
+  {"job_id": "JOB-805", "name": "办公家具补货检查", "cron_expression": "0 8 1 * *", "action": "restock_furniture", "enabled": true, "last_run": "2026-03-01T08:00:00Z", "next_run": "2026-04-01T08:00:00Z", "last_status": "success", "created_by": "行政部", "tags": ["补货","家具"], "created_at": "2025-09-01T00:00:00Z", "execution_history": [{"run_at": "2026-03-01T08:00:00Z", "status": "success", "duration_s": 15}]}
+]
+
+--- END FILE: fixtures/scheduler/jobs.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

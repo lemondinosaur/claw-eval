@@ -1,0 +1,51 @@
+[
+  {
+    "message_id": "msg_911",
+    "from": "patch-support@company.com",
+    "to": "me@company.com",
+    "subject": "多站点补丁发布与现场支持安排（东港/南湾/江城）",
+    "date": "2026-03-23T11:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important"
+    ],
+    "body": "你好，我部计划在以下站点进行补丁发布现场支持，请你协助出差规划：\n\n1）东港站点：预计 2026/03/30 到达，要求到达窗口为“上午到达”（请在上午窗口内完成报到与现场对接）。\n2）南湾站点：预计 2026/03/31 到达，要求到达窗口为“下午到达”（请在下午窗口内完成报到与安装前检查）。\n3）江城站点：预计 2026/04/01 到达，要求“当天结束前到达”（当天结束前完成现场支持任务并完成交接）。\n\n请根据日历冲突，若某站点窗口被 confirmed 占用，给出错峰或窗口调整建议，并给出推荐访问顺序。\n谢谢！"
+  },
+  {
+    "message_id": "msg_912",
+    "from": "volunteer@community.org",
+    "to": "me@company.com",
+    "subject": "活动志愿者招募（3/30 同期）",
+    "date": "2026-03-24T09:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们将在 3/30 上午开展社区活动招募与培训，若你有空可参加志愿者培训。"
+  },
+  {
+    "message_id": "msg_913",
+    "from": "travel-policy@company.com",
+    "to": "all@company.com",
+    "subject": "差旅政策更新：餐补与交通报销说明",
+    "date": "2026-03-22T18:40:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位同事：本月差旅报销标准更新，详见附件（本邮件不涉及站点与到达窗口）。"
+  },
+  {
+    "message_id": "msg_914",
+    "from": "it-news@company.com",
+    "to": "me@company.com",
+    "subject": "IT公告：系统健康检查已完成",
+    "date": "2026-03-25T08:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "系统健康检查已在夜间完成，未发现高风险告警。"
+  }
+]

@@ -1,0 +1,185 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:43:59",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T135zh_weekly_meeting_tracking",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:41:40",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:41:40",
+      "source_task_id": "T135zh_weekly_meeting_tracking",
+      "source_summary": {
+        "task_id": "T135zh_weekly_meeting_tracking",
+        "task_name": "周会行动项跟踪",
+        "task_type": "从日历中筛选上周有纪要关联的会议，读取纪要里的行动项并与待办系统匹配，输出按会议分组的周进度与遗漏/逾期识别报告。",
+        "category": "workflow",
+        "difficulty": "medium",
+        "tags": [
+          "general",
+          "multi_service"
+        ],
+        "language": "zh",
+        "services": [
+          "calendar",
+          "notes",
+          "todo"
+        ],
+        "tools": [
+          "calendar_list_events",
+          "calendar_get_event",
+          "notes_list",
+          "notes_get",
+          "todo_list_tasks",
+          "todo_get_task"
+        ],
+        "fixture_paths": [
+          "fixtures/calendar/events.json",
+          "fixtures/notes/meetings.json",
+          "fixtures/todo/tasks.json"
+        ],
+        "sandbox_files": [],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "workflow"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T135zh_weekly_meeting_tracking_plus_1",
+          "new_task_name": "周会复盘与缺口追踪",
+          "task_goal": "查看给定周内的会议纪要行动项，并与待办列表进行状态对齐，输出按会议分组的行动项完成率，识别两类问题：纪要存在但待办缺失，以及待办存在但纪要未提及（视为“会外遗留”需标注）。",
+          "user_request": "请生成“本周”会议行动项复盘追踪报告：\n1）查询从上周一到上周日（包含边界）的日历会议；\n2）只处理纪要存在的会议；\n3）从每个纪要中提取行动项列表；\n4）在待办中匹配每个行动项的状态（pending/in_progress/completed）；\n5）找出：A. 纪要中有但待办中没有的行动项；B. 待办中有但纪要里没有的条目；\n6）按会议分组输出：每项的状态、是否逾期/即将到期（仅根据 due_date 相对今天判断）、以及该会议完成率（completed / 该会议行动项总数）。\n\n要求：输出中要同时覆盖“缺失行动项（A）”与“会外遗留（B）”，并在末尾给出总体完成率与问题清单。",
+          "scenario": "mock_today 设为 2026-04-09。日历范围为 2026-04-03 到 2026-04-09：共 6 个事件，其中 2 个为“周会”（描述字段明确包含纪要关联关键字），其余 4 个为日常活动且不应纳入。notes 中存在 2 份纪要：其中一份包含 4 个行动项（包含一个 due_date 刚好等于今天的边界项），另一份包含 3 个行动项（包含一个明显已逾期但仍处于 pending 的项）。todo 中存在 6 个任务：有 6/7 的行动项可匹配到，但恰好有 1 个纪要行动项在待办中缺失；同时待办中有 1 个“会外遗留”任务未在任何纪要中出现（需单独列出）。",
+          "difference_from_source": "除了原本的“纪要-待办遗漏”识别，本任务要求新增反向对比：待办存在但纪要未提及的“会外遗留”也必须被找出并标注；并且加入“即将到期（due_date 等于今天或未来7天内）”的额外标记与边界条件。",
+          "service_and_tool_plan": "继续使用 calendar_list_events 获取范围内事件，再用 notes_list/notes_get定位与纪要相关的会议内容，提取行动项后使用 todo_list_tasks 获取全部待办并用 todo_get_task 逐项确认状态与 due_date；calendar_get_event 用于核对事件的纪要关联信息（若事件描述中带有关键字/ID）。",
+          "fixture_generation_plan": "生成 3 份 fixtures 记录集合：\n1）calendar/events.json：6 条事件，包含 2 条与纪要关联（描述中放入不同的关联标识，如“关联纪要: NOTE-A/B”，但不复用原实体名/ID/邮箱/客户名/会议标题原文），其余 4 条无纪要关联且标题/地点/组织者各异；状态字段全部为 confirmed。\n2）notes/meetings.json：2 条纪要（NOTE-A、NOTE-B 为新ID），每条 content 中的行动项数量分别为 4 与 3，行动项文本中包含负责人占位符与 due_date（覆盖：已完成、进行中、未开始/待办、已逾期、due_date=今天 边界）。\n3）todo/tasks.json：总计 6 条待办，覆盖所有可匹配的行动项（6/7 可匹配），再额外增加 1 条仅存在于待办的会外遗留；任务状态在三种状态间分布，due_date 分布覆盖：过去、今天、未来7天内。\n关键字段：event_id、note_id、task_id、title/description 与行动项文本的匹配口径需一致（例如用行动项短标题或负责人+事项名映射）。",
+          "expected_behavior": "智能体应：\n- 用 calendar_list_events 获取指定周范围事件；\n- 依据事件描述/标题识别“有纪要关联”的那 2 个会议，并通过 notes_get 获取其行动项；\n- 调用 todo_list_tasks(all) 拉取待办后匹配每条行动项，必要时 todo_get_task 验证状态与 due_date；\n- 输出按会议分组的表述：每项包含 ①状态 ②是否逾期/即将到期/正常（仅依据 due_date 相对 mock_today）③完成率；\n- 额外输出 A 缺失行动项清单与 B 会外遗留清单（会外遗留需说明“待办存在但纪要未提及”）；\n- 最终给出总体完成率（仅对所有纪要行动项）。",
+          "grading_plan": "grader.py 应检查：\n- 每个纪要行动项的状态映射准确（completed/in_progress/pending），且完成率分母正确；\n- A 缺失项是否被识别且数量与内容对应；\n- B 会外遗留是否被识别（待办存在但纪要未覆盖），且不把其误算进完成率；\n- 逾期/即将到期标记是否正确处理边界（due_date=今天视为即将到期而非逾期）；\n- 报告结构是否按会议分组，并包含总体完成率与两类问题清单。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T135zh_weekly_meeting_tracking_plus_2",
+          "new_task_name": "跨周滚动行动项对齐",
+          "task_goal": "对齐“上两周滚动窗口”里的会议行动项：将两周内会议纪要的行动项分别统计，并对比待办状态变化口径（同一行动项可能在待办中出现多条同名/不同task_id的候选，需要选择最相关的一条：优先 completed，其次 in_progress，再次 pending；若 due_date 更早优先）。输出包含：每周分组完成率、跨周同名项的去重与归并规则说明、遗漏项。",
+          "user_request": "请生成“滚动两周”的会议行动项跟踪报告：\n1）查看日历中两周窗口：上上周一到上周日（共14天）；\n2）只选择带有纪要关联的会议；\n3）分别按“归属周”（行动项 due_date 所在周：若 due_date 落在上上周则归上上周，落在上周则归上周）将行动项分组统计；\n4）待办中可能存在同一行动项的多个候选条目，请按规则匹配并归并：优先选择 completed，其次 in_progress，再 pending；若状态优先级相同，选择 due_date 更早的；\n5）找出纪要中存在但待办未匹配到的行动项（遗漏）；\n6）输出：每周分组完成率、逐项状态（使用归并后的最终匹配结果）、以及“归并规则应用说明”（至少指出哪些行动项发生了候选冲突）。",
+          "scenario": "mock_today 设为 2026-05-07。日历窗口为 2026-04-23 到 2026-05-07（14天）。calendar 有 7 个事件，其中 3 个为纪要会议：分别关联 NOTE-X1、NOTE-X2、NOTE-X3。notes 中共 3 份纪要，总行动项 9 个：其中 4 个 due_date 落在上上周，5 个落在上周；并且至少 2 个行动项在 todo 中对应多条候选（例如同一事项在不同系统周期被重复创建：一个 pending、一个 completed）。todo 总计 10 条任务：包含 8 个可匹配到的行动项候选（但其中 2 个行动项存在冲突要归并），另有 1 条“完全不相关的待办”可忽略（不要求反向检查）。还需包含 1 个纪要行动项在 todo 中完全缺失。",
+          "difference_from_source": "原题只做简单一对一匹配并统计；本任务加入“滚动两周归属周规则”“同名候选的冲突归并选择算法”以及“归并规则说明”要求，考察更复杂的数据对齐逻辑。",
+          "service_and_tool_plan": "沿用 calendar_list_events 获取窗口事件；通过 notes_get 获取每个纪要的行动项并提取 due_date 用于归属周；todo_list_tasks(all) 获取候选集合，再对每个行动项做归并匹配选择（可用 todo_get_task 二次确认关键字段）；calendar_get_event 用于核对事件到纪要的映射线索。",
+          "fixture_generation_plan": "生成新 fixtures：\n1）calendar/events.json：7 条事件，3 条为纪要会议（event_id 新ID，description 含不同“关联纪要: NOTE-Xn”标识），其余为无纪要日常事件；start_time 分布覆盖整个14天。\n2）notes/meetings.json：3 条纪要（NOTE-X1~NOTE-X3），每条 content 的行动项共计 9 个；行动项负责人/事项名/截止日期都要是全新不重复实体；至少两条行动项在语义上相同（用于制造候选冲突），例如“安全审计清单完善”和“安全审计清单完善（v2）”要能被匹配到同一归并目标。\n3）todo/tasks.json：10 条任务：\n- 对应可匹配行动项的任务至少 8 条；\n- 至少 2 组行动项出现候选冲突（同一事项名下有不同 task_id，状态不同/ due_date 不同）；\n- 至少 1 条任务在两周纪要都未出现（用于干扰）；\n- 至少 1 个纪要行动项缺失（无任何候选）。\n关键字段与状态分布：completed/in_progress/pending 三种齐全；due_date 覆盖上上周与上周边界。",
+          "expected_behavior": "智能体应：\n- 找出3个纪要会议并读取其9个行动项；\n- 根据每个行动项 due_date 归属上上周/上周分组；\n- 对于待办候选冲突的行动项，按指定优先级与最早 due_date 选择最终匹配；\n- 输出每周分组完成率（分母为该周归属的纪要行动项数，分子为 completed 数）；\n- 列出所有遗漏行动项；\n- 在报告中明确至少指出发生冲突的行动项及最终选择理由（例如“存在pending与completed候选，选择completed due_date更早/更优状态”）。",
+          "grading_plan": "grader.py 应检查：\n- 归属周划分是否严格按 due_date 落点；\n- 冲突归并选择是否符合规则（状态优先级与 due_date tie-break）；\n- 完成率分子分母正确且不因归并而重复计数；\n- 遗漏项数量与内容正确；\n- 报告中包含归并规则应用说明且至少覆盖两处冲突。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T135zh_weekly_meeting_tracking_plus_3",
+          "new_task_name": "非标准纪要格式的行动项抽取",
+          "task_goal": "从纪要文本中提取行动项，即使纪要行动项不按“1. 【姓名】事项，截止日期”统一格式呈现，也要能解析负责人、事项与截止日期，再与待办匹配并输出周进度；同时识别“纪要条目无截止日期”的边界情况，标注为“无法判断逾期”。",
+          "user_request": "请生成本周会议行动项跟踪报告（重点考察纪要解析）：\n1）查询本周内的日历会议，只处理带有纪要的会议；\n2）对每份纪要：从文本中抽取所有行动项；如果行动项缺少截止日期，在报告中标记为“无 due_date”；\n3）将抽取到的行动项与待办事项匹配，给出 pending/in_progress/completed；\n4）输出按会议分组的进度：每项包含状态与到期判断（逾期/即将到期/正常；当无 due_date 时仅标记“无 due_date”）；\n5）最后列出遗漏行动项（纪要有但待办无）。\n\n要求：不要忽略纪要中用项目符号/不同符号书写的行动项。",
+          "scenario": "mock_today 设为 2026-06-03。周内日历共 5 个事件，其中 2 个与纪要有关。notes 纪要 2 条：\n- NOTE-M1：行动项 5 个，但格式混合：部分使用“• ”项目符号、部分使用“【负责人】- 事项（截止：YYYY-MM-DD）”；另有 1 个行动项缺少截止日期；\n- NOTE-M2：行动项 3 个，包含一个 due_date 在未来，另两个已在过去。notes内容中还有干扰段落（例如“讨论结论”“风险提示”），不应被当成行动项。\ntodo 中有 7 条任务：其中有 6 条能匹配到纪要行动项（含一个匹配到 pending、一个匹配到 completed），并且缺少 2 个纪要行动项中的一个 due_date 缺失项在 todo 里也没有对应；其余 1 条 todo 为干扰（不要求反向检测）。",
+          "difference_from_source": "原题假设行动项格式相对规范。本任务强调“非标准纪要格式抽取”与“无 due_date 边界处理”，并要求对非行动项干扰文本保持鲁棒性。",
+          "service_and_tool_plan": "仍使用 calendar_list_events 找到纪要会议；notes_get 获取每份纪要文本用于抽取行动项；todo_list_tasks(all) 批量取待办后匹配；必要时 todo_get_task 核验匹配到的候选任务状态与 due_date；calendar_get_event 仅用于确认纪要关联。",
+          "fixture_generation_plan": "生成 fixtures：\n1）calendar/events.json：5 条事件，其中2条描述含“纪要关联：NOTE-M1/M2”，其余为无关活动（例如培训/例行检查），start_time 分布在本周内。\n2）notes/meetings.json：2条纪要。\n- NOTE-M1：5个行动项，至少2种写法混合；至少1个行动项缺少截止日期；加入至少一段“结论/风险/已完成说明”干扰文本。\n- NOTE-M2：3个行动项，确保截止日期都存在。\n3）todo/tasks.json：7条任务，状态分布覆盖三类；due_date 覆盖过去/未来；其中至少1条 todo 为干扰但与任何行动项无匹配；至少1个纪要行动项（最好是无 due_date 或其 due_date 缺失）在待办中缺失。\n确保所有姓名/事项/负责人称呼/任务标题/ID 均为新生成且不与原题复用。",
+          "expected_behavior": "智能体应：\n- 识别并读取2份纪要；\n- 从文本中抽取所有行动项（忽略干扰段落），并对无 due_date 的行动项标注“无 due_date”；\n- 与待办匹配并输出每项状态与到期判断：\n  - 有 due_date：根据 due_date 相对 mock_today 标记逾期/即将到期/正常；\n  - 无 due_date：只标“无 due_date”（不做逾期判断）；\n- 输出遗漏清单（纪要有但待办无）。",
+          "grading_plan": "grader.py 应检查：\n- 行动项抽取数量是否正确（包含不同符号/格式的项目）且不把干扰文本误抽取；\n- 无 due_date 的条目是否被正确识别并在报告中出现“无 due_date”；\n- 到期判断逻辑一致（有 due_date 才判断逾期/即将到期）；\n- 遗漏项识别正确且不会遗漏无 due_date 情况；\n- 报告仍按会议分组。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T135zh_weekly_meeting_tracking_plus_4",
+          "new_task_name": "跨标签过滤与资源干扰",
+          "task_goal": "基于日历与纪要标签过滤：在纪要列表中可能存在多份与会议同主题但标签不匹配的文档干扰；智能体需要只选择与目标会议事件一致的那份纪要（通过事件描述关联线索或note匹配字段）。输出统计时只包含被选中的纪要行动项，忽略同主题干扰纪要。",
+          "user_request": "请为我生成“目标主题周会”的行动项跟踪报告：\n1）在本周日历范围内找到所有会议事件；\n2）从事件中挑出主题为“治理与合规”的会议；\n3）对这些会议：只加载与事件关联的纪要（notes中可能存在同主题但不属于该会议的干扰纪要，必须排除）；\n4）抽取纪要里的行动项，并与待办匹配输出状态；\n5）识别纪要中有但待办缺失的行动项（遗漏）；\n6）报告按“治理与合规会议标题”分组，并给出每组完成率与遗漏清单。\n\n要求：如果同一会议存在多个同标签纪要候选，要用事件关联信息排除不相关的纪要。",
+          "scenario": "mock_today 设为 2026-06-18。周内 calendar 有 8 个事件，其中 3 个事件标题/描述包含“治理与合规”字样并分别关联不同 note（NOTE-GA、NOTE-GB、NOTE-GC）。notes fixtures 中额外加入 2 份同样带有“治理与合规”tag但与任何事件不匹配的干扰纪要（NOTE-D1、NOTE-D2）。待办 todo 中包含可匹配行动项 7 个，另有 2 个行动项缺失；同时存在 1 条待办属于干扰纪要的行动项，不应被算入任何遗漏（因为干扰纪要不应被纳入）。",
+          "difference_from_source": "原题直接通过有纪要的会议抽取行动项。本任务加入“notes 同标签干扰纪要”的筛选约束，要求依据事件关联线索精确选择纪要，而不是仅凭标签。",
+          "service_and_tool_plan": "使用 calendar_list_events 获取事件后，通过 calendar_get_event 读取事件description中的关联note线索；notes_get 按关联note_id获取对应纪要内容（可选用 notes_list 作为辅助但最终必须严格按关联筛选）；todo_list_tasks/all 与 todo_get_task 用于匹配行动项并确认状态与 due_date。",
+          "fixture_generation_plan": "生成 fixtures：\n1）calendar/events.json：8条事件，包含3条目标事件（治理与合规），其余5条为无关会议；每条事件的 description 包含“关联纪要: NOTE-xx”且NOTE-xx互不重复。\n2）notes/meetings.json：至少5条纪要：\n- 3条与目标事件关联（NOTE-GA/GB/GC），每条包含 2-4 个行动项；\n- 2条干扰纪要（NOTE-D1/D2），tag 也包含“治理与合规”，但它们的 note_id 不会出现在任何事件关联线索中；并且干扰纪要内也应包含行动项，以验证筛选正确性。\n3）todo/tasks.json：任务总计 9条：\n- 与3条目标纪要行动项可匹配的 7 条；\n- 其中2个行动项缺失（纪要有但todo无）；\n- 另外至少1条待办只对应干扰纪要的行动项（不应被纳入遗漏统计）。\n状态分布覆盖 completed/in_progress/pending，due_date 覆盖过去与未来。",
+          "expected_behavior": "智能体应：\n- 在日历内筛出“治理与合规”会议事件；\n- 对每个目标事件，严格按事件关联信息获取其对应纪要（忽略同标签但不关联的干扰纪要）；\n- 抽取并匹配行动项状态到待办；\n- 输出按会议分组的完成率与遗漏清单（仅对被选中纪要的行动项）；\n- 不将干扰纪要的行动项纳入任何统计或遗漏。",
+          "grading_plan": "grader.py 应检查：\n- 目标会议识别准确（只取3个治理与合规事件）；\n- 纪要选择必须与事件关联线索一致，且干扰纪要内容不应出现在报告中；\n- 完成率分母仅包含目标纪要行动项；\n- 遗漏项只统计目标纪要的行动项，忽略干扰纪要对应的待办差异；\n- 报告分组与遗漏清单的数量/对应关系正确。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T135zh_weekly_meeting_tracking_plus_5",
+          "new_task_name": "里程碑阶段行动项与状态收敛",
+          "task_goal": "将纪要行动项映射到待办的里程碑阶段，并计算“收敛进度”：同一行动项在待办中可能随阶段多次更新（例如 milestone-1/milestone-2），需要选择最高阶段但仍区分完成与未完成；输出每会议的阶段收敛率（最高阶段达到“final”的占比）以及遗漏项。",
+          "user_request": "请生成本周会议行动项里程碑跟踪报告：\n1）查询上周一到上周日的日历会议，只处理带纪要关联的会议；\n2）从纪要中提取行动项，并为每个行动项确定其里程碑目标（例如：阶段1/阶段2/final）；\n3）在待办系统中找到对应的里程碑任务：如果同一行动项存在多个里程碑条目，需选择“最高阶段”作为最终阶段；\n4）输出每会议：\n   - 每项：给出最终状态（completed/in_progress/pending）与最终里程碑阶段（m1/m2/final）；\n   - 计算阶段收敛率：达到 final 阶段的行动项数 / 该会议行动项总数；\n5）识别纪要中有但待办中完全缺失的行动项（遗漏）。\n\n注意：如果最终选到的最高阶段仍未完成，需要在报告中标记“未收敛”。",
+          "scenario": "mock_today 设为 2026-07-02。日历范围 2026-06-24 到 2026-06-30：共 6 事件，其中 2 个与纪要关联。notes 中 2 条纪要，合计行动项 6 个；每个行动项在描述中明确写出目标里程碑（如“目标：final”或“目标：m2”。至少包含3个目标为final）。todo 中对部分行动项会出现多条里程碑任务（例如同一事项存在 m1 与 m2 两条；其中一条已完成但另一条在进行中），需要按阶段优先选择最终里程碑；同时有 1 个行动项在 todo 中不存在（遗漏）。另外还有 1 条待办里程碑任务仅存在于某个会议之外，不应影响统计（但不要求额外反向检查）。",
+          "difference_from_source": "原题只看完成状态并识别遗漏。本任务引入“里程碑阶段选择+阶段收敛率+未收敛标记”，要求在同一行动项多候选里按阶段收敛规则选择最终阶段，而不仅是状态匹配。",
+          "service_and_tool_plan": "使用 calendar_list_events 获取范围事件，calendar_get_event 核对纪要关联note_id；notes_get 读取纪要并解析每个行动项的目标里程碑；todo_list_tasks(all) 拉取所有里程碑任务后按行动项短标题/负责人+事项映射到对应任务集合，再从集合中按最高阶段选择最终候选（可用 todo_get_task 精确获取阶段字段与状态）；最后在输出中计算收敛率。",
+          "fixture_generation_plan": "生成 fixtures：\n1）calendar/events.json：6条事件，其中2条带纪要关联（NOTE-R1、NOTE-R2），其余4条无关联；start_time 覆盖整周。\n2）notes/meetings.json：2条纪要。\n- 总行动项 6 个；每个行动项文本包含目标里程碑标识（m1/m2/final），且事项名与负责人全新；\n- content 内加入一些非行动项句子干扰。\n3）todo/tasks.json：任务总计 11条：\n- 覆盖至少5个行动项的里程碑候选（其中至少2个行动项各有2条不同阶段任务：m1与m2、或m2与final）；\n- 至少1个行动项完全缺失（遗漏）；\n- 在三种状态分布上覆盖 completed/in_progress/pending；\n- 为里程碑任务设置可区分阶段的字段：如 title/description 中包含“m1/m2/final”；\n- 添加1条与任何纳入纪要行动项不匹配的干扰里程碑任务。\n确保不复用原题ID、名称、数值与段落。",
+          "expected_behavior": "智能体应：\n- 找到2个纪要会议并提取6个行动项及其目标里程碑；\n- 在待办中为每个行动项收集所有候选里程碑任务，选择最高阶段作为最终阶段（若有final候选则最终阶段为final）；\n- 输出每项：最终状态与最终里程碑阶段；当最终阶段未达到目标final或目标要求且状态未完成时标记“未收敛”；\n- 计算每会议的阶段收敛率：final阶段行动项数/该会议行动项总数；\n- 输出遗漏清单（纪要有但待办完全没有候选）。",
+          "grading_plan": "grader.py 应检查：\n- 目标里程碑解析准确（每项目标正确）；\n- 最高阶段选择规则正确（同一行动项多候选时取最高阶段）；\n- 阶段收敛率计算正确且仅基于纳入纪要行动项；\n- “未收敛”标记条件符合定义（最高阶段未达到目标/仍未完成）；\n- 遗漏项数量与对应行动项正确；\n- 输出按会议分组并包含每会议收敛率与遗漏清单。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:43:59",
+    "items": [
+      {
+        "task_id": "T135zh_weekly_meeting_tracking_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:42:05",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T135zh_weekly_meeting_tracking_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:42:29",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T135zh_weekly_meeting_tracking_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:42:53",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T135zh_weekly_meeting_tracking_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:43:25",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T135zh_weekly_meeting_tracking_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:43:59",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/T135zh_weekly_meeting_tracking_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T135zh_weekly_meeting_tracking/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T135zh_weekly_meeting_tracking",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

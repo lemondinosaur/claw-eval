@@ -1,0 +1,152 @@
+task_id: T135zh_weekly_meeting_tracking_plus_2
+task_name: 跨周滚动行动项对齐
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_2/fixtures/calendar/events.json
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_2/fixtures/notes/meetings.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_2/fixtures/todo/tasks.json
+prompt:
+  text: '请生成“滚动两周”的会议行动项跟踪报告（mock_today=2026-05-07）：
+
+
+    1）查看日历中两周窗口：2026-04-23 到 2026-05-07（共14天）。
+
+    2）只选择带有纪要关联的会议：日历事件 description 中包含“关联纪要: NOTE-xxx”。
+
+    3）从每个纪要中提取行动项，并按“归属周”分组统计：归属周由每个行动项的 due_date 决定——due_date 落在 2026-04-23~2026-04-29
+    归上上周；落在 2026-04-30~2026-05-07 归上周。
+
+    4）待办中可能存在同一行动项语义对应的多个候选条目（同名/不同 task_id）。对每个行动项进行匹配归并：优先选择状态优先级 completed，其次 in_progress，再
+    pending；若状态优先级相同，选择 due_date 更早的候选；最终输出“归并后的最终匹配结果”。
+
+    5）找出遗漏项：纪要中存在但待办中完全未匹配到的行动项（不要求反向检查待办中多余任务）。
+
+    6）输出要求：
+
+    - 每周分组完成率（分母=该周归属的纪要行动项数；分子=归并后匹配结果中状态为 completed 的数量）
+
+    - 逐项列出行动项及其归并后的最终状态
+
+    - 至少指出 2 处发生候选冲突的行动项，并说明“归并规则应用说明”（涵盖状态优先级与 due_date 选择逻辑，说明为什么选了最终那条）
+
+    - 列出所有遗漏项
+
+
+    请确保归属周与归并匹配严格遵循上述规则。'
+  language: zh
+tools:
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: all
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+tool_endpoints:
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+environment:
+  mock_today: '2026-03-26'
+  timeout_seconds: 600
+  max_turns: 30

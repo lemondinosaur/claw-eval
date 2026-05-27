@@ -1,0 +1,65 @@
+task_id: T088_pinbench_project_bootstrap_plan_plus_2
+task_name: Node TS Package Starter
+version: '1.0'
+category: file_ops
+difficulty: easy
+tags:
+- general
+services:
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T088_pinbench_project_bootstrap_plan_plus_2/fixtures/todo/tasks.json
+prompt:
+  text: 'Use the todo service to bootstrap a TypeScript utility package plan for "bluehorizon".
+    Create actionable tasks for: 1) creating the folder structure under a src folder
+    with an index export file, 2) adding a test setup and at least one example test,
+    ensuring the test requirement explicitly includes: when the main function is called
+    with no input parameters, it should throw an error, 3) writing package.json metadata
+    including scripts and a placeholder for dependencies/devDependencies, 4) writing
+    a README with quick start and an API section placeholder, and 5) adding a pre-publish
+    checklist task. Then summarize the setup plan, and make sure the summary clearly
+    explains the correspondence between scripts and the test setup, with an execution
+    order.'
+  language: en
+tools:
+- name: todo_create_task
+  description: Create a new todo task
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      priority:
+        type: string
+      due_date:
+        type: string
+    required:
+    - title
+- name: todo_list_tasks
+  description: List todo tasks
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+    required: []
+tool_endpoints:
+- tool_name: todo_create_task
+  url: http://localhost:9102/todo/tasks/create
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+sandbox_files:
+- fixtures/todo/tasks.json
+environment:
+  timeout_seconds: 180
+  max_turns: 10

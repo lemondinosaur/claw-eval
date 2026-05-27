@@ -1,0 +1,119 @@
+[
+  {
+    "ticket_id": "TK-1601",
+    "title": "搜索服务错误率升高导致检索不可用（影响促销活动）",
+    "description": "星岚零售集团（CUS-1601）反馈：今天10:40开始搜索与推荐链路返回异常，错误率快速上升，用户端表现为搜索不可用。影响至少三场运营促销活动（闪购专场/门店到家推荐/新客首单）。客户要求按VIP SLA进行紧急响应，并在1小时内给出修复路径与预计恢复窗口。该告警被标记为critical，需要优先处置搜索服务应急方案。",
+    "customer_id": "CUS-1601",
+    "reporter": "顾总裁",
+    "department": "客户支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-26T10:58:00Z",
+    "tags": [
+      "VIP",
+      "搜索服务",
+      "错误率升高",
+      "促销影响",
+      "紧急"
+    ],
+    "category": "搜索故障"
+  },
+  {
+    "ticket_id": "TK-1602",
+    "title": "日志采集延迟：观测指标滞后影响排障",
+    "description": "星岚零售集团（CUS-1601）并行报告：部分服务日志采集存在延迟，导致平台侧观测指标更新滞后，影响错误定位与回归验证。当前告警为high，需并行处理但本次邮件聚焦critical搜索错误率问题。",
+    "customer_id": "CUS-1601",
+    "reporter": "运维值班",
+    "department": "客户支持",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-26T10:35:00Z",
+    "tags": [
+      "日志采集",
+      "延迟",
+      "观测"
+    ],
+    "category": "观测与日志"
+  },
+  {
+    "ticket_id": "TK-1603",
+    "title": "推荐服务响应变慢（资源争用）",
+    "description": "星岚零售集团（CUS-1601）反馈：除搜索错误外，推荐服务在部分时段响应变慢，疑似与资源争用有关。当前优先级为medium，已同步排查并与critical搜索并行推进。",
+    "customer_id": "CUS-1601",
+    "reporter": "产品经理",
+    "department": "客户支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-26T10:25:00Z",
+    "tags": [
+      "推荐服务",
+      "性能",
+      "资源争用"
+    ],
+    "category": "性能问题"
+  },
+  {
+    "ticket_id": "TK-1604",
+    "title": "北斗云：报表接口偶发超时",
+    "description": "北斗云计算（CUS-1602）报告：报表接口在高峰时段偶发超时，非VIP紧急。",
+    "customer_id": "CUS-1602",
+    "reporter": "许经理",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-26T09:20:00Z",
+    "tags": [
+      "报表",
+      "超时"
+    ],
+    "category": "性能问题"
+  },
+  {
+    "ticket_id": "TK-1605",
+    "title": "海鸥物流：订单同步重试失败",
+    "description": "海鸥物流配车（CUS-1603）反馈：订单同步在部分批次重试失败，当前为low优先级。",
+    "customer_id": "CUS-1603",
+    "reporter": "周主管",
+    "department": "技术支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-26T12:10:00Z",
+    "tags": [
+      "同步",
+      "重试"
+    ],
+    "category": "集成问题"
+  },
+  {
+    "ticket_id": "TK-1606",
+    "title": "晨光教育：内容发布后延迟",
+    "description": "晨光教育科技（CUS-1604）报告：内容发布后在前台展示有短暂延迟，当前为low。",
+    "customer_id": "CUS-1604",
+    "reporter": "沈总监",
+    "department": "产品支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-26T13:05:00Z",
+    "tags": [
+      "内容发布",
+      "延迟"
+    ],
+    "category": "功能问题"
+  },
+  {
+    "ticket_id": "TK-1607",
+    "title": "融桥金融：后台任务执行慢",
+    "description": "融桥金融服务（CUS-1605）反馈：后台任务执行较慢，非关键路径，当前为medium。",
+    "customer_id": "CUS-1605",
+    "reporter": "王副总",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-26T11:35:00Z",
+    "tags": [
+      "后台任务",
+      "性能"
+    ],
+    "category": "性能问题"
+  }
+]

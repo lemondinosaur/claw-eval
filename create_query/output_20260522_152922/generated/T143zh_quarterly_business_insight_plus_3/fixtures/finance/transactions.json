@@ -1,0 +1,218 @@
+[
+  {
+    "transaction_id": "TXN-2101",
+    "customer_id": "CUS-210",
+    "amount": 98000,
+    "type": "subscription",
+    "date": "2026-01-18",
+    "status": "completed",
+    "description": "1月订阅费（企业高级版）"
+  },
+  {
+    "transaction_id": "TXN-2102",
+    "customer_id": "CUS-210",
+    "amount": 102000,
+    "type": "subscription",
+    "date": "2026-02-18",
+    "status": "completed",
+    "description": "2月订阅费（企业高级版）+增值模块"
+  },
+  {
+    "transaction_id": "TXN-2103",
+    "customer_id": "CUS-210",
+    "amount": 101000,
+    "type": "subscription",
+    "date": "2026-03-18",
+    "status": "completed",
+    "description": "3月订阅费（保持高级版；未触发降级）"
+  },
+  {
+    "transaction_id": "TXN-2111",
+    "customer_id": "CUS-211",
+    "amount": 56000,
+    "type": "subscription",
+    "date": "2026-01-09",
+    "status": "completed",
+    "description": "1月订阅费（标准版）"
+  },
+  {
+    "transaction_id": "TXN-2112",
+    "customer_id": "CUS-211",
+    "amount": 48000,
+    "type": "subscription",
+    "date": "2026-02-09",
+    "status": "completed",
+    "description": "2月订阅费（连续下滑；接近最低消费门槛）"
+  },
+  {
+    "transaction_id": "TXN-2113",
+    "customer_id": "CUS-211",
+    "amount": 41000,
+    "type": "subscription",
+    "date": "2026-03-09",
+    "status": "completed",
+    "description": "3月订阅费（触发“低消费”预警；存在降级准备）"
+  },
+  {
+    "transaction_id": "TXN-2121",
+    "customer_id": "CUS-212",
+    "amount": 52000,
+    "type": "subscription",
+    "date": "2026-01-26",
+    "status": "completed",
+    "description": "1月订阅费（标准版）"
+  },
+  {
+    "transaction_id": "TXN-2122",
+    "customer_id": "CUS-212",
+    "amount": 51500,
+    "type": "subscription",
+    "date": "2026-02-26",
+    "status": "completed",
+    "description": "2月订阅费（基本持平；等待新定价落地）"
+  },
+  {
+    "transaction_id": "TXN-2123",
+    "customer_id": "CUS-212",
+    "amount": 39500,
+    "type": "subscription",
+    "date": "2026-03-26",
+    "status": "completed",
+    "description": "3月订阅费（价格调整后金额下降；疑似迁移到更基础套餐）"
+  },
+  {
+    "transaction_id": "TXN-2131",
+    "customer_id": "CUS-213",
+    "amount": 74000,
+    "type": "subscription",
+    "date": "2026-01-15",
+    "status": "completed",
+    "description": "1月订阅费（高级版）"
+  },
+  {
+    "transaction_id": "TXN-2132",
+    "customer_id": "CUS-213",
+    "amount": 74000,
+    "type": "subscription",
+    "date": "2026-02-15",
+    "status": "completed",
+    "description": "2月订阅费（高级版）"
+  },
+  {
+    "transaction_id": "TXN-2133",
+    "customer_id": "CUS-213",
+    "amount": 52000,
+    "type": "subscription",
+    "date": "2026-03-15",
+    "status": "completed",
+    "description": "3月订阅费（计费延迟开票：金额暂时偏低但合同仍健康）"
+  },
+  {
+    "transaction_id": "TXN-2141",
+    "customer_id": "CUS-214",
+    "amount": 26000,
+    "type": "subscription",
+    "date": "2026-01-08",
+    "status": "completed",
+    "description": "1月订阅费（基础版；原高级已下调）"
+  },
+  {
+    "transaction_id": "TXN-2142",
+    "customer_id": "CUS-214",
+    "amount": 23500,
+    "type": "subscription",
+    "date": "2026-02-08",
+    "status": "completed",
+    "description": "2月订阅费（继续走基础版；用户侧预算受限）"
+  },
+  {
+    "transaction_id": "TXN-2143",
+    "customer_id": "CUS-214",
+    "amount": 21000,
+    "type": "subscription",
+    "date": "2026-03-08",
+    "status": "completed",
+    "description": "3月订阅费（降级后使用范围缩小）"
+  },
+  {
+    "transaction_id": "TXN-2151",
+    "customer_id": "CUS-215",
+    "amount": 69000,
+    "type": "subscription",
+    "date": "2026-01-21",
+    "status": "completed",
+    "description": "1月订阅费（标准版）"
+  },
+  {
+    "transaction_id": "TXN-2152",
+    "customer_id": "CUS-215",
+    "amount": 65000,
+    "type": "subscription",
+    "date": "2026-02-21",
+    "status": "completed",
+    "description": "2月订阅费（AI替代评估中；预算趋紧）"
+  },
+  {
+    "transaction_id": "TXN-2153",
+    "customer_id": "CUS-215",
+    "amount": 52000,
+    "type": "subscription",
+    "date": "2026-03-21",
+    "status": "completed",
+    "description": "3月订阅费（金额下降；存在降级讨论）"
+  },
+  {
+    "transaction_id": "TXN-2161",
+    "customer_id": "CUS-216",
+    "amount": 36000,
+    "type": "subscription",
+    "date": "2026-01-12",
+    "status": "completed",
+    "description": "1月订阅费（政府协同；预算拨付正常）"
+  },
+  {
+    "transaction_id": "TXN-2162",
+    "customer_id": "CUS-216",
+    "amount": 36000,
+    "type": "subscription",
+    "date": "2026-02-12",
+    "status": "completed",
+    "description": "2月订阅费（预算调整中；仍显示健康）"
+  },
+  {
+    "transaction_id": "TXN-2163",
+    "customer_id": "CUS-216",
+    "amount": 27000,
+    "type": "subscription",
+    "date": "2026-03-12",
+    "status": "completed",
+    "description": "3月订阅费（预算获批延迟；计费推后导致金额偏低）"
+  },
+  {
+    "transaction_id": "TXN-2171",
+    "customer_id": "CUS-217",
+    "amount": 21000,
+    "type": "subscription",
+    "date": "2026-01-27",
+    "status": "completed",
+    "description": "1月订阅费（基础版）"
+  },
+  {
+    "transaction_id": "TXN-2172",
+    "customer_id": "CUS-217",
+    "amount": 19500,
+    "type": "subscription",
+    "date": "2026-02-27",
+    "status": "completed",
+    "description": "2月订阅费（连续低消费；自动下调风险）"
+  },
+  {
+    "transaction_id": "TXN-2173",
+    "customer_id": "CUS-217",
+    "amount": 14000,
+    "type": "subscription",
+    "date": "2026-03-27",
+    "status": "completed",
+    "description": "3月订阅费（断崖式下降；降级谈判前兆）"
+  }
+]

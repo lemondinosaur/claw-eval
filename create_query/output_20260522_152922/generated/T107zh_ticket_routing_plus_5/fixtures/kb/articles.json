@@ -1,0 +1,77 @@
+[
+  {
+    "article_id": "KB-601",
+    "title": "导出任务超时与队列积压排查（含主症状判定）",
+    "category": "技术文档",
+    "tags": [
+      "导出",
+      "超时",
+      "导出任务",
+      "队列积压",
+      "TimeoutError"
+    ],
+    "content": "## 导出任务超时与队列积压排查\n\n### 典型现象\n- 导出接口返回失败：TimeoutError / 生成超时\n- 日志出现 exportJob exceeded 或 job_queue_delay 持续升高\n\n### 排查要点\n1. 检查导出任务执行耗时：定位生成阶段/依赖资源\n2. 检查队列延迟：job_queue_delay 是否显著大于正常值\n3. 若接口有明显超时阈值，建议临时提高网关/应用超时\n\n### 升级条件（建议）\n- 如果导出失败导致核心业务中断：优先升级至P1\n- VIP客户的导出超时：优先升级（并同步升级技术负责人）",
+    "last_updated": "2026-04-01",
+    "views": 311
+  },
+  {
+    "article_id": "KB-602",
+    "title": "权限校验失败（401/403）主因识别与解决路径",
+    "category": "技术文档",
+    "tags": [
+      "权限校验",
+      "鉴权",
+      "401",
+      "403",
+      "scope"
+    ],
+    "content": "## 权限校验失败（401/403）主因识别与解决路径\n\n### 关键证据\n- 401 Unauthorized / 错误码 AUTH_SCOPE_DENIED\n- 403 Forbidden / 错误码 AUTH_403（scope missing）\n\n### 排查路径\n1. 确认token scope/role映射是否存在\n2. 检查该接口/模块的访问控制列表 ACL\n3. 对导出/看板等受限模块：核对权限模板与用户组绑定\n\n### 升级条件（建议）\n- 付费/关键客户出现401/403导致核心页面或关键能力不可用：升级至P1\n- VIP客户鉴权失败：直接按P1升级并通知相关负责人",
+    "last_updated": "2026-03-20",
+    "views": 527
+  },
+  {
+    "article_id": "KB-603",
+    "title": "API网关超时（504/GATEWAY_TIMEOUT）与下游依赖定位",
+    "category": "技术文档",
+    "tags": [
+      "接口超时",
+      "504",
+      "网关",
+      "GATEWAY_TIMEOUT",
+      "上游超时"
+    ],
+    "content": "## API网关超时（504/GATEWAY_TIMEOUT）与下游依赖定位\n\n### 典型证据\n- HTTP 504\n- 日志：upstream timed out while calling api-gateway\n- 错误码：GATEWAY_TIMEOUT\n\n### 排查步骤\n1. 查看网关超时配置与链路耗时分解\n2. 定位上游依赖（下游服务是否慢、是否超出超时阈值）\n3. 若出现重试风暴：限制重试次数并检查连接池与线程池\n\n### 升级条件（建议）\n- 如果影响核心API链路：升级至P1\n- VIP或续约期客户出现504并影响多个请求：升级至P1并启动加速处置",
+    "last_updated": "2026-03-28",
+    "views": 842
+  },
+  {
+    "article_id": "KB-604",
+    "title": "数据同步延迟（Kafka consumer lag）恢复与补偿机制",
+    "category": "技术文档",
+    "tags": [
+      "数据同步",
+      "延迟",
+      "Kafka",
+      "consumer lag",
+      "恢复"
+    ],
+    "content": "## 数据同步延迟（Kafka consumer lag）恢复与补偿机制\n\n### 关键证据\n- Kafka consumer lag exceeded threshold\n- 同步lag持续上升（例如45分钟以上）\n\n### 排查与恢复\n1. 检查consumer group积压与分区分布\n2. 重启/扩容同步worker，观察lag是否回落\n3. 若出现数据未就绪导致的后续401/业务失败：以同步恢复为主线处理\n\n### 升级条件（建议）\n- VIP客户数据同步延迟超过30分钟：升级至P1\n- 续约期客户（合同到期前60天内）且延迟影响关键业务：升级至P1",
+    "last_updated": "2026-04-05",
+    "views": 639
+  },
+  {
+    "article_id": "KB-605",
+    "title": "工单分流标签（主症状驱动）与category/tags编排规则",
+    "category": "流程规范",
+    "tags": [
+      "工单分流",
+      "标签编排",
+      "主症状",
+      "category",
+      "tags"
+    ],
+    "content": "## 工单分流标签（主症状驱动）与category/tags编排规则\n\n### 主症状判定\n- 以description中“根因证据”作为主症状：HTTP状态码/错误码/关键日志短语\n- 对“伴随/二次影响”不作为主症状：例如页面等待态、后续补偿调用失败\n\n### 建议标签模板\n- 导出-超时：['导出','超时','exportJob']\n- 权限-校验失败：['权限','鉴权','401/403','scope']\n- 接口-网关超时：['接口','网关','504','GATEWAY_TIMEOUT']\n- 同步-延迟恢复：['数据同步','延迟','Kafka','consumer lag']\n\n### 升级触发提示\n- VIP自动加速一级\n- 续约期前60天内自动加速一级\n\n### 注意\n- 不要将冲突/对抗tags直接复制到最终tags；category需与主症状一致",
+    "last_updated": "2026-04-12",
+    "views": 198
+  }
+]

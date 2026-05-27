@@ -1,0 +1,71 @@
+task_id: T095_pinbench_apm_market_research_plus_3
+task_name: 开源生态优先：LGTM与OTel路线对比
+version: '1.0'
+category: research
+difficulty: easy
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T095_pinbench_apm_market_research_plus_3/fixtures/kb/articles.json
+prompt:
+  text: '请从“工程自治与开源/OTel路线优先”的视角，做一份APM/可观测市场竞争研究，面向偏工程自治与开源采用的团队。
+
+
+    要求：至少5家厂商（每家都必须包含与OpenTelemetry相关的差异化/架构取向，若原文未直接提OTel也需基于内容语义给出其兼容与集成取向；并概述其仪表盘/工作流或平台整合能力；再描述其常见定价模式的关键计费维度）。
+
+
+    输出必须包含：
+
+    1）比较表（至少5行/至少5家厂商）；
+
+    2）3条市场趋势（需体现OTel标准化与平台整合/工作流相关方向）；
+
+    3）不超过200字的“路线选择建议”（明确给出偏好：更重视标准化、扩展性、以及计费维度与工程扩展成正比如何权衡成本效率）。
+
+
+    输出语言：中文。'
+  language: en
+tools:
+- name: kb_search
+  description: Search the KB
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+      category:
+        type: string
+      max_results:
+        type: integer
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: Get one KB article
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+sandbox_files:
+- fixtures/kb/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 16

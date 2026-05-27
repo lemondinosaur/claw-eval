@@ -1,0 +1,236 @@
+[
+  {
+    "message_id": "msg_2401",
+    "from": "billing-ops@starhollow.cn",
+    "to": "me@company.com",
+    "subject": "Q3对账差异与退款安排（请确认）",
+    "date": "2026-09-10T10:20:00Z",
+    "body": "您好，我们已经提交9月对账差异的解释材料。关于退款/冲销的口径我们希望你们确认：本次差异是否影响到9月交付项？——星河云财务运营团队",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2402",
+    "from": "support@starhollow.cn",
+    "to": "me@company.com",
+    "subject": "关于10月新增模块的预期时间",
+    "date": "2026-09-18T07:45:00Z",
+    "body": "你好，我们这边正在评估10月新增模块的上线节奏。请先给到预计的集成窗口和验收流程。——星河云支持团队",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2403",
+    "from": "admin@company.com",
+    "to": "me@company.com",
+    "subject": "内部通知：季度例会时间调整",
+    "date": "2026-08-05T08:00:00Z",
+    "body": "全体成员：本周季度例会时间调整，请关注后续邮件。——行政部",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2404",
+    "from": "ap-team@arcticfreight.io",
+    "to": "me@company.com",
+    "subject": "关于账期延长与付款节点（8月未完成部分）",
+    "date": "2026-08-22T11:10:00Z",
+    "body": "团队你好：8月付款由于内部审批延后，预计在9月中旬完成。请暂缓对账单出具节奏，避免影响内部流转。——北极航运AP",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2405",
+    "from": "operations@arcticfreight.io",
+    "to": "me@company.com",
+    "subject": "订单变更导致的服务排期说明",
+    "date": "2026-09-03T09:30:00Z",
+    "body": "我们这边有少量订单变更，需要同步服务排期。若你们需要我们提供更新的接口清单，请直接回复邮件。——北极航运运营",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2406",
+    "from": "billing@cloudpalmretail.com",
+    "to": "me@company.com",
+    "subject": "9月订阅暂停原因与恢复计划（已提交补单）",
+    "date": "2026-09-29T13:05:00Z",
+    "body": "你好：9月初因付款延迟导致订阅暂停，补单已提交并预计在月底恢复。恢复后请协助我们核对可用性与数据口径。——云栖零售计费团队",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2407",
+    "from": "platform@cloudpalmretail.com",
+    "to": "me@company.com",
+    "subject": "补回后：需要确认日志导出与对账口径",
+    "date": "2026-09-30T16:40:00Z",
+    "body": "恢复后我们希望确认日志导出范围与对账口径，避免后续退款/冲销争议。请给到操作说明。——云栖零售平台团队",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2408",
+    "from": "admin@company.com",
+    "to": "me@company.com",
+    "subject": "系统通知：登录安全策略更新",
+    "date": "2026-07-28T06:12:00Z",
+    "body": "安全策略更新通知，请勿回复。——系统管理员",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2409",
+    "from": "finance@haotumfg.cn",
+    "to": "me@company.com",
+    "subject": "退款/冲销说明与后续对账里程碑",
+    "date": "2026-08-31T03:10:00Z",
+    "body": "你好：我们对8月退款/冲销的原因已归档。请协助确认9月剩余账款的里程碑与对账节奏。——皓图制造财务",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2410",
+    "from": "pm@haotumfg.cn",
+    "to": "me@company.com",
+    "subject": "关于续期窗口的内部确认（满意度回升）",
+    "date": "2026-09-05T12:20:00Z",
+    "body": "我们目前内部评估完成，整体满意度在提升。关于续期窗口的决定需要财务放款节点配合，请稍等。——皓图制造项目经理",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2411",
+    "from": "contracting@yautengfin.tech",
+    "to": "me@company.com",
+    "subject": "9月冲正退款：合约条款调整后的执行口径",
+    "date": "2026-09-22T09:05:00Z",
+    "body": "你好：9月发生的冲正退款已记录。请按条款调整后的口径继续推进后续执行，并确认我们10-11月的对账模板。——耀腾金融合同团队",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2412",
+    "from": "support@yautengfin.tech",
+    "to": "me@company.com",
+    "subject": "请更新：合规审计模块的验收资料",
+    "date": "2026-09-08T15:30:00Z",
+    "body": "我们需要补充一份验收资料清单，请你们提供最新的合规审计文档要点。——耀腾金融支持",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2413",
+    "from": "notices@company.com",
+    "to": "me@company.com",
+    "subject": "通知：客服工单系统维护窗口",
+    "date": "2026-08-18T02:00:00Z",
+    "body": "客服工单系统将于今晚维护，请预留时间。——通知中心",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2414",
+    "from": "billing@qinglanedu.cn",
+    "to": "me@company.com",
+    "subject": "关于订阅账期调整与付款延迟的说明（8月）",
+    "date": "2026-08-19T08:50:00Z",
+    "body": "团队你好：8月订阅服务暂时处于非完成状态，原因是付款审批延后。我们预计9月下旬补缴完成，请配合暂缓部分变更。——青岚教育财务",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2415",
+    "from": "learnerops@qinglanedu.cn",
+    "to": "me@company.com",
+    "subject": "9月补缴后：希望对齐教学平台的服务边界",
+    "date": "2026-09-26T10:25:00Z",
+    "body": "补缴完成后我们想对齐服务边界与未来两个月的排期，尤其是数据同步策略。请回复建议。——青岚教育运营",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2416",
+    "from": "finance@hongjingmed.com",
+    "to": "me@company.com",
+    "subject": "9月付款延迟：账期调整，麻烦确认对账周期",
+    "date": "2026-09-17T05:40:00Z",
+    "body": "你好：我们9月存在付款延迟与账期调整。能否确认下一次对账周期以及你们系统记录的更新时间点？——宏景医疗财务",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2417",
+    "from": "admin@company.com",
+    "to": "me@company.com",
+    "subject": "内部通知：模板更新与免责声明",
+    "date": "2026-09-20T12:00:00Z",
+    "body": "本周邮件模板与免责声明更新，请勿回复。——合规团队",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2418",
+    "from": "it-support@hongjingmed.com",
+    "to": "me@company.com",
+    "subject": "补缴后需要协助：接口同步与回归验证",
+    "date": "2026-10-10T08:30:00Z",
+    "body": "10月补缴后我们计划做接口同步与回归验证，请提供测试用例和建议顺序。——宏景医疗IT支持",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  }
+]

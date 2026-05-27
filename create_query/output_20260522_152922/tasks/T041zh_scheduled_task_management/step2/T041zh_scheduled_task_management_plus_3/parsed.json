@@ -1,0 +1,399 @@
+{
+  "task_id": "T041zh_scheduled_task_management_plus_3",
+  "task_name": "多时区错峰与延迟漂移",
+  "prompt_text": "请帮我审计并修复系统所有计划任务的运行异常，重点处理：\n1) 跨时区“UTC 意图”导致的 cron 触发偏移/延迟漂移与错误触发；\n2) 空数据/无结果型告警聚合任务：虽然 last_status=success，但根据 job_history 判断仍应按风险策略纠正调度。\n\n你的目标：\n- 列出所有异常任务（至少包括 failed 的任务与疑似漂移的任务、以及空报型聚合器任务）。\n- 对每个异常任务：结合 scheduler_get_job 的 tags/cron 表达式与 scheduler_job_history 的误触发/空结果证据，利用知识库给出修复方法。\n- 对需要修正触发时间的任务，调用 scheduler_update_job 调整 cron_expression（或必要时调整 enabled），使触发窗口回到正确时区/错峰策略。\n- 对可能影响下游接口容量或触发空报/超时的关键任务，调用 gmail_send_message 通知运维，并在邮件中写明“调整前后触发窗口/预计影响/观察建议”。\n- 最后输出一份完整“定时任务健康报告”，包含：异常列表、漂移/空报/失败的判定依据（next_run/last_run 间隔或错误字段/空结果证据）、采取的调度修正动作、通知事项与预计效果。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_3087",
+        "from": "oncall-ops@company.com",
+        "to": "me@company.com",
+        "subject": "【运维记录】昨天的 UTC 意图任务触发过早",
+        "date": "2026-03-08T10:12:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "Hi 团队，\n\n昨晚发现有一个标注了 [timezone:utc] 的同步任务比预期提前触发（大约提前 35 分钟），随后下游接口出现排队与超时告警。请你们排查调度器的时区/cron 解析与可能的延迟漂移修复策略。\n\n谢谢！\n运维值班\noncall-ops@company.com"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-601",
+        "title": "多时区 cron 与 UTC 意图修正（含错峰）",
+        "category": "运维排查",
+        "tags": [
+          "多时区",
+          "cron",
+          "UTC",
+          "错峰"
+        ],
+        "content": "# 多时区 cron 与 UTC 意图修正（含错峰）\n\n## 核心背景\n当调度器运行在东八区，但任务标签/动作描述标注了“UTC 意图”（如 [timezone:utc]），常见现象包括：\n- 触发时间整体偏移（早触发或晚触发）\n- 与错峰窗口不一致，导致下游并发抖动\n\n## 修复思路\n1. 先以 scheduler_get_job 获取：\n   - cron_expression\n   - tags（尤其 timezone/utc 类标签）\n   - action 文本里是否声明以 UTC 语义计算\n2. 若判定为“UTC 意图但被按本地时区解释”，则：\n   - 调整 cron_expression，使其在东八区环境下仍命中同一“UTC 目标窗口”\n   - 或将 job tags/启用策略切换到与目标系统一致的时区策略（本题以调整 cron_expression 为主）\n3. 错峰原则：同一类下游接口的写入任务需错开至少 10 分钟。\n\n## 建议输出\n报告中应写明：\n- 触发窗口偏移方向（提前/延后）\n- 调整前后 cron_expression 对应的预计触发时间段\n- 是否已应用错峰（避免与其他任务并发冲突）",
+        "last_updated": "2026-03-01",
+        "views": 412
+      },
+      {
+        "article_id": "KB-602",
+        "title": "判断延迟漂移：基于 next_run/last_run 的窗口偏差",
+        "category": "故障排查",
+        "tags": [
+          "延迟漂移",
+          "next_run",
+          "last_run"
+        ],
+        "content": "# 判断延迟漂移：基于 next_run/last_run 的窗口偏差\n\n## 观察指标（本题可直接使用）\n1. 计算 last_run 与 next_run 的实际间隔：\n   - interval_minutes = (next_run - last_run) / 60\n2. 对比理论周期（由 cron_expression 推导的目标频率）：\n   - 若 interval_minutes 持续偏离理论周期，且偏离量达到 30~60 分钟量级，通常可判定为延迟漂移或解析偏差。\n3. 进一步结合 error 字段：\n   - 如果 error 提示“触发时间偏移/下游超时”等，应将其归类为时区/漂移导致的错误触发。\n\n## 处理建议\n- 对 suspected 漂移任务：优先查 timezone/utc 意图标签；\n- 若确认为 cron 时间语义不一致：\n  - 调整 cron_expression 对齐预期窗口；\n  - 保持 enabled=true（不随意禁用），避免影响链路。\n\n## 报告要求\n- 必须给出：偏差量（分钟级）或区间描述（如“比预期晚 30-60 分钟”）\n- 必须给出：采取的 scheduler_update_job 动作（调整 cron_expression 或启用状态）",
+        "last_updated": "2026-03-04",
+        "views": 287
+      },
+      {
+        "article_id": "KB-603",
+        "title": "空数据告警聚合器的健康判定与纠正建议",
+        "category": "运维排查",
+        "tags": [
+          "空数据",
+          "告警聚合器",
+          "健康判定",
+          "纠正"
+        ],
+        "content": "# 空数据告警聚合器的健康判定与纠正建议\n\n## 为什么 last_status=success 仍可能异常\n聚合器任务可能在执行完成后发现下游数据尚未到达，于是产生空结果，但执行本身仍可标记为 success。\n\n## 如何从 job_history 判断异常\n在 job_history 中出现以下任一模式即可判定为“空报风险”或潜在调度问题：\n- 多次出现文本：\"empty result\" / \"no data\" / \"no results\" / \"空数据\" / \"无结果\"\n- 空结果连续出现次数达到阈值（建议 >=3 次）\n\n## 纠正策略（优先）\n1. 调整触发错峰：让聚合发生在下游数据到达之后。\n2. 若聚合器包含 UTC 意图标签：仍需按“多时区 cron 修正”对齐触发语义。\n3. 若无法准确预测延迟：可以先整体后移 10~20 分钟，并在后续验证 job_history 是否减少空结果。\n\n## 输出建议\n- 报告中要明确：\n  - 该任务 last_status 的表面成功\n  - 但 job_history 的空结果证据\n  - 你采取的调度修正（cron 或启用策略）\n- 必须给出预计效果：减少空结果、恢复正常告警产出",
+        "last_updated": "2026-03-06",
+        "views": 198
+      },
+      {
+        "article_id": "KB-604",
+        "title": "影响下游时的通知准则（包含邮件内容要点）",
+        "category": "运维规范",
+        "tags": [
+          "通知",
+          "下游接口",
+          "邮件"
+        ],
+        "content": "# 影响下游时的通知准则（包含邮件内容要点）\n\n## 何时必须通知\n当调度修正可能影响下游接口负载或触发时序（例如：同步/聚合任务错峰调整、UTC 意图 cron 修正、避免空报/超时），需要通知运维。\n\n## 邮件必须包含要点\n1. 任务名与 job_id\n2. 调整前后触发窗口（用“提前/延后 X 分钟/落在某时间段”的描述）\n3. 风险影响说明：\n   - 可能导致下游接口超时/排队\n   - 或导致聚合空报风险\n4. 观察建议：\n   - 调整后至少观察最近 2~3 个周期的 job_history\n   - 重点查看是否消除 error（如 time offset）或空结果条目\n\n## 建议语气\n客观描述事实、给出行动与验证步骤，避免猜测无依据。",
+        "last_updated": "2026-03-07",
+        "views": 156
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-Z101",
+        "name": "utc_report_exporter",
+        "cron_expression": "0 8 * * *",
+        "action": "按 UTC 语义导出报表快照并提交给下游 data-ingest",
+        "enabled": true,
+        "last_run": "2026-03-08T16:00:00+08:00",
+        "next_run": "2026-03-09T00:45:00+08:00",
+        "last_status": "failed",
+        "error": "触发时间偏移：预计窗口未命中，导致下游接口超时（ingest timeout）",
+        "created_by": "analytics_ops",
+        "tags": [
+          "report",
+          "timezone:utc",
+          "intent:utc"
+        ],
+        "created_at": "2026-02-10T09:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-08T16:00:00+08:00",
+            "status": "failed",
+            "error": "触发时间偏移，导致下游接口超时",
+            "duration_seconds": 41
+          },
+          {
+            "run_time": "2026-03-07T16:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 38
+          },
+          {
+            "run_time": "2026-03-06T16:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 40
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-Z102",
+        "name": "utc_metrics_push",
+        "cron_expression": "*/20 * * * *",
+        "action": "将 UTC 语义下的指标增量推送到 downstream-metrics（需要在窗口内可用）",
+        "enabled": true,
+        "last_run": "2026-03-08T10:20:00+08:00",
+        "next_run": "2026-03-08T11:10:00+08:00",
+        "last_status": "failed",
+        "error": "触发时间偏移：下游批处理延迟，超出重试窗口后返回 504",
+        "created_by": "metrics_team",
+        "tags": [
+          "metrics",
+          "timezone:utc",
+          "batch:downstream"
+        ],
+        "created_at": "2026-02-02T14:20:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-08T10:20:00+08:00",
+            "status": "failed",
+            "error": "触发时间偏移，504 Gateway Timeout",
+            "duration_seconds": 57
+          },
+          {
+            "run_time": "2026-03-08T10:40:00+08:00",
+            "status": "failed",
+            "error": "触发时间偏移，504 Gateway Timeout",
+            "duration_seconds": 55
+          },
+          {
+            "run_time": "2026-03-08T10:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 33
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-A201",
+        "name": "delay_drift_supplier_sync",
+        "cron_expression": "0 */2 * * *",
+        "action": "同步供应商主数据到 supplier_db（以 UTC 意图错峰写入）",
+        "enabled": true,
+        "last_run": "2026-03-08T08:00:00+08:00",
+        "next_run": "2026-03-08T09:20:00+08:00",
+        "last_status": "success",
+        "created_by": "dataops",
+        "tags": [
+          "timezone:utc",
+          "drift:suspected",
+          "supplier"
+        ],
+        "created_at": "2026-01-22T11:11:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-08T08:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 112
+          },
+          {
+            "run_time": "2026-03-08T06:10:00+08:00",
+            "status": "success",
+            "duration_seconds": 109
+          },
+          {
+            "run_time": "2026-03-08T04:20:00+08:00",
+            "status": "success",
+            "duration_seconds": 106
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-B301",
+        "name": "risk_aggregator_for_deliveries",
+        "cron_expression": "15 * * * *",
+        "action": "邮件聚合器：等下游 deliveries 汇总后生成风险摘要并上报",
+        "enabled": true,
+        "last_run": "2026-03-08T10:15:00+08:00",
+        "next_run": "2026-03-08T10:30:00+08:00",
+        "last_status": "success",
+        "created_by": "risk_ops",
+        "tags": [
+          "aggregator",
+          "empty-risk",
+          "trigger:late"
+        ],
+        "created_at": "2026-02-18T08:45:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-08T10:15:00+08:00",
+            "status": "success",
+            "error": "empty result: 下游 deliveries 尚未到达，no results for window",
+            "duration_seconds": 9
+          },
+          {
+            "run_time": "2026-03-08T09:45:00+08:00",
+            "status": "success",
+            "error": "no data: 汇总数据为空",
+            "duration_seconds": 10
+          },
+          {
+            "run_time": "2026-03-08T09:15:00+08:00",
+            "status": "success",
+            "error": "empty result: 无结果",
+            "duration_seconds": 11
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-C401",
+        "name": "downstream_intent_router",
+        "cron_expression": "5 1 * * *",
+        "action": "路由并发请求到 downstream-gateway（容量敏感）",
+        "enabled": true,
+        "last_run": "2026-03-08T09:05:00+08:00",
+        "next_run": "2026-03-09T01:05:00+08:00",
+        "last_status": "success",
+        "created_by": "gateway_team",
+        "tags": [
+          "gateway",
+          "capacity-sensitive"
+        ],
+        "created_at": "2026-02-05T13:30:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-08T09:05:00+08:00",
+            "status": "success",
+            "duration_seconds": 64
+          },
+          {
+            "run_time": "2026-03-07T09:05:00+08:00",
+            "status": "success",
+            "duration_seconds": 61
+          },
+          {
+            "run_time": "2026-03-06T09:05:00+08:00",
+            "status": "success",
+            "duration_seconds": 66
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-D501",
+        "name": "nightly_cleanup_temp_files",
+        "cron_expression": "0 2 * * *",
+        "action": "清理临时目录与缓存，避免磁盘膨胀",
+        "enabled": true,
+        "last_run": "2026-03-08T02:00:00+08:00",
+        "next_run": "2026-03-09T02:00:00+08:00",
+        "last_status": "success",
+        "created_by": "platform_ops",
+        "tags": [
+          "maintenance",
+          "cleanup"
+        ],
+        "created_at": "2025-12-30T10:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-08T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 72
+          },
+          {
+            "run_time": "2026-03-07T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 70
+          },
+          {
+            "run_time": "2026-03-06T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 68
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-E601",
+        "name": "utc_billing_settlement",
+        "cron_expression": "30 7 * * *",
+        "action": "UTC 语义结算对账（要求在 UTC 窗口完成）",
+        "enabled": true,
+        "last_run": "2026-03-08T15:30:00+08:00",
+        "next_run": "2026-03-08T16:50:00+08:00",
+        "last_status": "success",
+        "created_by": "finance_ops",
+        "tags": [
+          "finance",
+          "timezone:utc",
+          "settlement"
+        ],
+        "created_at": "2026-02-01T06:20:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-08T15:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 203
+          },
+          {
+            "run_time": "2026-03-07T15:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 210
+          },
+          {
+            "run_time": "2026-03-06T15:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 198
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-F701",
+        "name": "streaming_event_replay_guard",
+        "cron_expression": "*/10 * * * *",
+        "action": "防重放保护：核对事件回放队列长度并触发保护策略",
+        "enabled": true,
+        "last_run": "2026-03-08T10:50:00+08:00",
+        "next_run": "2026-03-08T11:00:00+08:00",
+        "last_status": "success",
+        "created_by": "stream_ops",
+        "tags": [
+          "stream",
+          "guard"
+        ],
+        "created_at": "2026-02-12T15:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-08T10:50:00+08:00",
+            "status": "success",
+            "duration_seconds": 5
+          },
+          {
+            "run_time": "2026-03-08T10:40:00+08:00",
+            "status": "success",
+            "duration_seconds": 6
+          },
+          {
+            "run_time": "2026-03-08T10:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 5
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-G801",
+        "name": "fallback_sync_after_utc_shift",
+        "cron_expression": "20 2 * * *",
+        "action": "UTC 意图变更后的兜底同步（用于纠偏与回填）",
+        "enabled": false,
+        "last_run": "2026-03-01T02:20:00+08:00",
+        "next_run": null,
+        "last_status": "success",
+        "last_disable_reason": "手动关闭：等待确认 UTC 修正策略后再启用",
+        "created_by": "platform_ops",
+        "tags": [
+          "timezone:utc",
+          "fallback",
+          "disabled-await"
+        ],
+        "created_at": "2026-02-20T09:20:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T02:20:00+08:00",
+            "status": "success",
+            "duration_seconds": 144
+          },
+          {
+            "run_time": "2026-02-28T02:20:00+08:00",
+            "status": "success",
+            "duration_seconds": 138
+          },
+          {
+            "run_time": "2026-02-27T02:20:00+08:00",
+            "status": "success",
+            "duration_seconds": 142
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题侧重资源冲突/磁盘问题替换为“跨时区 UTC 意图导致的触发偏移与延迟漂移”以及“空数据聚合器的风险修正与通知”。",
+    "fixture_design_summary": [
+      "scheduler/jobs.json：共 9 个全新 job，包含至少 2 个 last_status=failed 且 error 含“触发时间偏移/下游超时”；包含 1 个启用且 next_run 相对 last_run 异常、疑似延迟漂移任务；包含 1 个 last_status=success 但 job_history 多次空结果的聚合器任务。",
+      "KB 新增 4 篇条目：覆盖多时区 cron 修正、基于 next_run/last_run 的漂移判断、空数据告警聚合器健康判定与纠正、以及影响下游时邮件通知要点。",
+      "gmail/inbox.json：提供一封全新运维记录邮件，描述 UTC 意图任务昨天触发过早，为后续通知/修复提供背景。"
+    ]
+  }
+}

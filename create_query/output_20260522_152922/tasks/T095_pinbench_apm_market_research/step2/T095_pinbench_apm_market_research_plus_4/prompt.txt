@@ -1,0 +1,214 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T095_pinbench_apm_market_research_plus_4",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/kb/articles.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 4,
+  "new_task_id": "T095_pinbench_apm_market_research_plus_4",
+  "new_task_name": "成本压测：消耗型定价与治理策略对比",
+  "task_goal": "为财务与工程共同参与的APM成本压测评估产出研究：至少5个厂商，每家提供“定价模型（摄入/资源/席位等）与成本上升的机制”、以及“成本治理或优化能力的描述”；总结至少4条与“消费型定价审查、摄入效率、数据治理、平台整合”相关的趋势；输出比较表、成本机制对照段落（不少于5点）与结论。",
+  "user_request": "请写一份“APM成本压测评估”的竞争研究。要求至少5家厂商：对每家说明其定价模型的计费维度（描述即可，不要具体金额）以及导致成本上升的机制，并概述其可能的成本治理/优化能力。然后总结至少4条市场趋势（重点围绕消费型定价审查、数据摄入效率与治理、平台整合）。输出：比较表、至少5点的成本机制对照段落、以及一段简短结论。",
+  "scenario": "评估发生在一次促销流量窗口前后：日志与追踪的摄入会出现短期放大，工程需要确保可观测成本不会在峰值时不可控。公司希望建立成本治理流程：例如对摄入进行效率优化、对工作流自动化减少重复排障消耗、并通过平台整合减少多工具并行成本。团队更在意“计费维度可解释性”与“长期可预测性”。",
+  "difference_from_source": "原任务要求至少五家厂商与趋势；本任务把研究重点从差异化+泛趋势，收敛到“定价机制→成本上升机制→治理能力→对照”并要求趋势≥4条，且新增“成本机制对照段落（≥5点）”这一特定输出。",
+  "service_and_tool_plan": "kb_search优先找与pricing、ingestion、data volume/cost sprawl、consumption-based pricing、cost governance等相关内容；kb_get_article读取后按成本机制框架整理。",
+  "fixture_generation_plan": "保持原fixtures；但需要覆盖性：至少5家内容中都应能抽取到定价或成本相关描述（哪怕是strengths/weaknesses提到成本）。趋势文章必须包含“consumption-based pricing/ingest efficiency/cost governance”等语义要素；grader用关键词映射做鲁棒判定。",
+  "expected_behavior": "智能体应：1）检索并读取至少6篇文章（5厂商+1趋势或多趋势）；2）对每家厂商输出：计费维度（资源/摄入/席位等的描述性归类）、成本上升机制（例如摄入量激增/资源扩张/模块叠加）、成本治理/优化能力概述（来自KB）；3）趋势至少4条且贴近题设成本主题；4）比较表；5）成本机制对照段落不少于5点，逐点对比差异；6）结论简短但需落到“如何在峰值期降低不确定性”的选择建议。",
+  "grading_plan": "grader.py应检查：厂商数量≥5；每家是否包含“计费维度+成本上升机制+治理能力”三要素；趋势数量≥4且与消费型定价审查/摄入效率/治理相关；成本机制对照段落≥5点；输出包含比较表与结论；不得杜撰具体价格数字或未经KB支持的治理手段。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T095_pinbench_apm_market_research",
+  "task_name": "Pinbench APM Market Research",
+  "task_type": "research",
+  "category": "research",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "en",
+  "services": [
+    "kb"
+  ],
+  "tools": [
+    "kb_search",
+    "kb_get_article"
+  ],
+  "fixture_paths": [
+    "fixtures/kb/articles.json"
+  ],
+  "sandbox_files": [
+    "fixtures/kb/articles.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "research"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T095_pinbench_apm_market_research
+task_name: Pinbench APM Market Research
+version: '1.0'
+category: research
+difficulty: easy
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T095_pinbench_apm_market_research/fixtures/kb/articles.json
+prompt:
+  text: 'Use the knowledge base to create a competitive landscape analysis of the
+
+    enterprise observability and APM market. Identify at least five competitors,
+
+    their differentiators, typical pricing models, and key market trends. Include
+    a
+
+    comparison table and a short executive summary.
+
+    '
+  language: en
+tools:
+- name: kb_search
+  description: Search the KB
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+      category:
+        type: string
+      max_results:
+        type: integer
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: Get one KB article
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+sandbox_files:
+- fixtures/kb/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 16
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "pb19_001",
+    "title": "Datadog profile for observability buyers",
+    "content": "Datadog is one of the category leaders in cloud-native observability. Its differentiators include broad infrastructure coverage, strong APM plus logs plus security integration, and fast time to value for engineering teams. Pricing typically mixes per-host, per-GB ingestion, and modular add-ons. Strengths include breadth and ecosystem integrations. Weaknesses include cost sprawl at scale.",
+    "category": "market_research",
+    "last_updated": "2026-02-20",
+    "views": 120,
+    "tags": ["Datadog", "APM", "pricing"]
+  },
+  {
+    "article_id": "pb19_002",
+    "title": "New Relic competitive notes",
+    "content": "New Relic positions itself around a unified telemetry platform with usage-based pricing and a large free tier. Differentiators include a broad full-stack view and a familiar workflow for application teams. Pricing is commonly tied to user seats and data ingest. Strengths include accessibility and platform breadth. Weaknesses include budget sensitivity when ingest grows quickly.",
+    "category": "market_research",
+    "last_updated": "2026-02-20",
+    "views": 95,
+    "tags": ["New Relic", "APM", "pricing"]
+  },
+  {
+    "article_id": "pb19_003",
+    "title": "Dynatrace market positioning",
+    "content": "Dynatrace is often chosen for enterprise-scale observability with strong automation, topology mapping, and AI-assisted root cause analysis. Pricing is generally based on host units or monitored resources with enterprise contracts. Strengths include automation and large-environment observability. Weaknesses include procurement complexity and premium pricing.",
+    "category": "market_research",
+    "last_updated": "2026-02-21",
+    "views": 88,
+    "tags": ["Dynatrace", "enterprise", "AI"]
+  },
+  {
+    "article_id": "pb19_004",
+    "title": "Grafana Labs in the observability market",
+    "content": "Grafana Labs differentiates through strong dashboards, open-source adoption, LGTM positioning, and an OpenTelemetry-friendly architecture. Pricing varies across cloud plans and enterprise support, often aligned to metrics, logs, traces, and seats. Strengths include flexibility and open-source credibility. Weaknesses include more self-assembly for buyers seeking an all-in-one managed experience.",
+    "category": "market_research",
+    "last_updated": "2026-02-21",
+    "views": 77,
+    "tags": ["Grafana", "OpenTelemetry", "LGTM"]
+  },
+  {
+    "article_id": "pb19_005",
+    "title": "Splunk Observability buyer summary",
+    "content": "Splunk Observability remains strong in large enterprises, especially where logs, security, and existing Splunk relationships matter. Pricing often depends on data volume and enterprise packaging. Strengths include enterprise footprint and cross-domain analytics. Weaknesses include complexity and a reputation for high cost if telemetry volumes surge.",
+    "category": "market_research",
+    "last_updated": "2026-02-22",
+    "views": 81,
+    "tags": ["Splunk", "enterprise", "pricing"]
+  },
+  {
+    "article_id": "pb19_006",
+    "title": "Observability market trends 2026",
+    "content": "Key trends in 2026 include OpenTelemetry standardization, AI-assisted root cause analysis, platform consolidation across logs metrics traces security, and persistent interest in cloud-native deployment models. Buyers are also scrutinizing consumption-based pricing and data-ingest efficiency more closely. Vendors increasingly differentiate on workflow automation and cost governance.",
+    "category": "market_research",
+    "last_updated": "2026-02-22",
+    "views": 130,
+    "tags": ["market trends", "OpenTelemetry", "AI", "cloud-native"]
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

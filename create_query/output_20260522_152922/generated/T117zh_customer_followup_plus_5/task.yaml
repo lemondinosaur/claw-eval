@@ -1,0 +1,140 @@
+task_id: T117zh_customer_followup_plus_5
+task_name: 合规告知式客户跟进（退订/数据处理说明）
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_5/fixtures/crm/customers.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T117zh_customer_followup_plus_5/fixtures/gmail/inbox.json
+prompt:
+  text: "请帮我对CRM中的客户进行“合规告知式”跟进：\n1. 以今天视为2026-04-05为时间基准，筛选CRM中状态为active且last_contact_date早于2026-03-10（即超过25天未联系）的客户，并排除status为churned的客户。\n\
+    2. 对每位目标客户，从Gmail中找到该客户在最近沟通中发送的邮件（以客户邮箱匹配from，必要时结合客户姓名线索），提取邮件正文里关于“联系频率/隐私/数据处理/退订偏好/异议点”的明确表述；若未提及，则仅使用通用合规表述。\n\
+    3. 为每位客户起草“合规告知式”跟进邮件草稿并保存草稿（不要发送）。邮件中所有客户都必须包含：\n   - 我们如何处理与使用联系信息/数据（简要说明）\n\
+    \   - 退订/调整联系偏好指引（可随时选择停止或减少联系）\n   - 尊重用户偏好的表述\n   其中：\n   - VIP客户邮件语气更正式、更细化（流程化写法，包含更具体的退订与偏好设置步骤）\n\
+    \   - 普通客户邮件语气更温和、更简短（但仍包含上述合规三要点）\n4. 识别干扰：存在“群发模板”邮件可能包含退订链接字样，但若其from与任何目标客户不匹配，或正文不含客户自身提出的隐私/频率/退订偏好相关表述，则不得将其当作客户异议或偏好的证据。\n\
+    5. 输出：需跟进客户 + 邮件中合规段落摘要（包含是否提到隐私/频率/退订偏好及对应调整）。"
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

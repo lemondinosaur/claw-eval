@@ -1,0 +1,127 @@
+[
+  {
+    "message_id": "avc23_101",
+    "from": "procurement-hana@vendoraudit.io",
+    "to": "pm-office@mycompany.com",
+    "subject": "[Vendor] Project Alpha Component Milestones - Initial Contract Draft",
+    "date": "2026-05-03T10:20:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "vendor",
+      "procurement",
+      "legal"
+    ],
+    "body": "Hi team,\n\nFor Project Alpha (log aggregation + alerting platform dependency), attached/outlined are the initial delivery milestones in the draft:\n- Milestone A: Access-control hardened build delivered by 2026-05-12 (to enable internal integration testing).\n- Milestone B: Staged rollout report + audit logs by 2026-05-24.\n- Milestone C: Production readiness package by 2026-06-05.\n\nPayment terms in this initial draft:\n- 30% on Milestone A completion\n- 40% on Milestone B completion\n- Remaining 30% on Milestone C completion\n\nSLA (initial): response time measured as 'first response within 8 hours' for Sev-1 incidents.\n\nPlease confirm these dates align with your internal schedule.\n"
+  },
+  {
+    "message_id": "avc23_102",
+    "from": "legal-ops@vendoraudit.io",
+    "to": "pm-office@mycompany.com",
+    "subject": "[Re: Vendor Terms] SLA Definition Change to Tiered Processing + Access Controls",
+    "date": "2026-05-07T16:45:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "vendor",
+      "legal"
+    ],
+    "body": "Following the security assessment for Project Alpha, Vendor Audit is proposing a contract update:\n\n1) Access control: tighten 'admin read' to role-scoped permissions only. Any deviation requires a written change request.\n2) SLA change: update from a single '8-hour first response' to tiered handling:\n   - Tier 0: acknowledgement within 2 hours\n   - Tier 1: investigation start within 8 hours\n   - Tier 2: resolution targeted within 20 business hours\n\n3) Escalation/credits: the proposal limits service credits to Tier 1/2 only (Sev-1 credits are reduced vs. the initial draft).\n\nDelivery impact noted by the vendor:\n- Milestone A date remains 2026-05-12, but prerequisite configuration access is moving to a different approval workflow; please ensure procurement/legal signs off quickly.\n\nLet us know what internal deadlines you must preserve for integration.\n"
+  },
+  {
+    "message_id": "avc23_103",
+    "from": "contracts-maria@mycompany.com",
+    "to": "pm-office@mycompany.com",
+    "subject": "Project Alpha vendor contract review - needs revision (SLA + payment nodes)",
+    "date": "2026-05-10T09:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "procurement",
+      "legal"
+    ],
+    "body": "Team,\n\nWe reviewed the vendor's revised terms for Project Alpha. Key issues that require revision:\n- SLA language is ambiguous about how 'acknowledgement' differs from 'investigation start' for Sev-1.\n- Payment milestones don't align with the latest delivery expectations:\n  * Our procurement system is set to pay 45% on 'Milestone A acceptance', but the vendor invoice schedule references 'Milestone A configuration sign-off'.\n  * This mismatch creates a risk of withholding/partial payment and a downstream delay in unlocking Milestone B.\n\nRequired actions:\n1) Add a cross-reference clause: define acceptance criteria for Milestone A (including role-scoped access verification).\n2) Update invoice triggers to match the acceptance dates we will track internally.\n3) Restore clear service credit applicability for Sev-1 (or add alternative remedies).\n\nPlease route this to vendor immediately to avoid slipping into the next iteration.\n"
+  },
+  {
+    "message_id": "avc23_104",
+    "from": "ap-team@mycompany.com",
+    "to": "pm-office@mycompany.com",
+    "subject": "Urgent: Project Alpha payment node conflict blocks Milestone B release",
+    "date": "2026-05-12T13:30:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "procurement"
+    ],
+    "body": "Hi,\n\nAP confirmed a hard conflict in Project Alpha procurement/payment nodes:\n- Contract (vendor doc) states: 40% is payable on 'Milestone B - staged rollout report delivery'.\n- Our internal milestone tracker gates Milestone B with 'staged rollout report accepted by Security'.\n\nIf we pay on delivery but Security acceptance comes later, Vendor A Audit could argue the trigger has occurred and lock the next environment earlier than expected.\n\nRisk:\n- Milestone B release may be delayed or contested, impacting the build for the May 24 internal demo.\n\nWe should propose a two-step acceptance clause: (a) delivery confirmation, then (b) acceptance within a fixed window (e.g., 5 business days). Also ensure SLA tiered processing is reflected in the remedies section.\n"
+  },
+  {
+    "message_id": "avc23_105",
+    "from": "delivery-ops@vendoraudit.io",
+    "to": "pm-office@mycompany.com",
+    "subject": "Project Alpha delivery outlook: Milestone B delayed to next iteration + contingency options",
+    "date": "2026-05-15T11:10:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "vendor"
+    ],
+    "body": "Good morning,\n\nUpdate on Project Alpha dependency delivery:\n- Milestone A: still targeted for 2026-05-12, pending your acceptance of the role-scoped access controls.\n- Milestone B: originally planned for 2026-05-24, now delayed to 2026-06-02 due to the revised approval workflow and the outstanding acceptance/payment trigger alignment.\n- Milestone C: now tentatively 2026-06-10 (subject to Milestone B completion).\n\nContingency plan (if we cannot finalize the contract by 2026-05-18):\n- Temporary patch bundle for the alerting integration interface to support internal testing (limited scope, expires on full Milestone B).\n- Alternative: switch the staging environment credentials to a time-boxed role while legal finalizes the clause set.\n\nCurrent status: contract amendments are pending. Please advise which contingency path you want so we can keep your internal May demo intact.\n"
+  },
+  {
+    "message_id": "avc23_106",
+    "from": "security@mycompany.com",
+    "to": "pm-office@mycompany.com",
+    "subject": "Re: Project Alpha - impact assessment for vendor SLA tiering on client delivery",
+    "date": "2026-05-16T08:25:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha"
+    ],
+    "body": "Security assessment summary:\n\nIf we adopt the vendor's tiered SLA for Project Alpha, we must ensure the client-facing response expectations remain consistent. The tiered model changes when customers perceive 'response' (ack vs investigation start).\n\nInternal delivery impact:\n- Without the Milestone B staged rollout report by 2026-05-24, we will not be able to sign off on the integration demo requirements.\n- With the temporary patch bundle, we can proceed with a functional rehearsal, but final sign-off depends on the full staged rollout report acceptance.\n\nNext step: align contract definitions with our client communications and approve the contingency path requested by Delivery Ops.\n"
+  },
+  {
+    "message_id": "noise_sched_221",
+    "from": "calendar-bot@mycompany.com",
+    "to": "pm-office@mycompany.com",
+    "subject": "Internal schedule update - marketing sync",
+    "date": "2026-05-09T07:55:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "internal-schedule"
+    ],
+    "body": "Marketing sync has been moved to 2026-05-19 15:00 local time. No action required."
+  },
+  {
+    "message_id": "noise_promo_607",
+    "from": "events@cloudvendorpromo.com",
+    "to": "pm-office@mycompany.com",
+    "subject": "Workshop: reduce infra costs this month (limited seats)",
+    "date": "2026-05-13T18:10:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "promo"
+    ],
+    "body": "Join our workshop to learn cost optimization strategies. Register before Friday."
+  },
+  {
+    "message_id": "similar_name_889",
+    "from": "pm-ops@anotherco.com",
+    "to": "pm-office@mycompany.com",
+    "subject": "Re: Project Alphascope - vendor onboarding checklist",
+    "date": "2026-05-06T12:40:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "Thanks for the checklist for Project Alphascope onboarding. We'll review and respond with required documents."
+  }
+]

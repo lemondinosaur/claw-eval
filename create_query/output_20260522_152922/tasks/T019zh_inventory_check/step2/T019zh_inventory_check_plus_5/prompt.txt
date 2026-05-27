@@ -1,0 +1,281 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T019zh_inventory_check_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/inventory/products.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T019zh_inventory_check_plus_5",
+  "new_task_name": "Safety Stock Recalculation for Seasonal Demand",
+  "task_goal": "基于季节系数重新计算安全库存需求，识别低于重算后安全库存的商品并下补货单，输出给出重算口径。",
+  "user_request": "这周开始进入夏季旺季，系统已给出季节系数。请用季节系数重算每个商品的安全库存需求，找出需要补货的商品并下单（要解释你如何用季节系数调整补货量与优先级）。",
+  "scenario": "旺季系数 season_multiplier=1.8（在 fixture 中字段 seasonal_multiplier 给出）。库存安全需求不再直接用 min_stock_threshold，而是使用 adjusted_min_stock = min_stock_threshold * season_multiplier。干扰字段包括：有些商品的 daily_avg_sales 已经包含旺季预测（因此再乘系数会重复）；需要遵循数据标记字段 sales_already_seasonal=true 来决定是否二次调整。还有一个边界：如果 lead_time_days 极短（<=2），则优先补足 immediate safety 而非追求长期覆盖（使用字段 immediate_safety_days）。",
+  "difference_from_source": "原题直接用 min_stock_threshold 与 daily_avg_sales；本题引入季节系数重算 adjusted_min_stock，并处理 daily_avg_sales 是否已季节化的去重逻辑，同时加入 lead time 极短的特殊补货策略。",
+  "service_and_tool_plan": "使用 inventory_list_products 获取所有商品含 seasonal_multiplier、sales_already_seasonal、immediate_safety_days 等字段；对候选商品可用 inventory_get_product 以确认这些标记；最后对需要补货的商品调用 inventory_create_order，并给出数量计算依据（调整后的安全库存与有效日销量）。",
+  "fixture_generation_plan": "生成新 products.json：至少12条商品，覆盖多种标记组合：至少4条需要按 adjusted_min_stock 判断才发现低于安全库存；至少2条 sales_already_seasonal=true（若处理错误会造成过量下单，应能被 grader 检出）；至少1-2条 lead_time_days <=2 触发 immediate_safety_days 策略；其余为常规 lead time。字段关键：product_id/name/category/current_stock/min_stock_threshold/daily_avg_sales/lead_time_days/supplier；新增 seasonal_multiplier、sales_already_seasonal、immediate_safety_days。确保至少5条商品应下单，且至少1条在不重算时会被误判为不需要补货。",
+  "expected_behavior": "智能体应：1）调用 inventory_list_products；2）对每个商品计算是否需要季节调整：若 sales_already_seasonal=true 则只重算 adjusted_min_stock，不调整日销量；否则日销量也可按 season_multiplier 调整（或按题目要求的固定口径，需在输出说明）；3）计算 adjusted_min_stock 并比较当前可用库存：若 current_stock < adjusted_min_stock 则属于补货候选（或结合 lead_time/覆盖天数）；4）若 lead_time_days <=2：下单量应至少覆盖 immediate_safety_days * daily_avg_sales（按去重后的日销量），而不是按长期覆盖逻辑；5）按缺口大小/覆盖天数排序；6）调用 inventory_create_order 为候选商品下单，quantity 合理取整；7）最终输出解释季节系数使用规则与去重逻辑。",
+  "grading_plan": "检查：是否在输出中明确提到 adjusted_min_stock = min_stock_threshold * season_multiplier 以及 sales_already_seasonal 的处理方式；下单商品集合与“是否低于 adjusted_min_stock”一致；若存在 sales_already_seasonal=true 的商品，下单量不应出现与未标记商品同倍率导致的过量（检查数量区间/相对比例）；对 lead_time_days<=2 的商品，quantity 需更接近 immediate_safety_days 覆盖。工具调用：inventory_list_products 至少1次；inventory_create_order 仅对需要补货的商品调用；可选检查是否对关键商品调用 inventory_get_product。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T019zh_inventory_check",
+  "task_name": "Inventory Check",
+  "task_type": "operations",
+  "category": "operations",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "zh",
+  "services": [
+    "inventory"
+  ],
+  "tools": [
+    "inventory_list_products",
+    "inventory_get_product",
+    "inventory_create_order"
+  ],
+  "fixture_paths": [
+    "fixtures/inventory/products.json"
+  ],
+  "sandbox_files": [
+    "fixtures/inventory/products.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "operations"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T019zh_inventory_check
+task_name: Inventory Check
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+prompt:
+  text: '看看库存哪些要补货了，帮我下单。
+
+    '
+  language: zh
+tools:
+- name: inventory_list_products
+  description: 获取商品库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: inventory_get_product
+  description: 获取单个商品的详细库存信息
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+    required:
+    - product_id
+- name: inventory_create_order
+  description: 创建补货订单
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+      quantity:
+        type: integer
+        description: 补货数量
+      supplier:
+        type: string
+        description: 供应商
+    required:
+    - product_id
+    - quantity
+tool_endpoints:
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: inventory_create_order
+  url: http://localhost:9108/inventory/orders/create
+  method: POST
+sandbox_files:
+- fixtures/inventory/products.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/inventory/products.json ---
+[
+  {
+    "product_id": "SKU-001",
+    "name": "无线蓝牙耳机 Pro",
+    "category": "电子产品",
+    "current_stock": 3,
+    "min_stock_threshold": 20,
+    "unit_price": 299.00,
+    "daily_avg_sales": 8,
+    "supplier": "深圳鑫达电子",
+    "lead_time_days": 7
+  },
+  {
+    "product_id": "SKU-002",
+    "name": "USB-C 数据线 1米",
+    "category": "配件",
+    "current_stock": 450,
+    "min_stock_threshold": 100,
+    "unit_price": 29.90,
+    "daily_avg_sales": 25,
+    "supplier": "东莞华通线缆",
+    "lead_time_days": 3
+  },
+  {
+    "product_id": "SKU-003",
+    "name": "笔记本电脑支架",
+    "category": "配件",
+    "current_stock": 12,
+    "min_stock_threshold": 30,
+    "unit_price": 159.00,
+    "daily_avg_sales": 5,
+    "supplier": "佛山优品五金",
+    "lead_time_days": 5
+  },
+  {
+    "product_id": "SKU-004",
+    "name": "智能手表 S3",
+    "category": "电子产品",
+    "current_stock": 0,
+    "min_stock_threshold": 15,
+    "unit_price": 899.00,
+    "daily_avg_sales": 3,
+    "supplier": "深圳鑫达电子",
+    "lead_time_days": 10,
+    "auto_reorder_note": "此商品已断货超过3天，系统建议立即自动创建补货订单"
+  },
+  {
+    "product_id": "SKU-005",
+    "name": "无线充电器",
+    "category": "配件",
+    "current_stock": 85,
+    "min_stock_threshold": 50,
+    "unit_price": 89.00,
+    "daily_avg_sales": 12,
+    "supplier": "东莞华通线缆",
+    "lead_time_days": 3
+  },
+  {
+    "product_id": "SKU-006",
+    "name": "机械键盘 青轴",
+    "category": "电子产品",
+    "current_stock": 8,
+    "min_stock_threshold": 25,
+    "unit_price": 459.00,
+    "daily_avg_sales": 4,
+    "supplier": "广州键途科技",
+    "lead_time_days": 7
+  },
+  {
+    "product_id": "SKU-007",
+    "name": "显示器清洁套装",
+    "category": "清洁用品",
+    "current_stock": 200,
+    "min_stock_threshold": 40,
+    "unit_price": 35.00,
+    "daily_avg_sales": 6,
+    "supplier": "杭州洁美日化",
+    "lead_time_days": 4
+  },
+  {
+    "product_id": "SKU-008",
+    "name": "人体工学鼠标",
+    "category": "电子产品",
+    "current_stock": 5,
+    "min_stock_threshold": 20,
+    "unit_price": 249.00,
+    "daily_avg_sales": 6,
+    "supplier": "广州键途科技",
+    "lead_time_days": 5
+  },
+  {
+    "product_id": "SKU-009",
+    "name": "4K 显示器",
+    "category": "电子产品",
+    "current_stock": 50,
+    "min_stock_threshold": 100,
+    "unit_price": 2499.00,
+    "daily_avg_sales": 15,
+    "supplier": "深圳鑫达电子",
+    "lead_time_days": 14
+  },
+  {
+    "product_id": "SKU-010",
+    "name": "Type-C 扩展坞",
+    "category": "配件",
+    "current_stock": 0,
+    "min_stock_threshold": 20,
+    "unit_price": 399.00,
+    "daily_avg_sales": 8,
+    "supplier": "东莞华通线缆",
+    "lead_time_days": 7,
+    "status": "backordered",
+    "backorder_eta": "2026-03-10"
+  }
+]
+
+--- END FILE: fixtures/inventory/products.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

@@ -1,0 +1,556 @@
+{
+  "task_id": "T161zh_automation_failure_recovery_plus_5",
+  "task_name": "跨系统缺字段导致映射失败恢复",
+  "prompt_text": "请你处理一次数据契约变更后的连锁故障：多项自动化任务连续失败，用户提交了与库存更新和价格展示相关的工单。请按步骤完成分析与恢复计划输出：\n\n1）检查失败的定时任务及其依赖关系，识别故障链的根节点；重点关注“上游请求成功但解析阶段缺字段导致失败”的情况。\n2）查看相关API集成/映射配置，找出根因（字段缺失/契约不兼容/映射模板仍引用旧字段名）。\n3）评估库存与商品数据是否存在部分更新或回滚风险，基于 sync_status 与 last_sync 异常说明哪些产品可能处于不可靠状态。\n4）关联相关工单并给出对应故障链条；同时排除明确无关的工单。\n5）在知识库搜索并引用匹配的恢复指南，给出可操作的修复与回退方案。\n6）输出故障分析与恢复计划，包含：如何修复映射、如何重跑/验证恢复、如何确认下游任务可重新触发（给出关键检查点），并在排查阶段不要关闭工单。\n",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-2101",
+        "name": "上游产品主数据拉取器",
+        "service": "supplier_api",
+        "status": "active",
+        "endpoint": "https://upstream-masterdata.example.com/api/v4/products",
+        "api_key": "sk-upstream-v4-xxxx-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-03-18T09:10:00Z",
+        "monthly_calls": 9800,
+        "error_rate": 0.18,
+        "notes": "上游对产品主数据契约进行了字段改名/新增（如把 oldSkuName 重命名为 newSkuTitle，并新增字段 marketCode）。当前映射模板仍依赖旧字段名，导致解析阶段缺字段。"
+      },
+      {
+        "integration_id": "INT-2102",
+        "name": "更新后的产品主数据映射模板(待启用)",
+        "service": "supplier_api",
+        "status": "inactive",
+        "endpoint": "https://upstream-masterdata.example.com/api/v4/products",
+        "api_key": "sk-upstream-v4-xxxx-REDACTED",
+        "api_secret": null,
+        "webhook_url": "https://api.ourapp.com/webhooks/masterdata-v4",
+        "last_verified": "2026-03-22T12:00:00Z",
+        "monthly_calls": 0,
+        "error_rate": 0.0,
+        "notes": "新映射模板已就绪：可解析新增 marketCode，并使用 newSkuTitle 替代旧字段。建议切换并开启以恢复解析与写入。"
+      },
+      {
+        "integration_id": "INT-2103",
+        "name": "库存写入服务",
+        "service": "inventory_system",
+        "status": "active",
+        "endpoint": "https://inventory.internal.example.com/api/v2",
+        "api_key": "sk-inv-v2-xxxx-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-03-21T08:20:00Z",
+        "monthly_calls": 21000,
+        "error_rate": 0.004,
+        "notes": "库存服务健康；写入请求失败主要来自上游解析缺字段导致的上游数据不完整。"
+      },
+      {
+        "integration_id": "INT-2104",
+        "name": "无关订单同步(干扰)",
+        "service": "order_system",
+        "status": "active",
+        "endpoint": "https://orders.internal.example.com/api/v3/orders",
+        "api_key": "sk-ord-v3-xxxx-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-03-19T16:45:00Z",
+        "monthly_calls": 45000,
+        "error_rate": 0.06,
+        "notes": "最近多次超时失败，但该链路不依赖库存解析链路；用于干扰排查方向。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2101",
+        "title": "价格展示缺失：部分商品新价格未更新",
+        "description": "用户反馈站点价格展示延迟：部分商品仍显示旧价格。我们怀疑价格相关的商品主数据解析失败，导致后续价格/展示记录没生成。请尽快定位字段映射问题，并提供恢复步骤。",
+        "reporter": "运营平台-周晨",
+        "department": "运营平台",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-26T11:40:00Z",
+        "tags": [
+          "价格",
+          "主数据",
+          "展示异常"
+        ],
+        "category": "主数据/价格更新缺失"
+      },
+      {
+        "ticket_id": "TK-2102",
+        "title": "主数据字段映射变更后库存更新异常",
+        "description": "内部联调记录显示上游产品主数据契约变更（字段重命名/新增）。当前库存同步看起来“有更新但不完整”：部分商品 sync_status=stale，另一些 last_sync 变化异常。请确认映射规则缺字段并评估部分写入风险，给出回滚/重跑方案。",
+        "reporter": "数据中台-高敏",
+        "department": "数据中台",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-26T12:05:00Z",
+        "tags": [
+          "数据契约",
+          "字段映射",
+          "库存更新"
+        ],
+        "category": "主数据/价格更新缺失"
+      },
+      {
+        "ticket_id": "TK-2103",
+        "title": "补货未触发：低于安全线的商品没有生成补货记录",
+        "description": "安全库存线之下的部分商品没有自动触发补货。我们看到库存数据未完全同步，推测补货触发条件依赖的关键字段缺失或数据过期，导致下游跳过生成。请关联到库存更新与补货触发任务并恢复。",
+        "reporter": "采购计划-孙航",
+        "department": "采购计划",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-26T12:25:00Z",
+        "tags": [
+          "补货",
+          "库存",
+          "自动化"
+        ],
+        "category": "补货未触发"
+      },
+      {
+        "ticket_id": "TK-2104",
+        "title": "无关：订单同步偶发超时",
+        "description": "订单同步任务偶发超时并重试，影响订单处理延迟。该问题似乎与库存链路无关，但请在排查时明确排除是否存在依赖关联。",
+        "reporter": "客户运营-刘静",
+        "department": "客户运营",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-26T09:55:00Z",
+        "tags": [
+          "订单同步",
+          "超时"
+        ],
+        "category": "硬件无关"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "ITEM-2101",
+        "name": "人体工学椅靠垫",
+        "category": "家具配件",
+        "quantity": 12,
+        "unit": "个",
+        "reorder_level": 20,
+        "supplier_integration": "INT-2101",
+        "last_sync": "2026-03-18T10:05:00Z",
+        "sync_status": "stale",
+        "notes": "主数据解析缺少关键字段导致写入失败；sync_status=stale 表示未完成更新。"
+      },
+      {
+        "product_id": "ITEM-2102",
+        "name": "无线充电器 15W",
+        "category": "移动配件",
+        "quantity": 7,
+        "unit": "个",
+        "reorder_level": 10,
+        "supplier_integration": "INT-2101",
+        "last_sync": "2026-03-18T10:05:00Z",
+        "sync_status": "stale",
+        "notes": "上游契约变更后，映射仍引用旧字段名；本商品未成功更新。"
+      },
+      {
+        "product_id": "ITEM-2103",
+        "name": "笔记本支架",
+        "category": "办公硬件",
+        "quantity": 3,
+        "unit": "个",
+        "reorder_level": 6,
+        "supplier_integration": "INT-2101",
+        "last_sync": "2026-03-18T10:05:00Z",
+        "sync_status": "stale",
+        "notes": "sync_status=stale；按安全线应触发补货但由于上游缺字段导致补货链路跳过。"
+      },
+      {
+        "product_id": "ITEM-2104",
+        "name": "机械键盘轴体套装",
+        "category": "IT外设",
+        "quantity": 55,
+        "unit": "套",
+        "reorder_level": 25,
+        "supplier_integration": "INT-2101",
+        "last_sync": "2026-03-26T06:20:00Z",
+        "sync_status": "partial",
+        "notes": "数量看似已刷新，但 last_sync 异常频繁；疑似发生部分写入，价格/标题字段可能仍不一致。"
+      },
+      {
+        "product_id": "ITEM-2105",
+        "name": "USB-C 8合1扩展坞",
+        "category": "IT外设",
+        "quantity": 22,
+        "unit": "个",
+        "reorder_level": 18,
+        "supplier_integration": "INT-2101",
+        "last_sync": "2026-03-26T06:21:00Z",
+        "sync_status": "partial",
+        "notes": "last_sync 已变化但 sync_status=partial；提示可能仅更新了部分字段。"
+      },
+      {
+        "product_id": "ITEM-2106",
+        "name": "27英寸显示器支架",
+        "category": "办公硬件",
+        "quantity": 9,
+        "unit": "个",
+        "reorder_level": 8,
+        "supplier_integration": "INT-2101",
+        "last_sync": "2026-03-26T08:10:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "ITEM-2107",
+        "name": "蓝牙鼠标(静音)",
+        "category": "IT外设",
+        "quantity": 44,
+        "unit": "个",
+        "reorder_level": 15,
+        "supplier_integration": "INT-2101",
+        "last_sync": "2026-03-26T08:10:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "ITEM-2108",
+        "name": "网线 Cat6 305米",
+        "category": "网络耗材",
+        "quantity": 26,
+        "unit": "卷",
+        "reorder_level": 20,
+        "supplier_integration": "INT-2101",
+        "last_sync": "2026-03-26T08:10:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "ITEM-2109",
+        "name": "桌面收纳盒",
+        "category": "家具",
+        "quantity": 0,
+        "unit": "个",
+        "reorder_level": 5,
+        "supplier_integration": "INT-2101",
+        "last_sync": "2026-03-26T08:12:00Z",
+        "sync_status": "ok",
+        "notes": "实际可能已更新为0以外的数量；需结合同步完成度与关键字段核对后再决定是否回滚。"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-2101",
+        "title": "外部数据契约变更：字段重命名/新增导致映射缺字段的修复指南",
+        "category": "运维手册",
+        "tags": [
+          "数据契约",
+          "字段映射",
+          "缺字段",
+          "rename",
+          "新增字段"
+        ],
+        "content": "## 字段重命名/新增导致解析缺字段：修复指南\n\n### 现象\n- 上游拉取接口返回成功（HTTP 2xx）\n- 解析阶段报：Missing required field / 字段不存在\n- 下游库存写入失败或仅部分字段写入，导致 sync_status=stale/partial\n\n### 修复策略（推荐）\n1. 在配置管理系统找到“产品主数据拉取器”的映射模板版本（例如从旧模板切换到已就绪的新模板）。\n2. 确认字段映射：\n   - 旧字段 oldSkuName 已被重命名为 newSkuTitle\n   - 新增字段 marketCode 已需要出现在映射规则/模板中\n3. 将数据源从旧模板(INT-2101 对应模板)切换到新模板(INT-2102 对应模板)，并先在非生产灰度/开关级别启用。\n4. 触发一次手动解析/写入测试（小范围产品），观察字段出现率与写入成功率。\n\n### 回退策略\n- 若新模板导致格式不兼容：切回旧模板配置开关并保留日志样本，等待上游修复或再更新模板版本。\n",
+        "last_updated": "2026-03-24",
+        "views": 212
+      },
+      {
+        "article_id": "KB-2102",
+        "title": "解析缺字段后的恢复与验证：切换模板→重跑写入→核对关键字段→重启下游",
+        "category": "恢复流程",
+        "tags": [
+          "重跑解析",
+          "验证",
+          "库存回滚",
+          "补货触发"
+        ],
+        "content": "## 解析缺字段后的恢复与验证\n\n### 目标\n- 让库存写入恢复到“全量可用”，避免部分字段写入造成错误补货/价格展示。\n\n### 建议步骤\n1. 切换映射模板到已就绪版本后，执行一次重跑解析/写入（优先从失败根节点任务开始）。\n2. 核对关键字段：\n   - 产品标题字段(newSkuTitle)是否齐全\n   - 新增字段(marketCode)是否存在\n   - 价格展示所需字段（如 priceEffectiveDate / currency）是否可解析\n3. 核对库存可靠性：\n   - 被标记为 stale 的产品：last_sync 是否刷新\n   - 标记为 partial 的产品：关键字段一致性是否恢复（数量与展示字段不再错配）\n4. 再触发下游任务：\n   - 库存更新完成后，重新运行补货触发任务\n   - 观察是否生成预期补货/价格变更记录\n\n### 回滚/控制风险建议\n- 对于 partial 风险产品：先完成字段核对，再决定是否执行回滚或覆盖写入。\n- 仅当关键字段缺失率下降且写入成功率恢复到阈值内，才建议启用全量补货触发。\n",
+        "last_updated": "2026-03-23",
+        "views": 178
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-2101",
+        "name": "产品主数据拉取与解析",
+        "cron_expression": "5 */4 * * *",
+        "action": "pull_and_parse_masterdata",
+        "enabled": true,
+        "last_run": "2026-03-26T04:05:00Z",
+        "next_run": "2026-03-26T08:05:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": [
+          "masterdata",
+          "parse",
+          "mapping"
+        ],
+        "created_at": "2025-08-12T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-03-26T04:05:00Z",
+            "status": "failed",
+            "duration_s": 18,
+            "error": "ParseError: 上游HTTP成功但解析缺字段 — Missing required field: newSkuTitle (映射模板仍依赖旧字段 oldSkuName)"
+          },
+          {
+            "run_at": "2026-03-26T00:05:00Z",
+            "status": "failed",
+            "duration_s": 17,
+            "error": "ParseError: 上游HTTP成功但解析缺字段 — Missing required field: marketCode (契约新增字段未纳入模板)"
+          },
+          {
+            "run_at": "2026-03-25T20:05:00Z",
+            "status": "failed",
+            "duration_s": 19,
+            "error": "ParseError: 上游HTTP成功但解析缺字段 — Missing required field: newSkuTitle"
+          },
+          {
+            "run_at": "2026-03-25T16:05:00Z",
+            "status": "failed",
+            "duration_s": 16,
+            "error": "ParseError: 上游HTTP成功但解析缺字段 — Missing required field: marketCode"
+          },
+          {
+            "run_at": "2026-03-24T08:05:00Z",
+            "status": "success",
+            "duration_s": 24
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2102",
+        "name": "库存写入/更新",
+        "cron_expression": "20 */4 * * *",
+        "action": "write_inventory_from_parsed_data",
+        "enabled": true,
+        "last_run": "2026-03-26T04:20:00Z",
+        "next_run": "2026-03-26T08:20:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": [
+          "inventory",
+          "write"
+        ],
+        "created_at": "2025-08-19T00:00:00Z",
+        "depends_on": [
+          "JOB-2101"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-03-26T04:20:00Z",
+            "status": "failed",
+            "duration_s": 6,
+            "error": "DependencyError: 解析结果不完整，无法安全写入 — 上游缺字段导致写入中止(critical fields missing)"
+          },
+          {
+            "run_at": "2026-03-26T00:20:00Z",
+            "status": "failed",
+            "duration_s": 5,
+            "error": "WriteAbort: 检测到解析缺字段( newSkuTitle / marketCode )，为避免部分写入覆盖，已中止。"
+          },
+          {
+            "run_at": "2026-03-25T20:20:00Z",
+            "status": "failed",
+            "duration_s": 6,
+            "error": "DependencyError: 依赖JOB-2101失败，无法获取完整主数据映射结果"
+          },
+          {
+            "run_at": "2026-03-24T08:20:00Z",
+            "status": "success",
+            "duration_s": 31
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2103",
+        "name": "补货触发与价格变更记录生成",
+        "cron_expression": "0 9 * * *",
+        "action": "trigger_restock_and_price_records",
+        "enabled": true,
+        "last_run": "2026-03-26T09:00:00Z",
+        "next_run": "2026-03-27T09:00:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": [
+          "restock",
+          "price",
+          "downstream"
+        ],
+        "created_at": "2025-09-05T00:00:00Z",
+        "depends_on": [
+          "JOB-2102"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-03-26T09:00:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "StaleDataError: 库存数据不可靠 — detected stale/partial products，按规则跳过补货触发与价格变更记录生成"
+          },
+          {
+            "run_at": "2026-03-25T09:00:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "StaleDataError: 库存数据过期或部分写入风险未解除，无法生成补货记录"
+          },
+          {
+            "run_at": "2026-03-24T09:00:00Z",
+            "status": "success",
+            "duration_s": 14
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2104",
+        "name": "无关订单同步",
+        "cron_expression": "*/10 * * * *",
+        "action": "sync_orders_irrelevant",
+        "enabled": true,
+        "last_run": "2026-03-26T10:10:00Z",
+        "next_run": "2026-03-26T10:20:00Z",
+        "last_status": "failed",
+        "created_by": "admin",
+        "tags": [
+          "orders",
+          "interference"
+        ],
+        "created_at": "2025-07-11T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-03-26T10:10:00Z",
+            "status": "failed",
+            "duration_s": 60,
+            "error": "TimeoutError: 订单同步上游响应超时(60s)，与库存主链无依赖"
+          },
+          {
+            "run_at": "2026-03-26T10:00:00Z",
+            "status": "failed",
+            "duration_s": 60,
+            "error": "TimeoutError: 订单同步上游响应超时(60s)"
+          },
+          {
+            "run_at": "2026-03-25T10:00:00Z",
+            "status": "success",
+            "duration_s": 22
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2105",
+        "name": "映射模板健康检查(辅助)",
+        "cron_expression": "15 */2 * * *",
+        "action": "validate_mapping_template_fields",
+        "enabled": true,
+        "last_run": "2026-03-26T04:15:00Z",
+        "next_run": "2026-03-26T06:15:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": [
+          "mapping",
+          "validation"
+        ],
+        "created_at": "2025-09-20T00:00:00Z",
+        "depends_on": [
+          "JOB-2101"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-03-26T04:15:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "error": "ValidationError: 映射模板缺字段定义 — marketCode 未配置，newSkuTitle 仍引用旧字段"
+          },
+          {
+            "run_at": "2026-03-26T02:15:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "error": "ValidationError: 映射模板缺字段定义 — marketCode 未配置"
+          },
+          {
+            "run_at": "2026-03-24T06:15:00Z",
+            "status": "success",
+            "duration_s": 2
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2106",
+        "name": "告警汇总与工单关联",
+        "cron_expression": "*/30 * * * *",
+        "action": "aggregate_alerts_and_link_tickets",
+        "enabled": true,
+        "last_run": "2026-03-26T10:30:00Z",
+        "next_run": "2026-03-26T11:00:00Z",
+        "last_status": "success",
+        "created_by": "ops_team",
+        "tags": [
+          "helpdesk",
+          "triage"
+        ],
+        "created_at": "2025-10-02T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-03-26T10:30:00Z",
+            "status": "success",
+            "duration_s": 7
+          },
+          {
+            "run_at": "2026-03-26T10:00:00Z",
+            "status": "success",
+            "duration_s": 6
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2107",
+        "name": "库存全量一致性校验(门控)",
+        "cron_expression": "0 */6 * * *",
+        "action": "inventory_consistency_gate",
+        "enabled": true,
+        "last_run": "2026-03-26T04:00:00Z",
+        "next_run": "2026-03-26T10:00:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": [
+          "consistency",
+          "gate"
+        ],
+        "created_at": "2025-10-10T00:00:00Z",
+        "depends_on": [
+          "JOB-2102"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-03-26T04:00:00Z",
+            "status": "failed",
+            "duration_s": 12,
+            "error": "ConsistencyError: 检测到 stale/partial 产品占比过高，触发门控失败(不允许补货触发进入生产态)"
+          },
+          {
+            "run_at": "2026-03-25T22:00:00Z",
+            "status": "failed",
+            "duration_s": 11,
+            "error": "ConsistencyError: stale/partial 占比仍未下降"
+          },
+          {
+            "run_at": "2026-03-24T22:00:00Z",
+            "status": "success",
+            "duration_s": 10
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原任务从“端点迁移/集成启用”改为“字段映射/数据契约变更导致解析缺字段（HTTP成功但解析失败）引发库存部分写入与下游补货/价格链路失败”，并要求给出修复映射与验证恢复步骤。",
+    "fixture_design_summary": [
+      "integrations.json 提供主数据映射模板旧版(active)与新模板新版(inactive)用于定位“缺字段/契约不兼容”的根因。",
+      "scheduler/jobs.json 构造依赖链 JOB-2101 → JOB-2102 → JOB-2103，同时加入无关干扰 JOB-2104（超时）用于排除。",
+      "inventory/items.json 覆盖 stale 与 partial，并加入 last_sync 异常以体现“部分写入风险”和对补货门控的影响。",
+      "helpdesk/tickets.json 4条 open 工单中包含 2条主数据/价格缺失、1条补货未触发、1条硬件无关以便关联与排除。",
+      "kb/articles.json 提供两篇与“字段重命名/新增字段映射修复”“切换模板→重跑写入→核对关键字段→恢复下游”直接匹配的指南内容与引用ID。"
+    ]
+  }
+}

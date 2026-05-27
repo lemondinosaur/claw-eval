@@ -1,0 +1,38 @@
+[
+  {
+    "note_id": "NOTE-701",
+    "title": "鉴权相关变更评审：token刷新与失败退避校验",
+    "type": "meeting",
+    "participants": [
+      "架构师负责人",
+      "认证平台负责人",
+      "SRE值班",
+      "发布经理"
+    ],
+    "tags": [
+      "auth",
+      "release-review",
+      "load-test"
+    ],
+    "content": "## 会议记录摘要\n日期：2026年2月28日\n\n### 讨论要点\n- 本次发布包含 token_refresh_harvester 参数调整（刷新窗口提前量相关）。\n- 架构师强调：需要在预发完成“鉴权压测 + 失败退避校验”，验证 transient_error 时是否进入指数退避并停止快速重入。\n- 发布经理表示上线紧急：压测与失败退避校验被标记为“跳过（未纳入门禁）”。\n\n### 风险识别\n- 若提前量被错误设置为0或负值，可能在到期点触发集中刷新，引发请求洪泛。\n- 若没有互斥/幂等key，调度失败后的重入会放大洪泛。\n\n### 行动项（当时的缺口）\n- 将“失败退避校验”加入发布门禁（当前：未通过/未执行）\n- 补充参数下限与回退逻辑校验（当前：尚未完成）\n",
+    "created_at": "2026-02-28",
+    "duration_minutes": 55
+  },
+  {
+    "note_id": "NOTE-702",
+    "title": "故障窗口后复盘同步：定位授权风暴链路",
+    "type": "meeting",
+    "participants": [
+      "CTO",
+      "认证平台负责人",
+      "SRE总监"
+    ],
+    "tags": [
+      "incident",
+      "postmortem-sync"
+    ],
+    "content": "## 故障窗口复盘同步\n日期：2026年3月1日上午\n\n### 讨论要点\n1. CTO要求用多源证据串联：工单时间线 + identity_provider degraded + 邮件技术细节 + scheduler历史。\n2. 认证平台负责人指出：邮件中提到 refresh_lead_time_seconds 误设为0/负值，导致到期点集中刷新。\n3. SRE总监补充：scheduler历史显示 token_refresh_harvester 在故障窗口出现短时间重复启动，说明互斥/幂等条件可能不充分。\n4. 会议确认：先前发布确实跳过了“失败退避校验”，这与失败后未退避导致洪泛高度一致。\n\n### 待核对\n- 刷新窗口计算与回退逻辑的边界校验（0/负值）\n- 失败退避是否在到期点分支失效\n",
+    "created_at": "2026-03-01",
+    "duration_minutes": 40
+  }
+]

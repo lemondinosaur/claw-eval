@@ -1,0 +1,245 @@
+[
+  {
+    "task_id": "TODO-801",
+    "title": "Neon预算审批补充材料提交（V2）",
+    "description": "根据评审意见完善预算补充材料并提交审批，避免预算进入更长期等待。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-03-25",
+    "assignee": "韩昊",
+    "tags": [
+      "Neon",
+      "预算",
+      "审批"
+    ],
+    "project": "Neon"
+  },
+  {
+    "task_id": "TODO-802",
+    "title": "Neon外包人力采购下单（窗口锁定）",
+    "description": "在预算批复前准备并锁定外包人力采购窗口；若无法锁定需调整里程碑范围。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-03-26",
+    "assignee": "周岚",
+    "tags": [
+      "Neon",
+      "人力",
+      "采购"
+    ],
+    "project": "Neon"
+  },
+  {
+    "task_id": "TODO-803",
+    "title": "Neon资源消耗预测更新（人天/现金流）",
+    "description": "更新资源消耗预测模型，输出人天与现金流影响，供管理层决策。",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-03-24",
+    "assignee": "沈婉",
+    "tags": [
+      "Neon",
+      "预测"
+    ],
+    "project": "Neon"
+  },
+  {
+    "task_id": "TODO-804",
+    "title": "Neon里程碑范围调整草案",
+    "description": "若预算审批继续等待，提出里程碑范围调整草案并给出替代路径。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-03-28",
+    "assignee": "周岚",
+    "tags": [
+      "Neon",
+      "计划"
+    ],
+    "project": "Neon"
+  },
+  {
+    "task_id": "TODO-805",
+    "title": "Neon关键需求接口冻结",
+    "description": "冻结关键需求接口定义，作为后续开发与集成的基线。",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-03-20",
+    "assignee": "沈婉",
+    "tags": [
+      "Neon",
+      "需求"
+    ],
+    "project": "Neon"
+  },
+  {
+    "task_id": "TODO-806",
+    "title": "Omega关键人力调回协调",
+    "description": "与相关部门协调关键成员临时抽调问题，争取调回或补位资源。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-03-24",
+    "assignee": "沈婉",
+    "tags": [
+      "Omega",
+      "人力",
+      "协调"
+    ],
+    "project": "Omega",
+    "blocked_by": ""
+  },
+  {
+    "task_id": "TODO-807",
+    "title": "Omega额外人力租用评估与报价",
+    "description": "评估并获取额外人力租用报价，形成预算与排期建议。",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-03-26",
+    "assignee": "韩昊",
+    "tags": [
+      "Omega",
+      "预算",
+      "评估"
+    ],
+    "project": "Omega"
+  },
+  {
+    "task_id": "TODO-808",
+    "title": "Omega测试环境替代窗口申请",
+    "description": "申请替代测试时段，解决维护窗口与设备窗口冲突。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-03-29",
+    "assignee": "陆川",
+    "tags": [
+      "Omega",
+      "设备窗口"
+    ],
+    "project": "Omega"
+  },
+  {
+    "task_id": "TODO-809",
+    "title": "Omega资源约束红线标注与沟通",
+    "description": "汇总资源约束红线，和项目干系人同步，明确不满足条件的影响范围。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-03-30",
+    "assignee": "沈婉",
+    "tags": [
+      "Omega",
+      "沟通"
+    ],
+    "project": "Omega"
+  },
+  {
+    "task_id": "TODO-810",
+    "title": "Omega验证用例整理完成",
+    "description": "整理验证用例并提交到测试池，确保后续执行有依据。",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-03-18",
+    "assignee": "陆川",
+    "tags": [
+      "Omega",
+      "测试"
+    ],
+    "project": "Omega"
+  },
+  {
+    "task_id": "TODO-811",
+    "title": "Omega低优先资料补齐包（待提交）",
+    "description": "补齐低优先级资料包（不影响当前验证），以减少后续返工。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-04-05",
+    "assignee": "韩昊",
+    "tags": [
+      "Omega",
+      "资料"
+    ],
+    "project": "Omega"
+  },
+  {
+    "task_id": "TODO-812",
+    "title": "Pulse设备窗口备选排班确认",
+    "description": "确认替代设备窗口排班，确保集成与测试连续性。",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-03-27",
+    "assignee": "陆川",
+    "tags": [
+      "Pulse",
+      "设备窗口"
+    ],
+    "project": "Pulse"
+  },
+  {
+    "task_id": "TODO-813",
+    "title": "Pulse替代窗口后的资源消耗同步",
+    "description": "同步替代窗口对资源消耗（人天/设备占用）的影响，更新项目基线。",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-03-28",
+    "assignee": "周岚",
+    "tags": [
+      "Pulse",
+      "资源"
+    ],
+    "project": "Pulse"
+  },
+  {
+    "task_id": "TODO-814",
+    "title": "Pulse资源消耗与风险复盘（输出升级清单）",
+    "description": "输出设备窗口冲突后的风险复盘与升级清单，作为后续版本的基线。",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-04-03",
+    "assignee": "周岚",
+    "tags": [
+      "Pulse",
+      "复盘"
+    ],
+    "project": "Pulse"
+  },
+  {
+    "task_id": "TODO-815",
+    "title": "Pulse集成验收用例编写",
+    "description": "编写集成验收用例并提交评审。",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-03-22",
+    "assignee": "程诺",
+    "tags": [
+      "Pulse",
+      "验收"
+    ],
+    "project": "Pulse"
+  },
+  {
+    "task_id": "TODO-816",
+    "title": "Pulse备选设备窗口文档归档",
+    "description": "归档备选设备窗口与排班记录，形成可追溯材料。",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-04-10",
+    "assignee": "陆川",
+    "tags": [
+      "Pulse",
+      "文档"
+    ],
+    "project": "Pulse"
+  },
+  {
+    "task_id": "TODO-817",
+    "title": "Pulse设备冲突缓释清单更新",
+    "description": "更新缓释清单并对照替代方案落地情况，确保风险闭环。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-08",
+    "assignee": "陆川",
+    "tags": [
+      "Pulse",
+      "风险"
+    ],
+    "project": "Pulse"
+  }
+]

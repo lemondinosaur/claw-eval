@@ -1,0 +1,105 @@
+{
+  "task_id": "T005zh_email_reply_draft_plus_4",
+  "task_name": "工单升级进度通报回复草稿",
+  "prompt_text": "请你检查收件箱中关于“工单升级/进度更新/是否已解决/处理结果”的邮件。优先筛选两封最关键的：1）上级领导要求你对某升级工单做进度通报，并且需包含“当前阶段/已完成动作/风险与预计完成时间/下一步行动”；2）客户询问该问题是否已解决，并要求你给出简短的原因复盘与临时规避方案（并注明当前状态）。\n请为这两封邮件分别起草回复并保存为草稿（不要发送）。回复内容不得编造邮件中没有的具体技术细节，但可根据邮件里提供的阶段信息做摘要，并承诺下一步时间（使用邮件里给出的日期或相对时间范围）。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_201",
+        "from": "liang.gong@company.com",
+        "to": "user@company.com",
+        "subject": "[升级进度通报] 工单#INC-77329 - 需要四项信息",
+        "body": "你好，\n\n关于工单#INC-77329的升级进度，需要你今天内给我一份可直接转发的通报回复，覆盖以下四项：\n1）当前阶段（例如：已定位/处理中/待验证）\n2）已完成动作（简要列点）\n3）风险与预计完成时间（给出预计到什么时候）\n4）下一步行动（下一步做什么、由谁/何时推进）\n\n当前已知：\n- 当前阶段：已定位\n- 已完成动作：复现并完成日志核对\n- 风险：仍需确认根因是否完全覆盖所有触发场景\n- 预计完成：在48小时内完成验证，之后再给出最终修复结论\n\n请你在回复中把上述信息组织得更清晰，确保我可以直接发给相关方。\n\n谢谢。\n梁工 | 运营支持负责人",
+        "date": "2026-03-01T02:10:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_202",
+        "from": "support@northwind-analytics.com",
+        "to": "user@company.com",
+        "subject": "关于 INC-77329：是否已解决？请给处理结果摘要",
+        "body": "您好，\n\n我们这边在跟进 INC-77329。请确认：问题是否已解决？\n如果还未完全解决，请给一个简短的原因复盘与临时规避方案，便于我们内部先止损。\n\n我们看到你们提到“当前处于处理中”。请在回复里包含：\n- 是否已解决（明确结论）\n- 当前阶段：处理中\n- 原因复盘（简短）\n- 临时规避方案（我们能立刻执行的）\n- 预计何时更新（给出一个时间范围：例如接下来24-48小时）\n\n谢谢。\nNorthwind Analytics | 客户支持团队",
+        "date": "2026-02-28T20:30:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_203",
+        "from": "team-bot@monitoring.internal",
+        "to": "user@company.com",
+        "subject": "[自动化监控] 队列积压告警 - 排队长度超阈值",
+        "body": "告警：队列 order-dispatcher 的长度已连续5分钟超过阈值。\n当前队列长度：1840\n阈值：1200\n首次触发：2026-02-28T21:05:00Z\n\n请在值班时间内排查。\n—— Monitoring Bot",
+        "date": "2026-02-28T21:06:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_204",
+        "from": "ops.gao@company.com",
+        "to": "user@company.com",
+        "subject": "今晚咖啡谁请？",
+        "body": "嗨，我想去楼下换杯咖啡。你今晚有空吗？\n\n不急，别耽误你工单处理～",
+        "date": "2026-02-28T19:40:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_205",
+        "from": "jira-automation@company.com",
+        "to": "user@company.com",
+        "subject": "工单状态变更：INC-77310 已进入等待验证",
+        "body": "系统通知：\n- 工单：INC-77310\n- 变更：从“处理中”->“等待验证”\n- 变更时间：2026-02-28T18:22:00Z\n\n如需详情请查看工单系统。",
+        "date": "2026-02-28T18:22:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_206",
+        "from": "weekly-notify@company.com",
+        "to": "user@company.com",
+        "subject": "本周发布节奏提醒：请在周四前完成文档更新",
+        "body": "各位同学：\n\n本周发布节奏如下：\n- 周四前完成相关文档更新\n- 周五例行回顾\n\n谢谢大家配合！",
+        "date": "2026-02-27T09:00:00Z",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_207",
+        "from": "finance-alerts@company.com",
+        "to": "user@company.com",
+        "subject": "[告警] 账单对账延迟 - 需要人工复核",
+        "body": "账单对账延迟告警：\n- 供应商：Blue Harbor Logistics\n- 对账周期：2026-02\n- 目前状态：差异待复核\n\n请尽快进行人工复核。\n—— Finance Alerts",
+        "date": "2026-02-28T12:15:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": true
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "从原题的沟通/转发类内容改为：同时处理“上级工单升级进度通报”与“客户是否已解决询问”的两封关键邮件，并分别起草四字段结构化通报与解决摘要回复草稿。",
+    "fixture_design_summary": [
+      "inbox 共7封：包含1封上级IMPORTANT邮件（msg_201）+1封客户IMPORTANT询问邮件（msg_202），其余为告警/闲聊/通知干扰。",
+      "上级邮件中提供当前阶段=已定位、已完成动作=复现并完成日志核对、风险=根因覆盖性需再确认、预计完成=48小时内验证；用于组织四类状态要点。",
+      "客户邮件中要求明确是否已解决、当前阶段=处理中、并给出原因复盘与临时规避方案，同时要求预计更新时间范围=24-48小时（在回复草稿中覆盖）。",
+      "所有 message_id 均为新生成且不与原任务复用；两封目标邮件在回复草稿中将以 reply_to_message_id 保持引用一致。"
+    ]
+  }
+}

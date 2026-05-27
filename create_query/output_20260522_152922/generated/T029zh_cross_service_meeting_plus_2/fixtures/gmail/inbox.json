@@ -1,0 +1,39 @@
+[
+  {
+    "message_id": "msg_801",
+    "from": "csm.polaris@polaris-soft.com",
+    "to": "me@company.com",
+    "subject": "架构评审会议（邀请）",
+    "date": "2026-03-01T09:15:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important"
+    ],
+    "body": "你好，\n\n我是北极星软件的客户成功经理，想邀请贵方参加“架构评审会议”。\n\n参会人线索如下：\n- 贵方：何晴（平台架构组）\n- 贵方：郑岩（仅提供英文姓氏：ZHENG）\n- 我方：客户成功经理（姓名可能省略）\n\n会议信息：\n- 会议主题：架构评审会议\n- 建议时段：2026-03-07 周六 10:00-14:00（会议时长2小时）\n- 地点要求：线上会议（Teams）\n\n请确认可参会的最早2小时，并回邮告知。\n\n谢谢！\n北极星软件客户成功经理\n"
+  },
+  {
+    "message_id": "msg_802",
+    "from": "hr-notify@othercorp.com",
+    "to": "me@company.com",
+    "subject": "关于公司福利表单填写提醒",
+    "date": "2026-03-01T12:20:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位好，\n\n请在本周内完成福利表单填写，逾期将不再受理。\n\n谢谢。\n"
+  },
+  {
+    "message_id": "msg_803",
+    "from": "no-reply@service-alert.com",
+    "to": "me@company.com",
+    "subject": "告警：服务健康检查失败（无需操作）",
+    "date": "2026-03-02T08:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，\n\n检测到一项服务健康检查失败告警，系统将自动恢复。\n如需协助请联系值班同事。\n"
+  }
+]

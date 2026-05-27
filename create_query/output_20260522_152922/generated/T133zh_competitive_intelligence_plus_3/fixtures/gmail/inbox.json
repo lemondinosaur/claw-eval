@@ -1,0 +1,39 @@
+[
+  {
+    "message_id": "geo_msg_1187",
+    "from": "region-planning@ourcompany.com",
+    "to": "me@ourcompany.com",
+    "subject": "试点启动清单：东亚+中亚 区域威胁地图（请先看证据）",
+    "date": "2026-05-18T10:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important"
+    ],
+    "body": "区域拓展团队要求你先定“覆盖范围”再做竞品情报：\n\n覆盖地区（东亚+中亚）：\n- 日本（东京/大阪范围，优先看语言本地化与合规落地）\n- 韩国（首尔/釜山范围，优先看行业模板/本地工作流）\n- 哈萨克斯坦（阿斯塔纳，优先看合规背书与渠道铺设）\n\n目标客户类型：零售连锁/中型制造/第三方物流（3PL）\n风险偏好：偏合规优先、偏渠道可复制；对“无本地化/无法合规背书”的方案容忍度低。\n\n请输出“区域威胁地图”并保存草稿给 geo_owner@ourcompany.com，邮件主题需含“区域威胁地图”。"
+  },
+  {
+    "message_id": "geo_msg_1188",
+    "from": "cfo-ops@ourcompany.com",
+    "to": "me@ourcompany.com",
+    "subject": "财务报表：季度预算变更（不相关）",
+    "date": "2026-05-19T09:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "仅用于内部对账：本季度差旅预算调整与供应商付款节奏变更。请勿与区域拓展报告混用。"
+  },
+  {
+    "message_id": "geo_msg_1189",
+    "from": "sales-eapac@ourcompany.com",
+    "to": "me@ourcompany.com",
+    "subject": "客户反馈：担心竞品通过集成商与本地语言切入",
+    "date": "2026-05-20T15:30:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "来自日本零售连锁与韩国物流客户的反馈：竞品团队在试点前通常先做两件事：\n1）提供面向本地语言的工作流/表单模板（能快速落地到门店或仓库）；\n2）通过本地系统集成商或渠道伙伴铺设上线路径。\n你在报告里务必把“动作→可能客户切入点→我司建议”讲清楚。"
+  }
+]

@@ -1,0 +1,208 @@
+[
+  {
+    "message_id": "obq_001",
+    "from": "pagerduty@ops-relay.com",
+    "to": "oncall@mycompany.com",
+    "subject": "[P0] 订单写入失败：Checkout 写入失败率飙升（Write Failures）",
+    "date": "2026-05-22T09:18:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "alert",
+      "oncall"
+    ],
+    "body": "Checkout 服务开始出现订单写入失败：失败率 27%（过去 10 分钟内持续上升）。影响：新订单无法完成落库，订单状态卡在 Pending。请立刻确认数据库连接与写入重试策略，并启动 oncall 处理流程。该告警与工单 ORD-WF-11092 同步。"
+  },
+  {
+    "message_id": "obq_002",
+    "from": "noreply@monitoring.mycompany.com",
+    "to": "oncall@mycompany.com",
+    "subject": "[ALERT] 库存一致性：回滚告警触发（Consistency Rollback Detected）",
+    "date": "2026-05-22T08:55:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "alert"
+    ],
+    "body": "库存一致性服务报告回滚事件突增：Rollback Count 在 15 分钟内从 2 跳到 119。推断与订单写入失败同时段相关（可能导致库存回滚以保持一致性）。建议优先检查库存事务边界与幂等写入。若确认生产故障，请按 P0 流程升级。"
+  },
+  {
+    "message_id": "obq_003",
+    "from": "legal-contact@partner-ember.io",
+    "to": "me@mycompany.com",
+    "subject": "紧急：合同变更需评审（Amendment v3 for Pricing & Delivery Terms）",
+    "date": "2026-05-22T07:40:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "client"
+    ],
+    "body": "我们已发送合同变更条款（Amendment v3）：包含定价调整与交付责任边界。请在今天内完成评审并回复关键接受/拒绝点。若延迟，将影响后续采购批次的生效。请优先处理该邮件。"
+  },
+  {
+    "message_id": "obq_004",
+    "from": "alerts@status.warehouse-proxy.com",
+    "to": "me@mycompany.com",
+    "subject": "看似告警：仓储代理连接异常（但不涉及生产写入）",
+    "date": "2026-05-22T10:02:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "alert"
+    ],
+    "body": "本次检测到仓储代理的连接重试增加，但系统标注为“Non-Production / Staging Mirror”。对生产订单写入无影响。建议仅在常规维护窗口查看日志。请注意：这是自建监控的通知，非平台级生产告警。"
+  },
+  {
+    "message_id": "obq_005",
+    "from": "support@vendorae.com",
+    "to": "me@mycompany.com",
+    "subject": "客户确认：请在2小时内确认配送地址变更（Action Required）",
+    "date": "2026-05-22T09:47:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "为避免后续配送失败，请在2小时内确认配送地址变更。说明：该请求来自客户工单更新，不涉及你们生产系统故障。回复确认后我们会继续出库流程。"
+  },
+  {
+    "message_id": "obq_006",
+    "from": "hr-updates@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "HR 通知：员工健康检查预约（本周安排）",
+    "date": "2026-05-21T18:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "hr"
+    ],
+    "body": "本周提供健康检查预约时段。请在周四前选择时间并完成登记。"
+  },
+  {
+    "message_id": "obq_007",
+    "from": "security@mycompany.com",
+    "to": "engineering@mycompany.com",
+    "subject": "安全要求：确认依赖漏洞修复（截止今晚）",
+    "date": "2026-05-22T06:58:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "security"
+    ],
+    "body": "请工程团队确认：已完成本月高危依赖漏洞升级与回归验证。截止今晚 23:00 前提交确认。若有未完成项，请附原因与预计完成时间。"
+  },
+  {
+    "message_id": "obq_008",
+    "from": "oss-community@devmail.org",
+    "to": "me@mycompany.com",
+    "subject": "技术社区：提案审阅邀请（Review by Tomorrow 16:00）",
+    "date": "2026-05-22T10:25:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们收到一项社区提案，希望你作为审阅人提供反馈。请在明天 16:00 前完成评估并给出建议。内容涉及 API 兼容性与文档更新。"
+  },
+  {
+    "message_id": "obq_009",
+    "from": "noreply@github.com",
+    "to": "me@mycompany.com",
+    "subject": "[mycompany/checkout] PR #9171：修复订单写入失败重试逻辑（CI 已通过）",
+    "date": "2026-05-22T08:10:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "automated"
+    ],
+    "body": "Dependabot/PR 触发：修复在高负载下写入失败重试策略未正确退避的问题。CI 已通过。需要确认代码在生产约束下是否仍满足幂等要求。"
+  },
+  {
+    "message_id": "obq_010",
+    "from": "meeting-notify@mycalendar.com",
+    "to": "me@mycompany.com",
+    "subject": "内部评审会：库存一致性与回滚策略复盘（Today 15:30）",
+    "date": "2026-05-22T10:40:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "calendar"
+    ],
+    "body": "提醒：今天 15:30 进行复盘会，主题为“库存一致性与回滚策略”。参会人：你、SRE 团队负责人、数据工程师。"
+  },
+  {
+    "message_id": "obq_011",
+    "from": "promo@cloudshop.com",
+    "to": "me@mycompany.com",
+    "subject": "限时活动：云存储 40% 折扣（订阅用户专享）",
+    "date": "2026-05-20T12:12:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "promotional"
+    ],
+    "body": "订阅用户专享：限时云存储折扣，快来领取！不需要处理任何工单。"
+  },
+  {
+    "message_id": "obq_012",
+    "from": "newsletter@opsweekly.dev",
+    "to": "me@mycompany.com",
+    "subject": "Ops Weekly：2026-05 关键告警降噪方法（Newsletter）",
+    "date": "2026-05-22T05:30:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "newsletter"
+    ],
+    "body": "本期内容包括告警降噪、SLO 与告警阈值设计建议。无须回复。"
+  },
+  {
+    "message_id": "obq_013",
+    "from": "noreply@linkedin.com",
+    "to": "me@mycompany.com",
+    "subject": "你有新的连接请求（来自生产力相关账号）",
+    "date": "2026-05-22T11:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "social"
+    ],
+    "body": "有 1 条新的连接请求待确认。对业务紧急性无直接影响。"
+  },
+  {
+    "message_id": "obq_014",
+    "from": "ap@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "待处理：供应商发票审核（Invoice INV-55420）需在两天内完成",
+    "date": "2026-05-22T09:30:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "供应商发票 INV-55420 待审核，需在两天内完成。请核对金额、税率与采购单号后提交。"
+  },
+  {
+    "message_id": "obq_015",
+    "from": "community@stackflow.org",
+    "to": "me@mycompany.com",
+    "subject": "社群消息：你的帖子被置顶（无需操作）",
+    "date": "2026-05-21T09:12:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "community"
+    ],
+    "body": "恭喜！你的帖子已被置顶，欢迎继续参与讨论。无需回复。"
+  },
+  {
+    "message_id": "obq_016",
+    "from": "ops-brief@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "日常简报：生产健康检查概览（非告警类）",
+    "date": "2026-05-22T11:30:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "other"
+    ],
+    "body": "今日简报：汇总各系统状态与检查项。该邮件仅用于通知，不属于需要立即响应的故障告警。"
+  }
+]

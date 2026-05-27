@@ -1,0 +1,49 @@
+[
+  {
+    "integration_id": "INT-2401",
+    "name": "channel_settlement",
+    "display_name": "渠道结算同步",
+    "service": "settlement",
+    "status": "degraded",
+    "last_verified": "2026-05-15T11:20:00+08:00",
+    "monthly_calls": 9800,
+    "error_rate": 3.6,
+    "last_sync": "2026-05-23T11:20:00+08:00",
+    "notes": "渠道结算已在部分批次切换为“批次回填”口径，但回填触发条件写入延迟。预计5月23日后同步滞后。"
+  },
+  {
+    "integration_id": "INT-2402",
+    "name": "reconciliation_backfill",
+    "display_name": "对账回填（渠道分账）",
+    "service": "reconciliation",
+    "status": "partial_error",
+    "last_verified": "2026-05-26T09:10:00+08:00",
+    "monthly_calls": 5200,
+    "error_rate": 18.2,
+    "last_sync": "2026-05-20T09:10:00+08:00",
+    "notes": "部分回填失败：旧口径expected_monthly未清理。对平台B客户回填批次校验失败导致回填中断。错误：BatchMappingMismatch。"
+  },
+  {
+    "integration_id": "INT-2403",
+    "name": "invoice_generation_dependency",
+    "display_name": "发票依赖回填结果",
+    "service": "invoice",
+    "status": "active",
+    "last_verified": "2026-05-26T09:30:00+08:00",
+    "monthly_calls": 2600,
+    "error_rate": 0.6,
+    "notes": "发票生成读取CRM expected_monthly回填状态；若回填缺口存在，则跳过对应客户发票生成。"
+  },
+  {
+    "integration_id": "INT-2404",
+    "name": "crm_expected_monthly_sync",
+    "display_name": "CRM应收口径同步",
+    "service": "crm",
+    "status": "active",
+    "last_verified": "2026-05-25T16:40:00+08:00",
+    "monthly_calls": 7100,
+    "error_rate": 0.4,
+    "last_sync": "2026-05-25T16:40:00+08:00",
+    "notes": "仅当渠道分账版本标记为“batch_backfill_enabled”时更新expected_monthly。当前全量未启用，部分客户仍停留旧口径。"
+  }
+]

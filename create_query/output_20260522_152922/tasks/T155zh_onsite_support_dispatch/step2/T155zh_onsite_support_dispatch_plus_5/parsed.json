@@ -1,0 +1,358 @@
+{
+  "task_id": "T155zh_onsite_support_dispatch_plus_5",
+  "task_name": "多地点到场-就近派遣+交通约束",
+  "prompt_text": "有一位VIP客户的critical紧急工单需要安排现场支持，但现场有两个地点：主站南京与备站（南京境内的备选场）。请你：\n1) 查看紧急工单详情与客户CRM信息（主站45分钟内到达并开始故障定位；若主站无法在90分钟内确认原因需转场备站，且要求在草稿中写明触发条件与预计转场时间）；\n2) 结合工程师技能与今天的日程/交通可达性，选择能在SLA前到达主站并具备目标技能（监控告警抑制策略 + 数据库写入阻塞排查：锁/慢查询）的工程师；\n3) 起草通知邮件草稿：分别通知首选工程师与客户经理，并抄送技术总监；邮件中必须写明主站/备站、主站到达与定位启动时间线、备站转场触发条件与预计时间、首步行动；\n4) 不要发送，只保存草稿。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_3101",
+        "title": "客户参观&现场演示（占用）",
+        "start_time": "2026-04-20T15:00:00+08:00",
+        "end_time": "2026-04-20T17:30:00+08:00",
+        "location": "南京·河西区客户园区",
+        "organizer": "项目经理周敏",
+        "attendees": [
+          "李晓"
+        ],
+        "description": "工程师李晓需全程陪同参观并协助演示，期间无法开始故障定位。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_3102",
+        "title": "杭州出差（往返中）",
+        "start_time": "2026-04-20T11:30:00+08:00",
+        "end_time": "2026-04-20T19:45:00+08:00",
+        "location": "杭州",
+        "organizer": "出差管理",
+        "attendees": [
+          "陈鹏"
+        ],
+        "description": "工程师陈鹏从中午开始在杭州出差，预计晚于SLA要求返回，不适合主站45分钟内启动定位。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_3103",
+        "title": "下午出发窗口（可派遣）",
+        "start_time": "2026-04-20T13:10:00+08:00",
+        "end_time": "2026-04-20T18:00:00+08:00",
+        "location": "高铁出行中",
+        "organizer": "运维调度",
+        "attendees": [
+          "赵毅"
+        ],
+        "description": "赵毅可在45分钟内乘高铁到达南京主站，并携带告警抑制策略工具包与DB慢查询/锁分析清单。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_3104",
+        "title": "午餐",
+        "start_time": "2026-04-20T12:00:00+08:00",
+        "end_time": "2026-04-20T12:45:00+08:00",
+        "location": "",
+        "organizer": "",
+        "attendees": [],
+        "description": "午休时间",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-2101",
+        "name": "赵毅",
+        "department": "运维部",
+        "title": "现场SRE工程师",
+        "email": "zhaoyi@company.com",
+        "phone": "18600110001",
+        "location": "上海",
+        "skills": [
+          "监控告警抑制策略（告警降噪/抑制规则）",
+          "数据库写入阻塞排查",
+          "锁等待分析（InnoDB锁/等待图谱）",
+          "慢查询定位（Explain/慢日志采样）",
+          "应急变更执行"
+        ],
+        "notes": "今天上午已完成远程值班；下午可出发。备注：可在45分钟内完成高铁到达南京并携带抑制策略工具包与锁/慢查询排查清单。"
+      },
+      {
+        "contact_id": "CT-2102",
+        "name": "李晓",
+        "department": "平台架构部",
+        "title": "监控平台架构师",
+        "email": "lixiao@company.com",
+        "phone": "18600110002",
+        "location": "南京",
+        "skills": [
+          "监控告警平台配置",
+          "告警规则联动（基础）",
+          "SLA监测看板",
+          "告警抑制（策略理解但缺少现场应急脚本）"
+        ],
+        "notes": "常驻南京，对数据库锁/慢查询排查不熟。今天15:00后有客户参观占用，可能导致无法在45分钟内开始有效定位。"
+      },
+      {
+        "contact_id": "CT-2103",
+        "name": "陈鹏",
+        "department": "数据库团队",
+        "title": "数据库高级顾问",
+        "email": "chenpeng@company.com",
+        "phone": "18600110003",
+        "location": "杭州",
+        "skills": [
+          "数据库写入阻塞根因分析",
+          "锁等待与事务隔离级别排查",
+          "慢查询与执行计划优化建议",
+          "告警抑制策略协同（能做但非主要专长）"
+        ],
+        "notes": "技能最全；但今天中午开始去杭州出差，返回时间晚于SLA主站要求，无法满足45分钟内启动定位。"
+      },
+      {
+        "contact_id": "CT-2104",
+        "name": "周楠",
+        "department": "客户成功部",
+        "title": "客户经理",
+        "email": "zhounan@orangesea-power.com",
+        "phone": "18600110004",
+        "location": "南京",
+        "skills": [
+          "客户沟通与SLA推进",
+          "现场升级协调",
+          "合同条款提醒与风险沟通"
+        ],
+        "notes": "负责橙海电力集团VIP工单对接与派遣确认；需在草稿中收到主备站时间线与转场条件摘要。"
+      },
+      {
+        "contact_id": "CT-2105",
+        "name": "孙静",
+        "department": "技术部",
+        "title": "技术总监",
+        "email": "sunjing@company.com",
+        "phone": "18600110005",
+        "location": "上海",
+        "skills": [
+          "技术升级把关",
+          "现场处置策略审批",
+          "多地点响应流程审核"
+        ],
+        "notes": "VIP critical工单需要升级抄送。内部提醒：草稿中必须写明备站转场触发条件与预计时间，并与工单SLA一致。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2101",
+        "name": "橙海电力集团",
+        "contact_person": "周楠",
+        "email": "zhounan@orangesea-power.com",
+        "phone": "13988112233",
+        "industry": "能源/电力",
+        "tier": "vip",
+        "annual_revenue": 8600000,
+        "last_contact_date": "2026-04-05",
+        "status": "active",
+        "location": "南京",
+        "sla_level": "vip-critical",
+        "sla_response": "主站45分钟内到达并开始故障定位；90分钟内未确认原因则转场备站",
+        "notes": "站点：主站南京（变电站监控平台运维机房），备站南京（第二运维机房）。派遣策略：优先选择可在45分钟内开始定位且具备告警抑制+DB写入阻塞/锁/慢查询排查技能的工程师；并在草稿中写明备站转场条件与预计时间。"
+      },
+      {
+        "customer_id": "CUS-2102",
+        "name": "星河物流有限公司",
+        "contact_person": "钱工",
+        "email": "qian@xinghe-logistics.cn",
+        "phone": "13988112244",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 1300000,
+        "last_contact_date": "2026-04-10",
+        "status": "active",
+        "location": "南京",
+        "sla_level": "standard",
+        "sla_response": "标准优先级远程优先",
+        "notes": "标准客户，存在critical告警但无需现场密集派遣。"
+      },
+      {
+        "customer_id": "CUS-2103",
+        "name": "北辰医疗器械",
+        "contact_person": "赵主任",
+        "email": "zhaozr@beichen-med.cn",
+        "phone": "13988112255",
+        "industry": "医疗器械",
+        "tier": "standard",
+        "annual_revenue": 520000,
+        "last_contact_date": "2026-04-12",
+        "status": "active",
+        "location": "苏州",
+        "sla_level": "standard",
+        "sla_response": "远程+次日现场",
+        "notes": "标准客户，现场要求较低。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2101",
+        "from": "ops@orangesea-power.com",
+        "to": "support@company.com",
+        "subject": "橙海电力：主站/备站SLA确认与现场要求（请按时间线执行）",
+        "date": "2026-04-20T13:25:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important",
+          "urgent"
+        ],
+        "body": "您好，\n\n橙海电力集团变电站监控平台出现“告警风暴”并引发数据库写入阻塞。合同条款要求：\n1）主站：南京主站需在45分钟内到达并开始故障定位；\n2）备站：若主站在90分钟内仍无法确认原因，则需转场备站。\n\n主站位置：南京·江北新区运维机房（主站）。\n备站位置：南京·建邺区第二运维机房（备站）。\n\n请在给工程师的通知草稿中写清时间线与转场触发条件，我们用于内部留档。\n\n谢谢。\n橙海电力运维团队"
+      },
+      {
+        "message_id": "msg_2102",
+        "from": "sunjing@company.com",
+        "to": "support@company.com",
+        "subject": "[内部提醒] VIP critical现场草稿必须包含备站转场条件与预计时间",
+        "date": "2026-04-20T13:18:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "internal",
+          "urgent"
+        ],
+        "body": "内部提醒：这次是VIP critical现场支持。\n\n请你起草给工程师与客户经理的邮件草稿时，务必：\n- 明确写出“备站转场触发条件”：主站在90分钟内未能确认原因/根因定位失败时转场；\n- 明确写出“预计转场时间”：从主站确认失败后起算的预计到达时间（需结合交通与SLA换算）；\n- 同时复述主站45分钟开始定位的SLA时间线。\n\n不要发送邮件，只保存草稿，便于后续审核。",
+        "from_name": "技术总监孙静"
+      },
+      {
+        "message_id": "msg_2103",
+        "from": "alerts@monitoring-system.com",
+        "to": "support@company.com",
+        "subject": "自动告警：数据库写入延迟（非VIP噪声）",
+        "date": "2026-04-20T09:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox",
+          "auto"
+        ],
+        "body": "数据库写入延迟已连续出现，请检查连接池与写入队列。此邮件为系统自动告警通知，不代表VIP工单。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2101",
+        "title": "变电站监控平台告警风暴导致数据库写入阻塞（主/备站）",
+        "description": "橙海电力集团（CUS-2101）反馈：变电站监控平台触发告警风暴，导致数据库写入阻塞（写入延迟持续、锁等待上升）。需要现场执行：\n- 监控告警抑制策略（降噪/抑制规则生效）\n- 数据库写入阻塞排查（锁等待/慢查询/执行计划）\n\n地点与SLA：\n- 主站：南京主站需在45分钟内到达并开始故障定位\n- 合同转场：若主站在90分钟内无法确认原因，则需转场备站\n- 备站：南京备站（第二运维机房）继续处置\n\n初步现象：写入线程堆积，出现长事务与慢查询放大告警风暴。",
+        "customer_id": "CUS-2101",
+        "reporter": "运维值班负责人",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-20T13:10:00+08:00",
+        "tags": [
+          "VIP",
+          "紧急",
+          "主备站",
+          "数据库写入阻塞",
+          "告警风暴"
+        ],
+        "category": "现场故障",
+        "requires_onsite": true,
+        "sla_deadline": "2026-04-20T14:10:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2102",
+        "title": "星河物流：支付回调偶发超时（无需现场）",
+        "description": "星河物流有限公司（CUS-2102）反馈：支付回调偶发超时。建议先排查网关与超时重试策略。该工单requires_onsite=false。",
+        "customer_id": "CUS-2102",
+        "reporter": "钱工",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-20T11:20:00+08:00",
+        "tags": [
+          "支付",
+          "网关",
+          "超时"
+        ],
+        "category": "线上问题",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-20T20:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2103",
+        "title": "北辰医疗：内网证书链过期提醒",
+        "description": "北辰医疗器械（CUS-2103）反馈：内网证书链即将过期，需更新证书。当前为medium，建议远程指导。",
+        "customer_id": "CUS-2103",
+        "reporter": "赵主任",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-19T16:05:00+08:00",
+        "tags": [
+          "证书",
+          "到期"
+        ],
+        "category": "运维咨询",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-25T10:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2104",
+        "title": "橙海电力：报表查询偶尔慢（非核心主流程）",
+        "description": "橙海电力集团内部业务报表偶尔超时。priority=medium，requires_onsite=false（仅建议对慢查询进行抽样复核）。",
+        "customer_id": "CUS-2101",
+        "reporter": "业务负责人",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-20T09:55:00+08:00",
+        "tags": [
+          "慢查询",
+          "报表"
+        ],
+        "category": "性能问题",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-21T09:55:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2105",
+        "title": "星河物流：消息队列积压（现场可选）",
+        "description": "星河物流有限公司（CUS-2102）反馈：消息队列积压。priority=medium，requires_onsite=true但不属于VIP与本次主备站要求（用于干扰）。",
+        "customer_id": "CUS-2102",
+        "reporter": "运维张师傅",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-20T10:30:00+08:00",
+        "tags": [
+          "MQ",
+          "积压"
+        ],
+        "category": "线上问题",
+        "requires_onsite": true,
+        "sla_deadline": "2026-04-21T12:00:00+08:00"
+      },
+      {
+        "ticket_id": "TK-2106",
+        "title": "北辰医疗：数据库备份失败排查（标准等级）",
+        "description": "北辰医疗器械（CUS-2103）反馈：数据库备份任务失败。priority=low，requires_onsite=false。",
+        "customer_id": "CUS-2103",
+        "reporter": "IT值班",
+        "department": "技术支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-18T15:10:00+08:00",
+        "tags": [
+          "备份",
+          "失败"
+        ],
+        "category": "运维排查",
+        "requires_onsite": false,
+        "sla_deadline": "2026-04-24T18:00:00+08:00"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在2026-04-20南京场景下加入主站45分钟与90分钟转备站的双地点SLA，并将技能聚焦为告警抑制+数据库写入阻塞（锁/慢查询）排查，同时加入内部主管对草稿转场条件/预计时间的硬性写作要求。",
+    "fixture_design_summary": [
+      "helpdesk/tickets.json：1条目标VIP/critical/requires_onsite=true主备站工单，5条干扰覆盖非VIP、requires_onsite=false、medium/low等。",
+      "crm/customers.json：仅橙海电力集团为vip且notes包含主备站派遣策略线索。",
+      "contacts/contacts.json：工程师赵毅具备告警抑制+锁/慢查询排查并在notes中给出45分钟高铁到达；李晓常驻南京但技能偏弱且日程占用；陈鹏技能最全但返回时间晚于主站SLA。",
+      "calendar/events.json：为三名工程师提供与主站/转场可达性对应的日程占用（参观/杭州出差/下午可出发窗口）。",
+      "gmail/inbox.json：包含客户邮件确认主备站与SLA时间线、以及内部主管提醒草稿必须包含备站转场触发条件与预计时间；另加入自动告警噪声。"
+    ]
+  }
+}

@@ -1,0 +1,243 @@
+{
+  "task_id": "T117zh_customer_followup_plus_1",
+  "task_name": "逾期续订提醒（含干扰邮件）",
+  "prompt_text": "请帮我检查CRM与邮件线索以完成逾期续订跟进（今天视为2026-04-30）：\n1) 从CRM中筛选：status为active，且距离last_contact_date超过45天的客户；排除status为churned。\n2) 对每位入选客户，调用其客户详情补充notes/联系人等关键信息。\n3) 在Gmail收件箱中检索与该客户相关的最后沟通线索：\n   - 如果存在多封候选邮件，选择最相关且最新的一封作为参考。\n   - 可能存在“主题/关键词相近但发件人与客户无关”的干扰邮件，需要据正文/公司名/代号等线索做关联判断。\n   - 若某客户缺少明确匹配邮件，可根据CRM notes补写跟进要点，但不要捏造具体发件信息。\n4) 为每位目标客户仅起草邮件草稿（不发送）：\n   - VIP：语气更正式，明确提及续订价值与建议的时间安排（给出清晰的下一步时间窗口/回复期待）。\n   - standard：语气更友好简洁，询问当前使用情况并确认续订意向。\n5) 最终输出：\n   - “需跟进客户清单”（至少包含客户名、客户等级、last_contact_date）\n   - 每位客户对应的“邮件草稿摘要”（包含收件人、主题要点、关键句式/关注点）。\n全程不得调用发送邮件接口。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-801",
+        "name": "北辰科技",
+        "contact_person": "陈总",
+        "email": "chen@beichen-tech.com",
+        "phone": "13900108001",
+        "industry": "科技",
+        "tier": "vip",
+        "annual_revenue": 7600000,
+        "last_contact_date": "2026-01-25",
+        "status": "active",
+        "notes": "VIP续订窗口通常在每年4月中旬；上次合作代号为“BC-CORE”。本次希望对齐2026年服务范围与SLA调整。"
+      },
+      {
+        "customer_id": "CUS-802",
+        "name": "海岸数据",
+        "contact_person": "周经理",
+        "email": "zhou@coastdata.com",
+        "phone": "13900108002",
+        "industry": "数据服务",
+        "tier": "vip",
+        "annual_revenue": 4200000,
+        "last_contact_date": "2025-12-20",
+        "status": "active",
+        "notes": "续订需走采购流程；沟通过预算代号“CD-219”。对方偏好先邮件确认关键条款，再安排线上简会。"
+      },
+      {
+        "customer_id": "CUS-803",
+        "name": "星桥餐饮连锁",
+        "contact_person": "刘总监",
+        "email": "liug@xingqiao-food.com",
+        "phone": "13900108003",
+        "industry": "餐饮",
+        "tier": "standard",
+        "annual_revenue": 680000,
+        "last_contact_date": "2026-01-05",
+        "status": "active",
+        "notes": "standard续订关注点是成本与上线稳定性。上次提到系统代号“XQ-POS”，希望了解目前门店覆盖与版本更新计划。"
+      },
+      {
+        "customer_id": "CUS-804",
+        "name": "绿洲制造",
+        "contact_person": "孙工",
+        "email": "sun@lzr-mfg.com",
+        "phone": "13900108004",
+        "industry": "制造",
+        "tier": "standard",
+        "annual_revenue": 950000,
+        "last_contact_date": "2026-03-28",
+        "status": "active",
+        "notes": "刚在45天内沟通过；暂不需要续订提醒，后续可等待对方主动对齐。"
+      },
+      {
+        "customer_id": "CUS-805",
+        "name": "金翼物流",
+        "contact_person": "郑总",
+        "email": "zheng@jinyilogistics.com",
+        "phone": "13900108005",
+        "industry": "物流",
+        "tier": "vip",
+        "annual_revenue": 3100000,
+        "last_contact_date": "2026-02-18",
+        "status": "active",
+        "notes": "未到阈值（<=45天）；先观察其续订节奏。"
+      },
+      {
+        "customer_id": "CUS-806",
+        "name": "恒光建筑",
+        "contact_person": "周主任",
+        "email": "zhou@hengguang-arch.cn",
+        "phone": "13900108006",
+        "industry": "建筑",
+        "tier": "standard",
+        "annual_revenue": 420000,
+        "last_contact_date": "2026-02-22",
+        "status": "active",
+        "notes": "近期刚完成集成验收（<=45天），无需跟进。"
+      },
+      {
+        "customer_id": "CUS-807",
+        "name": "盛景医药",
+        "contact_person": "何总监",
+        "email": "he@shengjing-pharma.com",
+        "phone": "13900108007",
+        "industry": "医药",
+        "tier": "vip",
+        "annual_revenue": 5100000,
+        "last_contact_date": "2026-01-12",
+        "status": "churned",
+        "notes": "已在上季度停止合作（churned），不应纳入续订跟进。"
+      },
+      {
+        "customer_id": "CUS-808",
+        "name": "云栈咨询",
+        "contact_person": "潘顾问",
+        "email": "pan@yunstack-consult.com",
+        "phone": "13900108008",
+        "industry": "咨询",
+        "tier": "standard",
+        "annual_revenue": 260000,
+        "last_contact_date": "2025-11-30",
+        "status": "churned",
+        "notes": "合同已结束（churned），不需要任何邮件草稿。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "mail_901",
+        "from": "chen@beichen-tech.com",
+        "to": "sales@company.com",
+        "subject": "BC-CORE 续订时间窗口确认",
+        "date": "2026-02-03T09:30:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "陈总您好（来自客户邮件）：我们这边BC-CORE续订希望在4月中旬前完成内部审批。麻烦提供一下SLA调整后的服务范围要点，并确认建议的答复时间。——陈总"
+      },
+      {
+        "message_id": "mail_902",
+        "from": "ops@another-partner.com",
+        "to": "sales@company.com",
+        "subject": "关于续订报价与更新计划（请忽略）",
+        "date": "2026-02-20T16:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，收到续订相关咨询后，我们将向无关客户提供报价更新。与您合作的具体客户请以另行渠道为准。关键词：续订、报价、更新。"
+      },
+      {
+        "message_id": "mail_903",
+        "from": "zhou@coastdata.com",
+        "to": "sales@company.com",
+        "subject": "CD-219 续订条款预确认（采购流程）",
+        "date": "2026-01-18T11:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "周经理您好：关于CD-219的续订条款，我们需要先通过邮件确认关键要点（SLA与交付节奏），随后再安排线上简会。请在本周内给到条款摘要与建议会议时间。——周经理"
+      },
+      {
+        "message_id": "mail_904",
+        "from": "marketing@budget-tools.io",
+        "to": "sales@company.com",
+        "subject": "企业版报价更新：包含续订折扣",
+        "date": "2026-02-08T13:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们有企业版报价更新与续订折扣信息，但该邮件与任何特定客户无直接关系。仅供查看。"
+      },
+      {
+        "message_id": "mail_905",
+        "from": "liug@xingqiao-food.com",
+        "to": "sales@company.com",
+        "subject": "关于 XQ-POS 当前使用情况的简要确认",
+        "date": "2025-12-29T10:22:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "刘总监：我们目前XQ-POS在部分门店运行较稳定。想了解一下后续版本更新与续订周期安排，是否需要我们配合提供门店数据。谢谢。——刘总监"
+      },
+      {
+        "message_id": "mail_906",
+        "from": "it@xingqiao-food.com",
+        "to": "sales@company.com",
+        "subject": "Re: XQ-POS 续订（主题可能不完整）",
+        "date": "2026-01-08T08:50:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们这边收到了续订相关提醒，但主题被截断了。内容大意：XQ-POS续订需要评估成本与稳定性。请邮件说明续订后的支持方式。"
+      },
+      {
+        "message_id": "mail_907",
+        "from": "office@public-edu.cn",
+        "to": "sales@company.com",
+        "subject": "续订更新：教育行业模板",
+        "date": "2026-02-14T15:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，我们提供教育行业模板更新与续订信息。发件人与具体客户无直接对应，请忽略其中任何特定条款。"
+      },
+      {
+        "message_id": "mail_908",
+        "from": "support@lzr-mfg.com",
+        "to": "sales@company.com",
+        "subject": "对接确认（非续订）",
+        "date": "2026-03-30T09:15:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "对接已完成，暂不涉及续订。后续等待对方评估。"
+      },
+      {
+        "message_id": "mail_909",
+        "from": "sales@unrelated-vendor.com",
+        "to": "sales@company.com",
+        "subject": "续订提醒：报价与合同更新",
+        "date": "2026-02-01T18:20:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "续订提醒与合同更新信息。正文未包含任何客户公司名/代号，疑似干扰邮件。"
+      },
+      {
+        "message_id": "mail_910",
+        "from": "he@shengjing-pharma.com",
+        "to": "sales@company.com",
+        "subject": "关于停止合作的后续事项",
+        "date": "2026-01-12T10:00:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们已结束合作，不再推进续订。请将后续沟通归档。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将筛选阈值从30天改为45天，并在Gmail中加入与客户无关但主题相近的干扰邮件，同时允许standard客户可能缺少清晰线索需依赖CRM notes补写。",
+    "fixture_design_summary": [
+      "CRM共8名客户：目标为3位（CUS-801、CUS-802为VIP；CUS-803为standard），均满足active且last_contact_date距2026-04-30超过45天；另外3位active未到阈值，2位为churned用于排除。",
+      "Gmail共10封邮件：为每位目标客户至少1封可关联邮件；其中VIP邮件分别包含客户代号“BC-CORE”“CD-219”，standard邮件包含“XQ-POS”但主题有一定模糊；同时加入多封与任何目标客户无直接关联的续订/报价/更新干扰邮件。",
+      "跨fixture实体引用一致：目标客户邮箱与对应邮件from一致，便于实现“找最近且最相关邮件”的匹配逻辑；churned客户CUS-807对应邮件内容声明停止合作，用于验证排除逻辑。"
+    ]
+  }
+}

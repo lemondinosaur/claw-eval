@@ -1,0 +1,549 @@
+{
+  "task_id": "T143zh_quarterly_business_insight_plus_2",
+  "task_name": "跨行业增长机会扫描（净新增）",
+  "prompt_text": "请为即将到来的Q2做一份“跨行业增长机会扫描（净新增）”：\n\n1）从财务系统拉取Q1交易，按客户区分订阅（subscription）与一次性项目（project），按月汇总计算每类的月度变化（用1月-2月、2月-3月的变化作为证据），并为每个客户判断增长类型：\n- 订阅扩张型：subscription持续上升或两次上升占主导\n- 一次性项目驱动型：project在某一/某几个月出现显著爆发（至少一次环比显著高于前后期）\n- 续费稳定型：两类整体维持平稳（订阅与项目都无明显大幅波动/环比波动小）\n\n2）查看CRM客户等级（tier）、状态（status）与行业（industry），识别最有潜力的目标分层与行业方向，并给出“为什么这些分层更匹配对应增长类型”。\n\n3）浏览RSS中与对应行业相关的文章，提炼与“景气度上行/需求恢复/政策利好”相关要点；将行业新闻要点与财务增长类型证据做对齐解释。\n\n4）综合输出：\n- Q2推荐的2个行业机会（每个行业机会包含：理由=RSS要点 + 财务类型证据 + 对应客户分层信号）\n- Q2推荐的5个客户拓展名单（每个客户包含：增长类型、关键证据（引用Q1订阅/项目月度变化）、下一步动作）\n\n5）反例处理：至少指出1个“行业新闻偏暖但财务增长不明显”的客户，并解释为什么不建议优先拓展（需基于财务月度变化与增长类型证据，而不仅是行业新闻）。\n\n分析范围仅基于Q1交易与RSS/CRM数据；若发现某客户订阅与项目都未出现可持续的环比增量，应归入“非优先/次优先”并在反例中说明。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-A110",
+        "name": "星辉云计算",
+        "tier": "vip",
+        "status": "active",
+        "industry": "SaaS服务",
+        "annual_revenue": 1320000,
+        "contract_end": "2026-10-20",
+        "notes": "续费习惯稳定，近期提新席位节奏快",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-A111",
+        "name": "蓝桥零售科技",
+        "tier": "standard",
+        "status": "active",
+        "industry": "零售电商",
+        "annual_revenue": 620000,
+        "contract_end": "2026-07-18",
+        "notes": "运营团队推动扩量，但可能受促销周期影响",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-A112",
+        "name": "泰岳供应链",
+        "tier": "enterprise",
+        "status": "active",
+        "industry": "供应链物流",
+        "annual_revenue": 1880000,
+        "contract_end": "2026-12-31",
+        "notes": "项目制采购明显，预算年度内集中释放",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-A113",
+        "name": "晨曦制造集团",
+        "tier": "enterprise",
+        "status": "at_risk",
+        "industry": "精密制造",
+        "annual_revenue": 1540000,
+        "contract_end": "2026-05-30",
+        "notes": "续约关键在于效率ROI，但内部审批偏慢",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-A114",
+        "name": "耀光教育平台",
+        "tier": "standard",
+        "status": "active",
+        "industry": "在线教育",
+        "annual_revenue": 460000,
+        "contract_end": "2026-08-08",
+        "notes": "用户增长带动轻量订阅升级，波动较小",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-A115",
+        "name": "清河传媒集团",
+        "tier": "vip",
+        "status": "active",
+        "industry": "传媒广告",
+        "annual_revenue": 980000,
+        "contract_end": "2026-11-12",
+        "notes": "广告主数字化预算回升，偏好季度追加项目",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-A116",
+        "name": "长宁政府信息化",
+        "tier": "standard",
+        "status": "active",
+        "industry": "政府数字化",
+        "annual_revenue": 510000,
+        "contract_end": "2026-06-25",
+        "notes": "合同条款要求更严格，扩张需跟随年度预算节奏",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-A117",
+        "name": "北辰电力运维",
+        "tier": "enterprise",
+        "status": "active",
+        "industry": "工业运维",
+        "annual_revenue": 1720000,
+        "contract_end": "2026-09-05",
+        "notes": "订阅稳定，但项目增量受招标节点影响",
+        "contact_person": ""
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-A210",
+        "customer_id": "CUS-A110",
+        "amount": 78000,
+        "type": "subscription",
+        "date": "2026-01-14",
+        "status": "completed",
+        "description": "1月订阅费-基础版"
+      },
+      {
+        "transaction_id": "TXN-A211",
+        "customer_id": "CUS-A110",
+        "amount": 86000,
+        "type": "subscription",
+        "date": "2026-02-14",
+        "status": "completed",
+        "description": "2月订阅费-席位扩张"
+      },
+      {
+        "transaction_id": "TXN-A212",
+        "customer_id": "CUS-A110",
+        "amount": 98000,
+        "type": "subscription",
+        "date": "2026-03-14",
+        "status": "completed",
+        "description": "3月订阅费-增值模块续购"
+      },
+      {
+        "transaction_id": "TXN-A213",
+        "customer_id": "CUS-A111",
+        "amount": 32000,
+        "type": "subscription",
+        "date": "2026-01-09",
+        "status": "completed",
+        "description": "1月订阅费-运营看板"
+      },
+      {
+        "transaction_id": "TXN-A214",
+        "customer_id": "CUS-A111",
+        "amount": 33000,
+        "type": "subscription",
+        "date": "2026-02-09",
+        "status": "completed",
+        "description": "2月订阅费-小幅续购"
+      },
+      {
+        "transaction_id": "TXN-A215",
+        "customer_id": "CUS-A111",
+        "amount": 35500,
+        "type": "subscription",
+        "date": "2026-03-09",
+        "status": "completed",
+        "description": "3月订阅费-新增报表"
+      },
+      {
+        "transaction_id": "TXN-A216",
+        "customer_id": "CUS-A111",
+        "amount": 22000,
+        "type": "project",
+        "date": "2026-03-26",
+        "status": "completed",
+        "description": "3月一次性项目-营销归因"
+      },
+      {
+        "transaction_id": "TXN-A217",
+        "customer_id": "CUS-A112",
+        "amount": 91000,
+        "type": "subscription",
+        "date": "2026-01-20",
+        "status": "completed",
+        "description": "1月订阅费-物流中台"
+      },
+      {
+        "transaction_id": "TXN-A218",
+        "customer_id": "CUS-A112",
+        "amount": 91000,
+        "type": "subscription",
+        "date": "2026-02-20",
+        "status": "completed",
+        "description": "2月订阅费-保持稳定"
+      },
+      {
+        "transaction_id": "TXN-A219",
+        "customer_id": "CUS-A112",
+        "amount": 94000,
+        "type": "subscription",
+        "date": "2026-03-20",
+        "status": "completed",
+        "description": "3月订阅费-小幅续费"
+      },
+      {
+        "transaction_id": "TXN-A220",
+        "customer_id": "CUS-A112",
+        "amount": 0,
+        "type": "project",
+        "date": "2026-01-30",
+        "status": "completed",
+        "description": "1月无项目发票"
+      },
+      {
+        "transaction_id": "TXN-A221",
+        "customer_id": "CUS-A112",
+        "amount": 25000,
+        "type": "project",
+        "date": "2026-02-25",
+        "status": "completed",
+        "description": "2月一次性项目-线路优化"
+      },
+      {
+        "transaction_id": "TXN-A222",
+        "customer_id": "CUS-A112",
+        "amount": 125000,
+        "type": "project",
+        "date": "2026-03-25",
+        "status": "completed",
+        "description": "3月一次性项目-仓网数字化(集中释放)"
+      },
+      {
+        "transaction_id": "TXN-A223",
+        "customer_id": "CUS-A113",
+        "amount": 76000,
+        "type": "subscription",
+        "date": "2026-01-11",
+        "status": "completed",
+        "description": "1月订阅费-设备管理"
+      },
+      {
+        "transaction_id": "TXN-A224",
+        "customer_id": "CUS-A113",
+        "amount": 73500,
+        "type": "subscription",
+        "date": "2026-02-11",
+        "status": "completed",
+        "description": "2月订阅费-审批延后导致小幅回落"
+      },
+      {
+        "transaction_id": "TXN-A225",
+        "customer_id": "CUS-A113",
+        "amount": 73000,
+        "type": "subscription",
+        "date": "2026-03-11",
+        "status": "completed",
+        "description": "3月订阅费-基本持平"
+      },
+      {
+        "transaction_id": "TXN-A226",
+        "customer_id": "CUS-A113",
+        "amount": 14000,
+        "type": "project",
+        "date": "2026-02-18",
+        "status": "completed",
+        "description": "2月一次性项目-试点实施"
+      },
+      {
+        "transaction_id": "TXN-A227",
+        "customer_id": "CUS-A113",
+        "amount": 15000,
+        "type": "project",
+        "date": "2026-03-18",
+        "status": "completed",
+        "description": "3月一次性项目-追加小范围"
+      },
+      {
+        "transaction_id": "TXN-A228",
+        "customer_id": "CUS-A114",
+        "amount": 21000,
+        "type": "subscription",
+        "date": "2026-01-18",
+        "status": "completed",
+        "description": "1月订阅费-课程分析"
+      },
+      {
+        "transaction_id": "TXN-A229",
+        "customer_id": "CUS-A114",
+        "amount": 21300,
+        "type": "subscription",
+        "date": "2026-02-18",
+        "status": "completed",
+        "description": "2月订阅费-平稳续费"
+      },
+      {
+        "transaction_id": "TXN-A230",
+        "customer_id": "CUS-A114",
+        "amount": 21700,
+        "type": "subscription",
+        "date": "2026-03-18",
+        "status": "completed",
+        "description": "3月订阅费-微增"
+      },
+      {
+        "transaction_id": "TXN-A231",
+        "customer_id": "CUS-A114",
+        "amount": 8000,
+        "type": "project",
+        "date": "2026-01-28",
+        "status": "completed",
+        "description": "1月一次性项目-内容结构优化"
+      },
+      {
+        "transaction_id": "TXN-A232",
+        "customer_id": "CUS-A114",
+        "amount": 8200,
+        "type": "project",
+        "date": "2026-02-28",
+        "status": "completed",
+        "description": "2月一次性项目-轻量迭代"
+      },
+      {
+        "transaction_id": "TXN-A233",
+        "customer_id": "CUS-A114",
+        "amount": 8300,
+        "type": "project",
+        "date": "2026-03-28",
+        "status": "completed",
+        "description": "3月一次性项目-小幅扩展"
+      },
+      {
+        "transaction_id": "TXN-A234",
+        "customer_id": "CUS-A115",
+        "amount": 54000,
+        "type": "subscription",
+        "date": "2026-01-22",
+        "status": "completed",
+        "description": "1月订阅费-投放中台"
+      },
+      {
+        "transaction_id": "TXN-A235",
+        "customer_id": "CUS-A115",
+        "amount": 56500,
+        "type": "subscription",
+        "date": "2026-02-22",
+        "status": "completed",
+        "description": "2月订阅费-轻量升级"
+      },
+      {
+        "transaction_id": "TXN-A236",
+        "customer_id": "CUS-A115",
+        "amount": 59000,
+        "type": "subscription",
+        "date": "2026-03-22",
+        "status": "completed",
+        "description": "3月订阅费-续费保持"
+      },
+      {
+        "transaction_id": "TXN-A237",
+        "customer_id": "CUS-A115",
+        "amount": 30000,
+        "type": "project",
+        "date": "2026-01-30",
+        "status": "completed",
+        "description": "1月一次性项目-素材智能化"
+      },
+      {
+        "transaction_id": "TXN-A238",
+        "customer_id": "CUS-A115",
+        "amount": 98000,
+        "type": "project",
+        "date": "2026-02-30",
+        "status": "completed",
+        "description": "2月一次性项目-联动投放系统(集中)"
+      },
+      {
+        "transaction_id": "TXN-A239",
+        "customer_id": "CUS-A115",
+        "amount": 104000,
+        "type": "project",
+        "date": "2026-03-30",
+        "status": "completed",
+        "description": "3月一次性项目-多渠道归因升级(延续)"
+      },
+      {
+        "transaction_id": "TXN-A240",
+        "customer_id": "CUS-A116",
+        "amount": 26000,
+        "type": "subscription",
+        "date": "2026-01-16",
+        "status": "completed",
+        "description": "1月订阅费-政务服务门户"
+      },
+      {
+        "transaction_id": "TXN-A241",
+        "customer_id": "CUS-A116",
+        "amount": 25800,
+        "type": "subscription",
+        "date": "2026-02-16",
+        "status": "completed",
+        "description": "2月订阅费-基本持平"
+      },
+      {
+        "transaction_id": "TXN-A242",
+        "customer_id": "CUS-A116",
+        "amount": 25600,
+        "type": "subscription",
+        "date": "2026-03-16",
+        "status": "completed",
+        "description": "3月订阅费-微降"
+      },
+      {
+        "transaction_id": "TXN-A243",
+        "customer_id": "CUS-A116",
+        "amount": 6000,
+        "type": "project",
+        "date": "2026-03-12",
+        "status": "completed",
+        "description": "3月一次性项目-接口适配"
+      },
+      {
+        "transaction_id": "TXN-A244",
+        "customer_id": "CUS-A117",
+        "amount": 89000,
+        "type": "subscription",
+        "date": "2026-01-27",
+        "status": "completed",
+        "description": "1月订阅费-运维平台"
+      },
+      {
+        "transaction_id": "TXN-A245",
+        "customer_id": "CUS-A117",
+        "amount": 91000,
+        "type": "subscription",
+        "date": "2026-02-27",
+        "status": "completed",
+        "description": "2月订阅费-小幅增购"
+      },
+      {
+        "transaction_id": "TXN-A246",
+        "customer_id": "CUS-A117",
+        "amount": 90500,
+        "type": "subscription",
+        "date": "2026-03-27",
+        "status": "completed",
+        "description": "3月订阅费-小幅回落"
+      },
+      {
+        "transaction_id": "TXN-A247",
+        "customer_id": "CUS-A117",
+        "amount": 18000,
+        "type": "project",
+        "date": "2026-01-24",
+        "status": "completed",
+        "description": "1月一次性项目-巡检规则优化"
+      },
+      {
+        "transaction_id": "TXN-A248",
+        "customer_id": "CUS-A117",
+        "amount": 18000,
+        "type": "project",
+        "date": "2026-02-24",
+        "status": "completed",
+        "description": "2月一次性项目-保持"
+      },
+      {
+        "transaction_id": "TXN-A249",
+        "customer_id": "CUS-A117",
+        "amount": 18100,
+        "type": "project",
+        "date": "2026-03-24",
+        "status": "completed",
+        "description": "3月一次性项目-微增"
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-B301",
+        "title": "2026年一季度SaaS续费率提升：企业加速扩席位",
+        "summary": "Q1订阅产品续费表现改善，部分行业出现席位扩张带动ARPU上行；增值模块升级更依赖预算释放节奏而非单次项目。",
+        "tags": [
+          "SaaS",
+          "续费",
+          "增长"
+        ],
+        "url": "https://growth-signal.example.com/s1",
+        "content": "Q1订阅产品续费率改善，企业在成本可控前提下扩张SaaS席位。ARPU提升主要来自增值模块的持续续购，而非一次性项目。建议关注订阅扩张型客户的月度增量趋势。",
+        "category": "SaaS, 续费, 增长",
+        "source": "行业增长雷达",
+        "published_at": "2026-03-19T00:00:00Z",
+        "word_count": 65
+      },
+      {
+        "article_id": "RSS-B302",
+        "title": "零售电商需求恢复：数据分析与归因需求上扬",
+        "summary": "促销节奏回暖后，商家对营销归因与运营看板的需求增长；同时预算仍呈谨慎，订单增量更集中在特定月份。",
+        "tags": [
+          "零售电商",
+          "需求恢复",
+          "归因"
+        ],
+        "url": "https://commerce-insight.example.com/r1",
+        "content": "随着需求恢复，零售商对营销归因、运营看板等工具的投入增加。预算较谨慎，因此增量容易体现为某些月份的重点项目，而订阅侧整体波动不大。",
+        "category": "零售电商, 需求恢复, 归因",
+        "source": "电商经营通讯",
+        "published_at": "2026-03-21T00:00:00Z",
+        "word_count": 58
+      },
+      {
+        "article_id": "RSS-B303",
+        "title": "供应链物流项目招标增加：仓网优化与线路重构受关注",
+        "summary": "Q1出现项目制采购回暖迹象，仓网数字化与线路优化成为招标高频方向；项目金额呈季度集中释放特征。",
+        "tags": [
+          "供应链物流",
+          "招标增加",
+          "项目"
+        ],
+        "url": "https://supply-chain-weekly.example.com/l1",
+        "content": "Q1供应链物流领域招标数量上升，仓网数字化、线路优化、运价策略分析等项目型需求增多。资金审批通常在月末或季度节点集中释放，导致项目金额在特定月份显著上扬。",
+        "category": "供应链物流, 招标增加, 项目",
+        "source": "供应链周刊",
+        "published_at": "2026-03-24T00:00:00Z",
+        "word_count": 71
+      },
+      {
+        "article_id": "RSS-B304",
+        "title": "传媒广告AI驱动增长：投放系统与归因升级需求回升",
+        "summary": "AI工具提升投放效率，广告主数字化支出回暖；对投放中台与多渠道归因升级呈现追加趋势。",
+        "tags": [
+          "传媒广告",
+          "AI",
+          "政策利好"
+        ],
+        "url": "https://media-daily.example.com/m1",
+        "content": "AI内容与投放优化工具推动传媒行业降本增效。广告主数字化预算在Q1回升，重点体现在投放系统与多渠道归因升级的追加项目上，通常伴随连续月份的交付进度。",
+        "category": "传媒广告, AI, 增长",
+        "source": "媒体产业日报",
+        "published_at": "2026-03-23T00:00:00Z",
+        "word_count": 60
+      },
+      {
+        "article_id": "RSS-B305",
+        "title": "政府数字化：预算再分配但部分接口类项目仍有窗口期",
+        "summary": "部分地区政府部门进行预算再分配，整体扩张更谨慎；但接口适配、系统对接等小体量项目仍可能在某些月份落地。",
+        "tags": [
+          "政府数字化",
+          "预算",
+          "窗口期"
+        ],
+        "url": "https://public-tech.example.com/g1",
+        "content": "政府数字化转型在Q1仍有窗口期，但整体更强调合规与预算约束。接口适配、系统对接等项目可能在节点月份落地，续费通常保持稳定但难以快速扩张。",
+        "category": "政府数字化, 预算, 窗口期",
+        "source": "政务技术观察",
+        "published_at": "2026-03-20T00:00:00Z",
+        "word_count": 52
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题要求在Q1订阅/一次性项目拆分基础上做“增长类型归因”，并结合RSS行业景气提出Q2行业机会与客户拓展，同时加入“行业偏暖但财务不增”的反例客户处理。",
+    "fixture_design_summary": [
+      "finance：覆盖2026-01/02/03的Q1交易；通过subscription的持续上升（如CUS-A110）与project的集中爆发（如CUS-A112、CUS-A115）制造可识别的增长类型差异；包含至少1个行业新闻偏暖但财务增量不明显的客户证据（例如CUS-A116订阅微变且项目仅小额）。",
+      "crm：提供8个全新客户，tier覆盖vip/enterprise/standard，status包含active与at_risk（CUS-A113）以供分层筛选；行业覆盖SaaS服务、供应链物流、零售电商、传媒广告、政府数字化等，并与RSS要点形成对应。",
+      "rss：5个全新订阅源中的文章（合计5篇，满足模型在不同来源上匹配“景气度上行/需求恢复/项目招标/政策利好/窗口期”等要点），用于支撑Q2行业机会与反例解释所需的行业叙事。"
+    ]
+  }
+}

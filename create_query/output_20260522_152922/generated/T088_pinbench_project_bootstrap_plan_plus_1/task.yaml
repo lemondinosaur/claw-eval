@@ -1,0 +1,79 @@
+task_id: T088_pinbench_project_bootstrap_plan_plus_1
+task_name: Rust Lib Scaffold Plan
+version: '1.0'
+category: file_ops
+difficulty: easy
+tags:
+- general
+services:
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T088_pinbench_project_bootstrap_plan_plus_1/fixtures/todo/tasks.json
+prompt:
+  text: 'Use the todo service to bootstrap a Rust library project plan for "rustrocket".
+
+
+    Create actionable tasks for:
+
+    1) creating the crate folder structure under src with a lib.rs entry,
+
+    2) adding unit tests in an appropriate tests module (include boundary/edge cases,
+    e.g., empty input handling, as part of the test requirements),
+
+    3) writing Cargo.toml metadata (package name, version, edition, and a dependencies
+    section placeholder),
+
+    4) writing a README with build/test instructions and a minimal usage example.
+
+
+    Additionally, include in the plan explicit preparation steps for future workspace
+    expansion (e.g., a root-level workspace entry/config placeholder), but still only
+    initialize a single crate for now.
+
+
+    Then summarize the setup plan, ensuring the order reflects: structure -> metadata
+    -> documentation -> tests, with clear checkpoints for what to verify after each
+    step.'
+  language: en
+tools:
+- name: todo_create_task
+  description: Create a new todo task
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      priority:
+        type: string
+      due_date:
+        type: string
+    required:
+    - title
+- name: todo_list_tasks
+  description: List todo tasks
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+    required: []
+tool_endpoints:
+- tool_name: todo_create_task
+  url: http://localhost:9102/todo/tasks/create
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+sandbox_files:
+- fixtures/todo/tasks.json
+environment:
+  timeout_seconds: 180
+  max_turns: 10

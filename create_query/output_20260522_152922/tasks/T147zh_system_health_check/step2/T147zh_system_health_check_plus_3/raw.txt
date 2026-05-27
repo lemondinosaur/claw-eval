@@ -1,0 +1,448 @@
+{
+  "task_id": "T147zh_system_health_check_plus_3",
+  "task_name": "支付对账与退款风控巡检",
+  "prompt_text": "请帮我做一次“支付对账与退款风控”系统健康巡检：\n\n1）检查所有API集成配置的健康状态，重点关注支付回调、对账数据汇聚，以及风控/规则同步相关集成\n2）检查定时任务的运行情况，重点关注对账汇总、风控规则同步、退款处理延迟类任务\n3）查看当前未解决工单，找出与对账差异为空、验签失败告警、退款状态卡住、退款规则未生效相关的工单\n4）在知识库中搜索与“签名校验失败排查”“对账任务重跑/补数策略”“退款风控规则同步恢复与验证”相关的解决方案\n5）输出系统健康报告：标注故障链（至少两条，需包含“验签失败→对账汇总失败→对账差异为空”的链路，并包含“任务停用→退款规则未生效→退款相关异常”的并行链/独立因素），给出可执行修复建议（明确包含对账重跑策略、以及disabled任务恢复后的验证步骤）。\n\n注意：巡检阶段不要关闭工单，只做定位与建议。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-2201",
+        "name": "支付网关回调",
+        "status": "error",
+        "config": {
+          "endpoint": "https://gateway-1.payco.example.com/callback/v3",
+          "timeout_ms": 4500,
+          "retry_count": 2,
+          "signature_scheme": "HMAC-SHA256"
+        },
+        "error_rate": 0.81,
+        "error_message": "签名校验失败（回调验签返回 false）",
+        "description": "处理支付网关回调并入库（订单支付状态与风控特征）",
+        "service": "payment",
+        "last_verified": "2026-04-18",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-2202",
+        "name": "对账数据汇聚",
+        "status": "active",
+        "config": {
+          "endpoint": "https://recon-engine.example.com/rollup",
+          "timeout_ms": 8000,
+          "retry_count": 4
+        },
+        "error_rate": 0.22,
+        "error_message": "下游数据行数为 0（可能由回调验签失败导致）",
+        "description": "从回调明细聚合对账数据并生成差异输入集",
+        "service": "recon",
+        "last_verified": "2026-04-18",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-2203",
+        "name": "风控规则分发",
+        "status": "active",
+        "config": {
+          "endpoint": "https://risk-distribution.example.com/rulesync",
+          "timeout_ms": 6000,
+          "retry_count": 3
+        },
+        "error_rate": 0.03,
+        "description": "向风控服务分发最新规则版本（不含定时任务启停信息）",
+        "service": "risk",
+        "last_verified": "2026-04-21",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-2204",
+        "name": "退款状态通知",
+        "status": "active",
+        "config": {
+          "endpoint": "https://refund-hub.example.com/status/notify",
+          "timeout_ms": 5500,
+          "retry_count": 3
+        },
+        "error_rate": 0.01,
+        "description": "接收退款状态流并同步至业务库",
+        "service": "refund",
+        "last_verified": "2026-04-20",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-2205",
+        "name": "审计事件投递",
+        "status": "active",
+        "config": {
+          "endpoint": "https://audit-stream.example.com/events",
+          "timeout_ms": 3500,
+          "retry_count": 1
+        },
+        "error_rate": 0.004,
+        "description": "投递对账与退款风控相关审计事件用于追踪",
+        "service": "audit",
+        "last_verified": "2026-04-22",
+        "monthly_calls": 0
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-3101",
+        "subject": "对账差异报告为空（验签失败告警后开始）",
+        "customer_id": "CUS-3101",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-18T10:12:00",
+        "assigned_to": "赵敏",
+        "category": "对账",
+        "title": "对账差异报告为空（验签失败告警后开始）",
+        "reporter": "赵敏",
+        "department": "支付运营",
+        "description": "对账差异报告在 2026-04-17 后开始为空。排查时可见“回调验签失败”告警频率上升，导致对账汇总产出 0 行差异数据。"
+      },
+      {
+        "ticket_id": "TK-3102",
+        "subject": "回调验签失败导致部分订单支付状态未入账",
+        "customer_id": "CUS-3102",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-18T11:40:00",
+        "assigned_to": "周航",
+        "category": "支付回调",
+        "title": "回调验签失败导致部分订单支付状态未入账",
+        "reporter": "周航",
+        "department": "支付技术",
+        "description": "支付网关回调验签失败，部分订单未入账或状态不完整，影响后续对账与风控特征生成。需要确认密钥/验签配置与回调头字段。"
+      },
+      {
+        "ticket_id": "TK-3103",
+        "subject": "部分退款状态卡住：风控重试未触发",
+        "customer_id": "CUS-3103",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-19T09:05:00",
+        "assigned_to": "李娜",
+        "category": "退款风控",
+        "title": "部分退款状态卡住：风控重试未触发",
+        "reporter": "李娜",
+        "department": "风控运营",
+        "description": "退款流程中部分记录停留在“等待风控确认”状态，疑似风控规则未更新或规则同步任务未启用。"
+      },
+      {
+        "ticket_id": "TK-3104",
+        "subject": "退款风控规则未生效（规则同步任务仍为 disabled）",
+        "customer_id": "CUS-3104",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-19T15:22:00",
+        "assigned_to": "陈祎",
+        "category": "风控规则",
+        "title": "退款风控规则未生效（规则同步任务仍为 disabled）",
+        "reporter": "陈祎",
+        "department": "风控工程",
+        "description": "最近维护后退款风控规则同步任务未自动恢复为 enabled，导致线上退款风控规则版本未更新。请求恢复任务并验证退款策略生效。"
+      },
+      {
+        "ticket_id": "TK-3105",
+        "subject": "退款处理延迟：疑似重试队列积压",
+        "customer_id": "CUS-3105",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-20T08:30:00",
+        "assigned_to": "孙凯",
+        "category": "退款",
+        "title": "退款处理延迟：疑似重试队列积压",
+        "reporter": "孙凯",
+        "department": "支付运营",
+        "description": "部分退款请求处理延迟，可能与退款延迟任务的间歇失败有关。需要确认任务成功率与失败原因。"
+      },
+      {
+        "ticket_id": "TK-3106",
+        "subject": "商户结算报表缺失：导出任务失败（疑与ETL无关需确认）",
+        "customer_id": "CUS-3106",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-20T12:10:00",
+        "assigned_to": "周航",
+        "category": "报表",
+        "title": "商户结算报表缺失：导出任务失败（疑与ETL无关需确认）",
+        "reporter": "周航",
+        "department": "数据平台",
+        "description": "某些商户的结算报表导出缺失，怀疑是报表导出/ETL链路问题。请排查与对账/退款是否存在关联。"
+      },
+      {
+        "ticket_id": "TK-3107",
+        "subject": "风控事件审计缺失（部分天缺少审计记录）",
+        "customer_id": "CUS-3107",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-21T10:45:00",
+        "assigned_to": "赵敏",
+        "category": "审计",
+        "title": "风控事件审计缺失（部分天缺少审计记录）",
+        "reporter": "赵敏",
+        "department": "合规",
+        "description": "某几天风控相关审计事件缺失，可能与审计投递或链路追踪配置有关。"
+      },
+      {
+        "ticket_id": "TK-3108",
+        "subject": "支付对账重跑请求：需要确认补数范围与窗口",
+        "customer_id": "CUS-3108",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-21T16:05:00",
+        "assigned_to": "陈祎",
+        "category": "对账运维",
+        "title": "支付对账重跑请求：需要确认补数范围与窗口",
+        "reporter": "陈祎",
+        "department": "支付运营",
+        "description": "希望在修复验签配置后执行对账重跑，但不确定重跑时间窗、是否需要先重建回调明细索引、以及如何避免重复差异报告。"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-2101",
+        "title": "回调验签失败排查与密钥恢复（支付网关回调）",
+        "category": "对账与风控",
+        "tags": [
+          "验签",
+          "签名校验失败",
+          "HMAC-SHA256",
+          "密钥",
+          "回调头"
+        ],
+        "content": "## 回调验签失败排查与密钥恢复\n\n### 常见现象\n- 回调验签返回 false\n- 对账汇总产出 0 行数据\n\n### 排查步骤\n1. 核对验签算法与编码：确认双方使用的 scheme 是否为 `HMAC-SHA256`，以及签名字段的 base64/hex 编码方式是否一致。\n2. 校验回调头字段映射：检查支付网关回调中用于验签的字段（如 timestamp、nonce、signature）的名称是否与系统配置匹配。\n3. 检查密钥版本：若维护过密钥，确认系统使用的是最新密钥版本号；必要时回滚到上一个成功版本进行验证。\n4. 在联调环境用一条失败样本回放：仅修改密钥/头字段映射，不要并行改动其他逻辑。\n\n### 修复与验证\n- 更新签名配置后，重放最近 30~60 分钟的回调样本，确保验签通过。\n- 观察“回调验签失败”告警是否在下一个调度周期内消失。",
+        "last_updated": "2026-04-10",
+        "views": 3120
+      },
+      {
+        "article_id": "KB-2102",
+        "title": "对账任务重跑策略：验签修复后按时间窗重建差异输入集",
+        "category": "对账运维",
+        "tags": [
+          "对账重跑",
+          "补数",
+          "时间窗",
+          "数据行数为0"
+        ],
+        "content": "## 对账任务重跑策略：验签修复后按时间窗重建差异输入集\n\n### 适用场景\n- 对账差异报告为空\n- 对账汇总任务失败原因指向“验签失败导致下游行数为 0”\n\n### 重跑前置检查\n1. 确认支付网关回调验签已恢复（至少连续 10 分钟无验签失败告警）。\n2. 确认对账数据汇聚服务入库明细行数已恢复（非 0）。\n\n### 重跑步骤（推荐）\n1. 选择重跑时间窗：从验签失败开始时间往后回推（建议覆盖最近 2~6 小时，视业务峰值调整）。\n2. 执行“回调明细重建/补数”→ 再执行“对账汇总重跑”。\n3. 去重策略：重跑可能产生重复记录，确保差异表按（merchant_id, order_id, refund_id, settle_date）维度幂等写入。\n4. 验证输出：对账差异报告需出现非空差异集，同时与样例订单的状态一致。\n\n### 失败回滚\n- 若重跑仍为 0 行：回到验签配置检查（密钥版本/头字段映射），不要盲目扩大窗口。",
+        "last_updated": "2026-04-12",
+        "views": 2588
+      },
+      {
+        "article_id": "KB-2103",
+        "title": "退款风控规则同步 disabled 恢复流程与生效验证",
+        "category": "退款风控",
+        "tags": [
+          "disabled任务",
+          "规则同步",
+          "退款风控",
+          "验证"
+        ],
+        "content": "## 退款风控规则同步 disabled 恢复流程与生效验证\n\n### 原因常见点\n- 维护窗口后任务未自动启用\n- 变更审批后仅更新了配置，未恢复调度任务 enabled\n\n### 恢复步骤\n1. 在调度系统将“退款风控规则同步”任务设置为 enabled。\n2. 检查 disabled_reason：若包含“变更后未自动启用/维护未恢复”，需确认变更配置已完成并通过回放校验。\n3. 立即手动触发一次规则同步（若支持），或等待下一次 cron 触发。\n\n### 生效验证\n- 验证风控规则版本号已更新到预期版本。\n- 选取最近 30 分钟内的退款样本，确认退款流程不再卡在“等待风控确认”。\n- 观察“退款风控规则同步”任务下一次运行状态为 success（或失败率显著下降）。",
+        "last_updated": "2026-04-14",
+        "views": 1901
+      },
+      {
+        "article_id": "KB-2104",
+        "title": "对账失败与任务依赖链路关系说明（验签→汇总→差异为空）",
+        "category": "对账与依赖",
+        "tags": [
+          "依赖链",
+          "验签失败",
+          "对账汇总",
+          "差异报告为空"
+        ],
+        "content": "## 对账失败与任务依赖链路关系说明\n\n当支付回调验签失败时：\n1) 回调明细入库或标记环节可能拒绝写入/写入不完整；\n2) 对账数据汇聚在拉取明细后统计行数为 0；\n3) 对账汇总任务因此失败或产出空结果；\n4) 下游差异报告自然为空。\n\n建议的处理顺序：\n- 先修复验签（配置/密钥/头字段映射）\n- 再执行对账任务重跑（按时间窗补数）\n- 最后核对差异报告与样例订单一致性",
+        "last_updated": "2026-04-08",
+        "views": 1444
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-3201",
+        "name": "对账汇总任务（支付差异生成）",
+        "schedule": "*/15 * * * *",
+        "status": "failed",
+        "last_run": "2026-04-19T09:30:00Z",
+        "last_status": "failed",
+        "description": "每15分钟聚合支付与退款明细生成对账差异报告",
+        "tags": [
+          "recon",
+          "summary",
+          "payment"
+        ],
+        "cron_expression": "*/15 * * * *",
+        "failure_count": 8,
+        "first_failure": "2026-04-18T11:00:00Z",
+        "error_message": "验签失败导致数据行数为 0，已跳过差异生成",
+        "enabled": true,
+        "action": "对账数据汇聚完成后生成差异报告",
+        "next_run": null,
+        "created_at": "2025-08-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-19T09:30:00Z",
+            "status": "failed",
+            "duration_s": 58
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-3202",
+        "name": "对账数据汇聚任务（回调明细拉取）",
+        "schedule": "*/10 * * * *",
+        "status": "failed",
+        "last_run": "2026-04-19T09:20:00Z",
+        "last_status": "failed",
+        "description": "拉取支付回调明细并进行预聚合，供对账汇总使用",
+        "tags": [
+          "recon",
+          "aggregation",
+          "callback"
+        ],
+        "cron_expression": "*/10 * * * *",
+        "failure_count": 5,
+        "first_failure": "2026-04-18T13:15:00Z",
+        "error_message": "回调验签失败：明细入库数为 0，预聚合中止",
+        "enabled": true,
+        "action": "从回调明细表拉取并进行窗口聚合",
+        "next_run": null,
+        "created_at": "2025-08-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-19T09:20:00Z",
+            "status": "failed",
+            "duration_s": 44
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-3203",
+        "name": "退款风控规则同步",
+        "schedule": "0 */6 * * *",
+        "status": "disabled",
+        "last_run": "2026-04-16T00:00:00Z",
+        "last_status": "success",
+        "description": "定期同步退款风控规则版本供线上退款决策使用",
+        "tags": [
+          "refund",
+          "risk",
+          "rulesync"
+        ],
+        "cron_expression": "0 */6 * * *",
+        "failure_count": 0,
+        "first_failure": null,
+        "disabled_reason": "变更后未自动启用 - 维护窗口结束后任务未恢复",
+        "disabled_by": "ops-admin",
+        "disabled_at": "2026-04-16T09:10:00Z",
+        "enabled": false,
+        "action": "同步退款风控规则并刷新缓存",
+        "next_run": null,
+        "created_at": "2025-07-15T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-16T00:00:00Z",
+            "status": "success",
+            "duration_s": 76
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-3204",
+        "name": "退款处理延迟补偿任务",
+        "schedule": "*/20 * * * *",
+        "status": "enabled",
+        "last_run": "2026-04-19T09:40:00Z",
+        "last_status": "failed",
+        "description": "扫描退款延迟处理队列并触发重试（间歇失败）",
+        "tags": [
+          "refund",
+          "retry"
+        ],
+        "cron_expression": "*/20 * * * *",
+        "failure_count": 3,
+        "first_failure": "2026-04-18T18:00:00Z",
+        "error_message": "风控规则版本未就绪：当前规则版本号与期望不一致",
+        "enabled": true,
+        "action": "触发退款延迟记录重试",
+        "next_run": null,
+        "created_at": "2025-09-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-19T09:40:00Z",
+            "status": "failed",
+            "duration_s": 63
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-3205",
+        "name": "支付对账对样校验任务（抽样一致性）",
+        "schedule": "0 */2 * * *",
+        "status": "enabled",
+        "last_run": "2026-04-19T08:00:00Z",
+        "last_status": "success",
+        "description": "对抽样订单进行对账结果一致性校验，健康度参考指标",
+        "tags": [
+          "recon",
+          "validation"
+        ],
+        "cron_expression": "0 */2 * * *",
+        "failure_count": 0,
+        "first_failure": null,
+        "enabled": true,
+        "action": "抽样校验差异报告与订单支付状态一致性",
+        "next_run": null,
+        "created_at": "2025-09-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-19T08:00:00Z",
+            "status": "success",
+            "duration_s": 51
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-3206",
+        "name": "日志归档与索引维护",
+        "schedule": "0 2 * * *",
+        "status": "enabled",
+        "last_run": "2026-04-19T02:00:00Z",
+        "last_status": "success",
+        "description": "每天归档对账/退款相关日志并维护索引",
+        "tags": [
+          "maintenance",
+          "logs"
+        ],
+        "cron_expression": "0 2 * * *",
+        "failure_count": 0,
+        "first_failure": null,
+        "enabled": true,
+        "action": "归档并维护索引",
+        "next_run": null,
+        "created_at": "2025-06-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-04-19T02:00:00Z",
+            "status": "success",
+            "duration_s": 40
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原系统健康巡检基础上，新增并突出“回调验签失败→对账汇总失败→差异为空”主故障链，并并行加入“退款风控规则同步任务 disabled→退款规则未生效→退款异常”独立因素。",
+    "fixture_design_summary": [
+      "integrations.json新增支付回调集成error且error_message为“签名校验失败”，并设置对账汇聚error_rate较高且提示行数为0。",
+      "scheduler.jobs.json中包含对账汇总/汇聚任务failed且错误均指向验签失败导致数据行数为0；同时加入退款风控规则同步任务disabled并给出disabled_reason。",
+      "helpdesk.tickets.json至少4条工单强关联到对账差异为空、验签失败、退款状态卡住、以及退款规则未生效（任务仍disabled）。",
+      "kb.articles.json提供验签排查、对账重跑按时间窗补数/幂等策略、以及disabled任务恢复与生效验证步骤的文章，便于输出可执行修复建议。"
+    ]
+  }
+}

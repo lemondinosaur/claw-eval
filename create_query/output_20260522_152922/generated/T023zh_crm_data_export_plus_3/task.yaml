@@ -1,0 +1,93 @@
+task_id: T023zh_crm_data_export_plus_3
+task_name: Two-Stage Recovery 导出
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T023zh_crm_data_export_plus_3/fixtures/crm/customers.json
+prompt:
+  text: '请从CRM系统导出VIP客户报告，但需要考虑系统导出接口可能失败。要求：
+
+
+    1）先筛选VIP客户中最近联系日期在最近30天内的客户；
+
+    2）生成汇总报告（名称、行业、年收入、最近联系日期）；
+
+    3）如果在导出步骤crm_export_report报错：改为导出“最近联系日期最早的两位VIP客户”作为兜底批次，并在报告标题/summary中说明你为什么切换了策略；
+
+    4）如查询或导出失败请重试。
+
+
+    注意边界：若“最近30天内”只有少量客户，以筛到的数量为准；若最早日期存在并列时，只取两位（任意两位，但需在summary里声明存在并列）。'
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 获取CRM客户列表，可按状态、等级、行业筛选
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选：active, inactive, churned
+      tier:
+        type: string
+        description: 客户等级筛选：VIP, standard
+      industry:
+        type: string
+        description: 按行业筛选
+    required: []
+- name: crm_get_customer
+  description: 获取单个客户的完整详细信息
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: crm_export_report
+  description: 导出客户汇总报告
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 报告标题
+      customer_ids:
+        type: array
+        items:
+          type: string
+        description: 要包含的客户ID列表
+      summary:
+        type: string
+        description: 报告摘要内容
+    required:
+    - title
+    - customer_ids
+    - summary
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: crm_export_report
+  url: http://localhost:9110/crm/export
+  method: POST
+sandbox_files:
+- fixtures/crm/customers.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

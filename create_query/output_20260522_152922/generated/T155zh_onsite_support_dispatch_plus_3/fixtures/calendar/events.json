@@ -1,0 +1,53 @@
+[
+  {
+    "event_id": "evt_2101",
+    "title": "武汉光谷 VIP现场止血行动前交接会",
+    "start_time": "2026-04-10T19:50:00+08:00",
+    "end_time": "2026-04-10T22:10:00+08:00",
+    "location": "远程会议室（可前置结束）",
+    "organizer": "CT-2001",
+    "attendees": [
+      "engineer_A",
+      "engineer_lead_shadow"
+    ],
+    "description": "交接进行到关键点后可提前结束，以覆盖21:30前到场并启动采样复核流程。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_2102",
+    "title": "例行研发周同步",
+    "start_time": "2026-04-10T10:00:00+08:00",
+    "end_time": "2026-04-10T10:40:00+08:00",
+    "location": "工位会议角",
+    "organizer": "engineer_C",
+    "attendees": [
+      "engineer_C"
+    ],
+    "description": "状态同步与任务对齐。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_2103",
+    "title": "性能基准补测窗口",
+    "start_time": "2026-04-10T13:30:00+08:00",
+    "end_time": "2026-04-10T14:15:00+08:00",
+    "location": "性能实验室",
+    "organizer": "engineer_B",
+    "attendees": [
+      "engineer_B"
+    ],
+    "description": "针对离线任务的性能基准补测，14:15后可全时投入现场止血。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_2104",
+    "title": "午餐",
+    "start_time": "2026-04-10T12:05:00+08:00",
+    "end_time": "2026-04-10T12:55:00+08:00",
+    "location": "",
+    "organizer": "",
+    "attendees": [],
+    "description": "午休时间",
+    "status": "confirmed"
+  }
+]

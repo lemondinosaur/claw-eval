@@ -1,0 +1,90 @@
+[
+  {
+    "customer_id": "CUS-401",
+    "name": "北辰零售连锁",
+    "tier": "vip",
+    "status": "active",
+    "annual_revenue": 16500000,
+    "contact_person": "周总",
+    "contact_email": "zhou@beichen-retail.com",
+    "contact_phone": "137-0101-4401",
+    "industry": "零售连锁",
+    "contract_end_date": "2026-12-15",
+    "recent_interactions": [
+      {
+        "date": "2026-03-12",
+        "type": "complaint",
+        "channel": "渠道经理电话",
+        "handled_by": "客服专员林",
+        "notes": "门店出现“订单无法发货/发货延迟超时”，VIP合同履约风险上升；我方看到的库存经常落后于系统，怀疑库存快照同步滞后导致。要求提供同步窗口与补货SLA说明。"
+      },
+      {
+        "date": "2026-03-05",
+        "type": "risk_notice",
+        "channel": "工单系统",
+        "notes": "风控提示：若连续出现库存不一致，将触发渠道封禁/提高审核系数。"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-402",
+    "name": "宏图商贸",
+    "tier": "standard",
+    "status": "active",
+    "annual_revenue": 5200000,
+    "contact_person": "陈经理",
+    "contact_email": "chen@hongtu-trade.cn",
+    "contact_phone": "136-0101-4402",
+    "industry": "商贸",
+    "contract_end_date": "2026-08-31",
+    "recent_interactions": [
+      {
+        "date": "2026-03-10",
+        "type": "complaint",
+        "channel": "邮件",
+        "notes": "请求核对XR-12门店SKU库存一致性，出现出库失败回执。"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-403",
+    "name": "澜海电商平台",
+    "tier": "vip",
+    "status": "active",
+    "annual_revenue": 9800000,
+    "contact_person": "孙总",
+    "contact_email": "sun@lanhai-ecom.com",
+    "contact_phone": "135-0101-4403",
+    "industry": "电商平台",
+    "contract_end_date": "2027-02-28",
+    "recent_interactions": [
+      {
+        "date": "2026-03-11",
+        "type": "complaint",
+        "channel": "视频会议",
+        "handled_by": "运营助理周",
+        "notes": "合同履约风险来自“渠道显示旧库存”导致的履约失败：我们平台侧订单被风控延迟放行，客户投诉增加。希望尽快恢复库存到渠道同步任务。"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-404",
+    "name": "云岭供应链",
+    "tier": "standard",
+    "status": "active",
+    "annual_revenue": 2600000,
+    "contact_person": "赵主管",
+    "contact_email": "zhao@yunling-scm.com",
+    "contact_phone": "134-0101-4404",
+    "industry": "供应链",
+    "contract_end_date": "2026-10-20",
+    "recent_interactions": [
+      {
+        "date": "2026-03-02",
+        "type": "inquiry",
+        "channel": "系统消息",
+        "notes": "询问安全库存触发规则是否更新，是否会影响门店出库策略。"
+      }
+    ]
+  }
+]

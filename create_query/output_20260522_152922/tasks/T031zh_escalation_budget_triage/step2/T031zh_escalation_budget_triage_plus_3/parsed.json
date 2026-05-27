@@ -1,0 +1,516 @@
+{
+  "task_id": "T031zh_escalation_budget_triage_plus_3",
+  "task_name": "年度续约谈判的“先保价后审”",
+  "prompt_text": "请处理收件箱中标题/正文包含“年度续约谈判升级”的邮件。对每封邮件：\n1) 读取正文并提取字段：客户编号(customer_id)、续约谈判编号(renewal_id)、要求的补偿/优惠金额(allowance_amount)、是否表述“先保价后审”(is_price_hold_after_review)、触发渠道(trigger_channel，如Sales/客服等)以及季度(quarter)。\n2) 从CRM获取该客户的tier、annual_revenue、status。\n3) 从helpdesk中匹配与该renewal_id、触发渠道一致的“续约谈判”工单版本，并更新工单priority与tags。\n4) 决策规则（最终仍以5%阈值为准）：\n   - 若status=churned：标记异常并通知法务；同时按异常标签更新工单；不对客户发送“可先保价”承诺。\n   - 否则计算 ratio = allowance_amount / annual_revenue：\n     a) ratio <= 5% 且邮件声明“先保价后审”=是：发送确认邮件给客户服务联络人，正文明确“可先保价以争取续约推进，但不承诺最终批准细节”。\n     b) ratio <= 5% 但 is_price_hold_after_review=否：仅保存草稿要求上级审批（邮件标题/正文需体现“预算内但未先保价，需要上级审批”）。\n     c) ratio > 5%：仅保存草稿要求上级审批（体现“预算外/超出预算阈值，需要上级审批”）。\n5) 若finance里存在同客户同季度、status=completed且与“补偿/优惠”相关的历史记录：在摘要中写“历史记录存在/不存在”，并说明对当前邮件影响仅用于核验描述（不改变5%阈值决策）。\n6) 最后对每条邮件输出处理摘要（含：邮件ID、续约谈判编号、比率、是否先保价、动作类型{send_confirm/draft_approval/abnormal_legal_notify/skip_missing_fields}、工单priority与tags、以及历史记录存在性）。\n\n收件箱共有7封邮件：其中2封为干扰（缺少customer_id或renewal_id，或未声明“先保价后审”），这两封应skip并在摘要注明原因。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-301",
+        "name": "陈晓岚",
+        "department": "客户服务部",
+        "title": "客户成功经理",
+        "email": "chenxiaolan@company.com",
+        "phone": "13900301101",
+        "location": "上海总部"
+      },
+      {
+        "contact_id": "CT-302",
+        "name": "周浩然",
+        "department": "法务部",
+        "title": "法务顾问",
+        "email": "zhouhaoran@company.com",
+        "phone": "13900301102",
+        "location": "上海总部"
+      },
+      {
+        "contact_id": "CT-303",
+        "name": "孙佳维",
+        "department": "销售部",
+        "title": "续约经理",
+        "email": "sunjiayi@company.com",
+        "phone": "13900301103",
+        "location": "上海总部"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUST-210",
+        "name": "云腾物流",
+        "contact_person": "邓总",
+        "email": "dengzong@yunteng-logistics.cn",
+        "phone": "13711110021",
+        "industry": "物流",
+        "tier": "vip",
+        "annual_revenue": 9200000,
+        "last_contact_date": "2026-03-01",
+        "status": "active",
+        "notes": "VIP客户，续约节奏紧，偏好先推进再补材料"
+      },
+      {
+        "customer_id": "CUST-211",
+        "name": "星河软件",
+        "contact_person": "赵总",
+        "email": "zhaozong@xinghe-soft.com",
+        "phone": "13711110022",
+        "industry": "软件",
+        "tier": "vip",
+        "annual_revenue": 5100000,
+        "last_contact_date": "2026-03-02",
+        "status": "active",
+        "notes": "VIP客户，触发升级较多，需高优先级工单"
+      },
+      {
+        "customer_id": "CUST-212",
+        "name": "北辰环保",
+        "contact_person": "李总",
+        "email": "lizong@beichen-eco.com",
+        "phone": "13711110023",
+        "industry": "环保",
+        "tier": "standard",
+        "annual_revenue": 3000000,
+        "last_contact_date": "2026-02-27",
+        "status": "active",
+        "notes": "标准客户，预算敏感"
+      },
+      {
+        "customer_id": "CUST-213",
+        "name": "海鸥电信",
+        "contact_person": "王总",
+        "email": "wangzong@haiou-telecom.com",
+        "phone": "13711110024",
+        "industry": "电信",
+        "tier": "standard",
+        "annual_revenue": 1200000,
+        "last_contact_date": "2026-02-26",
+        "status": "active",
+        "notes": "小额续约，常见但不构成异常"
+      },
+      {
+        "customer_id": "CUST-214",
+        "name": "金桥制造",
+        "contact_person": "周总",
+        "email": "zhouzong@jinqiao-manufacture.cn",
+        "phone": "13711110025",
+        "industry": "制造",
+        "tier": "standard",
+        "annual_revenue": 5400000,
+        "last_contact_date": "2026-03-03",
+        "status": "active",
+        "notes": "标准客户但收入较高，可能触发>5%情况"
+      },
+      {
+        "customer_id": "CUST-215",
+        "name": "泰安数据",
+        "contact_person": "宋总",
+        "email": "songzong@tian-data.cn",
+        "phone": "13711110026",
+        "industry": "数据服务",
+        "tier": "vip",
+        "annual_revenue": 2600000,
+        "last_contact_date": "2026-02-25",
+        "status": "active",
+        "notes": "VIP客户，需优先处理"
+      },
+      {
+        "customer_id": "CUST-216",
+        "name": "盛景零售",
+        "contact_person": "吴总",
+        "email": "wuzong@shengjing-retail.cn",
+        "phone": "13711110027",
+        "industry": "零售",
+        "tier": "standard",
+        "annual_revenue": 2000000,
+        "last_contact_date": "2026-01-20",
+        "status": "churned",
+        "churn_date": "2026-01-20",
+        "churn_reason": "未按期完成合同续约材料提交",
+        "notes": "已流失客户，需法务介入"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "FNC-2301",
+        "date": "2026-03-05",
+        "amount": 45000.0,
+        "currency": "CNY",
+        "customer_id": "CUST-212",
+        "customer_name": "北辰环保",
+        "type": "客户优惠",
+        "category": "续约优惠支出",
+        "description": "北辰环保2026年Q1续约优惠（已完成）",
+        "approved_by": "孙佳维",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "FNC-2302",
+        "date": "2026-03-12",
+        "amount": 32000.0,
+        "currency": "CNY",
+        "customer_id": "CUST-214",
+        "customer_name": "金桥制造",
+        "type": "客户补偿",
+        "category": "服务补偿支出",
+        "description": "金桥制造2026年Q1服务补偿（已完成）",
+        "approved_by": "陈晓岚",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "FNC-2303",
+        "date": "2026-02-18",
+        "amount": 25000.0,
+        "currency": "CNY",
+        "customer_id": "CUST-211",
+        "customer_name": "星河软件",
+        "type": "客户优惠",
+        "category": "续约优惠支出",
+        "description": "星河软件2025年Q4续约优惠（已完成）",
+        "approved_by": "陈晓岚",
+        "status": "completed"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "m_4101",
+        "from": "upgrade@client-yunteng.cn",
+        "to": "me@company.com",
+        "subject": "【年度续约谈判升级】RENEW-2026-11 - 预算内可先保价后审",
+        "date": "2026-03-15T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "renewal"
+        ],
+        "body": "续约谈判升级（Sales触发）\n\n客户编号：CUST-210\n续约谈判编号：RENEW-2026-11\n触发渠道：Sales\n季度：2026Q1\n\n我们要求：补偿/优惠金额 46,000 元\n并明确表示：先保价后审。\n\n请按“先保价后审”的流程走，确保续约推进。\n\n—— 邓总"
+      },
+      {
+        "message_id": "m_4102",
+        "from": "service@xinghe-soft.com",
+        "to": "me@company.com",
+        "subject": "【年度续约谈判升级】RENEW-2026-12 - 预算内但未说明先保价后审",
+        "date": "2026-03-15T10:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "renewal"
+        ],
+        "body": "续约谈判升级（客服触发）\n\n客户编号：CUST-211\n续约谈判编号：RENEW-2026-12\n触发渠道：客服\n季度：2026Q1\n\n我们要求：补偿/优惠金额 38,000 元\n但邮件中未能明确写出“先保价后审”。\n\n请先回复内部审批进度即可。\n\n—— 赵总"
+      },
+      {
+        "message_id": "m_4103",
+        "from": "ops@beichen-eco.com",
+        "to": "me@company.com",
+        "subject": "【年度续约谈判升级】RENEW-2026-13 - 要求15万（先保价后审）",
+        "date": "2026-03-15T11:30:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important",
+          "escalation",
+          "renewal"
+        ],
+        "body": "续约谈判升级（Sales触发）\n\n客户编号：CUST-212\n续约谈判编号：RENEW-2026-13\n触发渠道：Sales\n季度：2026Q1\n\n我们要求：补偿/优惠金额 150,000 元\n并声明：先保价后审。\n\n希望能覆盖本季度谈判推进成本。\n\n—— 李总"
+      },
+      {
+        "message_id": "m_4104",
+        "from": "renewals@haiou-telecom.com",
+        "to": "me@company.com",
+        "subject": "【年度续约谈判升级】RENEW-2026-14 - 要求2万补偿（非先保价）",
+        "date": "2026-03-15T12:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "renewal"
+        ],
+        "body": "续约谈判升级（客服触发）\n\n客户编号：CUST-213\n续约谈判编号：RENEW-2026-14\n触发渠道：客服\n季度：2026Q1\n\n我们要求：补偿/优惠金额 20,000 元\n并且本邮件未声明“先保价后审”。\n\n请按预算内流程处理。\n\n—— 王总"
+      },
+      {
+        "message_id": "m_4105",
+        "from": "accounting@jinqiao-manufacture.cn",
+        "to": "me@company.com",
+        "subject": "【年度续约谈判升级】RENEW-2026-15 - 超预算 40万（先保价后审）",
+        "date": "2026-03-15T13:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important",
+          "escalation",
+          "renewal"
+        ],
+        "body": "续约谈判升级（Sales触发）\n\n客户编号：CUST-214\n续约谈判编号：RENEW-2026-15\n触发渠道：Sales\n季度：2026Q2\n\n我们要求：补偿/优惠金额 400,000 元\n并声明：先保价后审。\n\n请走上级审批后再给正式结果。\n\n—— 周总"
+      },
+      {
+        "message_id": "m_4106",
+        "from": "legal@tian-data.cn",
+        "to": "me@company.com",
+        "subject": "【年度续约谈判升级】RENEW-2026-16 - VIP续约（先保价后审）",
+        "date": "2026-03-15T14:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "renewal"
+        ],
+        "body": "续约谈判升级（客服触发）\n\n客户编号：CUST-215\n续约谈判编号：RENEW-2026-16\n触发渠道：客服\n季度：2026Q2\n\n我们要求：补偿/优惠金额 120,000 元\n并声明：先保价后审。\n\n希望尽快先保价推进续约。\n\n—— 宋总"
+      },
+      {
+        "message_id": "m_4107",
+        "from": "unknown@client.cn",
+        "to": "me@company.com",
+        "subject": "【年度续约谈判升级】 - 缺少字段的干扰邮件",
+        "date": "2026-03-15T15:00:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "这是一封干扰邮件：\n\n- 未包含客户编号\n- 仅写了“续约谈判编号：RENEW-2026-99”\n- 金额：25,000\n- 也未明确“先保价后审”。\n\n用于验证skip逻辑。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "HD-4201",
+        "title": "RENEW-2026-11（Sales）续约谈判预算内升级",
+        "description": "续约谈判编号 RENEW-2026-11，Sales触发。客户CUST-210为VIP，请按年度续约升级流程处理。",
+        "customer_id": "CUST-210",
+        "reporter": "陈晓岚",
+        "department": "销售部",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-15T09:20:00Z",
+        "tags": [
+          "续约升级",
+          "Sales触发",
+          "预算内"
+        ]
+      },
+      {
+        "ticket_id": "HD-4202",
+        "title": "RENEW-2026-11（Legal）续约谈判版本",
+        "description": "续约谈判编号 RENEW-2026-11，Legal团队版本候选，不应被Sales触发邮件命中。",
+        "customer_id": "CUST-210",
+        "reporter": "周浩然",
+        "department": "法务部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-15T09:25:00Z",
+        "tags": [
+          "续约升级",
+          "Legal候选"
+        ]
+      },
+      {
+        "ticket_id": "HD-4203",
+        "title": "RENEW-2026-12（客服）续约谈判预算内审批",
+        "description": "续约谈判编号 RENEW-2026-12，客服触发。客户CUST-211为VIP。",
+        "customer_id": "CUST-211",
+        "reporter": "陈晓岚",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-15T10:10:00Z",
+        "tags": [
+          "续约升级",
+          "客服触发",
+          "预算内"
+        ]
+      },
+      {
+        "ticket_id": "HD-4204",
+        "title": "RENEW-2026-12（Sales）续约谈判版本",
+        "description": "续约谈判编号 RENEW-2026-12，Sales团队候选版本。",
+        "customer_id": "CUST-211",
+        "reporter": "孙佳维",
+        "department": "销售部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-15T10:12:00Z",
+        "tags": [
+          "续约升级",
+          "Sales候选"
+        ]
+      },
+      {
+        "ticket_id": "HD-4205",
+        "title": "RENEW-2026-13（Sales）续约谈判预算外升级候选",
+        "description": "续约谈判编号 RENEW-2026-13，Sales触发。客户CUST-212为standard。",
+        "customer_id": "CUST-212",
+        "reporter": "孙佳维",
+        "department": "销售部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-15T11:40:00Z",
+        "tags": [
+          "续约升级",
+          "Sales触发",
+          "待判断"
+        ]
+      },
+      {
+        "ticket_id": "HD-4206",
+        "title": "RENEW-2026-13（CS）续约谈判版本",
+        "description": "续约谈判编号 RENEW-2026-13，CS团队版本候选。",
+        "customer_id": "CUST-212",
+        "reporter": "陈晓岚",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-15T11:45:00Z",
+        "tags": [
+          "续约升级",
+          "CS候选"
+        ]
+      },
+      {
+        "ticket_id": "HD-4207",
+        "title": "RENEW-2026-14（客服）续约谈判预算内但未先保价",
+        "description": "续约谈判编号 RENEW-2026-14，客服触发。客户CUST-213为standard。",
+        "customer_id": "CUST-213",
+        "reporter": "陈晓岚",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-15T12:25:00Z",
+        "tags": [
+          "续约升级",
+          "客服触发",
+          "预算内"
+        ]
+      },
+      {
+        "ticket_id": "HD-4208",
+        "title": "RENEW-2026-14（Sales）续约谈判候选版本",
+        "description": "续约谈判编号 RENEW-2026-14，Sales团队版本候选。",
+        "customer_id": "CUST-213",
+        "reporter": "孙佳维",
+        "department": "销售部",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-15T12:28:00Z",
+        "tags": [
+          "续约升级",
+          "Sales候选"
+        ]
+      },
+      {
+        "ticket_id": "HD-4209",
+        "title": "RENEW-2026-15（Sales）续约谈判超预算审批",
+        "description": "续约谈判编号 RENEW-2026-15，Sales触发。客户CUST-214为standard。",
+        "customer_id": "CUST-214",
+        "reporter": "孙佳维",
+        "department": "销售部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-15T13:20:00Z",
+        "tags": [
+          "续约升级",
+          "Sales触发",
+          "预算外"
+        ]
+      },
+      {
+        "ticket_id": "HD-4210",
+        "title": "RENEW-2026-15（Legal）续约谈判版本",
+        "description": "续约谈判编号 RENEW-2026-15，Legal版本候选。",
+        "customer_id": "CUST-214",
+        "reporter": "周浩然",
+        "department": "法务部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-15T13:22:00Z",
+        "tags": [
+          "续约升级",
+          "Legal候选"
+        ]
+      },
+      {
+        "ticket_id": "HD-4211",
+        "title": "RENEW-2026-16（客服）VIP续约谈判先保价后审",
+        "description": "续约谈判编号 RENEW-2026-16，客服触发。客户CUST-215为VIP。",
+        "customer_id": "CUST-215",
+        "reporter": "陈晓岚",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-15T14:10:00Z",
+        "tags": [
+          "续约升级",
+          "客服触发",
+          "预算内"
+        ]
+      },
+      {
+        "ticket_id": "HD-4212",
+        "title": "RENEW-2026-16（Sales）续约谈判候选版本",
+        "description": "续约谈判编号 RENEW-2026-16，Sales团队版本候选。",
+        "customer_id": "CUST-215",
+        "reporter": "孙佳维",
+        "department": "销售部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-15T14:15:00Z",
+        "tags": [
+          "续约升级",
+          "Sales候选"
+        ]
+      },
+      {
+        "ticket_id": "HD-4213",
+        "title": "RENEW-2026-77（客服）已流失客户异常候选",
+        "description": "续约谈判编号 RENEW-2026-77，客服触发。客户CUST-216为churned，用于异常演示（本数据可能与干扰邮件无关）。",
+        "customer_id": "CUST-216",
+        "reporter": "陈晓岚",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-10T10:00:00Z",
+        "tags": [
+          "续约升级",
+          "客服触发",
+          "异常-法务"
+        ]
+      },
+      {
+        "ticket_id": "HD-4214",
+        "title": "RENEW-2026-77（Legal）异常处理版本",
+        "description": "续约谈判编号 RENEW-2026-77，Legal处理版本候选。",
+        "customer_id": "CUST-216",
+        "reporter": "周浩然",
+        "department": "法务部",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-10T10:05:00Z",
+        "tags": [
+          "续约升级",
+          "Legal候选",
+          "异常-法务"
+        ]
+      },
+      {
+        "ticket_id": "HD-4215",
+        "title": "RENEW-2026-99（Sales）干扰邮件候选工单",
+        "description": "续约谈判编号 RENEW-2026-99，仅用于干扰邮件字段缺失场景的工单存在性。",
+        "customer_id": "CUST-213",
+        "reporter": "孙佳维",
+        "department": "销售部",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-15T15:05:00Z",
+        "tags": [
+          "续约升级",
+          "Sales候选"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将升级邮件的触发对象从一般客户投诉/升级改为“年度续约谈判”，并新增“先保价后审”门槛与按finance同季度历史记录做摘要核验，同时保持基于年收入5%阈值的最终决策与VIP工单优先级策略。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 共7封：5封有效（含先保价标记与续约谈判编号），2封干扰（缺customer_id或未声明先保价）。",
+      "crm/customers.json 为跨fixture提供新customer_id：包含2个VIP、3个standard、1个churned，确保ratio判断与异常分支可覆盖。",
+      "helpdesk/tickets.json 为每个renewal_id准备至少2个版本（Sales/客服/Legal候选），用于要求按触发渠道选择正确ticket；VIP工单初始priority更高。",
+      "finance/transactions.json 提供同客户同季度的completed历史记录，用于摘要输出“历史记录存在/不存在”且不改变5%决策。"
+    ]
+  }
+}

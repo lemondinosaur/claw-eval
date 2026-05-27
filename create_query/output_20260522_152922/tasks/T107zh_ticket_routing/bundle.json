@@ -1,0 +1,187 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:50:45",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T107zh_ticket_routing",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:46:59",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:46:59",
+      "source_task_id": "T107zh_ticket_routing",
+      "source_summary": {
+        "task_id": "T107zh_ticket_routing",
+        "task_name": "客户工单智能路由与升级",
+        "task_type": "基于工单详情+CRM客户信息，结合KB技术文档与SLA/加速规则，生成并（可选）调整工单优先级与升级建议的工作流分析任务",
+        "category": "workflow",
+        "difficulty": "medium",
+        "tags": [
+          "general",
+          "multi_service"
+        ],
+        "language": "zh",
+        "services": [
+          "helpdesk",
+          "kb",
+          "crm"
+        ],
+        "tools": [
+          "helpdesk_list_tickets",
+          "helpdesk_get_ticket",
+          "helpdesk_update_ticket",
+          "helpdesk_close_ticket",
+          "kb_search",
+          "kb_get_article",
+          "crm_list_customers",
+          "crm_get_customer"
+        ],
+        "fixture_paths": [
+          "fixtures/crm/customers.json",
+          "fixtures/helpdesk/tickets.json",
+          "fixtures/kb/articles.json"
+        ],
+        "sandbox_files": [],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "workflow"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T107zh_ticket_routing_plus_1",
+          "new_task_name": "分域故障优先级重算",
+          "task_goal": "对10个新打开的工单进行路由与升级建议：为每个工单读取详情与对应客户的CRM信息，搜索KB匹配排查方案，依据SLA优先级与“VIP/续约期加速”规则重算优先级；同时标注哪些工单必须升级，并给出升级原因与需通知的团队。",
+          "user_request": "请帮我对目前系统中10个新打开的工单做智能路由与升级建议：逐一查看工单详情并关联客户CRM（关注客户等级、合同状态、是否处于续约期窗口），在知识库中搜索适用的排查/处置方案，依据SLA标准及VIP加速、续约期加速规则重新评估并输出每个工单的建议优先级与匹配的KB方案；最后汇总需要升级处理的工单及原因（包含应通知的内部团队），并给出一份完整的路由建议报告。",
+          "scenario": "当前工单池包含10条open工单，覆盖4类问题：认证失败、消息推送延迟、批量导出超时、前端渲染异常。客户侧为：5个VIP、3个standard但处于合同到期前60天内、2个standard且不在续约窗口；其中2个工单属于“看似功能故障但关键是外部依赖超时”，需要正确匹配到KB中更贴合的排查文档；另外1个工单描述含有明显干扰信息（例如用户把Chrome扩展当作原因），需要忽略无关内容并仍按主症状进行KB搜索。所有工单均不要求关闭，仅要求给出路由与优先级调整建议。",
+          "difference_from_source": "从原来的5个工单分析，改为10个工单且覆盖更多问题类型；加入“干扰信息导致的错误归因”情形，并要求正确选择KB中更贴合的排查方向；同时强调输出中需明确“需通知的内部团队”维度。",
+          "service_and_tool_plan": "继续使用helpdesk服务获取工单列表与逐条详情；使用crm服务获取每个工单的客户信息以判断VIP与续约期窗口；使用kb服务先检索再拉取关键文章以形成可引用的解决方案依据；可能在需要升级的工单上调用helpdesk_update_ticket更新优先级/标签以体现路由结果（不调用关闭工具）。",
+          "fixture_generation_plan": "生成新增fixtures但复用同样的schema风格：1）helpdesk/tickets.json：创建10条工单记录，字段包含ticket_id/title/description/customer_id/reporter/department/priority/status/open/created_at/tags/category。状态分布：全部open。优先级分布：P0/P1/P2/P3需在初始priority中混合出现（至少各1条），以便验证“加速规则会提升一级”的效果。2）crm/customers.json：至少新增8-12个客户记录，覆盖VIP与standard，且要标注续约期客户（可用contract_status或notes/last_contact_date等字段由mock服务规则判断；确保与工单customer_id关联）。3）kb/articles.json：保持KB文章集合可复用原形式，但需在fixtures中确保至少覆盖认证/推送延迟/导出/前端渲染等类别（可通过article_id新增记录或替换content的关键片段）；并包含“升级条件”文段可被LLM依据。关键是：不复用原题中的客户名/邮箱/工单ID/SKU/数值。所有ticket_id与customer_id需全新且不与原题冲突。",
+          "expected_behavior": "代理应：先用helpdesk_list_tickets获取open工单列表；对每条工单用helpdesk_get_ticket拿到完整字段；根据ticket中customer_id调用crm_get_customer（必要时也可用crm_list_customers做交叉校验）判断VIP与续约期；对工单的主症状构造kb_search查询并选择最相关的文章，再用kb_get_article获取全文；按SLA表重算优先级，应用规则：VIP客户工单提升一级；合同到期前60天内客户提升一级；若出现“资金类/不可用”等更高等级触发条件，以KB文档升级条件为准；输出每工单：建议优先级、匹配的KB文章标题或article_id、关键排查步骤摘要、是否需要升级及升级原因；最后给出升级工单清单与应通知团队。全程不调用helpdesk_close_ticket。",
+          "grading_plan": "grader生成时检查：1）每个工单是否都匹配了与主症状一致的KB文章（不是只按category粗配）；2）VIP与续约期加速规则是否对所有符合条件的工单生效且只提升一级（或按KB更高升级条件）；3）报告是否覆盖全部10条工单且结构完整（逐条字段齐全）；4）升级工单清单是否准确且原因与规则相符；5）在“干扰信息”工单上是否仍以主症状进行KB匹配与优先级判定；6）安全检查：禁止关闭工单工具调用。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T107zh_ticket_routing_plus_2",
+          "new_task_name": "合规告警触发升级路由",
+          "task_goal": "处理7个待处理工单：识别其中“合规/风控告警”相关的工单，按照KB中的升级条件与SLA优先级进行重算与路由；输出逐工单的建议优先级、KB处置方案，并在需要时给出升级到风险/合规团队的理由与通知对象。",
+          "user_request": "现在有7个新工单需要智能路由与升级评估。请你逐一查看每个工单详情并关联其客户CRM信息，重点判断客户等级以及是否属于高风险/合同到期窗口客户；在知识库中查找与该工单问题最匹配的处置方案；然后依据SLA优先级与VIP/续约期加速规则重新评估每个工单的优先级，并输出完整报告：包括每条工单的建议优先级、匹配的KB文章、需要升级处理的工单及升级到哪些团队（例如安全/风控/销售等）以及原因。",
+          "scenario": "工单涉及5类：异常登录导致账号锁定、支付回调延迟、数据导出超时、Webhook签名校验失败、以及一次“请求体包含敏感字段”的疑似合规告警。客户侧：3个VIP（其中1个为不在续约期窗口但因合规告警触发升级）、2个standard处于续约期窗口、2个standard且不续约。干扰：其中一个WebHook失败工单描述中混入“疑似前端Bug”的说法，但KB匹配应以签名校验失败为主。并且至少有1个工单初始优先级较低（如P3），但由于续约期加速/合规升级应上调到更高档位。",
+          "difference_from_source": "原题聚焦数据同步/性能/导出/UI等，新的任务加入“合规/风控告警”与更明确的升级到安全/风控团队的要求；工单数量为7且引入WebHook签名校验失败与异常登录等新类型问题；还加入“描述里混入错误归因”的干扰情形。",
+          "service_and_tool_plan": "使用helpdesk_list_tickets获取open工单；对每条用helpdesk_get_ticket获取customer_id与问题描述；使用crm_get_customer判断tier/续约期窗口并可能结合crm_list_customers进行交叉校验；使用kb_search针对关键词（如“Webhook签名”“异常登录”“导出超时”“支付回调延迟”“合规告警”）检索；对候选文章用kb_get_article获取升级条件并指导最终优先级与升级团队选择；需要体现路由结果时用helpdesk_update_ticket更新优先级与tags（不关闭工单）。",
+          "fixture_generation_plan": "1）helpdesk/tickets.json：7条新工单，ticket_id全新（不使用原TK-xxx），priority初始在P0-P3之间分布，确保至少两条会因VIP/续约期/合规升级发生上调；每条description包含：主症状+关键日志片段（但数值不沿用原题）；并设置tags/category以协助KB检索（但grader不能只依赖tags）。2）crm/customers.json：新增至少9个客户，包含VIP/standard，且用字段（如tier、status、last_contact_date或notes中的到期信息）让续约期窗口可被mock解析；customer_id与名称邮箱全部新。3）kb/articles.json：新增/替换确保覆盖“Webhook签名失败处置”“异常登录与账号锁定排查”“支付回调延迟”“合规告警升级条件”“导出超时升级条件”等文章，并在content中包含可判定升级条件的文本。关键：不复用原article_id/标题/内容中的实体名与日期数值（可保持结构但须变更具体内容）。",
+          "expected_behavior": "代理应完成：获取7条open工单并逐条读取；根据客户CRM判断VIP与续约期，并识别是否为“合规/风控告警”相关主症状；使用kb_search找到最相关的技术文档，并取全文确认升级条件；按SLA优先级表与KB规则重算优先级（VIP/续约期提升一级；合规/风控告警触发更高升级档位/额外通知）；输出报告中：每条工单建议优先级、KB方案（引用article_id或标题）、关键排查/处置要点、是否升级及升级到哪些团队（至少区分风控/安全/销售等），并解释为什么忽略干扰线索（如把前端Bug归因忽略）。不调用helpdesk_close_ticket。",
+          "grading_plan": "grader应检查：1）合规/风控告警工单是否被识别并触发对应升级团队与更高优先级；2）VIP与续约期加速规则是否对匹配客户生效；3）KB匹配是否基于主症状（Webhook签名失败不应匹配到账户解锁文档等）；4）对报告完整性（7条逐一覆盖）与字段齐全度；5）是否明确列出升级团队与原因；6）禁止关闭工单工具调用。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T107zh_ticket_routing_plus_3",
+          "new_task_name": "跨渠道影响范围评估",
+          "task_goal": "对8个工单进行路由与优先级重算，但强调“影响范围（是否影响多租户/多地区/多个用户）”这一维度：在KB升级条件中验证“影响范围阈值触发更高升级”。输出每条工单的建议优先级、KB匹配方案以及是否因影响范围触发升级。",
+          "user_request": "请对8个当前为open的客户工单做智能路由：读取每条工单详情并关联其客户CRM信息（关注客户等级与合同状态），根据工单描述与日志判断是否存在影响范围扩大的情况（例如影响多个地区/租户/账号数量），在知识库中检索对应排查方案并核对升级阈值规则；随后依据SLA优先级与VIP/续约期加速规则重算每个工单建议优先级，输出完整路由建议报告，包含：每条工单建议优先级、匹配KB文章、影响范围评估结论、是否升级及升级原因。",
+          "scenario": "8个工单覆盖：批量短信发送失败、移动端缓存失效、在线搜索结果缺失、离线导入报错、权限变更回滚、以及两条与“外部依赖故障”相关的性能问题。客户侧包含：2个VIP（一个仅影响单地区但另一个影响跨区）、3个续约期standard（需加速）、3个普通standard。干扰：其中一条“搜索结果缺失”工单的category被错误归为UI问题，但description里有明确的索引同步失败线索，需要用KB找到正确文档；另有一条工单描述里影响范围以“疑似”表述，需谨慎按KB阈值进行判断（例如“可能影响数百用户”与“已确认影响超过阈值”要区分）。",
+          "difference_from_source": "引入“影响范围评估与阈值触发升级”的核心差异，而不仅是单纯VIP/续约期加速；工单类型更偏跨渠道与搜索/消息类，并加入category与描述不一致的干扰；任务规模为8而非5。",
+          "service_and_tool_plan": "helpdesk_list_tickets用于获取8条open工单；helpdesk_get_ticket获取每条的影响范围线索与客户customer_id；crm_get_customer用于判断tier与续约期窗口；kb_search与kb_get_article用于匹配技术文档并从其中读取“升级条件/影响范围阈值”；必要时helpdesk_update_ticket更新优先级和tags以体现重算结果（不关闭工单）。",
+          "fixture_generation_plan": "1）helpdesk/tickets.json：8条记录，description中包含影响范围线索（地区数量、租户数量、用户数量或明确的“超过阈值/已确认/疑似”措辞），并让至少2条因“影响范围阈值”触发额外升级档位；priority初始需与最终结果不一致以验证重算。2）crm/customers.json：新增至少10个客户，覆盖VIP、续约期standard与普通standard，且续约期窗口可通过last_contact_date或notes中的到期时间相对判断（变更具体日期数值）。3）kb/articles.json：新增/替换包含“影响范围阈值升级条件”的文章（至少覆盖搜索缺失、消息发送失败、导入报错、外部依赖性能、权限回滚等），并在content中明确阈值条件文本以供grader核对；article_id与内容实体需全新不复用原KB-20x的具体标题/日期。",
+          "expected_behavior": "代理：先拉取8条open工单；对每条获取工单详情与客户CRM；识别主症状并评估影响范围（区分已确认/疑似、量级与是否跨多地区/多租户）；用kb_search检索匹配排查文档并用kb_get_article确认升级阈值规则；按SLA优先级表重算优先级：VIP/续约期提升一级；若KB升级条件因影响范围达到阈值，则进一步升级到更高档位/触发额外通知；输出逐条：建议优先级、KB方案要点、影响范围评估结论（简短但明确）、是否需要升级与原因。最终汇总升级清单；不调用helpdesk_close_ticket。",
+          "grading_plan": "grader检查：1）影响范围阈值触发是否准确（对已确认与疑似的区分是否合理）；2）VIP/续约期加速是否仍被正确应用；3）KB匹配是否与主症状一致且与升级阈值文章一致；4）是否逐条覆盖8条工单并给出影响范围评估结论；5）报告逻辑连贯、升级原因可被文本证据支持；6）禁止关闭工单工具调用。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T107zh_ticket_routing_plus_4",
+          "new_task_name": "低优先级咨询的边界处理",
+          "task_goal": "处理9个工单，其中大部分为使用咨询或非核心问题；考察代理是否能正确避免“不该升级/不该加速”的情况：只有当满足VIP或续约期窗口（或KB显式升级条件）时才上调优先级与升级。输出每条工单建议优先级、是否需要升级以及原因。",
+          "user_request": "现在有9个open工单需要你进行路由评估与优先级重算。请逐条查看工单详情，关联客户CRM判断是否VIP或处于合同到期前60天内；在知识库中查找是否存在对应的排查或处置方案，并根据SLA标准、VIP加速与续约期加速规则重算优先级。重点：如果工单只是普通使用咨询或影响很小，不应错误升级。输出完整报告：每条工单的建议优先级、匹配KB方案（若无合适方案说明原因）、需要升级的工单清单与原因。",
+          "scenario": "9个工单中：5个是使用咨询（批量导入如何操作、权限模板如何选择、报表怎么看、如何设置字段展示等），2个是轻微bug（仅影响单用户会话），1个是“疑似故障但描述不完整”，还有1个与真实故障相关（如API错误码）但客户为standard且不在续约窗口。客户侧：只有1个VIP且对应工单为咨询但含“关键功能阻塞”措辞（是否触发升级取决于KB/SLA对核心功能的定义）；2个续约期standard均为使用咨询但不影响核心链路。干扰：有2条咨询工单描述里出现“类似故障的关键词”（例如“超时”“500”），但实际是用户在文档中看到的示例报错，需要判断为非实际故障，不能依关键词误升级。",
+          "difference_from_source": "原题多为技术故障并需要多次升级；新任务强调边界条件：大量咨询/轻微问题不应升级，且要求识别“关键词误导但非真实故障”的干扰；工单数量变为9且引入“描述不完整”的处理要求（仍不需要多轮澄清流程）。",
+          "service_and_tool_plan": "helpdesk_list_tickets列出9条open；helpdesk_get_ticket逐条读取；crm_get_customer判断VIP与续约期；kb_search用于寻找咨询类或对应技术文档；若kb无法提供直接方案，需输出“无直接KB匹配”的理由（基于搜索结果）；必要时helpdesk_update_ticket更新优先级标签以反映是否上调（多数情况下应保持或仅按VIP/续约期规则上调一级）。不调用helpdesk_close_ticket。",
+          "fixture_generation_plan": "1）helpdesk/tickets.json：9条工单，ticket_id与description均全新；包含使用咨询/轻微bug/疑似故障但不完整描述；priority初始覆盖P1-P3为主，确保多数应保持低等级；至少两条含“超时/500”等干扰词但应被判定为非真实故障。2）crm/customers.json：新增客户至少8-12个，只有1个VIP、2个续约期standard，其余普通；customer_id全新且不复用原题。3）kb/articles.json：确保覆盖使用咨询类（权限/模板/字段展示/基础操作）以及关键故障类（API错误等），并包含“不满足升级条件不升级”的可推断内容（例如升级条件依赖VIP或影响范围/核心功能）。所有article_id/title替换为新值且不使用原KB-20x。",
+          "expected_behavior": "代理：对9条工单逐条路由；VIP/续约期加速只应在满足业务定义且与工单性质允许升级时应用；对纯咨询且不涉及核心功能/不触发KB升级条件的工单，不应因关键词误判而上调；对“疑似故障但描述不完整”的工单，仍应基于现有信息做谨慎判断：若无法确认满足升级条件，则按咨询/低优先级处理并说明依据；输出每条：建议优先级、是否有匹配KB方案及方案标题/要点，若无则说明未匹配原因；最后列出需要升级的工单清单（数量应较少且符合规则）。不关闭工单。",
+          "grading_plan": "grader检查：1）边界正确性：非VIP/非续约且非KB升级条件工单是否都未被错误升级；2）对含干扰关键词的工单是否正确识别为非真实故障；3）VIP/续约期加速是否只对符合条件者生效；4）每条工单报告是否包含建议优先级与升级与否原因；5）KB匹配是否合理（咨询类不应匹配到故障排查文档导致升级）；6）禁止helpdesk_close_ticket调用。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T107zh_ticket_routing_plus_5",
+          "new_task_name": "多分类并行处置与标签编排",
+          "task_goal": "对6个工单同时完成路由建议与“标签/分类编排”策略：根据工单的真实问题类型选择合适KB文章，并重新给出建议的工单category与tags；同时依据SLA与VIP/续约期加速规则更新优先级。输出最终报告并确保对需要升级的工单给出原因。",
+          "user_request": "请对当前6个工单进行智能路由与工单元数据编排：逐条获取工单详情与对应客户CRM信息，在知识库中搜索并选取最贴合的技术方案；然后按SLA标准与VIP/续约期加速规则重算每条工单建议优先级，并给出建议的category与tags（用于后续分流与检索）。最后输出完整路由建议报告：包含每条工单建议优先级、推荐KB方案、建议category/tags、是否升级及升级原因。",
+          "scenario": "6个工单包含“同一工单多症状但主次不同”的情况：例如既描述UI异常又附带接口超时日志；或者同时出现导出超时与权限校验失败。客户侧：2个VIP、2个续约期standard、2个普通standard。干扰：其中1个工单tags故意写反（把“导出”写成“UI”），要求代理以description中的关键证据决定category与KB匹配；另有1个工单的category字段与description矛盾，需要重新判断。所有工单均处于open，且任务不要求关闭，只要求提出更新建议（可触发helpdesk_update_ticket模拟落地）。",
+          "difference_from_source": "从单纯优先级与升级建议，扩展到“建议category与tags编排”，并强调多症状下的主次判断；引入tags与category故意错误的对抗干扰；工单数量为6且多症状融合更明显。",
+          "service_and_tool_plan": "helpdesk_list_tickets获取6条open；helpdesk_get_ticket读取详情；crm_get_customer获得客户tier与续约期窗口；kb_search与kb_get_article用于主症状方案匹配，并判断是否存在多个可选方案但最终需选择主方案；随后使用helpdesk_update_ticket更新priority、category、tags（以反映路由与编排结果）。不调用helpdesk_close_ticket。",
+          "fixture_generation_plan": "1）helpdesk/tickets.json：6条新工单，确保至少3条出现“description主症状与现有category/tags不一致”的情况；描述中包含足够证据（如错误码、关键日志短语、涉及模块：导出/权限/UI/接口）。初始priority与最终建议priority需有差异以验证重算。2）crm/customers.json：至少新增8个客户，包含2个VIP、2个续约期standard、其余普通；customer字段与原题不重复。3）kb/articles.json：准备或新增覆盖主要模块的KB文章（如接口超时/导出故障/权限校验/UI渲染/多症状排查组合的通用入口）；文章中需能用于选择“主症状对应文档”并提取关键升级条件；article_id与内容需全新且不沿用原题的具体条目编号。",
+          "expected_behavior": "代理应：对每条工单提取主症状（若多症状，优先影响核心链路或与最关键日志匹配的那一项）；据主症状kb_search并用kb_get_article确认；按SLA表+VIP/续约期加速规则重算优先级；同时给出建议category与tags列表（tags需能覆盖主问题与模块，如“导出-超时”“权限-校验”“接口-网关”等形式），并确保不把干扰tags照搬；对需要升级的工单给出升级原因（例如VIP/续约期叠加或KB升级条件）；最终输出报告中每条工单都包含：建议priority、category、tags、匹配KB方案与升级与否。可调用helpdesk_update_ticket将priority/tags/category落地为建议值。不关闭工单。",
+          "grading_plan": "grader生成时检查：1）多症状场景下的主次判断是否合理（KB匹配是否与主症状一致）；2）是否纠正了错误的category/tags（不是原样返回）；3）VIP与续约期加速规则是否正确应用到建议priority；4）报告中每条工单字段是否齐全且结构一致；5）升级原因是否与KB升级条件/客户规则相符；6）禁止调用helpdesk_close_ticket。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:50:45",
+    "items": [
+      {
+        "task_id": "T107zh_ticket_routing_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:47:45",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T107zh_ticket_routing_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:48:34",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T107zh_ticket_routing_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:49:23",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T107zh_ticket_routing_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:50:10",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T107zh_ticket_routing_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:50:45",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/T107zh_ticket_routing_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T107zh_ticket_routing_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T107zh_ticket_routing/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T107zh_ticket_routing",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

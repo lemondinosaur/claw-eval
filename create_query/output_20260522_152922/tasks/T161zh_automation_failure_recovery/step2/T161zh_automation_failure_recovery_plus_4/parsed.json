@@ -1,0 +1,560 @@
+{
+  "task_id": "T161zh_automation_failure_recovery_plus_4",
+  "task_name": "消息队列重放风暴后的任务恢复",
+  "prompt_text": "系统经历消息队列重放风暴后，多项自动化任务连续失败。部分用户反馈库存/订单状态异常，且已存在工单。请你排查并给出恢复方案：\n\n1）找出失败的定时任务与依赖关系，构建链路范围（事件消费者A→库存汇总→对账/结算同步），并明确哪些任务被“不可信停止/未恢复”影响。\n2）检查相关API集成配置，重点定位消息重放与幂等/重放控制相关的根因（例如幂等键规则字段会随重放变化，导致幂等锁无法命中、触发重复写入保护异常），而不是外部端点不可用。\n3）评估库存数据与订单状态可能受到的影响：识别哪些产品处于 partial/error 或 last_sync 不稳定，解释“汇总依赖流水、流水写入失败→汇总缺失/未更新→对账/结算同步停止”的链路原因，并指出重复写入风险。\n4）关联工单并归因：至少4条工单需覆盖到对应链路阶段；区分“重复风险”与“链路中断”；排除与本次事件无关的硬件工单，不要强行关联。\n5）在知识库中检索并引用恢复要点（给出具体操作步骤与验证方法）。\n6）输出故障分析与具体恢复计划，包含按顺序的恢复步骤、重跑策略、验证清单，以及防止再次重放的措施（停放/限流/死信处理/幂等键修复/监控指标等）。\n\n注意：恢复过程中不要直接关闭工单；如需更新工单建议标注“处理中/需等待重放停止后验证”。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-4201",
+        "name": "库存变更流水写入集成（MQ事件→流水）",
+        "service": "inventory_events_sink",
+        "status": "active",
+        "endpoint": "https://inventory-events.internal.example.com/sink/v1",
+        "api_key": "sk-inv-sink-4201-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-18T09:10:00Z",
+        "monthly_calls": 98000,
+        "error_rate": 0.089,
+        "notes": "重放风暴发生后出现幂等锁失效：幂等键配置使用了会随重放变化的字段（例如 event_payload_hash/sort_token），导致幂等锁无法命中并触发重复写入保护异常（Idempotency mismatch）。"
+      },
+      {
+        "integration_id": "INT-4202",
+        "name": "修复后的幂等键规则集成（MQ事件→流水）",
+        "service": "inventory_events_sink",
+        "status": "inactive",
+        "endpoint": "https://inventory-events.internal.example.com/sink/v1",
+        "api_key": "sk-inv-sink-4202-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-20T16:40:00Z",
+        "monthly_calls": 0,
+        "error_rate": 0.0,
+        "notes": "已切换为稳定幂等键字段：使用 event_type + source_order_reference + fixed_dedup_id（去除重放会变化的哈希/游标字段），并启用重放窗口内的去重命中校验。建议在确认重放停止后切换启用并重跑补偿。"
+      },
+      {
+        "integration_id": "INT-4203",
+        "name": "对账同步集成（库存汇总→对账/结算）",
+        "service": "reconciliation_sync",
+        "status": "active",
+        "endpoint": "https://recon.internal.example.com/api/v2",
+        "api_key": "sk-recon-4203-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-21T11:05:00Z",
+        "monthly_calls": 45000,
+        "error_rate": 0.013,
+        "notes": "当库存汇总标记为“不可信”（missing流水/汇总不完整/幂等校验异常）时，会拒绝同步并返回可重试错误，导致对账/结算同步任务停止。"
+      },
+      {
+        "integration_id": "INT-4204",
+        "name": "日志归档集成（干扰项）",
+        "service": "mq_log_archive",
+        "status": "active",
+        "endpoint": "https://archive.internal.example.com/mq/archive/v1",
+        "api_key": "sk-archive-4204-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-21T18:20:00Z",
+        "monthly_calls": 120000,
+        "error_rate": 0.002,
+        "notes": "归档日志任务不依赖库存流水链路；即使主链失败也可能保持 success。用于区分“干扰成功≠系统恢复”。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-42001",
+        "title": "库存变更错乱/出现回滚迹象",
+        "description": "重放风暴后，部分商品 quantity 在短时间内多次被尝试更新，随后又回退/修正；当前库存同步状态为 partial 或 error。请排查是否存在重复写入保护触发导致的流水缺失。相关产品包括：PRD-9002、PRD-9005、PRD-9011。",
+        "reporter": "运维-林晨",
+        "department": "运维平台",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T12:10:00Z",
+        "tags": [
+          "库存",
+          "回滚",
+          "幂等"
+        ],
+        "category": "库存错乱/回滚"
+      },
+      {
+        "ticket_id": "TK-42002",
+        "title": "库存汇总无法完成（流水缺失导致不可信）",
+        "description": "库存汇总任务无法得到完整“库存变更流水”，系统将汇总标记为不可信并停止对账/结算同步。用户侧看到部分订单无法完成结算。请确认是否为消息重放后幂等键规则错误造成的重复保护异常，而非外部端点故障。",
+        "reporter": "业务-周敏",
+        "department": "订单结算组",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-21T12:45:00Z",
+        "tags": [
+          "汇总",
+          "不可信",
+          "重放"
+        ],
+        "category": "库存错乱/回滚"
+      },
+      {
+        "ticket_id": "TK-42003",
+        "title": "对账同步未完成（不可信数据已拒绝）",
+        "description": "对账/结算同步处于 stopped/failed-retry 状态，提示库存汇总不可信或数据缺失。需要恢复汇总链路后再重跑对账同步，并给出防止再次重放的措施。",
+        "reporter": "财务-曹捷",
+        "department": "财务结算",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T13:20:00Z",
+        "tags": [
+          "对账",
+          "结算",
+          "重试"
+        ],
+        "category": "对账同步未完成"
+      },
+      {
+        "ticket_id": "TK-42004",
+        "title": "订单状态异常/疑似重复下单风险",
+        "description": "部分订单显示状态卡在“待结算”或出现重复尝试下单迹象。初步判断与库存汇总/对账缺失有关：当流水缺失或汇总不可信时，订单侧可能无法正确落账/触发重试，形成重复风险。请给出订单影响边界与恢复后验证方法。",
+        "reporter": "客服-杨航",
+        "department": "客户体验",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-21T14:05:00Z",
+        "tags": [
+          "订单",
+          "重复风险",
+          "库存链路"
+        ],
+        "category": "订单状态异常/重复下单风险"
+      },
+      {
+        "ticket_id": "TK-42005",
+        "title": "仓库打印机卡纸（与本次事件疑似无关）",
+        "description": "仓库打印机出现卡纸告警，需工程师检查设备耗材与纸张路径。建议不要与库存/对账链路故障强行关联。",
+        "reporter": "仓储-孙佳",
+        "department": "仓储部",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-21T15:00:00Z",
+        "tags": [
+          "硬件",
+          "打印机"
+        ],
+        "category": "硬件故障"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "PRD-9001",
+        "name": "蓝牙条码枪",
+        "category": "仓储设备",
+        "quantity": 86,
+        "unit": "台",
+        "reorder_level": 20,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-21T11:55:00Z",
+        "sync_status": "ok",
+        "notes": "同步正常；未观察到重复写入保护异常"
+      },
+      {
+        "product_id": "PRD-9002",
+        "name": "无线鼠标",
+        "category": "IT外设",
+        "quantity": 14,
+        "unit": "个",
+        "reorder_level": 30,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-21T12:07:00Z",
+        "sync_status": "partial",
+        "notes": "last_sync 在重放窗口内多次抖动；数量多次尝试更新后未稳定落库，疑似幂等锁未命中导致流水缺失"
+      },
+      {
+        "product_id": "PRD-9003",
+        "name": "键盘-87键",
+        "category": "IT外设",
+        "quantity": 64,
+        "unit": "个",
+        "reorder_level": 25,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-21T12:00:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "PRD-9004",
+        "name": "USB-C扩展坞",
+        "category": "IT外设",
+        "quantity": 9,
+        "unit": "个",
+        "reorder_level": 12,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-21T12:14:00Z",
+        "sync_status": "stale",
+        "notes": "库存更新频率下降；对账前置链路中断可能导致 last_sync 不稳定"
+      },
+      {
+        "product_id": "PRD-9005",
+        "name": "网络交换机-8口",
+        "category": "网络设备",
+        "quantity": 3,
+        "unit": "台",
+        "reorder_level": 6,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-21T12:01:00Z",
+        "sync_status": "error",
+        "notes": "多次进入重复写入保护异常；汇总任务依赖流水缺失，导致此产品汇总标记不可信"
+      },
+      {
+        "product_id": "PRD-9006",
+        "name": "SATA硬盘-1TB",
+        "category": "存储设备",
+        "quantity": 120,
+        "unit": "块",
+        "reorder_level": 40,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-21T12:20:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "PRD-9007",
+        "name": "显示器-24寸",
+        "category": "IT设备",
+        "quantity": 17,
+        "unit": "台",
+        "reorder_level": 8,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-20T18:45:00Z",
+        "sync_status": "stale",
+        "notes": "last_sync 显著滞后；可能由流水写入失败引发汇总不更新"
+      },
+      {
+        "product_id": "PRD-9008",
+        "name": "办公椅",
+        "category": "家具",
+        "quantity": 28,
+        "unit": "把",
+        "reorder_level": 10,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-21T11:50:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "PRD-9010",
+        "name": "A4打印纸-500张",
+        "category": "办公耗材",
+        "quantity": 240,
+        "unit": "包",
+        "reorder_level": 60,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-21T12:08:00Z",
+        "sync_status": "partial",
+        "notes": "quantity 在重放窗口内重复计算后未完全收敛；推测流水幂等键不稳定导致聚合偏差"
+      },
+      {
+        "product_id": "PRD-9011",
+        "name": "墨盒(黑色)",
+        "category": "办公耗材",
+        "quantity": 32,
+        "unit": "个",
+        "reorder_level": 20,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-21T12:16:00Z",
+        "sync_status": "error",
+        "notes": "进入error且last_sync不稳定；对账同步拒绝与汇总不可信一致"
+      },
+      {
+        "product_id": "PRD-9012",
+        "name": "机械键盘",
+        "category": "IT外设",
+        "quantity": 44,
+        "unit": "个",
+        "reorder_level": 15,
+        "supplier_integration": "INT-4201",
+        "last_sync": "2026-05-21T12:10:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-42001",
+        "title": "幂等键规则修复：针对消息重放风暴的去重设计与验证",
+        "category": "运维手册",
+        "tags": [
+          "幂等键",
+          "重放",
+          "去重",
+          "幂等锁"
+        ],
+        "content": "## 幂等键修复要点（适用于重放风暴后 Idempotency mismatch）\n\n### 1. 诊断症状\n- 幂等锁无法命中（Idempotency mismatch/duplicate protection触发）\n- 重放期间同类事件被多次尝试写入流水，导致“写入保护异常”\n\n### 2. 修复原则（必须稳定）\n- 幂等键字段只能取**不随重放变化**的标识\n- 禁止使用可能因重放游标/哈希/排序令牌变化而改变的字段\n\n**建议组合**（示例）：\n- event_type + source_order_reference + fixed_dedup_id\n\n### 3. 修复实施步骤\n1) 切换流水写入集成到“修复后的幂等键规则集成”（启用修复版本）\n2) 暂停或限流与流水写入相关的事件消费（确保幂等键切换窗口稳定）\n3) 对历史失败窗口进行补偿重跑：先写入流水（确保去重命中），再触发汇总\n4) 验证：\n   - 统计重复保护异常是否清零\n   - 抽样检查幂等键命中率/重复事件写入次数\n   - 检查 last_sync 收敛，sync_status 从 partial/error 回到 ok\n\n### 4. 回退建议\n- 若新规则导致无法命中（应急）：回到稳定上一次版本，但需先保留重放停止后的观测指标，以避免再次重复写入。",
+        "last_updated": "2026-05-20",
+        "views": 412
+      },
+      {
+        "article_id": "KB-42002",
+        "title": "消息重放风暴后的恢复流程：停放/限流/死信处理/重算与防重放监控",
+        "category": "应急响应",
+        "tags": [
+          "重放风暴",
+          "停放",
+          "限流",
+          "死信队列",
+          "监控指标"
+        ],
+        "content": "## 恢复流程（按顺序执行）\n\n### Step A：先控风暴，后修链路\n1. 停放相关消费者（至少停止库存变更流水写入与依赖汇总链路的消费）\n2. 对 MQ 主题重放进行限流/窗口冻结：确保重放不再继续灌入新批次\n3. 检查死信队列（DLQ）：\n   - 统计失败原因是否集中在幂等不一致\n   - 必要时将可重试消息重新入队（需在幂等规则修复后再做）\n\n### Step B：修幂等键与验证\n- 启用修复后的幂等键规则集成\n- 验证：去重命中率上升、重复写入保护异常下降\n\n### Step C：重跑与重算（避免“只成功归档≠链路恢复”）\n1) 先补写“库存变更流水”（确保汇总输入完整）\n2) 再重跑“库存汇总/不可信恢复”\n3) 最后恢复对账/结算同步（确认不可信标记已清除）\n\n### 防重放措施（持续监控）\n- 监控指标：\n  - 幂等锁命中率\n  - 重复写入保护异常计数\n  - 汇总任务不可信比例\n  - 库存产品 sync_status=partial/error 的占比\n- 配置侧：\n  - 设置重放窗口与去重窗口一致性\n  - 对幂等键字段做变更审计与只读保护\n\n### 关键注意\n- 归档日志任务成功不代表系统恢复；需以汇总与对账链路指标为准。",
+        "last_updated": "2026-05-21",
+        "views": 289
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-R1",
+        "name": "事件消费者A：写入库存变更流水",
+        "cron_expression": "*/3 * * * *",
+        "action": "consume_inventory_delta_events_and_write_ledger",
+        "enabled": true,
+        "last_run": "2026-05-21T12:18:00Z",
+        "next_run": "2026-05-21T12:21:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": [
+          "mq",
+          "inventory-ledger",
+          "idempotency"
+        ],
+        "created_at": "2026-04-10T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T12:18:00Z",
+            "status": "failed",
+            "duration_s": 4,
+            "error": "Idempotency mismatch: 幂等键不稳定导致幂等锁无法命中；触发重复写入保护（duplicate protection）"
+          },
+          {
+            "run_at": "2026-05-21T12:15:00Z",
+            "status": "failed",
+            "duration_s": 4,
+            "error": "Idempotency mismatch: 幂等键字段使用了重放会变化的字段（例如 event_payload_hash/sort_token）"
+          },
+          {
+            "run_at": "2026-05-21T12:12:00Z",
+            "status": "failed",
+            "duration_s": 5,
+            "error": "Idempotency mismatch: duplicate protection triggered; ledger write aborted"
+          },
+          {
+            "run_at": "2026-05-21T11:45:00Z",
+            "status": "success",
+            "duration_s": 28
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-R2",
+        "name": "事件消费者B：库存汇总（依赖流水）",
+        "cron_expression": "*/6 * * * *",
+        "action": "aggregate_inventory_from_ledger",
+        "enabled": true,
+        "last_run": "2026-05-21T12:18:00Z",
+        "next_run": "2026-05-21T12:24:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": [
+          "mq",
+          "inventory-aggregation"
+        ],
+        "created_at": "2026-04-18T00:00:00Z",
+        "depends_on": [
+          "JOB-R1"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T12:18:00Z",
+            "status": "failed",
+            "duration_s": 6,
+            "error": "DependencyError: Ledger missing/不完整；库存汇总标记为不可信，已中止聚合"
+          },
+          {
+            "run_at": "2026-05-21T12:12:00Z",
+            "status": "failed",
+            "duration_s": 5,
+            "error": "DependencyError: 上游流水写入失败导致汇总输入缺失（ledger watermark未推进）"
+          },
+          {
+            "run_at": "2026-05-21T11:48:00Z",
+            "status": "success",
+            "duration_s": 24
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-R3",
+        "name": "对账/结算同步（不可信停止）",
+        "cron_expression": "*/10 * * * *",
+        "action": "sync_reconciliation_and_settlement",
+        "enabled": true,
+        "last_run": "2026-05-21T12:20:00Z",
+        "next_run": "2026-05-21T12:30:00Z",
+        "last_status": "stopped",
+        "created_by": "ops_team",
+        "tags": [
+          "reconciliation",
+          "settlement",
+          "trust"
+        ],
+        "created_at": "2026-04-25T00:00:00Z",
+        "depends_on": [
+          "JOB-R2"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T12:20:00Z",
+            "status": "stopped",
+            "duration_s": 2,
+            "error": "UntrustedDataError: 库存汇总不可信（missing ledger/aggregation incomplete），已拒绝同步"
+          },
+          {
+            "run_at": "2026-05-21T12:10:00Z",
+            "status": "stopped",
+            "duration_s": 2,
+            "error": "UntrustedDataError: 不可信标记仍存在，等待汇总恢复后再同步"
+          },
+          {
+            "run_at": "2026-05-21T11:50:00Z",
+            "status": "success",
+            "duration_s": 37
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-R4",
+        "name": "日志归档任务（干扰项：仍成功）",
+        "cron_expression": "0 */1 * * *",
+        "action": "archive_mq_logs",
+        "enabled": true,
+        "last_run": "2026-05-21T12:00:00Z",
+        "next_run": "2026-05-21T13:00:00Z",
+        "last_status": "success",
+        "created_by": "ops_team",
+        "tags": [
+          "archive",
+          "logs"
+        ],
+        "created_at": "2026-03-30T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T12:00:00Z",
+            "status": "success",
+            "duration_s": 120,
+            "error": null
+          },
+          {
+            "run_at": "2026-05-21T11:00:00Z",
+            "status": "success",
+            "duration_s": 115,
+            "error": null
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-R5",
+        "name": "其他消费者：订单事件落库（与主链无强依赖）",
+        "cron_expression": "*/5 * * * *",
+        "action": "consume_order_events_and_persist",
+        "enabled": true,
+        "last_run": "2026-05-21T12:18:00Z",
+        "next_run": "2026-05-21T12:23:00Z",
+        "last_status": "success",
+        "created_by": "ops_team",
+        "tags": [
+          "orders",
+          "events"
+        ],
+        "created_at": "2026-04-12T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T12:18:00Z",
+            "status": "success",
+            "duration_s": 9
+          },
+          {
+            "run_at": "2026-05-21T12:13:00Z",
+            "status": "success",
+            "duration_s": 10
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-R6",
+        "name": "数据质量检查：汇总一致性探测",
+        "cron_expression": "*/12 * * * *",
+        "action": "check_ledger_aggregation_consistency",
+        "enabled": true,
+        "last_run": "2026-05-21T12:16:00Z",
+        "next_run": "2026-05-21T12:28:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": [
+          "dq",
+          "trust"
+        ],
+        "created_at": "2026-04-20T00:00:00Z",
+        "depends_on": [
+          "JOB-R2"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T12:16:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "error": "TrustScoreError: 汇总一致性校验未通过（ledger缺口/重复保护触发导致不完整）"
+          },
+          {
+            "run_at": "2026-05-21T12:04:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "error": "TrustScoreError: 一致性校验未通过；等待JOB-R2恢复"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-R7",
+        "name": "消息重放控制：重放窗口冻结（运维）",
+        "cron_expression": "0 */2 * * *",
+        "action": "freeze_replay_window_if_needed",
+        "enabled": true,
+        "last_run": "2026-05-21T12:00:00Z",
+        "next_run": "2026-05-21T14:00:00Z",
+        "last_status": "success",
+        "created_by": "automation_bot",
+        "tags": [
+          "mq",
+          "replay-control"
+        ],
+        "created_at": "2026-05-01T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T12:00:00Z",
+            "status": "success",
+            "duration_s": 2
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题侧重API端点废弃导致连锁失败；本题根因转为消息队列重放风暴叠加幂等键规则错误，导致幂等锁失效与重复写入保护触发，从而引发流水缺失→汇总不可信→对账/结算同步停止。",
+    "fixture_design_summary": [
+      "scheduler fixtures 构造主链 JOB-R1→JOB-R2→JOB-R3，并加入日志归档 JOB-R4 作为干扰项仍 success。",
+      "config fixtures 提供库存流水写入的错误幂等键集成（active）与修复集成（inactive）供定位与切换。",
+      "inventory fixtures 覆盖 partial/error 与 stale 且 last_sync 抖动/不稳定，支撑“流水缺失→汇总不更新→对账拒绝”的影响评估。",
+      "helpdesk fixtures 共5条，严格覆盖库存错乱/对账未完成/订单重复风险四类归因，并排除硬件打印机工单。",
+      "kb fixtures 提供幂等键修复与重放风暴恢复、防重放监控的可引用操作步骤。"
+    ]
+  }
+}

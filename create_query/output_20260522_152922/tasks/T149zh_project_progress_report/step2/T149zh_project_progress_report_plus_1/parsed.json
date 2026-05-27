@@ -1,0 +1,576 @@
+{
+  "task_id": "T149zh_project_progress_report_plus_1",
+  "task_name": "多团队周报汇总",
+  "prompt_text": "请为3个并行项目（Orchid/Cobalt/Ruby）生成“本周进度汇报”（当前日期：2026-05-10，按该日期所在周统计）。\n\n要求：\n1) 查找各项目本周相关会议，概述会议结论；\n2) 阅读与项目相关的会议纪要，提取每条行动项的责任人、到期日与当前状态（completed/in_progress/pending/blocked 等）；\n3) 读取待办任务（pending/in_progress/completed），按项目计算完成率=completed数/总数，并识别逾期（due_date < 2026-05-10）、blocked（给出blocked_by阻塞来源说明）；\n4) 检查“日历关键交付评审存在但纪要缺失”的情况，并将其作为关键风险点明；\n5) 检查“待办事项与纪要行动项未完全对应”的情况（需要指出缺失对应的那一项）；\n6) 为每个项目输出主要负责人邮箱与电话。\n\n最终输出三份并列报告：每份包含会议概述、行动项状态列表、完成率、关键风险（逾期/blocked/缺纪要/行动项不匹配）、以及主要负责人联系方式。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_701",
+        "title": "Orchid需求评审会",
+        "start_time": "2026-05-06T10:00:00+08:00",
+        "end_time": "2026-05-06T11:30:00+08:00",
+        "location": "会议室A",
+        "organizer": "周琳",
+        "attendees": [
+          "周琳",
+          "陈远",
+          "柳青"
+        ],
+        "description": "Orchid本周需求评审，形成待办清单；关联纪要 NOTE-OR-701",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_702",
+        "title": "Orchid接口联调复盘",
+        "start_time": "2026-05-08T15:00:00+08:00",
+        "end_time": "2026-05-08T16:15:00+08:00",
+        "location": "云端会议室",
+        "organizer": "陈远",
+        "attendees": [
+          "陈远",
+          "柳青",
+          "林涛"
+        ],
+        "description": "Orchid接口联调复盘与改进项；关联纪要 NOTE-OR-702",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_703",
+        "title": "安全培训（全公司）",
+        "start_time": "2026-05-07T09:30:00+08:00",
+        "end_time": "2026-05-07T10:30:00+08:00",
+        "location": "大会议室",
+        "organizer": "安全合规团队",
+        "attendees": [
+          "全员"
+        ],
+        "description": "全公司安全培训，与项目周报无直接纪要关联",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_704",
+        "title": "Cobalt迭代计划会",
+        "start_time": "2026-05-05T14:00:00+08:00",
+        "end_time": "2026-05-05T15:00:00+08:00",
+        "location": "会议室B",
+        "organizer": "顾宁",
+        "attendees": [
+          "顾宁",
+          "郑浩",
+          "沈佳"
+        ],
+        "description": "Cobalt迭代计划与里程碑拆分；关联纪要 NOTE-CO-703",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_705",
+        "title": "Cobalt关键交付评审（待确认纪要缺失）",
+        "start_time": "2026-05-09T11:00:00+08:00",
+        "end_time": "2026-05-09T12:00:00+08:00",
+        "location": "评审室2",
+        "organizer": "顾宁",
+        "attendees": [
+          "顾宁",
+          "郑浩",
+          "周琳"
+        ],
+        "description": "关键交付评审：本应对应纪要，但系统中本周notes无匹配条目（用于风险识别）。",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_706",
+        "title": "技术分享会（跨部门）",
+        "start_time": "2026-05-07T13:30:00+08:00",
+        "end_time": "2026-05-07T14:30:00+08:00",
+        "location": "线上会议",
+        "organizer": "架构委员会",
+        "attendees": [
+          "相关人员"
+        ],
+        "description": "技术分享，与周报仅做干扰项",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_707",
+        "title": "Ruby启动会",
+        "start_time": "2026-05-06T09:00:00+08:00",
+        "end_time": "2026-05-06T10:00:00+08:00",
+        "location": "会议室C",
+        "organizer": "魏婧",
+        "attendees": [
+          "魏婧",
+          "高航",
+          "王珂"
+        ],
+        "description": "Ruby启动会：数据迁移与里程碑预检范围；关联纪要 NOTE-RB-701",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_708",
+        "title": "Ruby数据迁移例会",
+        "start_time": "2026-05-08T10:30:00+08:00",
+        "end_time": "2026-05-08T11:30:00+08:00",
+        "location": "会议室C",
+        "organizer": "高航",
+        "attendees": [
+          "高航",
+          "王珂",
+          "柳青"
+        ],
+        "description": "Ruby数据迁移进展与回滚策略；关联纪要 NOTE-RB-702",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_709",
+        "title": "Ruby里程碑验收预检",
+        "start_time": "2026-05-10T16:00:00+08:00",
+        "end_time": "2026-05-10T17:00:00+08:00",
+        "location": "评审室3",
+        "organizer": "魏婧",
+        "attendees": [
+          "魏婧",
+          "王珂",
+          "郑浩"
+        ],
+        "description": "Ruby验收预检：资料补齐要求；关联纪要 NOTE-RB-703",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-801",
+        "name": "周琳",
+        "email": "zhoulin@company.com",
+        "phone": "13810011001",
+        "department": "产品研发部",
+        "title": "项目负责人",
+        "responsibilities": [
+          "Orchid需求评审与计划"
+        ]
+      },
+      {
+        "contact_id": "CON-802",
+        "name": "顾宁",
+        "email": "guning@company.com",
+        "phone": "13810011002",
+        "department": "产品研发部",
+        "title": "项目负责人",
+        "responsibilities": [
+          "Cobalt迭代计划与交付评审协调"
+        ]
+      },
+      {
+        "contact_id": "CON-803",
+        "name": "魏婧",
+        "email": "weijing@company.com",
+        "phone": "13810011003",
+        "department": "交付管理部",
+        "title": "项目负责人",
+        "responsibilities": [
+          "Ruby启动与验收预检"
+        ]
+      },
+      {
+        "contact_id": "CON-804",
+        "name": "陈远",
+        "email": "chenyuan@company.com",
+        "phone": "13810011004",
+        "department": "研发部",
+        "title": "后端负责人",
+        "responsibilities": [
+          "Orchid接口联调复盘"
+        ]
+      },
+      {
+        "contact_id": "CON-805",
+        "name": "柳青",
+        "email": "liuqing@company.com",
+        "phone": "13810011005",
+        "department": "研发部",
+        "title": "前端负责人",
+        "responsibilities": [
+          "Orchid联调与资料对接",
+          "Ruby迁移协作"
+        ]
+      },
+      {
+        "contact_id": "CON-806",
+        "name": "郑浩",
+        "email": "zhenghao@company.com",
+        "phone": "13810011006",
+        "department": "研发部",
+        "title": "研发工程师",
+        "responsibilities": [
+          "Cobalt关键交付评审相关开发"
+        ]
+      },
+      {
+        "contact_id": "CON-807",
+        "name": "沈佳",
+        "email": "shenjia@company.com",
+        "phone": "13810011007",
+        "department": "测试部",
+        "title": "测试工程师",
+        "responsibilities": [
+          "Cobalt迭代验证"
+        ]
+      },
+      {
+        "contact_id": "CON-808",
+        "name": "高航",
+        "email": "gaohang@company.com",
+        "phone": "13810011008",
+        "department": "数据平台部",
+        "title": "数据迁移负责人",
+        "responsibilities": [
+          "Ruby数据迁移与回滚策略"
+        ]
+      },
+      {
+        "contact_id": "CON-809",
+        "name": "王珂",
+        "email": "wangke@company.com",
+        "phone": "13810011009",
+        "department": "交付工程部",
+        "title": "交付工程师",
+        "responsibilities": [
+          "Ruby验收资料与预检准备"
+        ]
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "NOTE-OR-701",
+        "title": "Orchid需求评审纪要 2026-05-06",
+        "content": "## Orchid需求评审\n\n### 参会人员\n周琳（项目负责人）、陈远（后端负责人）、柳青（前端负责人）\n\n### 会议结论\n确认本周接口联调范围与验收口径；决定将“高优先级风险修复”拆分成可并行的待办项。\n\n### 行动项\n1. 【周琳】整理并发布需求评审结论与验收口径，截止2026-05-07 → 已完成 ✓\n2. 【陈远】输出接口联调用的字段映射表，截止2026-05-09 → 已完成 ✓\n3. 【柳青】完成前端联调回归用例清单（含缺陷回放脚本），截止2026-05-12 → in_progress\n",
+        "participants": [
+          "周琳",
+          "陈远",
+          "柳青"
+        ],
+        "tags": [
+          "Orchid",
+          "需求评审"
+        ],
+        "created_at": "2026-05-06T02:00:00Z",
+        "duration_minutes": 90
+      },
+      {
+        "note_id": "NOTE-OR-702",
+        "title": "Orchid接口联调复盘纪要 2026-05-08",
+        "content": "## Orchid接口联调复盘\n\n### 参会人员\n陈远（后端负责人）、柳青（前端负责人）、林涛（运维）\n\n### 会议结论\n联调问题集中在鉴权重试与幂等处理；本周决定先收敛鉴权重试策略，再开展灰度验证。\n\n### 行动项\n1. 【林涛】完成鉴权重试与幂等策略的运行时开关文档，截止2026-05-10 → 已完成 ✓\n2. 【陈远】提交灰度验证的API回放脚本，截止2026-05-13 → pending\n",
+        "participants": [
+          "陈远",
+          "柳青",
+          "林涛"
+        ],
+        "tags": [
+          "Orchid",
+          "接口联调"
+        ],
+        "created_at": "2026-05-08T06:00:00Z",
+        "duration_minutes": 75
+      },
+      {
+        "note_id": "NOTE-CO-703",
+        "title": "Cobalt迭代计划会纪要 2026-05-05",
+        "content": "## Cobalt迭代计划会\n\n### 参会人员\n顾宁（项目负责人）、郑浩（研发工程师）、沈佳（测试工程师）\n\n### 会议结论\n迭代计划按两条主线推进：数据同步与核心服务稳定化；关键交付评审将于周六进行。\n\n### 行动项\n1. 【郑浩】完成核心服务稳定化的开发任务清单，截止2026-05-08 → pending（含阻塞风险）\n2. 【沈佳】制定迭代验证用例并提交测试数据准备清单，截止2026-05-09 → in_progress\n",
+        "participants": [
+          "顾宁",
+          "郑浩",
+          "沈佳"
+        ],
+        "tags": [
+          "Cobalt",
+          "迭代计划"
+        ],
+        "created_at": "2026-05-05T06:30:00Z",
+        "duration_minutes": 60
+      },
+      {
+        "note_id": "NOTE-RB-701",
+        "title": "Ruby启动会纪要 2026-05-06",
+        "content": "## Ruby启动会\n\n### 参会人员\n魏婧（项目负责人）、高航（数据迁移负责人）、王珂（交付工程师）\n\n### 会议结论\n确定迁移范围与阶段性验收口径；要求在里程碑预检前完成“迁移作业日志归档”资料包。\n\n### 行动项\n1. 【高航】给出迁移作业日志归档的目录结构与样例文件，截止2026-05-09 → pending\n2. 【魏婧】发布里程碑验收预检检查表（含缺陷门禁），截止2026-05-07 → 已完成 ✓\n3. 【王珂】整理验收预检需要的资料包清单，截止2026-05-10 → in_progress\n",
+        "participants": [
+          "魏婧",
+          "高航",
+          "王珂"
+        ],
+        "tags": [
+          "Ruby",
+          "启动"
+        ],
+        "created_at": "2026-05-06T01:00:00Z",
+        "duration_minutes": 60
+      },
+      {
+        "note_id": "NOTE-RB-702",
+        "title": "Ruby数据迁移例会纪要 2026-05-08",
+        "content": "## Ruby数据迁移例会\n\n### 参会人员\n高航（数据迁移负责人）、王珂（交付工程师）、柳青（前端负责人）\n\n### 会议结论\n目前迁移脚本完成度较高，但回滚演练尚未完成；下一步以“回滚演练记录可复核”为优先。\n\n### 行动项\n1. 【高航】完成回滚演练并输出演练记录（含SQL变更说明），截止2026-05-10 → completed ✓\n2. 【王珂】补齐迁移回滚演练的对外说明文档，截止2026-05-11 → pending\n",
+        "participants": [
+          "高航",
+          "王珂",
+          "柳青"
+        ],
+        "tags": [
+          "Ruby",
+          "数据迁移"
+        ],
+        "created_at": "2026-05-08T06:30:00Z",
+        "duration_minutes": 60
+      },
+      {
+        "note_id": "NOTE-RB-703",
+        "title": "Ruby里程碑验收预检纪要 2026-05-10",
+        "content": "## Ruby里程碑验收预检\n\n### 参会人员\n魏婧（项目负责人）、王珂（交付工程师）、郑浩（跨团队评审支持）\n\n### 会议结论\n验收预检将于当日16:00进行；目前资料准备基本就绪，但“迁移作业日志归档”仅提交了部分文件。\n\n### 行动项\n1. 【王珂】补齐迁移作业日志归档缺失文件，截止2026-05-12 → in_progress\n2. 【魏婧】确认验收预检通过条件与缺口清单对齐到待办项，截止2026-05-10 → 已完成 ✓\n",
+        "participants": [
+          "魏婧",
+          "王珂",
+          "郑浩"
+        ],
+        "tags": [
+          "Ruby",
+          "验收预检"
+        ],
+        "created_at": "2026-05-10T08:00:00Z",
+        "duration_minutes": 60
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-901",
+        "title": "Orchid发布需求评审结论与验收口径",
+        "description": "将需求评审结论与验收口径在团队协作平台发布，并通知相关负责人。",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-05-07",
+        "assignee": "周琳",
+        "tags": [
+          "Orchid",
+          "需求"
+        ],
+        "project": "Orchid"
+      },
+      {
+        "task_id": "TODO-902",
+        "title": "Orchid接口字段映射表（联调用）",
+        "description": "输出接口联调用字段映射表，支持联调与灰度验证。",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-05-09",
+        "assignee": "陈远",
+        "tags": [
+          "Orchid",
+          "接口联调"
+        ],
+        "project": "Orchid"
+      },
+      {
+        "task_id": "TODO-903",
+        "title": "Orchid前端联调回归用例清单（含回放脚本）",
+        "description": "完成前端联调回归用例清单与缺陷回放脚本；用于本周回归演练。",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-05-12",
+        "assignee": "柳青",
+        "tags": [
+          "Orchid",
+          "回归"
+        ],
+        "project": "Orchid"
+      },
+      {
+        "task_id": "TODO-904",
+        "title": "Orchid灰度验证API回放脚本",
+        "description": "提交灰度验证需要的API回放脚本并附上执行说明。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-13",
+        "assignee": "陈远",
+        "tags": [
+          "Orchid",
+          "验证"
+        ],
+        "project": "Orchid"
+      },
+      {
+        "task_id": "TODO-905",
+        "title": "Orchid鉴权重试与幂等策略运行时开关文档",
+        "description": "完成运行时开关文档，便于联调期间调参与复盘。",
+        "status": "completed",
+        "priority": "medium",
+        "due_date": "2026-05-10",
+        "assignee": "林涛",
+        "tags": [
+          "Orchid",
+          "运维"
+        ],
+        "project": "Orchid"
+      },
+      {
+        "task_id": "TODO-906",
+        "title": "Cobalt核心服务稳定化任务清单",
+        "description": "整理核心服务稳定化的开发任务清单并提交到迭代看板。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-05-08",
+        "assignee": "郑浩",
+        "tags": [
+          "Cobalt",
+          "开发"
+        ],
+        "project": "Cobalt"
+      },
+      {
+        "task_id": "TODO-907",
+        "title": "Cobalt迭代验证用例与测试数据准备清单",
+        "description": "制定迭代验证用例并提交测试数据准备清单给测试团队。",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-05-09",
+        "assignee": "沈佳",
+        "tags": [
+          "Cobalt",
+          "测试"
+        ],
+        "project": "Cobalt"
+      },
+      {
+        "task_id": "TODO-908",
+        "title": "Cobalt关键交付评审资料包（待外部输入）",
+        "description": "准备关键交付评审所需资料包；需要外部审计需求输入后才能完成最终材料。",
+        "status": "blocked",
+        "priority": "high",
+        "due_date": "2026-05-09",
+        "assignee": "郑浩",
+        "tags": [
+          "Cobalt",
+          "交付评审"
+        ],
+        "project": "Cobalt",
+        "blocked_by": "外部审计需求尚未提交，导致评审材料口径无法定稿"
+      },
+      {
+        "task_id": "TODO-909",
+        "title": "Cobalt对齐关键交付评审口径（周内复核）",
+        "description": "对齐评审口径并完成内部复核；依赖关键交付评审材料已定稿。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-10",
+        "assignee": "顾宁",
+        "tags": [
+          "Cobalt",
+          "协调"
+        ],
+        "project": "Cobalt"
+      },
+      {
+        "task_id": "TODO-910",
+        "title": "Cobalt迭代看板里程碑更新",
+        "description": "根据迭代计划会更新看板里程碑状态与预计完成时间。",
+        "status": "completed",
+        "priority": "low",
+        "due_date": "2026-05-07",
+        "assignee": "顾宁",
+        "tags": [
+          "Cobalt",
+          "计划"
+        ],
+        "project": "Cobalt"
+      },
+      {
+        "task_id": "TODO-911",
+        "title": "Ruby里程碑验收预检检查表发布",
+        "description": "发布里程碑验收预检检查表（含缺陷门禁）。",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-05-07",
+        "assignee": "魏婧",
+        "tags": [
+          "Ruby",
+          "验收预检"
+        ],
+        "project": "Ruby"
+      },
+      {
+        "task_id": "TODO-912",
+        "title": "Ruby迁移作业日志归档目录结构与样例文件",
+        "description": "给出迁移作业日志归档目录结构与样例文件。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-05-09",
+        "assignee": "高航",
+        "tags": [
+          "Ruby",
+          "迁移日志"
+        ],
+        "project": "Ruby"
+      },
+      {
+        "task_id": "TODO-913",
+        "title": "Ruby验收预检资料包清单整理",
+        "description": "整理验收预检需要的资料包清单并持续更新缺口。",
+        "status": "in_progress",
+        "priority": "medium",
+        "due_date": "2026-05-10",
+        "assignee": "王珂",
+        "tags": [
+          "Ruby",
+          "交付资料"
+        ],
+        "project": "Ruby"
+      },
+      {
+        "task_id": "TODO-914",
+        "title": "Ruby回滚演练记录与SQL变更说明",
+        "description": "完成回滚演练并输出演练记录（含SQL变更说明）。",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-05-10",
+        "assignee": "高航",
+        "tags": [
+          "Ruby",
+          "回滚演练"
+        ],
+        "project": "Ruby"
+      },
+      {
+        "task_id": "TODO-915",
+        "title": "Ruby补齐迁移作业日志归档缺失文件（预检缺口）",
+        "description": "补齐迁移作业日志归档中预检发现的缺失文件。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-05-12",
+        "assignee": "王珂",
+        "tags": [
+          "Ruby",
+          "迁移日志"
+        ],
+        "project": "Ruby"
+      },
+      {
+        "task_id": "TODO-916",
+        "title": "Ruby对外说明文档：迁移回滚演练说明（与纪要部分对应）",
+        "description": "补齐迁移回滚演练的对外说明文档。该任务的部分要点在纪要行动项中出现，但仍缺少一项“合规审阅签字页”。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-05-11",
+        "assignee": "王珂",
+        "tags": [
+          "Ruby",
+          "文档"
+        ],
+        "project": "Ruby"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将固定的3/24场景替换为2026-05-10所在周，并新增Cobalt“关键交付评审有但纪要缺失”以及Ruby“待办与纪要行动项部分不对应”的干扰组合，同时更新各项目会议/纪要/待办数量与状态分布。",
+    "fixture_design_summary": [
+      "calendar/events.json：覆盖Orchid(2)、Cobalt(2含关键交付评审缺纪要线索)、Ruby(3)，并加入2条跨部门干扰会议。",
+      "notes/meetings.json：Orchid两份纪要含行动项；Cobalt仅一份迭代计划纪要且刻意不提供关键交付评审对应纪要；Ruby三份纪要涵盖启动/迁移例会/验收预检，并设置“资料补齐缺口”。",
+      "todo/tasks.json：Orchid多数completed并包含1条高优先in_progress且due_date在会议之后；Cobalt完成率低且包含blocked_by“外部审计需求尚未提交”的阻塞任务；Ruby完成率高但包含pending资料补齐项，并通过“合规审阅签字页”制造与纪要行动项的部分不一一对应缺口。",
+      "contacts/contacts.json：为三项目主要负责人分别提供唯一姓名的邮箱与电话（周琳/顾宁/魏婧），其余参与者用于行动项提取关联。"
+    ]
+  }
+}

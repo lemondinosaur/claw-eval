@@ -1,0 +1,531 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T141zh_sla_compliance_audit_plus_1",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/config/integrations.json",
+  "fixtures/helpdesk/tickets.json",
+  "fixtures/scheduler/jobs.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 1,
+  "new_task_id": "T141zh_sla_compliance_audit_plus_1",
+  "new_task_name": "SLA夜间告警漏发排查",
+  "task_goal": "完成一次SLA合规审查：读取SLA响应阈值，计算指定时间窗口内工单的首次响应是否达标；识别调度任务中与SLA告警相关的异常；输出达标/超标清单、可能的告警漏发影响范围与可执行改进建议。",
+  "user_request": "请帮我做一次SLA合规审查（重点排查夜间告警漏发）：\n1) 查看系统配置中的SLA响应时间规则\n2) 检查过去24小时内所有“客服外呼”工单的实际首次响应时间，按SLA标准判断达标/超标，并标出临界情况\n3) 检查与“超时告警”和“工单提醒”相关的自动化任务运行状态，找出异常并展开细节\n4) 输出SLA合规分析报告：包含达标/超标工单明细、异常任务影响分析（哪些告警可能未按时触达）、以及改进建议（包括通知冗余与阈值校准）。",
+  "scenario": "配置中启用“分级响应”SLA规则：critical/high/medium/low对应不同分钟阈值。helpdesk里存在多个处于open状态的工单，包含不同优先级与不同创建/首次响应时间；其中部分工单首次响应发生在夜间（假设本地时间22:00-02:00），并存在“告警应已触达但未触达”的间接证据（例如相关标签提示‘awaiting_alert’）。scheduler中至少有一个“夜间提醒/超时告警”任务在近几次运行失败，失败错误信息指向某个短信网关集成不可用。config中该短信网关集成处于error，且即时消息集成仍active，说明应可形成备用通道。另有一个“自动分派”任务保持success，排除分派链路问题。",
+  "difference_from_source": "原题以邮件OAuth过期导致JOB-902告警失败为主线；本题将异常改为“短信网关/夜间提醒”失败，并要求结合工单标签与运行时段推断夜间告警漏发的影响范围与补救路径（短信失败→IM备用）。同时不要求复现原始的JOB-902/INT-902名称或同一错误信息。",
+  "service_and_tool_plan": "继续使用helpdesk/config/scheduler三类服务完成同构审查：\n- config_list_integrations + config_get_integration：取出分级SLA阈值与通知集成当前健康状态。\n- helpdesk_list_tickets（按category或tag筛到“客服外呼”相关工单）+ helpdesk_get_ticket：逐单读取created_at与first_response_at计算响应时长并标注达标/超标。\n- scheduler_list_jobs + scheduler_get_job：定位与SLA超时告警/夜间提醒相关的任务，读取last_status、failure_count、first_failure、错误信息。\n原因：保持与原任务高度相近的schema与调用模式，同时更换异常链路与判断重点。",
+  "fixture_generation_plan": "新增一组fixtures（不复用原fixture实体名/编号/时间/阈值/错误原文）。建议生成：\n1) fixtures/config/integrations.json：至少4条集成记录\n- 1条SLA规则集成（ID形如INT-A01，status=active，包含critical/high/medium/low的response_time_minutes等字段；但数值与原题不同）。\n- 1条短信通知集成（ID形如INT-B01，status=error，包含token/鉴权或网关不可用错误_message）。\n- 1条即时消息集成（ID形如INT-C01，status=active，config含IM webhook或频道字段）。\n- 1条备份工单系统/其他通知集成可选（status=active或disabled，用于制造干扰信息）。\n2) fixtures/helpdesk/tickets.json：生成8条工单，status=open，包含不同priority分布：critical2条、high3条、medium2条、low1条；其中4条首次响应发生在夜间时段（22:00-02:00），并在description或tags中加入“awaiting_alert/晚间提醒依赖短信”等提示但不要用原文段落。\n关键字段：ticket_id唯一、created_at与first_response_at覆盖达标/超标/临界三类；至少1条first_response_at为null（表示未响应，不计入达标/超标但需标注风险）；至少1条internal=true工单（但它不要求满足SLA）。\n3) fixtures/scheduler/jobs.json：生成3条或4条任务\n- “夜间超时告警/短信触达”任务：status=enabled但last_status=failed，failure_count在2-6之间，first_failure在最近3-6天的某个夜间时段，error_message指向短信网关连接/鉴权失败。\n- “每日SLA报告”任务：success，制造对比。\n- “自动分派/队列路由”任务：success，排除。\n- 可选“IM备用通知”任务：status=enabled但最近运行success或disabled，用于干扰判断（例如它运行频率较低）。",
+  "expected_behavior": "代理应：\n1) 调用config_list_integrations定位SLA规则集成ID，再调用config_get_integration读取critical/high/medium/low的response_time_minutes阈值。\n2) 调用helpdesk_list_tickets筛选“客服外呼”相关工单（按category或tag实现），对每个非internal且first_response_at非空的工单：计算首次响应时长（first_response_at - created_at），与对应优先级阈值对比，输出达标/超标/临界（给出差值分钟级别）。\n3) 调用scheduler_list_jobs筛出与“超时告警/提醒/工单超时”相关任务，再对异常任务调用scheduler_get_job，解释失败原因（基于jobs.error_message）并关联到config中的短信集成error状态。\n4) 在报告中明确：夜间时段内哪些超时窗口可能因短信告警漏发而导致响应延迟；同时指出IM备用集成仍active，提出具体兜底方案（例如短信失败时自动切IM、调整夜间告警重试策略）。\n5) 最终输出必须包含：超标工单明细表（ticket_id、priority、计算出的响应时长、超出/剩余）、异常任务影响分析、改进建议清单。",
+  "grading_plan": "grader.py应检查：\n- SLA达标/超标/临界判定是否严格使用配置的分钟阈值，并且响应时长计算正确（单位与边界）。\n- 异常根因是否能从scheduler异常任务的error_message与config中短信集成status=error对应起来，且能给出因果链（短信失败→告警漏发→影响响应）。\n- 报告是否覆盖了：未响应（first_response_at为null）的风险提示、internal工单不计入SLA的说明、夜间漏发影响的范围推断是否有依据（使用工单的夜间时间与标签/描述提示）。\n- 建议是否可执行且与场景一致（短信失败切IM、重试/阈值校准、通知冗余）。\n- 全程不应调用helpdesk_close_ticket（审查阶段不得关闭工单）。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T141zh_sla_compliance_audit",
+  "task_name": "SLA合规审查与自动化诊断",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "helpdesk",
+    "scheduler",
+    "config"
+  ],
+  "tools": [
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "helpdesk_update_ticket",
+    "helpdesk_close_ticket",
+    "scheduler_list_jobs",
+    "scheduler_get_job",
+    "config_list_integrations",
+    "config_get_integration"
+  ],
+  "fixture_paths": [
+    "fixtures/config/integrations.json",
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T141zh_sla_compliance_audit
+task_name: SLA合规审查与自动化诊断
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: tasks/T141zh_sla_compliance_audit/fixtures/helpdesk/tickets.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: tasks/T141zh_sla_compliance_audit/fixtures/scheduler/jobs.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: tasks/T141zh_sla_compliance_audit/fixtures/config/integrations.json
+prompt:
+  text: '请帮我做一次SLA合规审查：
+
+    1. 查看系统配置中的SLA响应时间规则
+
+    2. 检查近期工单的实际响应时间，对比SLA标准判断是否达标
+
+    3. 检查SLA相关自动化任务的运行状态，找出异常
+
+    4. 输出一份SLA合规分析报告，包含：达标/超标工单明细、自动化故障影响分析、改进建议
+
+    '
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: scheduler_list_jobs
+  description: 列出定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(all/enabled/disabled)
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: config_list_integrations
+  description: 列出系统集成配置
+  input_schema:
+    type: object
+    properties:
+      type:
+        type: string
+        description: 按类型筛选
+      status:
+        type: string
+        description: 按状态筛选
+    required: []
+- name: config_get_integration
+  description: 获取集成配置详情
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/config/integrations.json ---
+[
+  {
+    "integration_id": "INT-901",
+    "name": "SLA规则配置",
+    "status": "active",
+    "config": {
+      "critical": {
+        "response_time_minutes": 60,
+        "resolution_time_hours": 4,
+        "escalation_after_minutes": 30
+      },
+      "high": {
+        "response_time_minutes": 240,
+        "resolution_time_hours": 12,
+        "escalation_after_minutes": 120
+      },
+      "medium": {
+        "response_time_minutes": 480,
+        "resolution_time_hours": 24,
+        "escalation_after_minutes": 240
+      },
+      "low": {
+        "response_time_minutes": 1440,
+        "resolution_time_hours": 72,
+        "escalation_after_minutes": 720
+      }
+    },
+    "service": "sla_policy",
+    "last_verified": "2026-01-15",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  },
+  {
+    "integration_id": "INT-902",
+    "name": "邮件通知集成",
+    "status": "error",
+    "config": {
+      "host": "smtp.company.com",
+      "port": 587,
+      "auth": "oauth2"
+    },
+    "error_message": "OAuth token已过期，需要重新授权",
+    "service": "smtp",
+    "last_verified": "2026-03-20",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  },
+  {
+    "integration_id": "INT-903",
+    "name": "即时消息集成",
+    "status": "active",
+    "config": {
+      "url": "https://im.company.com/webhook/alerts",
+      "channel": "#ops-alerts"
+    },
+    "service": "webhook",
+    "last_verified": "2026-02-10",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  },
+  {
+    "integration_id": "INT-904",
+    "name": "值班表集成",
+    "status": "active",
+    "config": {
+      "endpoint": "https://oncall.company.com/api/v1/schedule"
+    },
+    "service": "api",
+    "last_verified": "2026-03-01",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  }
+]
+--- END FILE: fixtures/config/integrations.json ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-701",
+    "title": "生产环境数据库连接超时",
+    "subject": "生产环境数据库连接超时",
+    "customer_id": "CUS-701",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-25T08:00:00",
+    "first_response_at": "2026-03-25T08:35:00",
+    "assigned_to": "马强",
+    "category": "技术",
+    "description": "多个服务报数据库连接超时，已影响线上业务",
+    "reporter": "马强",
+    "department": "技术"
+  },
+  {
+    "ticket_id": "TK-702",
+    "subject": "报表导出功能异常",
+    "customer_id": "CUS-702",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-24T10:00:00",
+    "first_response_at": "2026-03-24T16:30:00",
+    "assigned_to": "李华",
+    "category": "技术",
+    "description": "导出CSV时报500错误，已持续一天",
+    "title": "报表导出功能异常",
+    "reporter": "李华",
+    "department": "技术"
+  },
+  {
+    "ticket_id": "TK-703",
+    "subject": "用户权限无法修改",
+    "customer_id": "CUS-703",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-24T14:00:00",
+    "first_response_at": "2026-03-24T20:00:00",
+    "assigned_to": "张伟",
+    "category": "技术",
+    "description": "管理员页面修改权限后不生效",
+    "title": "用户权限无法修改",
+    "reporter": "张伟",
+    "department": "技术"
+  },
+  {
+    "ticket_id": "TK-704",
+    "subject": "移动端页面显示异常",
+    "customer_id": "CUS-704",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-25T09:00:00",
+    "first_response_at": "2026-03-25T16:55:00",
+    "assigned_to": "周明",
+    "category": "UI",
+    "description": "iOS端部分页面布局错乱",
+    "title": "移动端页面显示异常",
+    "reporter": "周明",
+    "department": "UI"
+  },
+  {
+    "ticket_id": "TK-705",
+    "subject": "新功能使用咨询",
+    "customer_id": "CUS-705",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-23T11:00:00",
+    "first_response_at": "2026-03-24T09:00:00",
+    "assigned_to": "赵蕾",
+    "category": "咨询",
+    "description": "想了解新上线的批量操作功能",
+    "title": "新功能使用咨询",
+    "reporter": "赵蕾",
+    "department": "咨询"
+  },
+  {
+    "ticket_id": "TK-706",
+    "subject": "内部测试环境搭建",
+    "customer_id": "internal",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-25T15:00:00",
+    "first_response_at": null,
+    "assigned_to": "马强",
+    "category": "内部",
+    "description": "搭建新版本测试环境",
+    "internal": true,
+    "title": "内部测试环境搭建",
+    "reporter": "马强",
+    "department": "内部"
+  }
+]
+--- END FILE: fixtures/helpdesk/tickets.json ---
+--- FILE: fixtures/scheduler/jobs.json ---
+[
+  {
+    "job_id": "JOB-901",
+    "name": "工单自动分配",
+    "schedule": "*/5 * * * *",
+    "status": "enabled",
+    "last_run": "2026-03-25T16:55:00Z",
+    "last_status": "success",
+    "description": "每5分钟检查未分配工单并自动分配",
+    "tags": [
+      "sla",
+      "automation"
+    ],
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "action": "每5分钟检查未分配工单并自动分配",
+    "next_run": null,
+    "created_at": "2025-06-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-03-25T16:55:00Z",
+        "status": "success",
+        "duration_s": 60
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-902",
+    "name": "SLA超时告警",
+    "schedule": "*/15 * * * *",
+    "status": "enabled",
+    "last_run": "2026-03-25T14:00:00Z",
+    "last_status": "failed",
+    "error_message": "邮件服务连接失败: SMTP timeout after 30s",
+    "description": "每15分钟检查即将超时的工单并发送告警",
+    "tags": [
+      "sla",
+      "alert"
+    ],
+    "failure_count": 8,
+    "first_failure": "2026-03-24T08:00:00",
+    "cron_expression": "*/15 * * * *",
+    "enabled": true,
+    "action": "每15分钟检查即将超时的工单并发送告警",
+    "next_run": null,
+    "created_at": "2025-06-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-03-25T14:00:00Z",
+        "status": "failed",
+        "duration_s": 60
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-903",
+    "name": "每日SLA报告",
+    "schedule": "0 9 * * *",
+    "status": "enabled",
+    "last_run": "2026-03-25T09:00:00Z",
+    "last_status": "success",
+    "description": "每天9点生成前一天的SLA达标报告",
+    "tags": [
+      "sla",
+      "report"
+    ],
+    "cron_expression": "0 9 * * *",
+    "enabled": true,
+    "action": "每天9点生成前一天的SLA达标报告",
+    "next_run": null,
+    "created_at": "2025-06-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-03-25T09:00:00Z",
+        "status": "success",
+        "duration_s": 60
+      }
+    ]
+  }
+]
+
+--- END FILE: fixtures/scheduler/jobs.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

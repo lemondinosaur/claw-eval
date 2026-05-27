@@ -1,0 +1,54 @@
+[
+  {
+    "customer_id": "SUP-101",
+    "name": "曙科智联",
+    "contact_person": "周工",
+    "email": "zhou@shukecloud.com",
+    "phone": "13901011011",
+    "industry": "政企解决方案",
+    "tier": "vip",
+    "annual_revenue": 23000000,
+    "last_contact_date": "2026-03-01",
+    "status": "active",
+    "notes": "曾在信创项目中完成合规落地与兼容性联调，提交过第三方测试报告摘要；但在最近一次批次交付后发生返修补偿不足：供应商仅覆盖工时未覆盖更换物料，且出现交付延期2周的记录。"
+  },
+  {
+    "customer_id": "SUP-102",
+    "name": "星河云采",
+    "contact_person": "赵经理",
+    "email": "zhao@xingheproc.com",
+    "phone": "13802022022",
+    "industry": "IT集成",
+    "tier": "standard",
+    "annual_revenue": 9000000,
+    "last_contact_date": "2026-02-10",
+    "status": "active",
+    "notes": "合作历史顺畅，现场问题响应快，兼容性验证经验丰富；但其合规认证在KB要求中未被列为‘优先品牌’，同时某次返货处理偏慢，导致客户侧并行替代验证周期被动延长。"
+  },
+  {
+    "customer_id": "SUP-103",
+    "name": "恒睿数码",
+    "contact_person": "孙总",
+    "email": "sun@hengrui-dm.com",
+    "phone": "13703033033",
+    "industry": "硬件渠道",
+    "tier": "standard",
+    "annual_revenue": 4200000,
+    "last_contact_date": "2026-01-28",
+    "status": "active",
+    "notes": "过去一年合同以Active为主，沟通频繁且商务执行较稳；但存在一次逾期交付后补偿方案不清晰的问题（未能按承诺提供延保权益）。"
+  },
+  {
+    "customer_id": "SUP-104",
+    "name": "北桥科技",
+    "contact_person": "钱主任",
+    "email": "qian@qiaotech.cn",
+    "phone": "13604044044",
+    "industry": "行业IT服务",
+    "tier": "standard",
+    "annual_revenue": 6000000,
+    "last_contact_date": "2026-02-26",
+    "status": "inactive",
+    "notes": "曾提供过国产服务器集成服务；但由于售后人员频繁变动，曾出现返修排队时间较长的情况。当前状态为inactive，不建议作为替代主路径。"
+  }
+]

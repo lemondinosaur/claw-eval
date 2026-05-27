@@ -1,0 +1,73 @@
+[
+  {
+    "ticket_id": "TK-2101",
+    "title": "sync lag：订单状态同步延迟超过阈值（持续中）/ queue backlog",
+    "description": "星河零售科技（CUS-2101）报告：订单状态同步延迟持续超过阈值，履约系统显示比后台下单落后约20-35分钟。监控提示消息队列积压（queue backlog）持续增长，且存在部分重试失败记录，导致下游消费位点推进异常。\n客户要求：按VIP/SLA启动紧急升级，并在1小时内给出恢复窗口与是否临时降级（切换读取到缓存/只读模式）的建议方向。",
+    "customer_id": "CUS-2101",
+    "reporter": "沈总监",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-12T08:58:00Z",
+    "tags": [
+      "VIP",
+      "数据同步",
+      "消息队列",
+      "堆积",
+      "重试失败",
+      "P0候选"
+    ],
+    "category": "数据一致性"
+  },
+  {
+    "ticket_id": "TK-2102",
+    "title": "支付回调接口间歇超时",
+    "description": "北境制造反馈支付回调偶发超时，部分订单延迟入账。建议评估API网关超时与下游依赖。",
+    "customer_id": "CUS-2102",
+    "reporter": "韩经理",
+    "department": "技术支持",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-12T07:30:00Z",
+    "tags": [
+      "API",
+      "超时",
+      "支付"
+    ],
+    "category": "性能与稳定性"
+  },
+  {
+    "ticket_id": "TK-2103",
+    "title": "用户画像导入任务失败（低频）",
+    "description": "云栖教育平台反馈画像导入任务偶发失败，影响少量用户数据更新。可按常规工单处理。",
+    "customer_id": "CUS-2103",
+    "reporter": "刘主管",
+    "department": "数据工程",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-12T06:12:00Z",
+    "tags": [
+      "ETL",
+      "批处理",
+      "失败"
+    ],
+    "category": "数据处理"
+  },
+  {
+    "ticket_id": "TK-2104",
+    "title": "缓存失效告警：权限变更后短暂访问异常",
+    "description": "北境制造反馈在权限变更后出现短暂访问异常，可能与缓存一致性刷新有关。",
+    "customer_id": "CUS-2102",
+    "reporter": "韩经理",
+    "department": "平台安全",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-12T05:42:00Z",
+    "tags": [
+      "缓存",
+      "权限",
+      "一致性"
+    ],
+    "category": "平台安全"
+  }
+]

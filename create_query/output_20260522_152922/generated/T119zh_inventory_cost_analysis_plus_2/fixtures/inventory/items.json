@@ -1,0 +1,46 @@
+[
+  {
+    "product_id": "PITEM-NWK-01",
+    "name": "无线网卡模块",
+    "category": "网络硬件",
+    "quantity": 90,
+    "unit": "个",
+    "unit_cost": 60.0,
+    "location": "仓库C-01",
+    "reorder_level": 20,
+    "supplier": "北讯集采"
+  },
+  {
+    "product_id": "PITEM-DRUM-02",
+    "name": "打印机硒鼓",
+    "category": "办公耗材",
+    "quantity": 20,
+    "unit": "个",
+    "unit_cost": 600.0,
+    "location": "仓库C-02",
+    "reorder_level": 15,
+    "supplier": "欧联办公"
+  },
+  {
+    "product_id": "PITEM-ACC-03",
+    "name": "门禁卡",
+    "category": "门禁耗材",
+    "quantity": 100,
+    "unit": "张",
+    "unit_cost": 150.0,
+    "location": "仓库C-03",
+    "reorder_level": 40,
+    "supplier": "安控云购"
+  },
+  {
+    "product_id": "PITEM-NWK-02",
+    "name": "无线网卡模块（备用批次）",
+    "category": "网络硬件",
+    "quantity": 36,
+    "unit": "个",
+    "unit_cost": 560.0,
+    "location": "仓库C-01",
+    "reorder_level": 10,
+    "supplier": "北讯集采"
+  }
+]

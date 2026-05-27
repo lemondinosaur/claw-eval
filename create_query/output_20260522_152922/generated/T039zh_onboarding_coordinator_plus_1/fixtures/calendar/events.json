@@ -1,0 +1,28 @@
+[
+  {
+    "event_id": "evt_611",
+    "title": "战略评审会",
+    "organizer": "strategy_lead@company.com",
+    "attendees": [
+      "strategy_lead@company.com",
+      "secops_coordinator@company.com"
+    ],
+    "start_time": "2026-03-11T10:00:00+08:00",
+    "end_time": "2026-03-11T11:00:00+08:00",
+    "location": "会议室D",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_612",
+    "title": "客户回访复盘",
+    "organizer": "ops_manager@company.com",
+    "attendees": [
+      "ops_manager@company.com",
+      "finance_partner@company.com"
+    ],
+    "start_time": "2026-03-11T15:00:00+08:00",
+    "end_time": "2026-03-11T16:15:00+08:00",
+    "location": "会议室E",
+    "status": "confirmed"
+  }
+]

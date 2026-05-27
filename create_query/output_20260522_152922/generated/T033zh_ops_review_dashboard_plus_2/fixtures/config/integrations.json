@@ -1,0 +1,78 @@
+[
+  {
+    "integration_id": "INT-201",
+    "name": "search_indexer_v2",
+    "display_name": "站内搜索索引器V2",
+    "status": "active",
+    "error_rate": 0.0,
+    "base_url": "https://search-v2.example.com",
+    "call_volume_previous_week": 8200,
+    "service": "api",
+    "monthly_calls": 190,
+    "last_verified": "2026-05-15T23:30:00+08:00",
+    "notes": "接口错误率为0%但调用量从上周8200骤降至本周190（下降97.7%）。疑似上游触发链路中断或未按预期触发增量同步。"
+  },
+  {
+    "integration_id": "INT-202",
+    "name": "content_distribution",
+    "display_name": "内容分发与索引触发",
+    "status": "active",
+    "error_rate": 0.3,
+    "base_url": "https://content-dist.example.com",
+    "call_volume_previous_week": 6100,
+    "service": "batch",
+    "monthly_calls": 5300,
+    "last_verified": "2026-05-15T21:10:00+08:00",
+    "notes": "整体 error_rate 低，但notes显示部分批次在“索引触发事件”阶段耗时显著增加，可能导致增量未及时落库。"
+  },
+  {
+    "integration_id": "INT-203",
+    "name": "category_taxonomy_map",
+    "display_name": "类目映射服务",
+    "status": "active",
+    "error_rate": 1.1,
+    "base_url": "https://taxonomy.example.com",
+    "call_volume_previous_week": 2400,
+    "service": "api",
+    "monthly_calls": 2600,
+    "last_verified": "2026-05-15T23:10:00+08:00"
+  },
+  {
+    "integration_id": "INT-204",
+    "name": "media_thumbnail_sync",
+    "display_name": "媒体缩略图同步",
+    "status": "degraded",
+    "error_rate": 6.8,
+    "base_url": "https://media-sync.example.com",
+    "call_volume_previous_week": 940,
+    "service": "batch",
+    "monthly_calls": 880,
+    "last_verified": "2026-05-15T18:40:00+08:00",
+    "notes": "degraded干扰项：错误率偏高但不直接指向搜索索引更新；需避免误判。"
+  },
+  {
+    "integration_id": "INT-205",
+    "name": "user_event_ingest",
+    "display_name": "用户行为事件摄取",
+    "status": "active",
+    "error_rate": 0.9,
+    "base_url": "https://events.example.com",
+    "call_volume_previous_week": 15000,
+    "service": "api",
+    "monthly_calls": 15200,
+    "last_verified": "2026-05-15T23:00:00+08:00"
+  },
+  {
+    "integration_id": "INT-206",
+    "name": "recommendation_cache_populate",
+    "display_name": "推荐缓存填充",
+    "status": "active",
+    "error_rate": 0.2,
+    "base_url": "https://reco-cache.example.com",
+    "call_volume_previous_week": 3300,
+    "service": "batch",
+    "monthly_calls": 3400,
+    "last_verified": "2026-05-15T19:30:00+08:00",
+    "notes": "调用量与上周相近；若出现排序异常，优先关注索引回填链路而非推荐缓存本身。"
+  }
+]

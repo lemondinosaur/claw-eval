@@ -1,0 +1,160 @@
+{
+  "task_id": "T023zh_crm_data_export_plus_2",
+  "task_name": "Industry Slice 报表导出",
+  "prompt_text": "帮我从CRM系统导出一份“高价值行业切片报告”。要求：\n1）筛选行业为“金融服务”的VIP客户；不要求限定客户状态。\n2）获取每位客户详细信息。\n3）生成汇总报告，包含客户名称、行业、年收入和最近联系日期。\n4）在摘要中指出年收入最高的前两名客户（列出其名称和年收入）。\n\n注意：系统可能偶发错误，出错请重试。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "FIN-001",
+        "name": "北辰财富管理有限公司",
+        "contact_person": "林薇",
+        "email": "wei.lin@beichenwealth.com",
+        "phone": "13910001111",
+        "industry": "金融服务",
+        "tier": "VIP",
+        "annual_revenue": 12500000,
+        "last_contact_date": "2026-02-10",
+        "status": "active",
+        "notes": "基金代销合作续期洽谈"
+      },
+      {
+        "customer_id": "FIN-002",
+        "name": "星海投资顾问集团",
+        "contact_person": "周航",
+        "email": "hang.zhou@xinghaiadvisory.cn",
+        "phone": "13910002222",
+        "industry": "金融服务",
+        "tier": "VIP",
+        "annual_revenue": 9800000,
+        "last_contact_date": "2026-01-28",
+        "status": "inactive",
+        "notes": "关注风险定价与投后管理系统"
+      },
+      {
+        "customer_id": "FIN-003",
+        "name": "云桥信托有限公司",
+        "contact_person": "郑婉",
+        "email": "wan.chen@yunqiaotrust.com",
+        "phone": "13910003333",
+        "industry": "金融服务",
+        "tier": "VIP",
+        "annual_revenue": 7600000,
+        "last_contact_date": "2026-02-22",
+        "status": "active",
+        "notes": "与合规团队对接数据治理"
+      },
+      {
+        "customer_id": "FIN-004",
+        "name": "皓月证券经纪有限责任公司",
+        "contact_person": "陈烨",
+        "email": "ye.chen@haoyuebroker.cn",
+        "phone": "13910004444",
+        "industry": "金融服务",
+        "tier": "standard",
+        "annual_revenue": 5200000,
+        "last_contact_date": "2026-02-05",
+        "status": "active",
+        "notes": "对报表平台感兴趣（非VIP）"
+      },
+      {
+        "customer_id": "FIN-005",
+        "name": "金陵支付科技有限公司",
+        "contact_person": "高珊",
+        "email": "shan.gao@jinlingpay.tech",
+        "phone": "13910005555",
+        "industry": "金融服务",
+        "tier": "VIP",
+        "annual_revenue": 6400000,
+        "last_contact_date": "2025-12-19",
+        "status": "churned",
+        "notes": "已流失但需补救性评估"
+      },
+      {
+        "customer_id": "LOG-001",
+        "name": "恒路供应链管理有限公司",
+        "contact_person": "赵明",
+        "email": "ming.zhao@henglu-scm.com",
+        "phone": "13820001111",
+        "industry": "物流",
+        "tier": "VIP",
+        "annual_revenue": 8300000,
+        "last_contact_date": "2026-02-15",
+        "status": "active",
+        "notes": "仓配一体化升级中"
+      },
+      {
+        "customer_id": "TEL-001",
+        "name": "澄网通信技术有限公司",
+        "contact_person": "曹丽",
+        "email": "li.cao@chengnetcom.cn",
+        "phone": "13820002222",
+        "industry": "通信",
+        "tier": "standard",
+        "annual_revenue": 2600000,
+        "last_contact_date": "2026-01-12",
+        "status": "active",
+        "notes": "维护续费"
+      },
+      {
+        "customer_id": "TEC-001",
+        "name": "青栎云软件科技有限公司",
+        "contact_person": "李昊",
+        "email": "hao.li@qinglyosoft.com",
+        "phone": "13730003333",
+        "industry": "科技",
+        "tier": "VIP",
+        "annual_revenue": 4100000,
+        "last_contact_date": "2026-02-02",
+        "status": "inactive",
+        "notes": "对定制化看板有需求"
+      },
+      {
+        "customer_id": "MED-001",
+        "name": "繁星传媒（上海）有限公司",
+        "contact_person": "刘雨",
+        "email": "yu.liu@freesky-media.cn",
+        "phone": "13640004444",
+        "industry": "传媒",
+        "tier": "VIP",
+        "annual_revenue": 2950000,
+        "last_contact_date": "2025-11-30",
+        "status": "active",
+        "notes": "年度投放效果评估"
+      },
+      {
+        "customer_id": "HEA-001",
+        "name": "瑞康医疗健康管理集团",
+        "contact_person": "孙宁",
+        "email": "ning.sun@ruikanghealth.com",
+        "phone": "13550005555",
+        "industry": "医疗健康",
+        "tier": "standard",
+        "annual_revenue": 3500000,
+        "last_contact_date": "2026-02-18",
+        "status": "active",
+        "notes": "推进数据集成对接"
+      },
+      {
+        "customer_id": "FIN-006",
+        "name": "长风金融租赁有限公司",
+        "contact_person": "吴涛",
+        "email": "tao.wu@cf-finlease.cn",
+        "phone": "13910006666",
+        "industry": "金融服务",
+        "tier": "VIP",
+        "annual_revenue": 5100000,
+        "last_contact_date": "2026-02-01",
+        "status": "active",
+        "notes": "关注融资风控与客户分层"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原本仅导出VIP客户的基础上，本题增加行业筛选（仅金融服务）并要求在摘要中按年收入排序提取Top2客户。",
+    "fixture_design_summary": [
+      "customers.json 包含多条客户，其中至少3条“金融服务”且 tier=VIP，全部提供 annual_revenue 与 last_contact_date。",
+      "金融服务VIP中最高两名年收入分别为北辰财富管理有限公司(12500000)与星海投资顾问集团(9800000)，无并列。",
+      "加入若干非金融服务行业的VIP/standard作为干扰数据，确保筛选条件必须生效。"
+    ]
+  }
+}

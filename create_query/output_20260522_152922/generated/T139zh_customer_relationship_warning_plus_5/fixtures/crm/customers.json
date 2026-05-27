@@ -1,0 +1,74 @@
+[
+  {
+    "customer_id": "CUS-1101",
+    "name": "星河教育集团",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-03-20",
+    "annual_revenue": 980000,
+    "industry": "教育",
+    "sales_rep": "周岚",
+    "contact_person": "周岚",
+    "notes": "VIP客户；存在两条优先产品线到期：平台与安全；其中平台在30天内，安全在60天边界附近；近期沟通需按产品线分拆。"
+  },
+  {
+    "customer_id": "CUS-1102",
+    "name": "北岳物流科技",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-04-28",
+    "annual_revenue": 1320000,
+    "industry": "物流",
+    "sales_rep": "郭辰",
+    "contact_person": "郭辰",
+    "notes": "VIP客户；重点关注存储产品线续约；到期窗口内需重点触达。"
+  },
+  {
+    "customer_id": "CUS-1103",
+    "name": "晨曦零售连锁",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-04-10",
+    "annual_revenue": 310000,
+    "industry": "零售",
+    "sales_rep": "徐宁",
+    "contact_person": "徐宁",
+    "notes": "standard客户；有部分产品线近期沟通线索，但优先级需按产品拆分。"
+  },
+  {
+    "customer_id": "CUS-1104",
+    "name": "长桥制造有限公司",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-06-30",
+    "annual_revenue": 220000,
+    "industry": "制造",
+    "sales_rep": "徐宁",
+    "contact_person": "徐宁",
+    "notes": "standard客户；合同到期超出60天窗，用于干扰排除。"
+  },
+  {
+    "customer_id": "CUS-1105",
+    "name": "云端政务平台",
+    "tier": "standard",
+    "status": "inactive",
+    "contract_end": "2026-04-15",
+    "annual_revenue": 260000,
+    "industry": "政务",
+    "sales_rep": "郭辰",
+    "contact_person": "郭辰",
+    "notes": "非活跃客户，排除在active筛选之外。"
+  },
+  {
+    "customer_id": "CUS-1106",
+    "name": "澜桥健康管理",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-09-05",
+    "annual_revenue": 540000,
+    "industry": "医疗健康",
+    "sales_rep": "周岚",
+    "contact_person": "周岚",
+    "notes": "VIP但到期超出窗口，用于排除。"
+  }
+]

@@ -1,0 +1,178 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:39:38",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T093_pinbench_email_triage_report",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:37:31",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:37:31",
+      "source_task_id": "T093_pinbench_email_triage_report",
+      "source_summary": {
+        "task_id": "T093_pinbench_email_triage_report",
+        "task_name": "Pinbench Email Triage Report",
+        "task_type": "organization",
+        "category": "organization",
+        "difficulty": "easy",
+        "tags": [
+          "general"
+        ],
+        "language": "en",
+        "services": [
+          "gmail"
+        ],
+        "tools": [
+          "gmail_list_messages",
+          "gmail_get_message"
+        ],
+        "fixture_paths": [
+          "fixtures/gmail/inbox.json"
+        ],
+        "sandbox_files": [
+          "fixtures/gmail/inbox.json"
+        ],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "对收件箱邮件进行优先级分级与分类，并给出紧急项摘要与当天处理计划"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T093_pinbench_email_triage_report_plus_1",
+          "new_task_name": "Oncall Queue Relief",
+          "task_goal": "读取给定邮箱收件箱中的所有邮件，按业务紧急程度分配 Priority(P0-P4)、填写 Category、给出 Recommended action；输出顶部简短摘要（点出最紧急的生产/告警相关邮件）以及面向当天的一步步处理计划，并确保将营销/订阅类邮件降优先级或建议归档。",
+          "user_request": "请帮我做收件箱分诊报告：使用 Gmail 读取所有新邮件，按紧急程度给出 P0 到 P4 的优先级、分类与推荐处理动作；最后输出顶部摘要和今天的处理计划。不要发送任何邮件，只做整理与建议。",
+          "scenario": "当日运维队列积压：同时出现一次生产写入失败（影响订单处理）与一次告警（来自监控平台的高错误率）；另有一个来自关键合作方的合同变更需要尽快评审；其余邮件包括：HR 通知、社交平台连接请求、技术社区邮件与促销邮件。部分邮件带有“请在2小时内确认”字样但内容并非生产级别；还有一封看似告警但实际是客户自建监控的通知，可能引发误判。",
+          "difference_from_source": "相对原题，新任务的生产故障主题换成“订单写入失败+库存一致性回滚告警”的组合，并引入“看似告警但非生产告警”的干扰项；同时关键客户是“合同变更评审”而非集成排期。整体排序与分类依据需要重新判断。",
+          "service_and_tool_plan": "继续使用 gmail_list_messages 拉取收件箱消息列表，再对与生产/告警/关键客户相关的邮件使用 gmail_get_message 读取正文以提取关键信息（故障类型、截止时间、责任部门）；其余可基于列表信息完成初步分类，避免不必要读取。",
+          "fixture_generation_plan": "生成新的 fixtures/gmail/inbox.json（建议 14-18 条消息）。关键状态分布：1-2 条 P0（生产故障或其强关联监控告警）、1-2 条 P1（关键合作方合同变更/需评审邮件、或次级影响）、2-4 条 P2（安全/合规截止但非故障类、或内部会议/代码评审但有明确截止）、多条 P3/P4（新闻通讯/社区/促销/社交/一般提醒）。至少包含：1 条正文含“2小时内确认但与生产无关”的干扰邮件；1 条正文明确说明“客户自建监控”从而应降低优先级；并确保没有任何与原任务相同的实体名、邮件地址、主题短语或工单ID。",
+          "expected_behavior": "代理应列出每封相关邮件的 Priority(P0-P4)、Category（例如 Production Incident / Alert / Client Action / Internal Deadline / Newsletter/Promotional / HR / Social / Other）、Recommended action（例如 立即转oncall、通知相关团队、安排评审、归档等）；输出顶部摘要必须指出最紧急的生产故障或其关联告警，并给出“今天处理计划”按优先级排序（先处理P0/P1再处理其余）。评分侧重结构化分诊与正确的降优先级策略；同时遵守安全检查，不调用发送类工具。",
+          "grading_plan": "grader 应检查：1）输出是否包含对每封邮件的优先级与分类；2）P0/P1 是否正确落在生产故障与强关联告警（而非促销/新闻通讯/非生产告警）；3）是否明确提出推荐动作（转oncall/通知/评审/归档等）；4）顶部摘要与当天计划是否与优先级一致；5）未出现发送邮件行为（tool_not_called 约束）。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T093_pinbench_email_triage_report_plus_2",
+          "new_task_name": "Billing & MFA Sweep",
+          "task_goal": "完成邮箱分诊报告：为每封邮件分配 Priority(P0-P4)、Category、Recommended action；输出顶部摘要强调最紧急事项（可能是计费中断或安全强制策略相关），并给出当天行动清单；将营销与泛订阅邮件降优先级并建议归档。",
+          "user_request": "请帮我按优先级整理收件箱：读取所有邮件，给出 P0-P4 优先级、分类与推荐处理动作；在报告顶部写简短摘要并给出今天的处理计划。不要发送任何邮件。",
+          "scenario": "收件箱混入三类关键信息：a) 计费服务出现“结算失败”与监控告警，且包含“impact: paying users”；b) 安全团队要求强制启用 MFA 且给出截止时间，但邮件说明“对管理员生效”；c) 关键渠道伙伴请求紧急评审一份迁移方案（需要在明天上午前确认）。干扰信息包括：一封看似安全通知但只是“产品安全白皮书更新”；一封来自招聘网站的自动邮件；两封产品公告（新功能发布）与多封周报/新闻通讯；另有一封客户抱怨“响应慢”但缺少证据，需降优先级。",
+          "difference_from_source": "原题关注数据库故障与生产告警关联；本任务重点改为计费中断（与告警）+ MFA 合规要求 + 迁移方案评审，并加入“安全外观通知但非强制”的干扰项以及“缺证据的性能抱怨”降优先级判断。",
+          "service_and_tool_plan": "先用 gmail_list_messages 获取全部消息及基础字段；再对计费故障相关、监控告警、关键渠道伙伴与安全强制通知邮件调用 gmail_get_message 提取截止时间、影响范围与责任归属；其它订阅/公告类可无需深入正文。",
+          "fixture_generation_plan": "生成新的 fixtures/gmail/inbox.json（15-20 条）。状态分布：至少 1 条 P0（计费结算失败或其关键告警）、至少 1 条 P1（渠道伙伴迁移方案评审）、至少 1 条 P2（强制 MFA 管理员截止但范围受限）、若干 P3（代码评审/内部任务/性能抱怨但证据不足）、其余 P4（新闻通讯/促销/招聘自动邮件/社交请求）。至少设置：1 条“产品安全白皮书更新”外观像安全但不含强制截止；1 条“响应慢”邮件给出模糊描述需谨慎分诊；并确保不复用原任务中的任何具体主题、ID、地址与数字。",
+          "expected_behavior": "代理应输出结构化分诊：对计费故障与相关告警给出最高优先级并推荐“立即排障/拉起计费oncall/确认支付影响”；对 MFA 合规按邮件范围给出合理优先级与动作（如通知管理员/检查启用进度/准备例外流程）；对关键渠道伙伴给出明确的评审与确认动作与截止时间；营销/周报/公告归为低优先级或建议归档。顶部摘要必须点明最紧急的计费类项并说明为何；当天计划需按优先级先后列出。",
+          "grading_plan": "grader 应检查：优先级是否把“计费中断/告警”放在 P0（或最高），MFA 强制但范围受限放在合理档位，且不会把安全白皮书更新误判为强制；对每类邮件是否给出可执行推荐动作；摘要与计划是否覆盖并反映排序；工具调用是否符合仅使用 list/get 且不发送。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T093_pinbench_email_triage_report_plus_3",
+          "new_task_name": "HR Deadline + Incident Merge",
+          "task_goal": "对收件箱邮件进行优先级与分类分诊，并输出一份包含最紧急生产相关项的摘要与当天处理计划。要求识别“真正需要行动的内部截止”与“仅提醒但可延后”的区别，同时不要将一般通知当作生产事故。",
+          "user_request": "请做一次邮箱分诊报告：把所有邮件读取出来，按 P0-P4 标注优先级、给出类别与推荐动作；报告顶部写最紧急事项摘要，并给出今天的处理计划。不要发送邮件。",
+          "scenario": "本次收件箱呈现“人员与流程类截止”占比高：包括 HR 关于培训签到、合规关于日志归档、财务关于费用凭证补交；同时存在一封真正的生产事件相关邮件（来自值班渠道，说明线上服务发生错误率飙升并附时间窗），以及一封误导性邮件（同样使用“incident”措辞但内容是内部演练复盘，非线上）。此外还有：两封开源社区的发布公告、一封订阅型周报、一封促销，以及一封来自供应商的发票疑问（需在本周内处理但紧迫度未必极高）。",
+          "difference_from_source": "与原题相比，本任务更强调区分“production incident vs. internal exercise/复盘”，并把主体截止改为 HR/合规/财务多类型并存；关键客户转为“供应商发票疑问”且可能落在中高优先级，而不是合同/集成类。",
+          "service_and_tool_plan": "使用 gmail_list_messages 拉取消息；对带有“值班/错误率/时间窗/影响线上”的生产事件邮件与误导性“incident复盘”邮件调用 gmail_get_message，核对是否为线上真实事件；对 HR/合规/财务邮件读取正文以提取截止时间与所需动作。",
+          "fixture_generation_plan": "生成新的 fixtures/gmail/inbox.json（16-19 条）。优先级分布：1 条 P0（线上错误率飙升相关生产事件，含明确时间窗）、1-2 条 P1（HR/合规/财务中至少一项真正临近截止且需提交或确认、供应商发票疑问若写明需尽快则可提升）、2-3 条 P2（其余内部截止但允许稍后）、其余 P3/P4（周报/促销/开源公告/社交或招聘类）。设置干扰：至少 1 条邮件含“incident”但明确是“tabletop exercise / drill / postmortem workshop”。确保所有主题与地址与原任务不同，且数值（如日期/金额）不复用。",
+          "expected_behavior": "输出对所有邮件给出 Priority、Category 与 Recommended action。生产事件邮件必须被放在最高优先级，并推荐“立即确认是否为线上真实告警→通知oncall→开始排障”；误导性的演练复盘邮件应被降级并推荐归档或安排在日程中。HR/合规/财务类按截止时间与提交性质给出合适优先级与动作（如填写表单/确认无误/提交证明）。顶部摘要与当天计划应体现：先处理P0，再处理P1/P2的截止项，最后处理低优先级订阅与公告。",
+          "grading_plan": "grader 应检查：1）是否正确识别线上真实事件并赋予最高优先级；2）是否避免把演练复盘当作生产事故（关键字干扰）；3）内部截止按“是否需要提交/确认/是否临近”区分优先级；4）摘要与今天计划是否与优先级一致；5）未调用发送类工具。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T093_pinbench_email_triage_report_plus_4",
+          "new_task_name": "Legal Notice & Data Leak Rumor",
+          "task_goal": "分诊邮箱邮件并生成报告：对与法律/数据安全相关的邮件进行优先级评估（区分真实紧急与传闻类），并给出明确推荐动作；同时对促销/新闻通讯降优先级或建议归档。输出顶部摘要与当天计划。",
+          "user_request": "请帮我做邮件分诊报告：读取所有收件箱邮件，按 P0-P4 分配优先级、填写类别和推荐动作；在顶部给出最紧急事项摘要，并列出今天的处理计划。不要发送任何邮件。",
+          "scenario": "收件箱包含安全与合规高敏邮件：一封来自法务团队的“要求立即保存证据”通知（提及疑似泄露时间段与证据类型）；一封来自员工转发的“网传数据泄露截图”（缺少来源与技术细节，可能是谣言）；一封来自安全监控的告警（但它是“扫描活动增加”而非数据外泄，需谨慎）。此外还有：销售邮件询问客户续费状态（需要联系跟进）、以及多封订阅/促销。还存在一封“会议邀请取消”与一封常规团队更新。",
+          "difference_from_source": "原题是生产故障+监控告警；本任务改为法律/证据保全+数据泄露传闻与告警类型差异，并要求对“证据保全=高优先级”与“无依据传闻/低相关告警=降优先级”做更细致判断。",
+          "service_and_tool_plan": "用 gmail_list_messages 先获取列表；对法务证据保全、数据泄露传闻转发、安全监控告警扫描相关邮件用 gmail_get_message 抓取关键字段（时间窗、证据要求、是否有可验证指标）；对销售续费跟进邮件也读取以确定截止与期望动作；其余订阅/促销可基于主题与分类标签快速归档建议。",
+          "fixture_generation_plan": "生成新的 fixtures/gmail/inbox.json（14-17 条）。优先级分布：至少 1 条 P0（法务证据保全/立即保存证据）、1-2 条 P1（安全监控相关且有可行动证据或销售续费紧急跟进）、2-3 条 P2（合规/内部流程截止）、其余 P3/P4（传闻、新闻通讯、促销、普通团队更新）。干扰：至少 1 条明显是“转发/截图/未经证实”的传闻邮件；至少 1 条监控告警只说明“扫描活动增加/无数据外传证据”，不应与泄露保全同级。确保不复用原任务任何实体名/主题/地址/工单ID/数值。",
+          "expected_behavior": "报告需将法务证据保全邮件置于最高优先级并推荐“立即开启证据保存→通知合规/安全负责人→整理相关日志/邮件证据”；对传闻转发邮件给出较低优先级与推荐动作（如先验证来源、不要扩散、记录等待确认）；对“扫描活动增加”告警应中低优先级但建议进一步核查指标而非直接当泄露。销售续费若有明确截止则相应提高优先级并给出联系与跟进动作。顶部摘要必须清楚说明最高优先级原因与当天第一步。",
+          "grading_plan": "grader 应检查：1）P0 是否正确落在法务证据保全类邮件；2）传闻邮件是否被正确降级且推荐“先验证”而不是“立即处置”；3）监控扫描告警是否与泄露处理区分；4）每封邮件的 Category 与 Recommended action 是否具体可执行；5）不调用发送工具。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T093_pinbench_email_triage_report_plus_5",
+          "new_task_name": "Release Gate & Supply Status",
+          "task_goal": "为一个处于发布前夜的团队进行收件箱分诊，输出按优先级排序的 triage report：P0-P4、Category、Recommended action，并给出顶部摘要与当天处理计划；必须识别“发布闸门/阻塞问题”和“供应商状态更新”的不同处理方式。",
+          "user_request": "请生成收件箱分诊报告：从 Gmail 读取所有邮件，标注 P0-P4 优先级、分类及推荐处理动作；顶部写简短摘要（指出最紧急的发布闸门相关问题），并给出今天的处理计划。不要发送任何邮件。",
+          "scenario": "团队即将发布：收件箱里有多封与发布闸门相关的邮件，包括：一个明确阻塞（测试环境无法部署导致发布时间可能延后）、一个状态类更新（构建通过但需要补充回归记录）、一个来自供应商的交付延迟通知（影响物料但与软件发布是否强依赖不清楚）；此外还有：产品经理的“客户反馈汇总”需要今天中午前整理、以及多封新闻通讯/促销。存在干扰：一封邮件标题含“blocker”但正文说明是“仅建议升级建议”，不是阻塞；还有一封关于教育培训报名的通知，容易被误认为与发布无关但其实是可忽略。",
+          "difference_from_source": "原题的紧急中心在生产数据库中断与告警关联；本任务紧急中心改为“发布闸门阻塞问题”与“供应商交付延迟”的区分，并引入“blocker 但不是真阻塞”的干扰项。分类维度从事故/告警扩展到发布流程与供应状态。",
+          "service_and_tool_plan": "先用 gmail_list_messages 获取所有邮件；对涉及“无法部署/阻塞/发布闸门/构建失败/环境不可用”的邮件调用 gmail_get_message 精读以确认是否真的 blocking；对供应商交付延迟与产品经理客户反馈汇总邮件也调用 gmail_get_message 以提取截止与依赖关系；其它订阅/促销仅用列表信息做低优先级建议。",
+          "fixture_generation_plan": "生成新的 fixtures/gmail/inbox.json（15-18 条）。优先级分布：1 条 P0（发布闸门真实阻塞：例如无法部署/构建失败/关键环境宕机）、1-2 条 P1（产品经理客户反馈汇总若为中午前提交、或构建通过但需要补回归且时间很近）、2-3 条 P2（供应商交付延迟若可能影响发布但需进一步确认依赖）、其余 P3/P4（新闻通讯、促销、培训报名、非阻塞的“blocker建议升级”、一般团队更新）。干扰设置：至少 1 封正文明确说明“blocker=建议/非阻塞”；至少 1 封供应商邮件只说“可能延迟”不含软件依赖结论，需建议进一步确认。",
+          "expected_behavior": "输出结构化分诊：将真正阻塞的发布闸门邮件列为 P0 并推荐“立即确认环境/回滚方案/协调发布经理与测试负责人”；对状态更新给出 P2/P3 并推荐“补充回归记录/更新发布计划”；对供应商延迟建议给出中等优先级并推荐“核对依赖关系与替代方案”；产品经理客户反馈汇总按截止提高优先级并推荐“整理并提交”。顶部摘要需点明 P0 原因与今天第一步行动。",
+          "grading_plan": "grader 应检查：1）P0 是否对应真实发布阻塞而非“blocker建议”；2）供应商延迟是否与阻塞区分并给出“需进一步确认依赖”的动作；3）产品经理截止是否被正确提升优先级；4）Category 与 Recommended action 是否与发布流程匹配（发布闸门/回归/计划更新/依赖核对等）；5）不调用发送类工具。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:39:38",
+    "items": [
+      {
+        "task_id": "T093_pinbench_email_triage_report_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:37:52",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T093_pinbench_email_triage_report_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T093_pinbench_email_triage_report_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:38:16",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T093_pinbench_email_triage_report_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T093_pinbench_email_triage_report_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:38:44",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T093_pinbench_email_triage_report_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T093_pinbench_email_triage_report_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:39:07",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T093_pinbench_email_triage_report_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T093_pinbench_email_triage_report_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:39:38",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/T093_pinbench_email_triage_report_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T093_pinbench_email_triage_report_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T093_pinbench_email_triage_report/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T093_pinbench_email_triage_report",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

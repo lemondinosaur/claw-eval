@@ -1,0 +1,52 @@
+[
+  {
+    "event_id": "evt_3101",
+    "title": "客户参观&现场演示（占用）",
+    "start_time": "2026-04-20T15:00:00+08:00",
+    "end_time": "2026-04-20T17:30:00+08:00",
+    "location": "南京·河西区客户园区",
+    "organizer": "项目经理周敏",
+    "attendees": [
+      "李晓"
+    ],
+    "description": "工程师李晓需全程陪同参观并协助演示，期间无法开始故障定位。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_3102",
+    "title": "杭州出差（往返中）",
+    "start_time": "2026-04-20T11:30:00+08:00",
+    "end_time": "2026-04-20T19:45:00+08:00",
+    "location": "杭州",
+    "organizer": "出差管理",
+    "attendees": [
+      "陈鹏"
+    ],
+    "description": "工程师陈鹏从中午开始在杭州出差，预计晚于SLA要求返回，不适合主站45分钟内启动定位。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_3103",
+    "title": "下午出发窗口（可派遣）",
+    "start_time": "2026-04-20T13:10:00+08:00",
+    "end_time": "2026-04-20T18:00:00+08:00",
+    "location": "高铁出行中",
+    "organizer": "运维调度",
+    "attendees": [
+      "赵毅"
+    ],
+    "description": "赵毅可在45分钟内乘高铁到达南京主站，并携带告警抑制策略工具包与DB慢查询/锁分析清单。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_3104",
+    "title": "午餐",
+    "start_time": "2026-04-20T12:00:00+08:00",
+    "end_time": "2026-04-20T12:45:00+08:00",
+    "location": "",
+    "organizer": "",
+    "attendees": [],
+    "description": "午休时间",
+    "status": "confirmed"
+  }
+]

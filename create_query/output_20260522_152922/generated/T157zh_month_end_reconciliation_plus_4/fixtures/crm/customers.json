@@ -1,0 +1,162 @@
+[
+  {
+    "customer_id": "CUS-2401",
+    "name": "青岚科技有限公司",
+    "contact_person": "周明",
+    "email": "zhoum***@ql-tech.cn",
+    "phone": "13***8201",
+    "industry": "科技服务",
+    "tier": "VIP",
+    "annual_revenue": 16800000,
+    "last_contact_date": "2026-04-18",
+    "status": "active",
+    "contract_amount": 140000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 140000,
+    "alt_keys": {
+      "payer_ref_alias": "P-GLT-4821",
+      "billing_ref_alias": "BILL-GLT-2207"
+    },
+    "notes": "脱敏后邮箱/电话被截断，仅保留可用于对账的替代键 payer_ref_alias / billing_ref_alias。"
+  },
+  {
+    "customer_id": "CUS-2402",
+    "name": "星河贸易（天津）有限公司",
+    "contact_person": "蒋晴",
+    "email": "jiangq***@xh-trade.com",
+    "phone": "13***7712",
+    "industry": "贸易",
+    "tier": "standard",
+    "annual_revenue": 4200000,
+    "last_contact_date": "2026-04-10",
+    "status": "active",
+    "contract_amount": 35000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 35000,
+    "alt_keys": {
+      "payer_ref_alias": "P-XHT-7712",
+      "billing_ref_alias": "BILL-XHT-3309"
+    },
+    "notes": "customer_id 正常存在，但本月脱敏会导致部分导出字段缺失。"
+  },
+  {
+    "customer_id": "CUS-2403",
+    "name": "澄海物流集团",
+    "contact_person": "许航",
+    "email": "xuhang***@chenghai-log.cn",
+    "phone": "13***6406",
+    "industry": "物流",
+    "tier": "VIP",
+    "annual_revenue": 9800000,
+    "last_contact_date": "2026-04-22",
+    "status": "active",
+    "contract_amount": 90000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 90000,
+    "alt_keys": {
+      "payer_ref_alias": "P-CHL-6406",
+      "billing_ref_alias": "BILL-CHL-9011"
+    },
+    "notes": "部分字段脱敏导致 email/phone 无法作为匹配依据，仅能用替代键。"
+  },
+  {
+    "customer_id": "CUS-2404",
+    "name": "沃德网络科技有限公司",
+    "contact_person": "曹颖",
+    "email": "caoyin***@wd-net.cn",
+    "phone": "15***1204",
+    "industry": "网络科技",
+    "tier": "standard",
+    "annual_revenue": 2600000,
+    "last_contact_date": "2026-04-06",
+    "status": "active",
+    "contract_amount": 28000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 28000,
+    "alt_keys": {
+      "payer_ref_alias": "P-WDN-1204",
+      "billing_ref_alias": "BILL-WDN-7780"
+    },
+    "notes": "为对账代理提供 payer_ref/billing_ref 对应关系。"
+  },
+  {
+    "customer_id": "CUS-2405",
+    "name": "鹭桥电子商务有限公司",
+    "contact_person": "赵涛",
+    "email": "zhaot***@lq-ec.com",
+    "phone": "18***0903",
+    "industry": "电商",
+    "tier": "standard",
+    "annual_revenue": 1900000,
+    "last_contact_date": "2026-04-14",
+    "status": "active",
+    "contract_amount": 21000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 21000,
+    "alt_keys": {
+      "payer_ref_alias": "P-LQEC-0903",
+      "billing_ref_alias": "BILL-LQEC-4508"
+    },
+    "notes": "邮箱/电话截断，替代键可用。"
+  },
+  {
+    "customer_id": "CUS-2406",
+    "name": "北斗文化传媒有限公司",
+    "contact_person": "陈欣",
+    "email": "chenxi***@bd-media.cn",
+    "phone": "13***5549",
+    "industry": "传媒",
+    "tier": "standard",
+    "annual_revenue": 1500000,
+    "last_contact_date": "2026-04-01",
+    "status": "active",
+    "contract_amount": 16000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 16000,
+    "alt_keys": {
+      "payer_ref_alias": "P-BDMC-5549",
+      "billing_ref_alias": "BILL-BDMC-1122"
+    },
+    "notes": "替代键用于在 customer_id 丢失时完成对齐。"
+  },
+  {
+    "customer_id": "CUS-2407",
+    "name": "皓矩工业自动化有限公司",
+    "contact_person": "刘珂",
+    "email": "liuke***@haoju-auto.com",
+    "phone": "14***3008",
+    "industry": "制造业",
+    "tier": "VIP",
+    "annual_revenue": 13200000,
+    "last_contact_date": "2026-04-26",
+    "status": "active",
+    "contract_amount": 120000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 120000,
+    "alt_keys": {
+      "payer_ref_alias": "P-HJA-3008",
+      "billing_ref_alias": "BILL-HJA-6087"
+    },
+    "notes": "月末脱敏任务失败后，导出字段截断仍允许用替代键完成匹配。"
+  },
+  {
+    "customer_id": "CUS-2408",
+    "name": "云端教育科技有限公司",
+    "contact_person": "马文",
+    "email": "mawen***@yund-edu.cn",
+    "phone": "17***9055",
+    "industry": "教育科技",
+    "tier": "standard",
+    "annual_revenue": 3100000,
+    "last_contact_date": "2026-04-12",
+    "status": "active",
+    "contract_amount": 32000,
+    "payment_cycle": "monthly",
+    "expected_monthly": 32000,
+    "alt_keys": {
+      "payer_ref_alias": "P-YDE-9055",
+      "billing_ref_alias": "BILL-YDE-2140"
+    },
+    "notes": "用于兑换替代键与finance流水的 payer_ref/billing_ref。"
+  }
+]

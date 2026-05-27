@@ -1,0 +1,61 @@
+[
+  {
+    "integration_id": "INT-401",
+    "name": "identity_provider",
+    "display_name": "身份提供商",
+    "status": "degraded",
+    "error_rate": 47.6,
+    "notes": "故障窗口内刷新请求出现明显洪泛：刷新洪泛时段（00:42-01:10）error_rate最高触及62%，随后逐步回落但仍残留失败重试。identity_provider notes提示：刷新失败后速率限制策略未生效，且刷新请求到期点集中触发，触发了“refresh_thundering herd”。",
+    "service": "authn",
+    "last_verified": "2026-03-02T09:15:00+08:00",
+    "monthly_calls": 12500000
+  },
+  {
+    "integration_id": "INT-402",
+    "name": "api_gateway_authz",
+    "display_name": "API网关鉴权",
+    "status": "active",
+    "error_rate": 2.8,
+    "notes": "处于active，但故障窗口内401比例短时上升（回落至正常后仍略高于基线）。日志未显示网关本身崩溃，更多是下游认证失败导致的鉴权拒绝。",
+    "service": "edge",
+    "last_verified": "2026-03-02T09:15:00+08:00",
+    "monthly_calls": 760000000,
+    "error_rate_spike_window": {
+      "from": "2026-03-01T00:40:00+08:00",
+      "to": "2026-03-01T01:05:00+08:00"
+    }
+  },
+  {
+    "integration_id": "INT-403",
+    "name": "session_cache",
+    "display_name": "会话缓存",
+    "status": "active",
+    "error_rate": 0.7,
+    "notes": "缓存命中率下降与认证服务抖动相关。故障后1小时内命中率回升，但发现少量会话在刷新失败后未及时降级（可能存在残留风险）。",
+    "service": "cache",
+    "last_verified": "2026-03-02T09:15:00+08:00",
+    "monthly_calls": 34000000
+  },
+  {
+    "integration_id": "INT-404",
+    "name": "sso_legacy_bridge",
+    "display_name": "旧版SSO桥接",
+    "status": "expired",
+    "error_rate": 0.0,
+    "notes": "不参与本次路径，仅用于干扰项。状态expired，最近一次验证失败原因是凭证到期。",
+    "service": "legacy",
+    "last_verified": "2026-02-10T12:00:00+08:00",
+    "monthly_calls": 180000
+  },
+  {
+    "integration_id": "INT-405",
+    "name": "token_introspection",
+    "display_name": "令牌校验",
+    "status": "degraded",
+    "error_rate": 12.3,
+    "notes": "故障窗口内校验请求延迟增加；部分刷新后的令牌在短时间内被集中校验，推高了校验服务负载。残留表现：刷新失败重试导致的校验风暴尚未完全清除。",
+    "service": "authz",
+    "last_verified": "2026-03-02T09:15:00+08:00",
+    "monthly_calls": 92000000
+  }
+]

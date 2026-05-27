@@ -1,0 +1,160 @@
+{
+  "task_id": "T111zh_expense_email_check_plus_5",
+  "task_name": "Expense Mail Reconcile E（多币种/币种忽略）",
+  "prompt_text": "收件箱里有几封邮件：其中部分为报销申请。请帮我完成核对：\n1) 从收件箱中识别所有报销相关邮件，逐封提取每笔报销的发票号与报销金额；同时提取邮件中是否标注币种（如USD、CNY）以及金额写法。\n2) 调用财务系统查找对应交易：以发票号作为匹配键，找到交易后读取交易的金额（以CNY为准）与交易状态（completed/pending）。\n3) 交叉核对：\n   - 若邮件币种与财务系统币种不一致（财务固定为CNY），且邮件未提供可用汇率或未明确说明已按汇率换算为CNY：该笔归入异常，并在报告中标注“币种不匹配需人工确认”。\n   - 金额不一致（考虑数值层面）归入“金额不符”。\n   - 状态为pending的归入“状态异常”。\n4) 最终输出一份核对报告，覆盖所有报销申请，并把每笔准确归入三类之一：匹配正常、金额不符、状态异常（包含币种不匹配需人工确认的说明），且给出可追溯信息（至少包含邮件发票号与财务交易ID）。",
+  "files": {
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXE-501",
+        "date": "2026-03-26",
+        "amount": 2380.0,
+        "currency": "CNY",
+        "type": "出差住宿报销",
+        "category": "费用报销",
+        "description": "住宿报销，发票号INV-E901",
+        "status": "completed",
+        "approved_by": "财务王主管"
+      },
+      {
+        "transaction_id": "TXE-502",
+        "date": "2026-03-26",
+        "amount": 1560.0,
+        "currency": "CNY",
+        "type": "差旅交通报销",
+        "category": "费用报销",
+        "description": "交通报销，发票号INV-E902",
+        "status": "completed",
+        "approved_by": "财务王主管"
+      },
+      {
+        "transaction_id": "TXE-503",
+        "date": "2026-03-26",
+        "amount": 7800.0,
+        "currency": "CNY",
+        "type": "项目外包协作报销",
+        "category": "费用报销",
+        "description": "外包协作费，发票号INV-E903",
+        "status": "completed",
+        "approved_by": "财务王主管"
+      },
+      {
+        "transaction_id": "TXE-504",
+        "date": "2026-03-26",
+        "amount": 1299.0,
+        "currency": "CNY",
+        "type": "客户招待报销",
+        "category": "费用报销",
+        "description": "招待餐费，发票号INV-E904",
+        "status": "pending",
+        "approved_by": "财务王主管"
+      },
+      {
+        "transaction_id": "TXE-505",
+        "date": "2026-03-25",
+        "amount": 499.0,
+        "currency": "CNY",
+        "type": "杂项报销",
+        "category": "费用报销",
+        "description": "杂项报销，发票号INV-X501",
+        "status": "completed",
+        "approved_by": "行政李经理"
+      },
+      {
+        "transaction_id": "TXE-506",
+        "date": "2026-03-24",
+        "amount": 2600.0,
+        "currency": "CNY",
+        "type": "办公设备维护",
+        "category": "费用报销",
+        "description": "设备维护，发票号INV-X502",
+        "status": "completed",
+        "approved_by": "行政李经理"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_e01",
+        "from": "suzi@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：住宿费 2380元（发票 INV-E901）",
+        "date": "2026-03-26T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "财务部您好，我是苏子。本次出差住宿费共计2380元，发票号INV-E901。请审核报销。"
+      },
+      {
+        "message_id": "msg_e02",
+        "from": "liupeng@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：交通费 1650元（INV-E902）",
+        "date": "2026-03-26T10:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位好，刘鹏提交差旅交通费报销：金额1650元，对应发票号INV-E902。请核对入账。"
+      },
+      {
+        "message_id": "msg_e03",
+        "from": "maria@contractor.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：外包协作费 USD 9,800.00（发票 INV-E903）",
+        "date": "2026-03-26T11:30:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "你好，以下为外包协作费报销：币种USD 9,800.00，发票号INV-E903。我们未提供换算汇率，金额按账面USD填写，请确认归档。"
+      },
+      {
+        "message_id": "msg_e04",
+        "from": "zhaoqi@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：客户招待 1299元（INV-E904）",
+        "date": "2026-03-26T14:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "财务同事好，我赵琦申请客户招待餐费1299元，发票号INV-E904。请处理后续付款，当前审批中。"
+      },
+      {
+        "message_id": "msg_e05",
+        "from": "payroll@company.com",
+        "to": "finance@company.com",
+        "subject": "发票提醒：报销金额已打款（无发票号）",
+        "date": "2026-03-26T16:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "通知：本批次报销金额已打款。由于缺少发票号，后续请按系统信息补录。"
+      },
+      {
+        "message_id": "msg_e06",
+        "from": "customer_service@company.com",
+        "to": "finance@company.com",
+        "subject": "客服咨询：关于报销流程的说明",
+        "date": "2026-03-26T17:25:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "你好，请问报销流程是否需要发票原件？以及金额填写是否必须与系统一致？"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在报销邮件核对基础上新增“邮件标注USD但未提供汇率”的币种不一致异常处理，并要求输出“币种不匹配需人工确认”，同时仍按三类结果分类。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 共6条消息：4条为报销申请（发票号INV-E901~INV-E904），2条为非报销干扰（无发票号/客服咨询）。",
+      "finance/transactions.json 提供6条交易：包含4条与上述发票号一一对应的交易（TXE-501~TXE-504），外加2条不相关交易（TXE-505~TXE-506）。",
+      "正常项：INV-E901 金额2380 CNY且completed。",
+      "金额不符项：INV-E902 邮件1650元但交易为1560 CNY且completed。",
+      "币种不匹配异常项：INV-E903 邮件标注USD 9,800.00且未给汇率；交易为7800 CNY（归入异常并标注“币种不匹配需人工确认”，同时不会强行换算）。",
+      "状态异常项：INV-E904 金额1299 CNY但交易status为pending。"
+    ]
+  }
+}

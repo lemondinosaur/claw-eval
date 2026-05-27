@@ -1,0 +1,100 @@
+[
+  {
+    "message_id": "m_4101",
+    "from": "upgrade@client-yunteng.cn",
+    "to": "me@company.com",
+    "subject": "【年度续约谈判升级】RENEW-2026-11 - 预算内可先保价后审",
+    "date": "2026-03-15T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "renewal"
+    ],
+    "body": "续约谈判升级（Sales触发）\n\n客户编号：CUST-210\n续约谈判编号：RENEW-2026-11\n触发渠道：Sales\n季度：2026Q1\n\n我们要求：补偿/优惠金额 46,000 元\n并明确表示：先保价后审。\n\n请按“先保价后审”的流程走，确保续约推进。\n\n—— 邓总"
+  },
+  {
+    "message_id": "m_4102",
+    "from": "service@xinghe-soft.com",
+    "to": "me@company.com",
+    "subject": "【年度续约谈判升级】RENEW-2026-12 - 预算内但未说明先保价后审",
+    "date": "2026-03-15T10:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "renewal"
+    ],
+    "body": "续约谈判升级（客服触发）\n\n客户编号：CUST-211\n续约谈判编号：RENEW-2026-12\n触发渠道：客服\n季度：2026Q1\n\n我们要求：补偿/优惠金额 38,000 元\n但邮件中未能明确写出“先保价后审”。\n\n请先回复内部审批进度即可。\n\n—— 赵总"
+  },
+  {
+    "message_id": "m_4103",
+    "from": "ops@beichen-eco.com",
+    "to": "me@company.com",
+    "subject": "【年度续约谈判升级】RENEW-2026-13 - 要求15万（先保价后审）",
+    "date": "2026-03-15T11:30:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important",
+      "escalation",
+      "renewal"
+    ],
+    "body": "续约谈判升级（Sales触发）\n\n客户编号：CUST-212\n续约谈判编号：RENEW-2026-13\n触发渠道：Sales\n季度：2026Q1\n\n我们要求：补偿/优惠金额 150,000 元\n并声明：先保价后审。\n\n希望能覆盖本季度谈判推进成本。\n\n—— 李总"
+  },
+  {
+    "message_id": "m_4104",
+    "from": "renewals@haiou-telecom.com",
+    "to": "me@company.com",
+    "subject": "【年度续约谈判升级】RENEW-2026-14 - 要求2万补偿（非先保价）",
+    "date": "2026-03-15T12:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "renewal"
+    ],
+    "body": "续约谈判升级（客服触发）\n\n客户编号：CUST-213\n续约谈判编号：RENEW-2026-14\n触发渠道：客服\n季度：2026Q1\n\n我们要求：补偿/优惠金额 20,000 元\n并且本邮件未声明“先保价后审”。\n\n请按预算内流程处理。\n\n—— 王总"
+  },
+  {
+    "message_id": "m_4105",
+    "from": "accounting@jinqiao-manufacture.cn",
+    "to": "me@company.com",
+    "subject": "【年度续约谈判升级】RENEW-2026-15 - 超预算 40万（先保价后审）",
+    "date": "2026-03-15T13:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important",
+      "escalation",
+      "renewal"
+    ],
+    "body": "续约谈判升级（Sales触发）\n\n客户编号：CUST-214\n续约谈判编号：RENEW-2026-15\n触发渠道：Sales\n季度：2026Q2\n\n我们要求：补偿/优惠金额 400,000 元\n并声明：先保价后审。\n\n请走上级审批后再给正式结果。\n\n—— 周总"
+  },
+  {
+    "message_id": "m_4106",
+    "from": "legal@tian-data.cn",
+    "to": "me@company.com",
+    "subject": "【年度续约谈判升级】RENEW-2026-16 - VIP续约（先保价后审）",
+    "date": "2026-03-15T14:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "renewal"
+    ],
+    "body": "续约谈判升级（客服触发）\n\n客户编号：CUST-215\n续约谈判编号：RENEW-2026-16\n触发渠道：客服\n季度：2026Q2\n\n我们要求：补偿/优惠金额 120,000 元\n并声明：先保价后审。\n\n希望尽快先保价推进续约。\n\n—— 宋总"
+  },
+  {
+    "message_id": "m_4107",
+    "from": "unknown@client.cn",
+    "to": "me@company.com",
+    "subject": "【年度续约谈判升级】 - 缺少字段的干扰邮件",
+    "date": "2026-03-15T15:00:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "这是一封干扰邮件：\n\n- 未包含客户编号\n- 仅写了“续约谈判编号：RENEW-2026-99”\n- 金额：25,000\n- 也未明确“先保价后审”。\n\n用于验证skip逻辑。"
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:33:54",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T113zh_meeting_preparation",
+  "step1": {
+    "status": "failed",
+    "generated_at": "2026-05-22 15:33:54",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T113zh_meeting_preparation/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T113zh_meeting_preparation/step1/raw.txt",
+    "output": null,
+    "error": "Invalid control character at: line 67 column 142 (char 7261)"
+  },
+  "step2": {
+    "status": "not_started",
+    "generated_at": "",
+    "items": [],
+    "error": ""
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T113zh_meeting_preparation",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

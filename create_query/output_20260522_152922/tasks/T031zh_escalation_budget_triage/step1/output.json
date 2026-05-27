@@ -1,0 +1,122 @@
+{
+  "schema_version": "step1.task_descriptions.v2",
+  "generated_at": "2026-05-22 15:35:11",
+  "source_task_id": "T031zh_escalation_budget_triage",
+  "source_summary": {
+    "task_id": "T031zh_escalation_budget_triage",
+    "task_name": "Cross-Service Customer Escalation Triage with Budget Constraints",
+    "task_type": "跨服务客户升级工单与补偿预算约束的分流处理工作流",
+    "category": "workflow",
+    "difficulty": "hard",
+    "tags": [
+      "general"
+    ],
+    "language": "zh",
+    "services": [
+      "gmail",
+      "contacts",
+      "helpdesk",
+      "crm",
+      "finance"
+    ],
+    "tools": [
+      "gmail_list_messages",
+      "gmail_get_message",
+      "gmail_send_message",
+      "gmail_save_draft",
+      "contacts_search",
+      "contacts_get",
+      "helpdesk_list_tickets",
+      "helpdesk_get_ticket",
+      "helpdesk_update_ticket",
+      "crm_list_customers",
+      "crm_get_customer",
+      "finance_list_transactions",
+      "finance_get_transaction"
+    ],
+    "fixture_paths": [
+      "fixtures/contacts/contacts.json",
+      "fixtures/crm/customers.json",
+      "fixtures/finance/transactions.json",
+      "fixtures/gmail/inbox.json",
+      "fixtures/helpdesk/tickets.json"
+    ],
+    "sandbox_files": [
+      "fixtures/gmail/inbox.json",
+      "fixtures/crm/customers.json",
+      "fixtures/helpdesk/tickets.json",
+      "fixtures/contacts/contacts.json",
+      "fixtures/finance/transactions.json"
+    ],
+    "has_user_agent": false,
+    "has_grader": true,
+    "core_capability": "读取升级/投诉邮件，跨CRM与工单系统做匹配与基于收入阈值的补偿动作分流，并生成可追溯摘要"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T031zh_escalation_budget_triage_plus_1",
+      "new_task_name": "季度SLA违约补偿分流",
+      "task_goal": "对邮件中“季度SLA违约补偿”请求进行分类：读取补偿金额与客户信息，按年收入5%阈值决定发送通知或仅保存草稿审批；同时对工单与客户状态异常做法务告警，并输出处理摘要。",
+      "user_request": "收件箱里有多封来自客户服务通道的“季度SLA违约补偿”升级邮件。请帮我处理：1）读取所有相关升级邮件2）到CRM查找每位客户的tier、年收入与状态（active/churned）3）在工单系统匹配对应工单并更新其priority/tags4）按规则对每条投诉处理：若补偿金额/年收入 <= 5%：发送给客户服务联络人通知并在工单加标记“预算内”；若 > 5%：仅保存草稿给客户服务联络人标题中注明“需上级审批”并在工单加标记“预算外”；若客户状态为churned或邮件声明“已终止合同”：标记为异常并通知法务联络人，且不执行任何补偿承诺邮件（不允许send承诺）5）最后给我一份包含每条邮件决策、关联工单与动作类型（sent/draft/legal）的摘要。",
+      "scenario": "假设本次只有“季度SLA违约补偿”关键词的邮件需要处理；收件箱共8封邮件，其中5封包含可解析的客户编号与补偿金额，另外3封为干扰：2封缺失客户编号、1封含客户编号但补偿金额字段为“待确认”。CRM中存在2个churned客户；Helpdesk中为每个可解析客户提供不止一个候选工单（需根据邮件主题中的服务周期如“Q1/Q2”匹配最相关的工单）。预算阈值临界边界出现两条：一条补偿金额/年收入刚好等于5%，另一条略高于5.0%。",
+      "difference_from_source": "原题直接按补偿阈值分sent/draft并用固定“客户编号=CUS-***”与特定联系人关键词；本题加入季度周期匹配（Q1/Q2/Q3）来决定工单关联，同时引入“缺失字段/待确认金额”的干扰邮件与“阈值刚好等于5%”的边界判断，且异常条件扩展为邮件显式声明“已终止合同”。",
+      "service_and_tool_plan": "继续使用现有services/tool：gmail_list_messages与gmail_get_message用于读取并解析邮件；crm_get_customer获取tier、annual_revenue与status；helpdesk_list_tickets与helpdesk_get_ticket用于候选工单检索与最相关工单确认；helpdesk_update_ticket对priority与tags写入预算内/预算外/异常标签；contacts_search定位客户服务联络人（按“客户服务”）与法务联络人（按“法务”）；gmail_send_message用于预算内通知，gmail_save_draft用于预算外草稿（不发送承诺）。finance工具用于可选核验：对邮件声称“已收到先前补偿”的干扰信息做一致性检查（若查不到记录则不改变分流结论）。",
+      "fixture_generation_plan": "生成：gmail/inbox.json共8条消息（message_id唯一）。其中5条为有效升级：每条包含不同客户编号（不能复用原实体名与编号）、补偿金额（整数金额，单位万元或直接数字但须可解析）、以及服务周期标识（如Q1/Q2）；3条干扰：A缺失客户编号但有主题；B补偿金额为“待确认”；C客户编号存在但标注“已终止合同”。contacts.json生成至少2名：客户服务联络人1名、法务联络人1名（其email与contact_id需全新且与原题不重合）。crm/customers.json生成至少7个客户：包含5个有效升级客户（含1-2个vip/standard混合），再额外加入2个churned客户用于异常判断（有效升级中可能含churned或干扰中含churned）。helpdesk/tickets.json生成至少10条工单：每个有效客户至少2条候选（带不同季度标签/描述），确保必须通过邮件季度匹配挑到正确工单；另外给2条干扰客户的工单用于考察不处理规则。finance/transactions.json生成2-3条与“先前补偿”相关的记录，用于对其中1封干扰邮件做核验（可不强制使用finance，但fixture应可支撑）。状态分布：有效客户status以active为主，churned至少2个；预算内/预算外各约2-3条，并包含一条等于5%与一条略高于5%。",
+      "expected_behavior": "1）先用gmail_list_messages拉取足够数量，再对8封逐一gmail_get_message读取；2）仅对主题包含“季度SLA违约补偿”且正文可解析出客户编号和补偿金额的邮件执行分流；缺失编号或金额为“待确认”的跳过但需在摘要标注为“无法分流”；3）对每个可分流客户：crm_get_customer获取annual_revenue与status；helpdesk_list_tickets后用helpdesk_get_ticket匹配最相关季度（如邮件写Q2则选描述/标签含Q2且标题最贴近的那条）；4）若status=churned或正文声明“已终止合同”：对该邮件与工单打“异常/法务”标签，并使用gmail_send_message通知法务联络人（邮件主题包含“异常：SLA违约补偿”）；不得给客户服务联络人send任何包含“补偿金额/承诺”的内容；5）否则按(补偿金额/年收入)与5%比较：<=5%：gmail_send_message给客户服务联络人（主题含“预算内通知”）；>5%：gmail_save_draft给客户服务联络人（主题含“需上级审批/预算外”，正文不得承诺已批准）；6）helpdesk_update_ticket写入tags：预算内/预算外或异常，并按tier（vip更高priority）设置priority（可用critical/high）。最终输出摘要：逐条列出：邮件ID、客户编号、补偿比率、分流结论(sent/draft/legal/skip)、关联工单ID、触发的关键工具调用结果（至少提到CRM与工单匹配成功/失败）。",
+      "grading_plan": "grader将检查：1）gmail_get_message对8条至少覆盖到所有候选邮件；2）对可分流的5条必须调用crm_get_customer；3）每条可分流需调用helpdesk_get_ticket并选择与季度匹配的正确工单（通过比较工单描述/标签与邮件Qx）；4）预算阈值规则正确包含等于5%归入预算内、略高归入预算外；5）预算外必须gmail_save_draft且不得gmail_send_message对同一客户承诺补偿；6）churned/终止合同必须通知法务且不向客户服务联络人send承诺；7）摘要需包含“预算内/预算外/异常/无法分流”关键词与每条对应动作类型。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T031zh_escalation_budget_triage_plus_2",
+      "new_task_name": "多供应商争议退款升级",
+      "task_goal": "处理“多供应商争议退款/赔付”邮件：解析涉及客户、争议金额与是否声称“包含在合同内”；根据客户年收入阈值决定发送通知或仅保存草稿审批；对客户为churned或争议标记“外部法务接管”进行法务告警并更新工单。",
+      "user_request": "收件箱中有若干封关于“多供应商争议退款升级”的邮件。请帮我处理：读取所有升级邮件；对每封邮件在CRM中找到客户的tier、annual_revenue与status；在helpdesk中找到与该争议“对应订单/项目代码”最匹配的工单并更新priority与tags；处理规则如下：若邮件声称“外部法务接管”或CRM状态为churned，则将工单标记为“异常-法务接管”，并发送通知给法务联络人（不对客户承诺退款/赔付，禁止send任何承诺语）；否则，计算争议赔付金额占年收入比例：<=5%则发送通知给客户服务联络人（主题注明“预算内处理”）；>5%则仅保存草稿给客户服务联络人标题注明“需上级审批-预算外”；最后给我一份摘要，包含每条邮件的项目代码、所选工单、分流理由与采取的动作（sent/draft/legal/skip）。",
+      "scenario": "收件箱共6封升级邮件，其中4封为有效争议（含项目代码与赔付金额），2封为干扰：一封金额字段为“0”但仍声称升级，另一封只有项目代码无客户编号。有效邮件中有1封包含“外部法务接管”字样但金额低于阈值，仍需走法务流程。Helpdesk里每个项目代码对应至少3条工单（不同供应商角色：供应商A/供应商B/内部），需依据邮件正文中的“争议发生方”匹配最相关工单并更新标签为“争议退款”。",
+      "difference_from_source": "与原题相比，本题引入“外部法务接管”强制异常分支（即使预算内也要法务），并把邮件-工单匹配依据从客户编号为主转为项目代码+争议发生方；同时加入“金额为0但升级”的边界干扰与“缺失客户编号”的跳过处理。",
+      "service_and_tool_plan": "gmail_list_messages/gmail_get_message读取并提取项目代码、赔付金额、争议发生方与外部法务接管标记；crm_get_customer获取annual_revenue与status；helpdesk_list_tickets与helpdesk_get_ticket依据项目代码与正文关键词（如“供应商A”）定位最相关工单；helpdesk_update_ticket写入“争议退款/预算内/预算外/异常-法务接管”；contacts_search找到客户服务与法务；gmail_send_message用于法务或预算内通知；gmail_save_draft用于预算外草稿。finance可用于核验：若邮件声称“已退款部分金额”，可调用finance_list_transactions/finance_get_transaction检查历史记录一致性，但不改变预算阈值规则。",
+      "fixture_generation_plan": "生成fixtures：gmail/inbox.json 6条消息（都含“退款升级/争议退款”关键词但主体信息不同）。有效4条：每条包含不同客户编号（新编号体系如CUST-101等不可复用原CUS-001等）、不同项目代码（如PRJ-77A等新值）、赔付金额（含一个等于阈值的边界）、以及争议发生方（供应商A/供应商B/我方）与是否“外部法务接管”。干扰2条：A金额为0且含升级但应skip；B无客户编号仅有项目代码应skip。contacts.json：至少2名联络人（客户服务联络人、法务联络人），email与phone为全新。crm/customers.json：至少6-7个客户；包含2个churned（其中至少1个对应有效邮件或用于干扰判断）；其余为active，tier混合vip/standard，annual_revenue覆盖使预算内/预算外各2条左右。helpdesk/tickets.json：至少12条工单；每个有效项目代码至少3条（供应商A/B/内部角度），并确保只有一条与“争议发生方”最匹配；每条工单带tags可供更新与核对。finance/transactions.json：2条记录用于核验“已退款部分金额”的一致性（对应其中1条有效邮件），其amount与customer_id匹配但金额不必刚好等于赔付总额。",
+      "expected_behavior": "1）读取6封：gmail_get_message覆盖全部；2）仅对可解析出“客户编号+赔付金额>0/可计算”的有效邮件进行；金额为0或缺失客户编号的应skip并在摘要说明原因；3）对每个有效：crm_get_customer，若status=churned或正文含“外部法务接管”：选择最相关工单（项目代码+争议发生方匹配），helpdesk_update_ticket写入tags含“异常-法务接管”，并gmail_send_message给法务联络人（不向客户服务发承诺）；4）否则按赔付金额/annual_revenue与5%：<=5%：选择工单并helpdesk_update_ticket加tags“预算内处理”；gmail_send_message给客户服务联络人（内容只做流程通知，不写“已批准赔付”）；>5%：helpdesk_update_ticket加tags“预算外需审批”；gmail_save_draft给客户服务联络人（标题含“需上级审批-预算外”且正文避免承诺）；5）输出摘要：每条邮件列出项目代码、关联工单ID、预算比率或异常触发点、动作类型。",
+      "grading_plan": "grader检查：1）对6封邮件必须调用gmail_get_message；2）有效邮件（可解析且金额>0）必须调用crm_get_customer与至少一次helpdesk_get_ticket；3）工单匹配正确：同项目代码下应选与“争议发生方”匹配的一条；4）含“外部法务接管”或churned必须走legal动作（gmail_send_message给法务），且不得出现向客户服务联络人发送承诺性赔付邮件；5）预算阈值比较正确（<=5%发，>5%草稿）；6）摘要必须包含每条邮件的动作类型与分流理由关键词（预算内/预算外/异常-法务接管/skip）。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T031zh_escalation_budget_triage_plus_3",
+      "new_task_name": "年度续约谈判的“先保价后审”",
+      "task_goal": "处理与“年度续约谈判”相关的升级邮件：按年收入5%阈值决定是否可以先发处理确认或必须草稿审批；对VIP与非VIP采用不同的工单优先级策略；对账单争议（含历史finance记录）进行核验并在摘要说明差异。",
+      "user_request": "请处理收件箱中“年度续约谈判升级”邮件。对每封邮件：读取正文并提取客户编号、要求的补偿/优惠金额、以及是否表述“先保价后审”；到CRM获取客户tier、annual_revenue、status；从helpdesk匹配对应“续约谈判编号”工单并更新priority与tags；决策规则：1）若status=churned：标记异常并通知法务；2）否则，计算优惠/补偿金额占annual_revenue比例；<=5%且邮件声明“先保价后审”：发送给客户服务联络人一封确认邮件（确认“可先保价”，但不承诺最终批准细节）；>5%或邮件未声明“先保价后审”：仅保存草稿要求上级审批；3）若finance里存在同客户同季度已完成的相关补偿记录：在摘要中指出“历史记录存在/不存在”并简要说明对当前邮件影响（但最终仍以5%阈值为准）；最后输出处理摘要（含：邮件ID、续约谈判编号、比率、是否先保价、动作类型、工单priority/tags）。",
+      "scenario": "收件箱共7封升级邮件：5封有效，2封干扰。有效邮件包含“续约谈判编号”（如 RENEW-2026-xx）与“先保价后审/不先保价”标记；其中2封为VIP客户、1封为churned客户；有效邮件里至少1条包含与历史finance记录相同季度、金额相近但不等的情况，用于考察核验描述。工单系统中同一续约谈判编号存在多个版本（由不同团队创建：Sales/CS/Legal），需选择与邮件中“触发渠道”（如Sales/客服）一致的那条，并更新priority为vip更高。",
+      "difference_from_source": "与原题相比，本题的触发对象是“年度续约谈判”，并加入“先保价后审”条件作为额外门槛：即使<=5%也可能因为未声明先保价而只能草稿审批；同时引入finance历史记录核验的摘要要求，但不改变主阈值规则。",
+      "service_and_tool_plan": "gmail_list_messages与gmail_get_message读取并解析：客户编号、续约谈判编号、补偿/优惠金额、先保价标记、触发渠道与季度信息；crm_get_customer获取annual_revenue/tier/status；helpdesk_list_tickets与helpdesk_get_ticket使用续约谈判编号与渠道关键词定位正确工单；helpdesk_update_ticket设置priority与tags如“先保价/预算内/预算外/续约升级”；contacts_search定位客户服务与法务；gmail_send_message用于符合条件的预算内先保价确认；gmail_save_draft用于预算外或不先保价情形；finance_list_transactions/finance_get_transaction可用于查找同季度已完成的相关补偿记录并在摘要中报告历史存在性。",
+      "fixture_generation_plan": "生成：gmail/inbox.json 7条（message_id全新）。有效5条：每条包含唯一客户编号（如 CUST-210 等新格式）、续约谈判编号（RENEW-xxx）、补偿/优惠金额（整数或小数但可解析）、以及“先保价后审”是/否；并注明季度（Q1/Q2/Q3/Q4）。干扰2条：一条缺少“先保价后审”标记但金额明确；另一条缺失续约谈判编号。contacts.json：客户服务联络人1名、法务联络人1名，email新值。crm/customers.json：至少6个客户：2个vip、2个standard、1个churned（对应有效邮件），并设置annual_revenue覆盖阈值比较（包含一条<=5%但先保价未声明从而走草稿；一条>5%但声明先保价仍走草稿）。helpdesk/tickets.json：至少15条；每个续约谈判编号至少有2条候选（Sales/CS/Legal），确保需要根据触发渠道选择；工单状态多为open；tags包含可用于匹配的“续约升级/渠道”。finance/transactions.json：至少3条：覆盖2条有效邮件中1-2条的同季度历史记录（status=completed），并为另1条缺失历史记录做对比。",
+      "expected_behavior": "1）列出并读取7封邮件，逐条解析字段；2）若缺失客户编号或续约谈判编号则skip并在摘要注明；3）对每条有效：crm_get_customer，若churned则选择匹配工单并打“异常-法务”，gmail_send_message通知法务；4）否则计算比率：<=5%且“先保价后审”=是：gmail_send_message给客户服务联络人，正文明确为“可先保价以争取续约推进”，不写最终批准结果；<=5%但先保价=否：gmail_save_draft给客户服务联络人，标题含“需上级审批-续约预算内但未先保价”；>5%：gmail_save_draft，标题含“需上级审批-预算外”；5）查finance：按客户与季度检索“客户补偿/优惠且completed”的记录，摘要中写“历史记录存在/不存在”，并说明不改变阈值决策；6）helpdesk_update_ticket：依据tier将priority区分（vip: high/critical；standard: medium），并写tags包含“续约升级/先保价/预算内/预算外/异常”。",
+      "grading_plan": "grader将检查：1）gmail_get_message覆盖7封；2）对skip情况需符合缺字段规则；3）每条有效邮件均调用crm_get_customer与helpdesk_get_ticket；4）先保价条件正确：即使<=5%但未声明先保价仍必须draft；5）churned必须走法务通知且不对客户服务send承诺；6）finance核验要求在摘要出现“历史记录存在/不存在”并与fixture匹配；7）helpdesk_update_ticket的priority/tags与vip/规则一致。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T031zh_escalation_budget_triage_plus_4",
+      "new_task_name": "隐含费用条款触发的升级拦截",
+      "task_goal": "识别邮件中“隐含费用条款”（如违约金/服务费减免替代赔付）并提取真实补偿口径，按预算阈值分流；对包含“未确定金额”的邮件不做承诺；对VIP客户与普通客户进行不同优先级工单更新；输出清晰摘要。",
+      "user_request": "处理收件箱中“隐含费用条款触发升级”的邮件。请：读取所有升级邮件并从正文中判断实际需要承诺的金额口径（例如：邮件里可能把补偿写成“违约金豁免/服务费抵扣”，但你需要提取其等效的赔付金额）；查CRM得到年收入与status；在工单系统按“合同编号+条款名称”匹配最相关工单并更新priority/tags；规则：1）若正文显示金额为“待确认/另行核算”，则只更新工单状态为“待核算”，不发送/不保存承诺草稿；2）若status=churned或正文含“已终止/不续约”：通知法务并标记“异常-条款触发”；3）否则按等效赔付金额与annual_revenue的5%阈值：<=5%则发送给客户服务联络人“处理通知”；>5%则仅保存草稿“需上级审批”；4）若客户tier为vip：同时将工单priority提高（不改变阈值规则）。最后输出摘要：包含每封邮件提取的等效赔付金额口径、是否待核算、阈值比率与动作类型。",
+      "scenario": "收件箱共9封邮件：其中6封有效需要处理，3封干扰/边界。有效邮件的挑战点是：有2封把赔付金额伪装成“服务费抵扣金额”，1封把赔付金额写成“违约金豁免合计”，需要模型在不依赖原始实体名的情况下准确提取等效金额；另有1封金额明确但包含多个币种/单位（如“USD 30k等值/已按汇率换算为CNY”，需要取正文给出的等值金额）。干扰：一封“金额待确认”、一封客户编号缺失、一直含churned标记但没有合同编号（应skip到摘要）。Helpdesk中同合同编号存在多条工单，条款名称不同（SLA条款/付款条款/争议条款），需匹配条款名称。",
+      "difference_from_source": "原题金额直接以“补偿金额”给出；本题强调“等效金额口径提取”（违约金豁免/服务费抵扣）与“待确认/待核算”导致的no-send/no-draft；同时匹配依据转为“合同编号+条款名称”，并加入多币种等值金额处理。",
+      "service_and_tool_plan": "gmail_list_messages与gmail_get_message读取并解析：合同编号、条款名称、等效赔付金额口径、币种/单位与待确认标记；crm_get_customer获取annual_revenue/status/tier；helpdesk_list_tickets与helpdesk_get_ticket按合同编号与条款名称定位；helpdesk_update_ticket在待核算时更新为“待核算”，在异常时打“异常-条款触发”，在正常时写预算内/预算外并调整priority；contacts_search找到客户服务与法务；gmail_send_message用于预算内通知；gmail_save_draft用于预算外审批草稿；finance可选用于核验“是否存在同合同已完成的相关豁免”，但若实现不了也不影响主要分流。",
+      "fixture_generation_plan": "生成fixtures：gmail/inbox.json 9条，确保每条正文含有可解析的合同编号/条款名称（除干扰缺字段者）。有效6条：每条包含客户编号（新）、合同编号（新）、条款名称（如“SLA违约条款/付款抵扣条款/违约金豁免条款”）、等效赔付金额（至少3种不同表达方式：违约金豁免合计、服务费抵扣金额、汇率换算后的等值金额），并标注“待确认/不续约”只出现在干扰或异常样本中。干扰3条：1条金额待确认、1条客户编号缺失、1条churned但缺合同编号。contacts.json：2人新值。crm/customers.json：至少8个客户（含2个vip、2个churned、其余active），annual_revenue覆盖阈值边界并包含一条等于5%与一条略高于5%。helpdesk/tickets.json：至少14条工单：同合同编号至少3条不同条款类型；确保成功匹配依赖条款名称。finance/transactions.json：3条与“豁免/抵扣”相关历史记录（completed或open状态均可，主要让摘要可核验存在性）。",
+      "expected_behavior": "1）读取9封：gmail_get_message覆盖；2）解析每封邮件：先判定是否“待确认/另行核算/待核算”字段；若是：helpdesk_update_ticket将最相关工单设为“待核算”并tags含“待核算/条款需核算”，且不调用gmail_send_message与gmail_save_draft；3）否则若status=churned或正文含“已终止/不续约”：选择工单（合同编号+条款名称匹配），helpdesk_update_ticket打“异常-条款触发”，并gmail_send_message通知法务；4）否则提取等效赔付金额：按阈值<=5% vs >5%：<=5%：gmail_send_message给客户服务联络人；>5%：gmail_save_draft草稿给客户服务联络人；5）若tier=vip：将工单priority上调（例：vip -> critical/high，standard -> medium/low），但动作类型仍由阈值决定；6）摘要必须写出：等效金额口径提取依据（违约金豁免/服务费抵扣/汇率等值）、比率与动作类型、以及是否待核算/异常。",
+      "grading_plan": "grader检查：1）对9封邮件调用gmail_get_message；2）当出现“待确认/待核算”时，必须不出现gmail_send_message/gmail_save_draft的承诺动作；3）异常churned或“不续约/已终止”必须通知法务且工单打“异常-条款触发”；4）等效金额提取正确：摘要中记录的金额口径与阈值判断需与fixture正文金额一致；5）预算阈值严格执行<=5%发、>5%草稿；6）vip工单priority提升；7）摘要包含“等效赔付金额口径/待核算/异常-条款触发/预算内/预算外/动作类型”。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T031zh_escalation_budget_triage_plus_5",
+      "new_task_name": "跨区域客服风控：多重升级与重复客户去重",
+      "task_goal": "处理跨区域客服风控升级邮件：同一客户可能在不同区域多次升级，需要去重后汇总后仍按阈值规则分流（同客户多封邮件取最大等效补偿金额进行决策）；对“重复已处理”邮件识别为无需重复发送/草稿；输出按客户维度的处理摘要。",
+      "user_request": "收件箱里有多封来自不同区域（华东/华南/海外）的客户升级邮件。请处理：1）读取所有升级邮件2）在CRM中查找客户tier、annual_revenue、status3）在helpdesk中找到每个客户相关的升级工单（可能多条）4）做去重：如果同一客户出现多封邮件，只保留该客户“最高要求补偿金额”的那条作为决策依据，其余邮件标记为“重复升级无需再发”但仍需在摘要说明；5）重复处理识别：如果某客户在helpdesk已有tag“已提交审批”且历史finance显示存在completed补偿记录，则该客户本轮跳过任何send/draft动作，仅更新工单加tag“无需重复”；6）决策规则：active且未重复处理时，<=5%发送客户服务联络人“处理通知”；>5%保存草稿“需上级审批”；churned或邮件含“已停用账户”则通知法务并更新异常标签，不做客户承诺；最后给我摘要：按客户列出：保留的那封邮件ID（最高金额那封）、比率、动作（sent/draft/legal/skip-repeat）、以及处理到的工单ID列表。",
+      "scenario": "收件箱共10封邮件：涉及6个客户，其中有2个客户各出现2次升级（来自不同区域），另有2封为干扰：一封无客户编号、另一封金额为负数或明显无效。CRM包含2个churned客户。Helpdesk对某个客户已有“已提交审批”标签，且finance里有其completed补偿记录；因此需要触发“无需重复”跳过逻辑。对其余客户，需要选择工单：同客户存在多个工单（按升级区域标签优先，但如果保留邮件最高金额那条对应的区域不同仍允许选最相关升级工单）。",
+      "difference_from_source": "原题是逐邮件处理；本题引入跨区域多封同客户去重与按客户维度汇总决策（取最高金额），并加入“重复已处理”识别（结合helpdesk已有审批tag与finance completed记录跳过send/draft）。",
+      "service_and_tool_plan": "gmail_list_messages与gmail_get_message读取10封并解析客户编号与补偿金额（需校验负数/无效）；crm_get_customer获取年收入/状态/等级；helpdesk_list_tickets与helpdesk_get_ticket用于获取客户相关工单并选择用于更新的工单集合；helpdesk_update_ticket写入tags如“重复升级无需再发”“无需重复”“已提交审批”“预算内/预算外/异常-法务”；contacts_search定位客户服务与法务；gmail_send_message用于预算内，gmail_save_draft用于预算外；finance_list_transactions/finance_get_transaction用于判断completed记录以触发重复跳过。",
+      "fixture_generation_plan": "生成fixtures：gmail/inbox.json 10条，message_id新值，包含：6个不同客户编号（新格式），其中2个客户各2封（总10封中的4封），另外2封为干扰（无编号1封、金额为负1封）。有效邮件每条包含补偿金额（正数）与区域标识（华东/华南/海外）以及升级说明。contacts.json：客户服务联络人1名、法务联络人1名，email为全新。crm/customers.json：至少6个客户，其中2个churned，其余active；tier至少2个vip；annual_revenue用于使至少一客户预算内、一客户预算外，并且设置某客户在重复跳过条件满足（active）。helpdesk/tickets.json：至少14条；对每个客户至少2条工单以体现工单列表；其中被“已提交审批”tag的客户至少1条工单已有该tag且status=open；另加入tag/描述区分区域。finance/transactions.json：至少2-4条，确保对“已提交审批”的客户存在completed补偿记录以触发skip-repeat；其余客户可有或无历史记录。",
+      "expected_behavior": "1）读取并解析10封：对无客户编号或金额无效（负数）邮件skip并在摘要注明；2）对其余邮件按客户编号分组：对每客户找最高补偿金额对应的那封邮件作为决策依据；3）对每个客户调用crm_get_customer；若churned或正文含“已停用账户”：选择该客户最相关升级工单集合，helpdesk_update_ticket写“异常-法务”，并gmail_send_message通知法务；4）对active客户：检查重复处理条件：在helpdesk工单中是否已有tag“已提交审批”，以及finance是否存在completed补偿记录；若满足：不进行gmail_send_message/gmail_save_draft，仅对对应工单helpdesk_update_ticket加tag“无需重复”；5）否则按最高金额决策：<=5% -> gmail_send_message给客户服务联络人（预算内处理通知）；>5% -> gmail_save_draft给客户服务联络人（需上级审批）；6）对于同一客户的非最高金额邮件，在摘要标注“重复升级无需再发”（但不得发邮件）；7）输出摘要按客户维度：客户编号、最高金额邮件ID、最高金额/年收入比率、动作类型、所更新的工单ID列表。",
+      "grading_plan": "grader检查：1）gmail_get_message覆盖10封；2）去重逻辑：对同客户应只出现一个sent/draft/legal动作，对非最高金额邮件不得触发重复动作；3）重复已处理识别：当helpdesk已有“已提交审批”且finance存在completed记录时，必须skip-repeat且不调用gmail_send_message/gmail_save_draft；4）阈值规则严格执行<=5%发送、>5%草稿；5）churned或“已停用账户”必须走法务通知；6）摘要按客户维度而非按邮件维度列出，并包含“重复升级无需再发/无需重复/预算内/预算外/异常-法务”等关键词。"
+    }
+  ]
+}

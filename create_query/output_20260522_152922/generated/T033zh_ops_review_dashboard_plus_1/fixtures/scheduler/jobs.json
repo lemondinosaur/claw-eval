@@ -1,0 +1,138 @@
+[
+  {
+    "job_id": "JOB-301",
+    "name": "payment_reconciliation_writeback",
+    "description": "对账写回：将支付结果回写订单/退款状态",
+    "cron_expression": "0 2,19 * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-04-28T02:35:00+08:00",
+    "next_run": "2026-04-29T02:00:00+08:00",
+    "average_duration_seconds": 220,
+    "tags": [
+      "payment",
+      "reconciliation",
+      "writeback"
+    ],
+    "error": "Writeback to reconciliation writer INT-203 failed: upstream 504/timeout",
+    "execution_history": [
+      {
+        "run_at": "2026-04-28T02:30:00+08:00",
+        "status": "failed",
+        "error": "Writeback to INT-203 failed: upstream 504/timeout",
+        "duration_seconds": 92
+      },
+      {
+        "run_at": "2026-04-28T02:00:00+08:00",
+        "status": "failed",
+        "error": "Writeback to INT-203 failed: upstream 504/timeout",
+        "duration_seconds": 88
+      },
+      {
+        "run_at": "2026-04-27T20:00:00+08:00",
+        "status": "failed",
+        "error": "Writeback to INT-203 failed: upstream 504/timeout",
+        "duration_seconds": 95
+      },
+      {
+        "run_at": "2026-04-27T19:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 205
+      }
+    ],
+    "notes": "本任务在工单高峰窗口附近连续失败3次以上，可能导致支付确认卡住与退款状态未同步"
+  },
+  {
+    "job_id": "JOB-302",
+    "name": "reconciliation_difference_report",
+    "description": "对账差异报表生成（供排查）",
+    "cron_expression": "30 3 * * *",
+    "enabled": false,
+    "last_status": "failed",
+    "last_run": "2026-04-23T03:30:00+08:00",
+    "next_run": null,
+    "average_duration_seconds": 780,
+    "tags": [
+      "report",
+      "reconciliation"
+    ],
+    "disabled_by": "scheduler_admin",
+    "disabled_date": "2026-04-23",
+    "disabled_reason": "上游数据聚合延迟导致差异报表不稳定，暂停生成以等待修复"
+  },
+  {
+    "job_id": "JOB-303",
+    "name": "inventory_to_search_index_sync",
+    "description": "库存同步到搜索索引",
+    "cron_expression": "*/15 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-04-28T10:15:00+08:00",
+    "next_run": "2026-04-28T10:30:00+08:00",
+    "average_duration_seconds": 18,
+    "tags": [
+      "inventory",
+      "search"
+    ]
+  },
+  {
+    "job_id": "JOB-304",
+    "name": "payment_callback_batch_reconcile",
+    "description": "支付回调批处理：拉取回调事件并触发后续处理",
+    "cron_expression": "*/20 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-04-28T10:10:00+08:00",
+    "next_run": "2026-04-28T10:30:00+08:00",
+    "average_duration_seconds": 60,
+    "tags": [
+      "payment",
+      "callback"
+    ],
+    "notes": "批处理本周总体成功，但无法替代写回失败对体验侧状态推进的影响"
+  },
+  {
+    "job_id": "JOB-305",
+    "name": "crm_refund_status_push",
+    "description": "同步退款状态到CRM（辅助对账展示）",
+    "cron_expression": "15 4 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-04-28T04:15:00+08:00",
+    "next_run": "2026-04-29T04:15:00+08:00",
+    "average_duration_seconds": 140,
+    "tags": [
+      "crm",
+      "refund"
+    ]
+  },
+  {
+    "job_id": "JOB-306",
+    "name": "notification_webhook_dispatch",
+    "description": "通知webhook派发（告警/摘要推送）",
+    "cron_expression": "*/10 * * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-04-28T03:50:00+08:00",
+    "next_run": "2026-04-28T04:00:00+08:00",
+    "average_duration_seconds": 12,
+    "tags": [
+      "notification"
+    ],
+    "error": "Webhook dispatch retry exceeded: INT-204/INT-206 upstream pressure",
+    "execution_history": [
+      {
+        "run_at": "2026-04-28T03:50:00+08:00",
+        "status": "failed",
+        "error": "Webhook dispatch retry exceeded: INT-204/INT-206 upstream pressure",
+        "duration_seconds": 35
+      },
+      {
+        "run_at": "2026-04-28T03:40:00+08:00",
+        "status": "success",
+        "duration_seconds": 9
+      }
+    ],
+    "notes": "用于放大发现延迟的次级因素：并非主要导致支付写回失败"
+  }
+]

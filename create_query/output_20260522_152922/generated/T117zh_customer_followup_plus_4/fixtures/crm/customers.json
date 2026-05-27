@@ -1,0 +1,51 @@
+[
+  {
+    "customer_id": "CUS-813",
+    "name": "北辰工业",
+    "tier": "vip",
+    "status": "active",
+    "last_contact_date": "2026-01-20",
+    "annual_revenue": 7600000,
+    "notes": "关键合作方（VIP）。客户内部通常由多个部门负责人共同推进：\n- 运营负责人：李晓琳（邮箱：lixiaolin@beichen-industry.cn）。角色关切：交付节奏、里程碑推进、现场协调与资源调配。\n- 研发负责人：陈宇航（邮箱：chyu@beichen-industry.cn）。角色关切：技术集成风险、接口稳定性、以及实施过程中的问题闭环机制。\n最近一次对接节奏出现等待反馈的迹象，需要推动对齐下一阶段计划。",
+    "primary_contact": "lixiaolin@beichen-industry.cn"
+  },
+  {
+    "customer_id": "CUS-814",
+    "name": "星图医疗",
+    "tier": "vip",
+    "status": "active",
+    "last_contact_date": "2026-01-30",
+    "annual_revenue": 4100000,
+    "notes": "高价值客户（VIP）。推进方式通常分为：\n- 项目经理：周彤（邮箱：zhou_tong@starmed.com）。角色关切：项目里程碑是否按期、跨部门沟通效率。\n- 采购负责人：徐可（邮箱：xu_ke@starmed.com）。角色关切：成本与合同条款确认、付款节点。\n需要部门间把控节奏并确认下一步的沟通安排。",
+    "primary_contact": "zhou_tong@starmed.com"
+  },
+  {
+    "customer_id": "CUS-815",
+    "name": "飞跃零售",
+    "tier": "standard",
+    "status": "active",
+    "last_contact_date": "2026-02-10",
+    "annual_revenue": 950000,
+    "notes": "常规合作方（standard）。涉及两位联系人：\n- 运营负责人：龚晓雯（邮箱：gongxw@feiyue-retail.com）。角色关切：运营策略落地进度、数据看板更新频率。\n- 技术负责人：邓航（邮箱：denghang@feiyue-retail.com）。角色关切：系统对接、稳定性与异常处理流程。\n希望快速确认当前推进状态。",
+    "primary_contact": "gongxw@feiyue-retail.com"
+  },
+  {
+    "customer_id": "CUS-816",
+    "name": "云桥物流",
+    "tier": "standard",
+    "status": "active",
+    "last_contact_date": "2025-12-25",
+    "annual_revenue": 620000,
+    "notes": "标准客户（standard）。联系人包括：\n- 交付经理：蒋子航（邮箱：jiangzh@yunqiao-logistics.com）。角色关切：交付进度、现场资源与排期。\n- 安全合规负责人：刘婉宁（邮箱：liuwan-ning@yunqiao-logistics.com）。角色关切：权限管理、安全合规材料与审查时间窗口。\n注：其中“安 全合规负责人”在近期可能没有邮件往来，需要按角色描述发起对齐。",
+    "primary_contact": "jiangzh@yunqiao-logistics.com"
+  },
+  {
+    "customer_id": "CUS-817",
+    "name": "和合教育",
+    "tier": "standard",
+    "status": "churned",
+    "last_contact_date": "2026-02-15",
+    "annual_revenue": 180000,
+    "notes": "已流失(churned)，不需要跟进。"
+  }
+]

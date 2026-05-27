@@ -1,0 +1,195 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:34:47",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T161zh_automation_failure_recovery",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:30:27",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:30:27",
+      "source_task_id": "T161zh_automation_failure_recovery",
+      "source_summary": {
+        "task_id": "T161zh_automation_failure_recovery",
+        "task_name": "多自动化任务连锁故障排查与恢复",
+        "task_type": "多自动化任务连锁故障：从定时任务依赖、API集成配置、库存影响、用户工单、知识库方案中定位根因并输出恢复计划",
+        "category": "ops",
+        "difficulty": "hard",
+        "tags": [
+          "general",
+          "multi_service"
+        ],
+        "language": "zh",
+        "services": [
+          "scheduler",
+          "config",
+          "helpdesk",
+          "kb",
+          "inventory"
+        ],
+        "tools": [
+          "scheduler_list_jobs",
+          "scheduler_get_job",
+          "config_list_integrations",
+          "config_get_integration",
+          "inventory_list_products",
+          "inventory_get_product",
+          "helpdesk_list_tickets",
+          "helpdesk_get_ticket",
+          "helpdesk_update_ticket",
+          "helpdesk_close_ticket",
+          "kb_search",
+          "kb_get_article"
+        ],
+        "fixture_paths": [
+          "fixtures/config/integrations.json",
+          "fixtures/helpdesk/tickets.json",
+          "fixtures/inventory/items.json",
+          "fixtures/kb/articles.json",
+          "fixtures/scheduler/jobs.json"
+        ],
+        "sandbox_files": [],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "ops：连锁故障排查与恢复方案制定（依赖链+根因+影响评估+KB引用+工单关联）"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T161zh_automation_failure_recovery_plus_1",
+          "new_task_name": "多站点同步失败恢复",
+          "task_goal": "针对“订单履约相关”的三段定时自动化连锁失败，识别依赖链与根因，评估对库存与待发货清单的影响，关联并筛出正确工单，最后给出可执行的恢复步骤（需引用KB文章）。",
+          "user_request": "你负责运维值班：发现多个自动化任务连续失败，并且客服工单集中上报“部分站点库存错配/发货延迟”。请你排查：1）找出失败的定时任务及其依赖关系；2）检查相关API集成配置找出根因；3）评估对库存数据造成的影响（包含哪些产品/状态可能过期）；4）关联相关用户工单并给出归因；5）在知识库搜索匹配的修复方案并引用要点；6）输出故障分析与恢复计划，包含按顺序的具体操作。",
+          "scenario": "世界状态：A站点与B站点的“门店库存同步”开始失败。上游任务拉取站点库存时因认证令牌过期（集成配置中旧密钥仍 active），导致连续404/401。下游任务无法更新“可发货库存”，因此“发货资格检查”任务因数据超过阈值而拒绝执行。与此同时，另一条无关任务仍在成功运行，且存在噪声告警（监控服务报告‘磁盘空间接近阈值’，但与本次链路无直接依赖）。库存系统里至少有两类产品处于 stale/unknown 状态：一种是A站点的热销SKU，另一种是B站点的冷启动SKU。用户工单中有四条：三条与库存错配/发货延迟相关，另有一条与打印设备无关。",
+          "difference_from_source": "原题根因是供应商v2到v3迁移未启用；本题根因转为“站点库存同步API的认证/密钥过期仍处于active，导致401/403”，依赖链围绕“门店库存同步→可发货库存更新→发货资格检查（因数据过期阈值拒绝）”；并加入监控磁盘告警作为干扰噪声，需要排除无关任务与无关工单。",
+          "service_and_tool_plan": "继续使用同一套服务与工具：scheduler_list_jobs/scheduler_get_job 用于找出失败任务并解析依赖链；config_list_integrations/config_get_integration 定位触发401/404的集成（旧密钥active、新密钥inactive或待切换）；inventory_list_products/inventory_get_product 评估哪些产品的 last_sync/sync_status 异常并推断对可发货/资格的影响；helpdesk_list_tickets/helpdesk_get_ticket 关联客服工单到具体依赖节点；kb_search/kb_get_article 搜索“认证令牌更新/同步恢复/数据过期阈值处理”的KB并引用步骤。之所以仍用这些工具，是因为任务考察的核心能力仍是依赖链分析、根因定位、库存影响评估、工单关联与KB恢复方案。",
+          "fixture_generation_plan": "生成新 fixtures（保持与原 schema 高度一致，但不复用任何原实体名/ID/邮箱/数值/原文段落）。\n1）fixtures/config/integrations.json：至少4条集成。包含：\n- 1条“门店库存同步旧密钥”状态 active，notes 指向令牌过期/已轮换，错误率高（例如接近1.0）；\n- 1条“门店库存同步新密钥”状态 inactive 或待激活；\n- 1条“发货资格校验服务”active 正常；\n- 1条“监控告警服务”active 正常但作为噪声说明。\n2）fixtures/scheduler/jobs.json：至少6条任务，其中3条构成连锁依赖：\n- JOB-A1（站点库存同步）连续失败，依赖无；\n- JOB-A2（可发货库存更新）依赖 JOB-A1，因上游失败失败；\n- JOB-A3（发货资格检查）依赖 JOB-A2，因库存数据超过阈值拒绝执行。\n另外加入2条成功/噪声任务（如‘监控磁盘告警聚合’成功），以测试排除能力。\n3）fixtures/inventory/items.json：至少8个产品，至少4个产品 sync_status 为 stale/unknown，且分属A/B站点类别；包含2个符合“可能影响发货资格”的产品（例如安全/资格所需库存不足或 last_sync 过旧）。其余产品 sync_status=ok。\n4）fixtures/helpdesk/tickets.json：4~5条工单：\n- 3条 open，category 包含“库存错配/发货延迟/可发货状态异常”；描述中提及具体站点或批次；\n- 1条 open 但 category 为“硬件打印/设备故障”与本链路无关；\n- reporter/department 使用新名称，避免复用原客户名/邮箱/工单ID。\n5）fixtures/kb/articles.json：至少2篇：\n- KB-A1：认证/密钥轮换后的配置切换与验证步骤（可激活集成、更新密钥、如何验证错误率下降）；\n- KB-A2：数据过期阈值导致的资格检查拒绝与恢复（包括先恢复上游同步，再触发全量同步或重算资格）。",
+          "expected_behavior": "agent 应：\n1）用 scheduler_list_jobs 找出最近失败任务（优先筛选失败/相关tag）；再用 scheduler_get_job 解析 JOB-A1→JOB-A2→JOB-A3 的依赖链与失败报错（401/403/数据过期拒绝）。\n2）用 config_list_integrations 找到与“门店库存同步”相关的集成条目，再用 config_get_integration 确认旧密钥 active 且错误率异常，新密钥处于 inactive/未启用。\n3）用 inventory_list_products 拉取库存异常产品集合；对重点产品用 inventory_get_product 验证 last_sync 与 sync_status，推断哪些站点库存可能过期从而影响“可发货/发货资格”。\n4）用 helpdesk_list_tickets 拉取 open 工单，逐条 helpdesk_get_ticket 识别与 JOB-A2/JOB-A3 的因果关联；明确排除硬件无关工单。\n5）kb_search 以“密钥轮换/认证恢复/数据过期阈值资格检查”作为关键词，kb_get_article 获取KB-A1/A2，并把关键恢复步骤写入最终方案（例如切换集成状态、运行一次手动同步、重算资格）。\n6）输出：一份结构化故障分析与恢复计划（至少包含依赖链、根因、库存影响范围、相关工单归因、KB引用的步骤顺序）。不得直接关闭工单（仅可更新优先级/标签用于归类，且在“真实解决前”不关闭）。",
+          "grading_plan": "grader.py 将检查：\n- 依赖链是否完整覆盖 JOB-A1→JOB-A2→JOB-A3，并指出各节点为何失败；\n- 根因是否准确定位到认证/密钥轮换未激活（并引用集成详情中的过期/旧密钥 active 特征）；\n- 库存影响评估是否基于 inventory 的 last_sync/sync_status 做出合理范围判断；\n- 工单关联是否覆盖全部相关工单且明确排除无关硬件工单；\n- 恢复方案是否引用KB-A1/A2并给出可执行的操作顺序（切换集成→验证→触发同步/重算资格）。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T161zh_automation_failure_recovery_plus_2",
+          "new_task_name": "价格校准链路回滚失败",
+          "task_goal": "当“价格校准”链路连续失败导致下游促销策略无法应用时，要求找到失败任务与依赖关系，定位配置侧错误（如错误的定价规则版本/促销策略源），评估影响到的库存与价格展示，关联工单并引用KB给出恢复方案。",
+          "user_request": "请协助排查：价格校准相关自动化任务连续失败，导致前端出现促销价格未生效。用户已提交多条工单。请你：1）检查定时任务失败与依赖；2）查看API集成配置找出根因（重点是定价/促销配置）；3）评估库存/商品展示价格是否可能不同步；4）关联工单并判断哪些是同一根因引发；5）在知识库搜索并引用解决方案；6）输出故障分析与恢复步骤（需要非常具体，可操作）。",
+          "scenario": "世界状态：一个“价格校准v4”依赖“促销规则拉取”与“本地价格写回”。促销规则拉取任务虽然成功，但写回任务失败：原因是配置服务返回的“定价规则集ID”指向已被标记为 deprecated 的版本，写回接口虽然可用但拒绝更新（返回422）。由于写回失败，下游“促销价格应用”任务检测到价格版本号未推进（last_applied 未更新）并拒绝执行。干扰信息：库存同步任务仍正常，且有一条与“订单退款处理”相关任务失败，但它与促销链路无依赖关系。库存系统里价格字段并非真实来源，但可以通过 inventory 中与“价格同步状态/last_price_sync”相关的字段推断风险。工单共5条：3条关于促销价格未生效、2条关于其他业务（退款/打印）。",
+          "difference_from_source": "原题链路是“供应商API端点不可用→库存更新失败→补货触发失败”；本题根因是“定价/促销规则版本错误（deprecated）导致写回拒绝（422）”，依赖链围绕“促销规则拉取→价格写回→促销价格应用（版本号未推进拒绝）”；并加入“库存仍正常、另一条退款任务失败的干扰”，要求排除无关任务。",
+          "service_and_tool_plan": "使用同样工具：scheduler_list_jobs/scheduler_get_job 找出促销/价格链路失败并解析依赖；config_list_integrations/config_get_integration 查找定价/促销相关集成以及版本标识/状态；inventory_list_products/inventory_get_product 关注 sync_status 与 price_sync_status/last_price_sync（用现有字段映射或在 fixtures 中加入对应字段但保持可被工具返回）；helpdesk_list_tickets/helpdesk_get_ticket 完成工单关联与排除；kb_search/kb_get_article 搜索“促销规则版本回滚/写回失败恢复/版本号未推进处理”。",
+          "fixture_generation_plan": "生成新的 fixtures（保持schema一致但全部ID/名称/内容新建）。\n1）config/integrations.json：至少4条。\n- 定价写回相关集成 active，但 endpoint 或 ruleset_id 指向 deprecated 版本；error_rate 较高，notes 提示版本被回收/需切换到新规则集；\n- 新规则集集成 inactive（或 active但与旧任务不匹配）；\n- 促销规则拉取集成正常 active；\n- 退款处理集成 active/正常但失败来自其他链路（作为噪声需在 scheduler fixtures 体现）。\n2）scheduler/jobs.json：至少7条。\n- JOB-P1（促销规则拉取）成功或轻微失败但不构成根因（可最后一次成功）；\n- JOB-P2（本地价格写回）连续失败，报错含“deprecated ruleset/HTTP 422”；依赖 JOB-P1；\n- JOB-P3（促销价格应用）连续失败/拒绝执行，报错含“price version not advanced/last_applied mismatch”；依赖 JOB-P2；\n- JOB-P4（库存同步）成功；\n- JOB-P5（退款处理）失败但无依赖到 JOB-P1~P3。\n3）inventory/items.json：至少10个产品。\n- 至少3个产品 sync_status ok 但 price_sync_status=stale/unknown（用于展示“价格不同步风险”）；\n- 至少2个产品 price_sync_status=stale 且对应促销应用应受影响。\n其余产品 ok。\n4）helpdesk/tickets.json：5条 open。\n- 3条 category 为“价格/促销未生效/前端显示不一致”，描述包含促销活动名称（新建，不复用原文）；\n- 2条 category 为“退款失败/打印机无法打印”，描述与本链路无关。\n5）kb/articles.json：至少2篇。\n- KB-P1：如何从 deprecated 规则集切换到可用规则集、并验证写回接口；\n- KB-P2：处理价格写回失败后的促销价格应用恢复（包括回滚/重试策略和重算）。",
+          "expected_behavior": "agent 应：\n1）从 scheduler_list_jobs 找到失败任务，使用 scheduler_get_job 获取 JOB-P2/JOB-P3 的报错与依赖，并明确指出根因不是促销拉取失败。\n2）config_get_integration 针对“价格写回/促销规则”集成核实规则集版本标记（deprecated）与状态不匹配。\n3）inventory_list_products 拉取并 inventory_get_product 验证受影响商品的 price_sync_status/last_price_sync 异常范围（结合促销应用拒绝执行的逻辑解释因果）。\n4）helpdesk 逐条获取并关联：与促销未生效的工单归到 JOB-P2→JOB-P3；排除退款/打印工单。\n5）kb_search 后引用 KB-P1/P2 的恢复要点，给出具体步骤：切换规则集配置、重新触发价格写回（或手动全量写回）、再触发促销应用/等待版本推进。\n6）输出最终报告：依赖链、根因（deprecated ruleset/422）、影响评估、工单关联、恢复步骤（按顺序且可执行）。排查阶段不直接关闭工单。",
+          "grading_plan": "检查：\n- 依赖链与根因区分是否正确（促销拉取不作为根因）；\n- 是否基于 config 细节识别 deprecated ruleset 导致写回422；\n- inventory 影响评估是否体现“价格同步状态/版本号未推进”；\n- 工单关联是否准确覆盖促销未生效的3条并排除2条无关；\n- 恢复方案是否引用KB-P1/P2且包含切换→重触发写回→应用恢复的明确步骤。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T161zh_automation_failure_recovery_plus_3",
+          "new_task_name": "多租户数据隔离异常引发链路停止",
+          "task_goal": "在多租户环境中，某租户配置异常导致任务链路对全局共享资源写入失败并触发下游安全中断。需要识别依赖链、定位到错误租户隔离标识，评估库存可用性影响，并准确关联工单与知识库恢复步骤。",
+          "user_request": "你是运维：系统提示多项自动化任务连续失败，且仅影响某些租户的库存可用性。工单里也提到‘A客户看得到但B客户看不到’或‘隔离失败’。请你按以下要求输出排查与恢复：1）列出失败定时任务及依赖关系；2）检查API集成配置找出根因（与租户隔离相关）；3）评估对库存可用性的影响范围；4）关联对应用户工单并解释为何只影响部分租户；5）到知识库搜索并引用恢复方案；6）输出故障分析和可操作恢复计划。",
+          "scenario": "世界状态：有三条链路任务：租户A的“供应数据获取”成功，租户A的“库存写入”失败（403：tenant scope mismatch），进而触发“隔离一致性校验”拒绝执行并将共享缓存标记为不可用。由于缓存不可用，下游“自动补货”任务对所有租户停止（安全策略），形成跨租户的表象，但根因只在租户B的隔离标识错误。干扰：有一条“通用健康检查”任务也失败，但它与依赖链无关。库存数据表现为：inventory 中部分商品 quantity 正常但 sync_status=blocked 或 partial，且 last_sync 在短时间内发生跳变。工单数量4条：2条来自受影响租户（抱怨库存不可用/补货停止），1条来自未受影响租户但因共享缓存报警看到异常信息（应归因于隔离一致性校验中断造成的全局保护），1条硬件无关。",
+          "difference_from_source": "原题是供应商API迁移与补货触发失败；本题是“多租户隔离标识错误→写入403→一致性校验拒绝→安全策略导致自动补货对所有租户表象停止”，需要解释“表象跨租户但根因局部租户”。同时加入共享缓存标记不可用的机制，并要求处理部分工单属于间接受影响。",
+          "service_and_tool_plan": "仍使用 scheduler/config/inventory/helpdesk/kb：scheduler_get_job 提取失败错误码并解析依赖；config_get_integration 定位租户隔离相关配置（如 tenant_id/header 或 scope 字段在错误集成中被配置到错误租户）；inventory_* 用于判断库存是否 blocked/partial 并推断安全策略影响；helpdesk_* 用于区分“直接受影响租户工单”和“间接受影响租户工单”；kb_search/kb_get_article 获取关于“租户隔离配置修复与缓存/校验恢复”的KB步骤。",
+          "fixture_generation_plan": "生成全新 fixtures。\n1）config/integrations.json：至少4条。\n- “租户范围的库存写入集成”active，但 notes 指向 tenant scope mismatch（例如 header tenant_id 写成了B但执行上下文为A 或反之），error_rate 高；\n- “租户范围修复后的集成”inactive（或 active但未被任务使用）；\n- “供应数据获取集成”正常；\n- “健康检查/日志采集集成”正常但在 scheduler 中触发无关失败。\n2）scheduler/jobs.json：至少6条。\n- JOB-T1（租户供应数据获取）成功；\n- JOB-T2（库存写入）依赖 JOB-T1，失败原因 403 tenant scope mismatch；\n- JOB-T3（隔离一致性校验）依赖 JOB-T2，因校验失败拒绝执行并将共享缓存置不可用；\n- JOB-T4（自动补货）依赖 JOB-T3 或检查共享缓存状态，表现为安全策略拒绝执行（不是因为数据过期）；\n- 再加1条失败但无关（健康检查聚合）。\n3）inventory/items.json：至少9个产品。\n- 至少3个 products sync_status=blocked 或 partial，last_sync 在短时间内有停滞；\n- 至少1个 product quantity 仍正常但 sync_status=partial（用于解释“看得到数量但不可用/无法触发补货”）；\n- 其余 ok。\n4）helpdesk/tickets.json：4条 open。\n- 2条来自受影响租户（抱怨库存不可用/补货停止/隔离失败）；\n- 1条来自看似未受影响租户但因共享缓存报警异常（需在描述中体现“共享告警”或“保护导致不可下单”）；\n- 1条硬件无关。\n5）kb/articles.json：至少2篇。\n- KB-T1：多租户隔离 scope mismatch 的排查与配置修复（定位错误 tenant_id/header/caller role）；\n- KB-T2：一致性校验失败后的缓存恢复与重新启用自动补货步骤（包括先恢复写入→再清理缓存/重算校验→最后恢复补货）。",
+          "expected_behavior": "agent 应：\n1）从 scheduler 找到 JOB-T2→JOB-T3→JOB-T4 的依赖链，并读取错误码（tenant scope mismatch）与安全策略拒绝的区别。\n2）config 中定位到隔离标识错误的集成，并给出“修正 tenant scope/启用正确集成后再触发后续任务”的建议。\n3）inventory 解释哪些产品呈现 blocked/partial 状态，以及为何会导致补货停止（共享缓存不可用/一致性校验失败）。\n4）helpdesk 关联：至少区分两类工单（直接受影响租户 vs 间接受影响租户），明确硬件无关工单不纳入链路解释。\n5）kb_search 找到 KB-T1/KB-T2 并引用其步骤，输出可执行恢复计划：修复隔离配置→验证写入成功→重跑一致性校验/清缓存→恢复自动补货并监控。\n6）不在未解决前关闭工单。",
+          "grading_plan": "检查：\n- 依赖链与停止机制是否理解正确（403写入失败→一致性校验拒绝→安全策略导致补货表象停止）；\n- 根因是否指向多租户隔离标识配置错误而非库存过期；\n- inventory 影响评估是否覆盖 blocked/partial 与解释“可见但不可用”；\n- 工单关联是否区分直接/间接受影响并排除无关硬件工单；\n- 恢复方案是否引用KB-T1/KB-T2并包含明确顺序（修配置→验证→校验/缓存恢复→补货恢复）。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T161zh_automation_failure_recovery_plus_4",
+          "new_task_name": "消息队列重放风暴后的任务恢复",
+          "task_goal": "当自动化任务因为消息队列重放风暴导致重复数据、触发幂等锁而失败，需要识别依赖链与根因，评估库存/订单处理的重复风险，关联工单并引用KB给出恢复与防重放方案。",
+          "user_request": "系统经历消息队列重放风暴后，多项自动化任务连续失败。部分用户反映库存/订单状态异常，并且有工单。请你排查并给出恢复方案：1）找出失败定时任务与依赖关系；2）检查相关API集成配置找出根因（重点在幂等/重放控制配置，而非外部端点不可用）；3）评估库存数据与订单状态可能受到的影响（例如重复写入/幂等锁导致未更新）；4）关联工单并解释哪些是重复风险，哪些是链路中断；5）在知识库搜索并引用恢复要点；6）输出故障分析与具体恢复计划，包含防止再次重放的措施。",
+          "scenario": "世界状态：消息队列中某主题被误配置，触发短时间内大量重复事件。链路上：事件消费者A拉取事件并写入“库存变更流水”，消费者B依赖该流水做库存汇总，汇总失败后“自动结算/对账同步”任务被标记为不可信并停止执行。失败的根因不是外部API 404，而是配置中“幂等键规则”错误：幂等键使用了会随事件重放变化的字段，导致幂等锁无法命中，最终触发‘重复写入保护’异常。干扰：有一条归档日志任务仍成功，但其成功不等于系统恢复。库存系统里表现为：某些产品的 quantity 在短时间内被多次尝试更新，最终 sync_status=partial 或 error，且 last_sync 不稳定。工单共5条：2条称库存变更错乱/出现回滚，1条称对账同步未完成，1条称重复下单/订单状态异常（可能由库存流水缺失导致），1条打印机无关。",
+          "difference_from_source": "原题是API端点废弃/未启用导致连锁；本题根因是“消息重放风暴+幂等键规则错误导致重复写入保护触发”，依赖链围绕“事件流水写入→库存汇总→对账/结算同步（不可信停止）”。并强调评估“重复风险”和“防重放措施”，加入重放相关干扰噪声（归档日志成功）。",
+          "service_and_tool_plan": "使用原工具链：scheduler_list_jobs/scheduler_get_job 找到“消费者A/B、对账同步”相关失败任务及依赖；config_list_integrations/config_get_integration 定位消息队列/幂等键/重放控制配置（如幂等键字段、重放窗口、重复保护阈值）；inventory_list_products/inventory_get_product 用于查看 partial/error 状态与异常 last_sync；helpdesk_* 用于区分重复风险与链路中断导致的工单归因；kb_search/kb_get_article 找到“幂等键修复/重放风暴恢复/防重放”KB并引用具体操作步骤。",
+          "fixture_generation_plan": "生成新 fixtures。\n1）config/integrations.json：至少4条。\n- “库存变更流水写入”相关集成 active，但 notes 指出幂等键使用了重放会变化的字段，导致幂等锁失效，error_rate 高；\n- “修复后的幂等键规则”集成 inactive；\n- “对账同步”集成 active 正常但会在不可信时拒绝；\n- “日志归档”集成 active 正常（用于干扰）。\n2）scheduler/jobs.json：至少7条。\n- JOB-R1（事件消费者A：写入库存流水）失败，错误描述含“Idempotency mismatch/duplicate protection”；\n- JOB-R2（事件消费者B：库存汇总）依赖 JOB-R1，因流水缺失/未完成失败；\n- JOB-R3（对账/结算同步）依赖 JOB-R2，因数据不可信停止执行；\n- 额外加入 JOB-R4（日志归档）成功；\n- 额外加入 JOB-R5（其他消费者）成功或失败但与主链无依赖。\n3）inventory/items.json：至少10个产品。\n- 至少3个 products sync_status=partial 或 error，notes 提示出现重复尝试或回滚迹象；\n- 至少2个 products sync_status=stale 但 quantity 偏差明显；\n- 其余 ok。\n4）helpdesk/tickets.json：5条。\n- 2条 category 为“库存错乱/回滚”；\n- 1条 category 为“对账同步未完成”；\n- 1条 category 为“订单状态异常/重复下单风险”（要在描述中提到与库存流水或对账缺失有关）；\n- 1条硬件无关。\n5）kb/articles.json：至少2篇。\n- KB-R1：幂等键规则设计原则与重放恢复（如何修复幂等键字段并验证）；\n- KB-R2：消息重放风暴后的停放/限流/清理与防再次重放步骤（包括重放窗口、死信队列处理、监控指标）。",
+          "expected_behavior": "agent 应：\n1）依 scheduler 找到主链 JOB-R1→JOB-R2→JOB-R3，并读取失败信息强调“幂等锁失效/重复保护触发”而非端点不可用。\n2）config 中定位幂等键规则错误的集成配置，并提出切换到修复后的规则集（或启用修复集成）以及如何验证幂等命中。\n3）inventory 中识别哪些产品处于 partial/error，解释“汇总依赖流水，流水写入失败导致汇总缺失/不可信”。\n4）helpdesk 中关联工单：库存错乱/回滚归到 JOB-R1 重放重复风险；对账未完成归到 JOB-R3 停止执行；订单状态异常归因于对账/汇总缺失；排除硬件工单。\n5）引用 KB-R1/R2：给出恢复步骤顺序（停放/限流重放→修幂等键→重跑流水写入→重算汇总→恢复对账→监控防重放指标）。\n6）不提前关闭工单；如需要更新工单，建议先标注“处理中/需等待重放停止后验证”。",
+          "grading_plan": "检查：\n- 根因是否正确落在“幂等键规则错误导致重复写入保护/幂等锁失效”；\n- 依赖链分析是否覆盖 JOB-R1→JOB-R2→JOB-R3，并说明不可信停止逻辑；\n- inventory 影响是否识别 partial/error 与重复尝试/回滚风险；\n- 工单关联是否准确覆盖4条相关并区分不同归因类型，排除1条无关硬件工单；\n- 恢复方案是否引用KB-R1/R2并包含防重放（停放/限流/死信/监控）的具体可执行措施。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T161zh_automation_failure_recovery_plus_5",
+          "new_task_name": "跨系统缺字段导致映射失败恢复",
+          "task_goal": "当系统在字段映射/数据契约发生变更后，多个自动化任务连锁失败，需要排查依赖链、定位到配置或映射规则缺字段错误，评估库存更新与异常产品影响，关联工单并用知识库提供修复与回退方案。",
+          "user_request": "请你处理一次数据契约变更后的连锁故障：多项自动化任务连续失败，用户提交了与库存更新和价格展示相关的工单。请按步骤：1）检查失败定时任务及其依赖关系；2）查看API集成/映射配置找出根因（字段缺失/契约不兼容）；3）评估库存与商品数据是否存在部分更新或回滚风险；4）关联相关工单并给出对应故障链条；5）在知识库搜索找到匹配的恢复指南并引用；6）输出故障分析与恢复计划，包含如何修复映射并验证恢复。",
+          "scenario": "世界状态：外部上游系统对“产品主数据”契约变更：新增/重命名字段导致映射规则仍依赖旧字段。上游拉取任务仍能返回成功HTTP，但解析阶段缺少关键字段，导致库存写入失败；下游触发任务因库存更新失败而无法生成补货或价格变更记录。干扰：有一条“无关订单同步”任务也失败，但其错误是超时且与解析链路无依赖关系。库存表现为：某些产品 sync_status=stale，另一些产品 quantity 看似更新但伴随 last_sync 变化异常，存在部分写入风险。工单4条：2条提到价格/主数据更新缺失，1条提到补货未触发，1条是硬件无关。",
+          "difference_from_source": "原题聚焦于API端点迁移与集成启用；本题聚焦“字段映射/数据契约变更导致解析缺字段”，并要求输出“修复映射规则+验证恢复”的具体操作，同时处理“成功HTTP但解析失败”的反直觉点，以及“部分写入风险”的评估。",
+          "service_and_tool_plan": "仍使用 scheduler/config/inventory/helpdesk/kb：scheduler_get_job 提取失败阶段错误信息（缺字段/解析失败）；config_get_integration 用于定位映射规则或模板版本（旧字段名/字段映射缺失）；inventory_* 用于辨识部分更新风险（sync_status 的组合与 last_sync 异常）；helpdesk_* 做因果关联与排除；kb_search/kb_get_article 用于引用“契约变更字段映射修复/回退策略/验证方法”。",
+          "fixture_generation_plan": "生成新 fixtures。\n1）config/integrations.json：至少4条。\n- “产品主数据拉取到库存写入”的集成 active，但映射模板引用旧字段名，notes 提示上游契约已变更（如字段rename）；error_rate 高或解析失败计数高；\n- “更新后的映射模板版本”集成 inactive（或在灰度未启用）；\n- “补货触发依赖库存状态服务”active；\n- “订单同步服务”active 但与主链无关（失败原因在 scheduler fixtures体现）。\n2）scheduler/jobs.json：至少7条。\n- JOB-F1（主数据解析/拉取）最后状态 failed，错误含“Missing required field: xxx”；它可能HTTP成功但解析失败；\n- JOB-F2（库存写入/更新）依赖 JOB-F1，失败原因基于解析失败；\n- JOB-F3（补货触发/价格变更记录生成）依赖 JOB-F2，失败原因基于库存更新未完成/缺记录；\n- JOB-F4（订单同步）失败但无依赖到 JOB-F1~F3，用于干扰。\n3）inventory/items.json：至少9个产品。\n- 至少3个 sync_status=stale，notes 提示“主数据契约变更后未完成写入”；\n- 至少2个产品 sync_status=partial 或 ok 但 last_sync 时间异常（用于部分写入风险）；\n- 其余 ok。\n4）helpdesk/tickets.json：4条 open。\n- 2条 category 为“主数据/价格更新缺失”，描述缺少某类字段或展示异常；\n- 1条 category 为“补货未触发”，并提到与库存数据不完整相关；\n- 1条硬件无关。\n5）kb/articles.json：至少2篇。\n- KB-F1：外部数据契约变更后的字段映射更新指南（包括字段rename/新增字段处理）；\n- KB-F2：解析失败后的回退与验证流程（先切换映射模板→重跑解析与写入→核对关键字段→再触发下游补货/价格更新）。",
+          "expected_behavior": "agent 应：\n1）用 scheduler 定位 JOB-F1→JOB-F2→JOB-F3 依赖链，并指出“上游HTTP成功但解析缺字段导致失败”的关键；\n2）config 中确认映射模板仍引用旧字段名/缺少关键字段，并建议切换到已就绪的新映射模板（灰度/激活）；\n3）inventory 识别哪些产品 stale/partial，解释部分写入风险可能导致补货触发逻辑跳过；\n4）helpdesk 关联：主数据/价格缺失工单对应 JOB-F1/JOB-F2，补货未触发对应 JOB-F3；排除硬件工单；\n5）kb_search 找到 KB-F1/F2 并引用：修复映射→重跑解析/写入→核对关键字段→再重启/触发下游任务；给出可验证的检查点（如字段出现率、错误率、关键产品 last_sync 是否刷新）；\n6）输出结构化恢复计划与验证清单。排查阶段不关闭工单。",
+          "grading_plan": "检查：\n- 是否准确捕捉“解析缺字段”而非误判为端点不可用；\n- 依赖链完整性（JOB-F1→JOB-F2→JOB-F3）与失败原因对应是否匹配；\n- inventory 评估是否考虑 stale/partial 组合并解释部分写入风险对补货/价格的影响；\n- 工单关联是否覆盖2+1条相关并排除1条无关硬件工单；\n- 恢复方案是否引用KB-F1/F2并包含映射修复、重跑与验证步骤（至少列出关键检查点）。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:34:47",
+    "items": [
+      {
+        "task_id": "T161zh_automation_failure_recovery_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:31:17",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T161zh_automation_failure_recovery_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T161zh_automation_failure_recovery_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:32:15",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T161zh_automation_failure_recovery_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T161zh_automation_failure_recovery_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:32:57",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T161zh_automation_failure_recovery_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T161zh_automation_failure_recovery_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:33:55",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T161zh_automation_failure_recovery_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T161zh_automation_failure_recovery_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:34:47",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/T161zh_automation_failure_recovery_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T161zh_automation_failure_recovery_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T161zh_automation_failure_recovery/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T161zh_automation_failure_recovery",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

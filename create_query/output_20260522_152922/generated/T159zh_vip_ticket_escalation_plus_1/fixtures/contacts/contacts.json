@@ -1,0 +1,57 @@
+[
+  {
+    "contact_id": "CT-2301",
+    "name": "陈屹",
+    "department": "技术平台部",
+    "title": "平台架构负责人",
+    "email": "chenyi@company.com",
+    "phone": "13900323001",
+    "location": "深圳总部",
+    "specialization": "支付链路架构/中间件",
+    "notes": "负责支付回调链路、消息/重试机制与中间件架构的应急处置与升级执行，偏架构/平台。"
+  },
+  {
+    "contact_id": "CT-2302",
+    "name": "周澄",
+    "department": "客户成功部",
+    "title": "VIP客户成功对接人",
+    "email": "zhouchen@company.com",
+    "phone": "13900323002",
+    "location": "深圳总部",
+    "specialization": "VIP对接与升级沟通",
+    "notes": "负责VIP客户运营对接、信息同步与升级沟通落地。"
+  },
+  {
+    "contact_id": "CT-2303",
+    "name": "郑远",
+    "department": "技术管理办公室",
+    "title": "技术总监（升级接收点）",
+    "email": "zhengyuan@company.com",
+    "phone": "13900323003",
+    "location": "上海总部",
+    "specialization": "P0/P1跨团队升级管理",
+    "notes": "P0关键链路升级接收人，负责跨团队调度与升级决策。"
+  },
+  {
+    "contact_id": "CT-2304",
+    "name": "林乔",
+    "department": "运维与可靠性",
+    "title": "SRE工程师",
+    "email": "linqiao@company.com",
+    "phone": "13900323004",
+    "location": "北京分部",
+    "specialization": "可靠性/限流/熔断",
+    "notes": "负责应急过程中的限流、熔断、回滚与观测指标处置。"
+  },
+  {
+    "contact_id": "CT-2305",
+    "name": "许然",
+    "department": "技术平台部",
+    "title": "中间件负责人",
+    "email": "xuran@company.com",
+    "phone": "13900323005",
+    "location": "杭州分部",
+    "specialization": "队列/重试/幂等",
+    "notes": "负责回调重试风暴相关的队列策略、幂等与重试退避配置。"
+  }
+]

@@ -1,0 +1,234 @@
+[
+  {
+    "ticket_id": "HD-4101",
+    "title": "PRJ-77A 供应商A争议退款沟通",
+    "description": "项目 PRJ-77A：供应商A对争议退款提出升级，涉及“是否包含合同内”的口径。客户口径要求书面确认赔付边界。",
+    "customer_id": "CUST-201",
+    "reporter": "客服分派",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-04T08:40:00Z",
+    "tags": [
+      "PRJ-77A",
+      "争议退款",
+      "供应商A"
+    ]
+  },
+  {
+    "ticket_id": "HD-4102",
+    "title": "PRJ-77A 供应商B争议退款协同",
+    "description": "项目 PRJ-77A：供应商B提出的退款升级与合同覆盖争议，需要与法务共同核对条款。",
+    "customer_id": "CUST-201",
+    "reporter": "协同台",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-04T08:55:00Z",
+    "tags": [
+      "PRJ-77A",
+      "供应商B"
+    ]
+  },
+  {
+    "ticket_id": "HD-4103",
+    "title": "PRJ-77A 我方内部争议退款复盘",
+    "description": "项目 PRJ-77A：我方内部流程引发的争议退款，需要复盘责任归属与沟通记录。",
+    "customer_id": "CUST-201",
+    "reporter": "内部运营",
+    "department": "内部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-04T09:10:00Z",
+    "tags": [
+      "PRJ-77A",
+      "我方"
+    ]
+  },
+  {
+    "ticket_id": "HD-4201",
+    "title": "PRJ-88B 供应商B 争议退款（法务协同）",
+    "description": "项目 PRJ-88B：争议发生方为供应商B，客户要求退款/赔付升级并涉及外部法务接管情形的沟通准备。",
+    "customer_id": "CUST-202",
+    "reporter": "客服分派",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-04T09:30:00Z",
+    "tags": [
+      "PRJ-88B",
+      "供应商B",
+      "争议退款"
+    ]
+  },
+  {
+    "ticket_id": "HD-4202",
+    "title": "PRJ-88B 供应商A 争议退款协查",
+    "description": "项目 PRJ-88B：争议发生方为供应商A，合同边界需核对，暂未涉及法务接管。",
+    "customer_id": "CUST-202",
+    "reporter": "协同台",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-04T09:45:00Z",
+    "tags": [
+      "PRJ-88B",
+      "供应商A"
+    ]
+  },
+  {
+    "ticket_id": "HD-4203",
+    "title": "PRJ-88B 我方 争议退款内部处理",
+    "description": "项目 PRJ-88B：争议发生方为我方，要求内部处理与客户沟通同步。",
+    "customer_id": "CUST-202",
+    "reporter": "内部运营",
+    "department": "内部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-04T10:00:00Z",
+    "tags": [
+      "PRJ-88B",
+      "我方"
+    ]
+  },
+  {
+    "ticket_id": "HD-4301",
+    "title": "PRJ-91C 我方争议退款升级-预算评估",
+    "description": "项目 PRJ-91C：争议发生方为我方。客户要求退款升级，需评估预算边界并推动上级审批（如超预算）。",
+    "customer_id": "CUST-204",
+    "reporter": "客服分派",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-04T10:15:00Z",
+    "tags": [
+      "PRJ-91C",
+      "我方",
+      "争议退款"
+    ]
+  },
+  {
+    "ticket_id": "HD-4302",
+    "title": "PRJ-91C 供应商A争议退款对账",
+    "description": "项目 PRJ-91C：供应商A提出退款升级，重点对账与合同条款边界。",
+    "customer_id": "CUST-204",
+    "reporter": "协同台",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-04T10:30:00Z",
+    "tags": [
+      "PRJ-91C",
+      "供应商A"
+    ]
+  },
+  {
+    "ticket_id": "HD-4303",
+    "title": "PRJ-91C 供应商B争议退款核验",
+    "description": "项目 PRJ-91C：供应商B争议退款升级，需核验证据与历史处理记录。",
+    "customer_id": "CUST-204",
+    "reporter": "客服分派",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-04T10:45:00Z",
+    "tags": [
+      "PRJ-91C",
+      "供应商B"
+    ]
+  },
+  {
+    "ticket_id": "HD-4401",
+    "title": "PRJ-99D 供应商B争议退款（临时）",
+    "description": "项目 PRJ-99D：仅根据项目代码记录的临时工单；争议发生方为供应商B。客户编号待补齐。",
+    "customer_id": "CUST-207",
+    "reporter": "客服分派",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-04T11:10:00Z",
+    "tags": [
+      "PRJ-99D",
+      "供应商B"
+    ]
+  },
+  {
+    "ticket_id": "HD-4402",
+    "title": "PRJ-99D 供应商A争议退款（临时）",
+    "description": "项目 PRJ-99D：临时工单，争议发生方为供应商A，待客户编号校验。",
+    "customer_id": "CUST-207",
+    "reporter": "协同台",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-04T11:25:00Z",
+    "tags": [
+      "PRJ-99D",
+      "供应商A"
+    ]
+  },
+  {
+    "ticket_id": "HD-4403",
+    "title": "PRJ-99D 我方争议退款（临时）",
+    "description": "项目 PRJ-99D：临时工单，争议发生方为我方，待补充客户信息。",
+    "customer_id": "CUST-207",
+    "reporter": "内部运营",
+    "department": "内部",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-04T11:40:00Z",
+    "tags": [
+      "PRJ-99D",
+      "我方"
+    ]
+  },
+  {
+    "ticket_id": "HD-4501",
+    "title": "PRJ-88B 供应商B 争议退款-流失客户补遗",
+    "description": "项目 PRJ-88B：为churned客户补遗而创建的工单，争议发生方为供应商B，预计涉及法务处理。",
+    "customer_id": "CUST-206",
+    "reporter": "客服分派",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-04T12:00:00Z",
+    "tags": [
+      "PRJ-88B",
+      "供应商B",
+      "争议退款",
+      "补遗"
+    ]
+  },
+  {
+    "ticket_id": "HD-4502",
+    "title": "PRJ-88B 供应商A 争议退款-流失客户补遗",
+    "description": "项目 PRJ-88B：流失客户补遗工单，争议发生方为供应商A。",
+    "customer_id": "CUST-206",
+    "reporter": "协同台",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-04T12:15:00Z",
+    "tags": [
+      "PRJ-88B",
+      "供应商A",
+      "补遗"
+    ]
+  },
+  {
+    "ticket_id": "HD-4503",
+    "title": "PRJ-88B 我方 争议退款-流失客户补遗",
+    "description": "项目 PRJ-88B：流失客户补遗工单，争议发生方为我方。",
+    "customer_id": "CUST-206",
+    "reporter": "内部运营",
+    "department": "内部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-04T12:30:00Z",
+    "tags": [
+      "PRJ-88B",
+      "我方",
+      "补遗"
+    ]
+  }
+]

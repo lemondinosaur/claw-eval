@@ -1,0 +1,53 @@
+[
+  {
+    "message_id": "msg_2117",
+    "from": "renewals-ops@acme-logistics.cn",
+    "to": "me@ourcompany.com",
+    "subject": "试用后续费卡点：导入成本高&看不到7天收益",
+    "date": "2026-04-10T10:15:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "cs"
+    ],
+    "body": "我们这周评估了贵司SaaS的试用方案，但在导入阶段卡住了：\n1）数据源太多（ERP+Excel+历史报表），需要IT同学反复清洗；\n2）我们希望在7天内看到可量化收益（比如节省工时、提升可视化），否则内部很难推动续费；\n3）团队里只有一位业务负责人能主导，但他没有数据建模经验。\n\n为推进续费，我司希望你们提供：\n- 明确的“导入到第一个价值”的步骤清单（按天/按角色）；\n- 一份可拿去内部复用的7天价值报告模板（我们可替换字段）；\n- 以及在卡点时的应急方案（例如当导入延迟时如何保持项目动能）。"
+  },
+  {
+    "message_id": "msg_2118",
+    "from": "customer-success@northwind-retail.com",
+    "to": "me@ourcompany.com",
+    "subject": "客户画像确认：门店连锁试用团队只看结果不看配置",
+    "date": "2026-04-11T16:40:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "你好，我们确认这类客户在试用阶段的画像大致如下：\n- 组织：区域运营负责人主导，IT资源有限；\n- 痛点：配置门槛高、看不到短期ROI；\n- 触发点：当第3天仍未得到“第一张经营看板”时，项目就会被降级；\n- 决策方式：更关注交付节奏与里程碑，而不是功能清单。\n\n同时我们希望竞品对比材料能用“我们能否复制他们的激活节奏”来表达，而不是只写产品差异。"
+  },
+  {
+    "message_id": "msg_2119",
+    "from": "newsletter@ourindustry.com",
+    "to": "me@company.com",
+    "subject": "本月客户成功学院：上手陪跑与里程碑管理指南",
+    "date": "2026-04-12T09:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox",
+      "newsletter"
+    ],
+    "body": "欢迎参加本月客户成功学院直播，我们将分享上手陪跑、里程碑管理与续费推进的通用方法。内容包含模板化路线图与内部汇报话术示例。"
+  },
+  {
+    "message_id": "msg_2120",
+    "from": "partner-updates@channelgrid.io",
+    "to": "me@company.com",
+    "subject": "合作伙伴活动通知：联动培训与案例分享会（仅供参考）",
+    "date": "2026-04-12T14:25:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox",
+      "event"
+    ],
+    "body": "我们将于下周举办联动培训与案例分享会，邀请渠道伙伴展示如何通过上手营快速完成业务场景验证。"
+  }
+]

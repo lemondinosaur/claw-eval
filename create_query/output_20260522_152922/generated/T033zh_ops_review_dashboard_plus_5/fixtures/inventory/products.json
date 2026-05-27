@@ -1,0 +1,71 @@
+[
+  {
+    "product_id": "PRD-501",
+    "name": "交付配件-快装接头K2",
+    "category": "交付配件",
+    "current_stock": 14,
+    "min_stock": 40,
+    "status": "low_stock",
+    "return_rate": 0.6,
+    "return_count": 2,
+    "units_sold_this_month": 88,
+    "supplier": "盛达材料",
+    "last_restock_date": "2026-02-06",
+    "sku_alias": "K2-FITTING",
+    "notes": "低于安全线。更可能是局部批次的并行发货被延迟的次要因素；需结合调度失败与通知缺口时间线判断主因。"
+  },
+  {
+    "product_id": "PRD-502",
+    "name": "交付物料-打包缓冲泡M",
+    "category": "交付物料",
+    "current_stock": 220,
+    "min_stock": 80,
+    "status": "normal",
+    "return_rate": 0.2,
+    "return_count": 1,
+    "units_sold_this_month": 310,
+    "supplier": "恒泰包装",
+    "last_restock_date": "2026-02-20"
+  },
+  {
+    "product_id": "PRD-503",
+    "name": "交付配件-封签条带S8",
+    "category": "交付配件",
+    "current_stock": 58,
+    "min_stock": 60,
+    "status": "low_stock",
+    "return_rate": 0.3,
+    "return_count": 1,
+    "units_sold_this_month": 145,
+    "supplier": "信合工业品",
+    "last_restock_date": "2026-02-13",
+    "sku_alias": "S8-SEAL",
+    "notes": "接近安全线偏低但规模不大；与本周VIP续约风险的核心时间窗是否一致需核对。"
+  },
+  {
+    "product_id": "PRD-504",
+    "name": "交付耗材-胶带封箱G7",
+    "category": "交付物料",
+    "current_stock": 430,
+    "min_stock": 120,
+    "status": "normal",
+    "return_rate": 0.1,
+    "return_count": 0,
+    "units_sold_this_month": 520,
+    "supplier": "顺达耗材",
+    "last_restock_date": "2026-02-22"
+  },
+  {
+    "product_id": "PRD-505",
+    "name": "交付配件-标识贴A9",
+    "category": "交付配件",
+    "current_stock": 95,
+    "min_stock": 30,
+    "status": "normal",
+    "return_rate": 0.0,
+    "return_count": 0,
+    "units_sold_this_month": 160,
+    "supplier": "铭德标识",
+    "last_restock_date": "2026-02-28"
+  }
+]

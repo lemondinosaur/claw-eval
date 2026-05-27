@@ -1,0 +1,299 @@
+{
+  "task_id": "T039zh_onboarding_coordinator_plus_3",
+  "task_name": "跨时段培训：按员工可参加性分组安排",
+  "prompt_text": "系统当前日期为2026-03-05。请你对“下周五”入职当天的5位新员工完成分组培训与入职协调：\n1) 从HR邮件读取5位员工的姓名、部门、岗位（如有）以及可参加时段（上午/下午/均可），并以同一入职日期创建一个或多个不冲突的培训事件；\n2) 从IT设备库存更新邮件读取库存状态，重点处理“人体工学椅”处于low_stock的情况：仅紧张不等于缺货，但需要按知识库规则准备“紧张→替代型号登记与跟进”的方案；\n3) 从知识库确认入职培训组织方式（可按可参加性分为上午组/下午组）以及设备申请/账号准备的步骤与登记说明；\n4) 在通讯录中检索各部门经理（处理同名干扰：用部门字段区分），并确保供应链/仓配协同部门无经理记录时不发送邮件而仅保存草稿；\n5) 检查日历中“当日”已有会议碎片时段，选择不与现有事件重叠的上午/下午培训窗口；\n6) 为有经理的部门发送按组别内容的通知；无经理部门仅保存草稿；\n7) 最后创建待办事项：至少包含“培训签到提醒/账号准备/设备申请跟进”，并额外创建与“人体工学椅低库存替代确认”相关的待办；\n8) 输出总结：按部门与组别列出5位员工的培训安排、冲突检查与调整结果、设备库存状态（含low_stock紧张与替代方案）以及待办清单摘要。\n\n要求：所有培训事件的时间与当日既有会议不重叠，并覆盖上午组与下午组（至少各1个事件）。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_701",
+        "title": "晨会例行（Ops）",
+        "organizer": "opslead@company.com",
+        "attendees": [
+          "opslead@company.com"
+        ],
+        "start_time": "2026-03-13T09:00:00+08:00",
+        "end_time": "2026-03-13T09:45:00+08:00",
+        "location": "会议室D",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_702",
+        "title": "客户现场回顾",
+        "organizer": "pm_jing@company.com",
+        "attendees": [
+          "pm_jing@company.com",
+          "all@company.com"
+        ],
+        "start_time": "2026-03-13T10:00:00+08:00",
+        "end_time": "2026-03-13T10:50:00+08:00",
+        "location": "线上会议",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_703",
+        "title": "安全专项审查（预留）",
+        "organizer": "security_lead@company.com",
+        "attendees": [
+          "security_lead@company.com"
+        ],
+        "start_time": "2026-03-13T11:00:00+08:00",
+        "end_time": "2026-03-13T12:00:00+08:00",
+        "location": "会议室E",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_704",
+        "title": "市场内容评审",
+        "organizer": "mkt_content@company.com",
+        "attendees": [
+          "mkt_content@company.com"
+        ],
+        "start_time": "2026-03-13T13:00:00+08:00",
+        "end_time": "2026-03-13T13:40:00+08:00",
+        "location": "会议室A",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_705",
+        "title": "供应链对齐会（仓配协同）",
+        "organizer": "supply_sync@company.com",
+        "attendees": [
+          "supply_sync@company.com"
+        ],
+        "start_time": "2026-03-13T14:30:00+08:00",
+        "end_time": "2026-03-13T15:15:00+08:00",
+        "location": "会议室C",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-801",
+        "name": "周沐",
+        "department": "研发部",
+        "title": "研发部经理",
+        "email": "zhoumu_rd@company.com",
+        "phone": "13900001011"
+      },
+      {
+        "contact_id": "CT-802",
+        "name": "周沐",
+        "department": "产品部",
+        "title": "产品部负责人",
+        "email": "zhoumu_pm@company.com",
+        "phone": "13900001012"
+      },
+      {
+        "contact_id": "CT-803",
+        "name": "赵岚",
+        "department": "增长与运营部",
+        "title": "增长运营经理",
+        "email": "zhaolan_growth@company.com",
+        "phone": "13900001013"
+      },
+      {
+        "contact_id": "CT-804",
+        "name": "沈柠",
+        "department": "市场与内容部",
+        "title": "市场内容经理",
+        "email": "shennin_mkt@company.com",
+        "phone": "13900001014"
+      },
+      {
+        "contact_id": "CT-805",
+        "name": "韩澈",
+        "department": "市场与内容部",
+        "title": "内容运营主管",
+        "email": "hance_mktcontent@company.com",
+        "phone": "13900001015",
+        "notes": "同名干扰示例：同一姓名在其他部门可能出现多条记录"
+      },
+      {
+        "contact_id": "CT-806",
+        "name": "吴琛",
+        "department": "平台工程部",
+        "title": "平台工程经理",
+        "email": "wuchen_platform@company.com",
+        "phone": "13900001016"
+      },
+      {
+        "contact_id": "CT-807",
+        "name": "许澄",
+        "department": "供应链与仓配协同部",
+        "title": "",
+        "email": "xucheng_supply@company.com",
+        "phone": "13900001017",
+        "notes": "该部门在系统里不记录部门经理；本条作为潜在联系人但不应被当作经理。"
+      },
+      {
+        "contact_id": "CT-808",
+        "name": "林川",
+        "department": "IT服务部",
+        "title": "IT服务经理",
+        "email": "lincuan_it@company.com",
+        "phone": "13900001018"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_8011",
+        "from": "hr_ops@company.com",
+        "to": "user@company.com",
+        "subject": "下周五新员工入职分组协调（5位）",
+        "body": "你好团队，\n\n请协助下周五（3月13日）5位新员工的入职与培训通知安排。可参加时段如下：\n\nA部门【顾晨】（研发部/Front-end）：仅上午可参加\n- 需求：开发用笔记本、工位安排、GitLab账号\n\nB部门【曹薇】（增长与运营部/运营分析）：仅下午可参加\n- 部门经理通知时请写清：下午组参加\n- 需求：办公电脑 + 额外USB扩展外设（需设备申请/备案）\n\nC部门【邱卓】（市场与内容部/内容策划）：仅上午可参加\n- 部门经理：通讯录中同名两条，务必用“市场与内容部”字段区分\n\nC部门【林雯】（市场与内容部/视频编辑）：仅下午可参加\n- 同样注意同名干扰（用部门字段区分）\n\nD部门【白航】（供应链与仓配协同部/仓配协同）：可参加性均可（上午或下午都行）\n- 该部门在通讯录中没有部门经理记录：入职通知只保存草稿不发送\n\n每位员工需：\n1) 创建对应分组的入职培训日历事件（不与当日冲突重叠）\n2) 生成账号与设备准备待办\n3) 发送/保存给部门经理的分组通知\n\n谢谢！\nHR Ops",
+        "date": "2026-03-05T09:30:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_8012",
+        "from": "it_assets@company.com",
+        "to": "user@company.com",
+        "subject": "IT设备库存更新：人体工学椅紧张（low_stock）与备用型号规则",
+        "body": "各位好，\n\n库存更新如下：\n- 人体工学椅（型号：ERG-CHAIR-A，EQ对应：EQ-210）目前处于low_stock（紧张但未缺货）。\n  规则：当遇到入职高峰或预计使用量超过安全阈值时，需要登记替代型号“ERG-CHAIR-B（EQ-211）”作为临时替换备选，并在任务完成后回填实际型号确认。\n- 外设USB扩展坞（型号：USB-HUB-2，EQ-320）库存正常。\n- 标准显示器（EQ-410）库存正常。\n- 办公电脑将按岗位默认配置。\n\n请按知识库里的low_stock替换与登记说明执行。\n\nIT资产组",
+        "date": "2026-03-05T15:10:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_8013",
+        "from": "marketing-news@company.com",
+        "to": "user@company.com",
+        "subject": "福利周：午后咖啡券上线（不相关）",
+        "body": "恭喜你获得咖啡券！本周五下午可领取。——营销团队\n\n（此邮件与入职协调无关）",
+        "date": "2026-03-05T12:05:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": true
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "EQ-210",
+        "name": "人体工学椅 A（ERG-CHAIR-A）",
+        "category": "办公家具",
+        "current_stock": 4,
+        "status": "low_stock",
+        "unit_price": 699.0,
+        "notes": "紧张：需要根据low_stock规则准备替代型号并登记。"
+      },
+      {
+        "product_id": "EQ-211",
+        "name": "人体工学椅 B（ERG-CHAIR-B）",
+        "category": "办公家具",
+        "current_stock": 9,
+        "status": "normal",
+        "unit_price": 649.0,
+        "notes": "替代备选：作为人体工学椅A紧张时的临时替换型号。"
+      },
+      {
+        "product_id": "EQ-310",
+        "name": "办公笔记本（默认前端/通用）",
+        "category": "办公电脑",
+        "current_stock": 7,
+        "status": "normal",
+        "unit_price": 10999.0,
+        "notes": "配置为默认标准化型号"
+      },
+      {
+        "product_id": "EQ-311",
+        "name": "办公笔记本（增长运营/轻量）",
+        "category": "办公电脑",
+        "current_stock": 6,
+        "status": "normal",
+        "unit_price": 8999.0,
+        "notes": ""
+      },
+      {
+        "product_id": "EQ-320",
+        "name": "USB扩展外设（扩展坞）",
+        "category": "外设",
+        "current_stock": 18,
+        "status": "normal",
+        "unit_price": 189.0,
+        "notes": "用于增长与运营部额外外设需求"
+      },
+      {
+        "product_id": "EQ-410",
+        "name": "标准显示器 24英寸",
+        "category": "外设",
+        "current_stock": 22,
+        "status": "normal",
+        "unit_price": 249.0,
+        "notes": ""
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-901",
+        "title": "入职培训组织方式：按可参加性分组安排",
+        "category": "HR",
+        "tags": [
+          "入职培训",
+          "分组",
+          "日历"
+        ],
+        "content": "# 入职培训组织方式：按可参加性分组安排\n\n当员工的可参加性存在差异（例如部分只能上午、部分只能下午）时：\n1. 将员工按“可参加性”划分为上午组/下午组/可选组。\n2. “仅上午可参加”的员工只纳入上午组；“仅下午可参加”的员工只纳入下午组。\n3. “可参加性均可”的员工可根据日历冲突灵活加入任一组，但需保证其所在组时间不与当日既有事件重叠。\n4. 若当日存在多段会议碎片，需通过“冲突检查→调整培训窗口”生成一个或多个不重叠的培训事件。\n\n通知模板要体现：\n- 上午组/下午组\n- 覆盖员工名单（按部门归类）\n\n无部门经理的部门：\n- 入职通知仅保存草稿，不直接发送。",
+        "last_updated": "2026-02-21",
+        "views": 3120
+      },
+      {
+        "article_id": "KB-902",
+        "title": "设备申请与低库存（low_stock）替代登记流程",
+        "category": "IT",
+        "tags": [
+          "设备申请",
+          "库存",
+          "low_stock",
+          "替代"
+        ],
+        "content": "# 设备申请与低库存（low_stock）替代登记流程\n\n## 设备申请与账号准备（概述）\n1. 入职前3天提交设备申请（若为紧张库存需标注替代备选）。\n2. 创建系统账号待办，并在入职当天按流程完成开通。\n3. 设备确认后，回填实际分配型号。\n\n## low_stock紧张但未缺货：替代型号规则\n- low_stock表示紧张：允许继续使用原型号，但需要为潜在不足准备“临时替代型号”。\n- 流程：\n  1) 在待办/登记中标记“预计紧张”与“替代型号”。\n  2) 创建一个后续跟进待办：在入职前再次确认是否仍可满足需求；若不足，切换到替代型号。\n  3) 在任务完成后回填实际分配结果（用于审计与盘点）。\n\n- 登记字段建议：产品名称/产品ID、当前状态（low_stock）、替代型号名称/产品ID、预计替换触发条件（数量超阈/紧张加剧）。",
+        "last_updated": "2026-02-16",
+        "views": 2255
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-801",
+        "title": "整理VPN白名单清单",
+        "description": "汇总新员工可能用到的VPN访问范围并提交安全审批。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-03-10",
+        "tags": [
+          "安全",
+          "IT"
+        ],
+        "created_at": "2026-03-01T09:20:00+08:00"
+      },
+      {
+        "task_id": "TODO-802",
+        "title": "更新门禁访客规则（Q2）",
+        "description": "根据最新门禁政策更新访客登记与临时通行规则。",
+        "status": "in_progress",
+        "priority": "low",
+        "due_date": null,
+        "tags": [
+          "行政"
+        ],
+        "created_at": "2026-02-26T16:45:00+08:00"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原单一培训冲突场景基础上，本题改为按员工可参加性将5人分为上午组/下午组并选择不冲突窗口，同时加入人体工学椅low_stock紧张替代登记与跟进，且包含4部门+无经理部门的通知草稿策略。",
+    "fixture_design_summary": [
+      "calendar/events.json 设定2026-03-13在上午与下午均存在会议碎片，用于强制代理调整培训窗口（两组至少各1个不重叠事件）。",
+      "gmail/inbox.json 提供1封HR入职邮件（5名员工、部门与可参加性差异）+1封库存更新邮件（人体工学椅low_stock与备用型号）+1封营销干扰邮件。",
+      "contacts/contacts.json 包含市场与内容部同名干扰的两条记录（同名不同邮箱且可通过部门字段区分），并设置供应链与仓配协同部没有部门经理可发送。",
+      "inventory/products.json 中人体工学椅A为low_stock且给出替代型号B，用于知识库规则触发“紧张→替代确认”的待办创建。",
+      "kb/articles.json 提供分组培训组织原则与low_stock替代登记/跟进流程，支撑代理生成日历事件与待办。"
+    ]
+  }
+}

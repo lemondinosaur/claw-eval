@@ -1,0 +1,58 @@
+task_id: T093_pinbench_email_triage_report_plus_1
+task_name: Oncall Queue Relief
+version: '1.0'
+category: organization
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T093_pinbench_email_triage_report_plus_1/fixtures/gmail/inbox.json
+prompt:
+  text: '请帮我做收件箱分诊报告：使用 Gmail 读取所有新邮件，按业务紧急程度给出 Priority(P0 到 P4)、Category、Recommended
+    action（仅给建议/安排，不要发送任何邮件）。最后输出顶部简短摘要（点出最紧急的生产/告警相关邮件）以及面向当天的一步步处理计划，并确保将营销/订阅类邮件降优先级或建议归档。
+
+
+    当日运维队列积压的重点是：包含“生产写入失败（影响订单处理）”以及“库存一致性回滚告警”这组组合；同时存在一些看似告警但实际上不是生产告警的干扰项。还会收到关键合作方的合同变更需要尽快评审。输出中要明确区分生产相关与非生产告警，且“2小时内确认”但与生产无关的内容要降优先级。'
+  language: en
+tools:
+- name: gmail_list_messages
+  description: List inbox messages
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        default: 30
+      max_results:
+        type: integer
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: Get one message
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+    required:
+    - message_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 18

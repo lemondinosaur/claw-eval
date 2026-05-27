@@ -1,0 +1,71 @@
+task_id: T094_pinbench_project_alpha_summary_plus_3
+task_name: Alpha Vendor Contract & Delivery Outlook
+version: '1.0'
+category: synthesis
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T094_pinbench_project_alpha_summary_plus_3/fixtures/gmail/inbox.json
+prompt:
+  text: 'Search the Gmail inbox for all emails related to Project Alpha (including
+    vendor, procurement, contract, legal, SLA, milestones). Ignore unrelated noise.
+
+
+    Produce a structured, English summary with these sections:
+
+    1) Project Overview
+
+    2) Vendor Delivery Timeline (milestones + any delays, with original vs updated
+    dates and reasons)
+
+    3) Contract / Procurement Terms & Risks (must cover SLA changes, payment milestone
+    alignment conflicts, and required revision/mitigation actions)
+
+    4) Impact on Internal Teams and on Client Delivery (two perspectives)
+
+    5) Current Status and Next Steps (reflect the latest messages; mention whether
+    the contract is pending and whether contingency/temporary patch options exist)'
+  language: en
+tools:
+- name: gmail_list_messages
+  description: List inbox messages
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        default: 60
+      max_results:
+        type: integer
+        default: 30
+    required: []
+- name: gmail_get_message
+  description: Get one message
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+    required:
+    - message_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

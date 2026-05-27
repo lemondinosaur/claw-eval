@@ -1,0 +1,451 @@
+{
+  "task_id": "T137zh_restock_chain_check_plus_3",
+  "task_name": "禁用任务导致的库存断档",
+  "prompt_text": "补货系统近期出现疑似断档。请你做链路排查报告：\n1）列出所有补货定时任务，筛查出 enabled=false 或 last_status 异常的任务；\n2）对所有异常任务逐个获取详情，确认它们是执行失败还是仅被禁用；\n3）检查对应API集成是否 inactive/凭证过期/高错误率；\n4）查看库存，找出哪些产品低于安全线，并判断这些低库存是否与上述任务链路一致；\n5）输出两条“真实故障链”（任务→集成→低库存）以及一条“表面告警但并未形成故障链”的解释（说明为什么不计入真实链）。\n要求：真实故障链要能由数据支撑（任务状态/失败原因 + 集成状态 + 至少2个低于安全线的产品之间的一致性）。第三条干扰需要基于库存与集成/覆盖情况给出排除理由。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-910",
+        "name": "家居灯具供应商API",
+        "status": "active",
+        "endpoint": "https://api.lighting-merchant.com/v3",
+        "api_key": "sk-light-910-NEW",
+        "error_rate": 0.02,
+        "credentials_expired": false,
+        "notes": "稳定可用",
+        "service": "supplier_api",
+        "last_verified": "2026-04-10T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-911",
+        "name": "厨房电器供应商API",
+        "status": "inactive",
+        "endpoint": "https://api.kitchen-appliance.com/v1",
+        "api_key": "sk-kitchen-911-OLD",
+        "error_rate": 0.0,
+        "credentials_expired": false,
+        "notes": "供应商侧停用，当前无法对接",
+        "service": "supplier_api",
+        "last_verified": "2026-03-12T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-912",
+        "name": "运动器材供应商API",
+        "status": "active",
+        "endpoint": "https://api.sports-goods.io/v2",
+        "api_key": "sk-sports-912-OK",
+        "error_rate": 0.07,
+        "credentials_expired": false,
+        "notes": "响应正常，偶发波动",
+        "service": "supplier_api",
+        "last_verified": "2026-04-10T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-913",
+        "name": "宠物用品供应商API",
+        "status": "active",
+        "endpoint": "https://api.pet-supplies.market/v2",
+        "api_key": "sk-pet-913-OK",
+        "error_rate": 0.03,
+        "credentials_expired": false,
+        "notes": "稳定可用",
+        "service": "supplier_api",
+        "last_verified": "2026-04-02T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-914",
+        "name": "办公文具供应商API",
+        "status": "active",
+        "endpoint": "https://api.office-stationery.com/v1",
+        "api_key": "sk-office-914-OK",
+        "error_rate": 0.12,
+        "credentials_expired": false,
+        "notes": "错误率偏高但仍可部分下单",
+        "service": "supplier_api",
+        "last_verified": "2026-04-10T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-915",
+        "name": "户外露营供应商API",
+        "status": "active",
+        "endpoint": "https://api.camping-outdoor.net/v4",
+        "api_key": "sk-camp-915-EXPIRED",
+        "error_rate": 0.0,
+        "credentials_expired": true,
+        "notes": "凭证已过期",
+        "service": "supplier_api",
+        "last_verified": "2026-02-20T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-916",
+        "name": "家用收纳供应商API",
+        "status": "active",
+        "endpoint": "https://api.storage-organizers.com/v2",
+        "api_key": "sk-storage-916-OK",
+        "error_rate": 0.05,
+        "credentials_expired": false,
+        "notes": "稳定可用",
+        "service": "supplier_api",
+        "last_verified": "2026-04-08T00:00:00Z",
+        "monthly_calls": 0
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "INV-9101",
+        "name": "北欧落地灯 60cm",
+        "category": "灯具",
+        "quantity": 9,
+        "unit": "盏",
+        "reorder_level": 15,
+        "supplier_integration": "INT-910",
+        "last_restock": "2026-03-18"
+      },
+      {
+        "product_id": "INV-9102",
+        "name": "台灯 E27 暖光",
+        "category": "灯具",
+        "quantity": 7,
+        "unit": "盏",
+        "reorder_level": 12,
+        "supplier_integration": "INT-910",
+        "last_restock": "2026-03-19"
+      },
+      {
+        "product_id": "INV-9103",
+        "name": "吸顶灯 12W",
+        "category": "灯具",
+        "quantity": 16,
+        "unit": "盏",
+        "reorder_level": 12,
+        "supplier_integration": "INT-910",
+        "last_restock": "2026-03-25"
+      },
+      {
+        "product_id": "INV-9111",
+        "name": "电热水壶 1.2L",
+        "category": "厨房电器",
+        "quantity": 3,
+        "unit": "台",
+        "reorder_level": 8,
+        "supplier_integration": "INT-911",
+        "last_restock": "2026-03-02"
+      },
+      {
+        "product_id": "INV-9112",
+        "name": "迷你榨汁机 400ml",
+        "category": "厨房电器",
+        "quantity": 4,
+        "unit": "台",
+        "reorder_level": 6,
+        "supplier_integration": "INT-911",
+        "last_restock": "2026-03-03"
+      },
+      {
+        "product_id": "INV-9113",
+        "name": "电饭煲 1.0L",
+        "category": "厨房电器",
+        "quantity": 10,
+        "unit": "台",
+        "reorder_level": 7,
+        "supplier_integration": "INT-911",
+        "last_restock": "2026-03-20"
+      },
+      {
+        "product_id": "INV-9121",
+        "name": "折叠哑铃 20kg",
+        "category": "运动器材",
+        "quantity": 6,
+        "unit": "套",
+        "reorder_level": 5,
+        "supplier_integration": "INT-912",
+        "last_restock": "2026-04-01"
+      },
+      {
+        "product_id": "INV-9131",
+        "name": "猫砂 8L",
+        "category": "宠物用品",
+        "quantity": 18,
+        "unit": "袋",
+        "reorder_level": 20,
+        "supplier_integration": "INT-913",
+        "last_restock": "2026-03-30"
+      },
+      {
+        "product_id": "INV-9141",
+        "name": "A6便签本 100页",
+        "category": "文具",
+        "quantity": 2,
+        "unit": "本",
+        "reorder_level": 9,
+        "supplier_integration": "INT-914",
+        "last_restock": "2026-03-28"
+      },
+      {
+        "product_id": "INV-9142",
+        "name": "中性笔 0.5 黑色",
+        "category": "文具",
+        "quantity": 11,
+        "unit": "支",
+        "reorder_level": 10,
+        "supplier_integration": "INT-914",
+        "last_restock": "2026-03-30"
+      },
+      {
+        "product_id": "INV-9151",
+        "name": "折叠帐篷 2人",
+        "category": "户外露营",
+        "quantity": 1,
+        "unit": "顶",
+        "reorder_level": 4,
+        "supplier_integration": "INT-915",
+        "last_restock": "2026-02-22"
+      },
+      {
+        "product_id": "INV-9161",
+        "name": "桌下收纳抽屉 3层",
+        "category": "家用收纳",
+        "quantity": 5,
+        "unit": "个",
+        "reorder_level": 7,
+        "supplier_integration": "INT-916",
+        "last_restock": "2026-03-25"
+      },
+      {
+        "product_id": "INV-9104",
+        "name": "壁灯 双向 9W",
+        "category": "灯具",
+        "quantity": 6,
+        "unit": "只",
+        "reorder_level": 10,
+        "supplier_integration": "INT-910",
+        "last_restock": "2026-03-16"
+      },
+      {
+        "product_id": "INV-9143",
+        "name": "马克笔套装 12色",
+        "category": "文具",
+        "quantity": 3,
+        "unit": "盒",
+        "reorder_level": 8,
+        "supplier_integration": "INT-914",
+        "last_restock": "2026-03-21"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-91001",
+        "name": "灯具自动补货（落地/台灯）",
+        "cron_expression": "0 9 * * 1-5",
+        "action": "restock_lighting_floor_table",
+        "enabled": false,
+        "last_run": "2026-03-18T09:00:00Z",
+        "next_run": null,
+        "last_status": "success",
+        "created_by": "供应链运营",
+        "tags": [
+          "补货",
+          "灯具"
+        ],
+        "created_at": "2025-11-10T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-03-18T09:00:00Z",
+            "status": "success",
+            "duration_s": 42
+          },
+          {
+            "run_at": "2026-03-11T09:00:00Z",
+            "status": "success",
+            "duration_s": 40
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91002",
+        "name": "厨房电器自动补货（热水壶/榨汁机）",
+        "cron_expression": "0 9 * * 1-5",
+        "action": "restock_kitchen_heater_juicer",
+        "enabled": true,
+        "last_run": "2026-04-10T09:00:00Z",
+        "next_run": "2026-04-13T09:00:00Z",
+        "last_status": "failed",
+        "created_by": "供应链运营",
+        "tags": [
+          "补货",
+          "厨房电器"
+        ],
+        "created_at": "2025-12-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-10T09:00:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "IntegrationInactiveError: kitchen_appliance integration is inactive"
+          },
+          {
+            "run_at": "2026-04-07T09:00:00Z",
+            "status": "failed",
+            "duration_s": 10,
+            "error": "IntegrationInactiveError: kitchen_appliance integration is inactive"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91003",
+        "name": "户外露营自动补货（帐篷）",
+        "cron_expression": "0 10 * * 6",
+        "action": "restock_camping_tent",
+        "enabled": true,
+        "last_run": "2026-04-15T10:00:00Z",
+        "next_run": "2026-04-22T10:00:00Z",
+        "last_status": "failed",
+        "created_by": "供应链运营",
+        "tags": [
+          "补货",
+          "户外露营"
+        ],
+        "created_at": "2025-10-15T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-15T10:00:00Z",
+            "status": "failed",
+            "duration_s": 5,
+            "error": "AuthenticationError: API credentials expired"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91004",
+        "name": "文具自动补货（便签/马克笔）",
+        "cron_expression": "0 8 * * 1-6",
+        "action": "restock_stationery_notes_markers",
+        "enabled": true,
+        "last_run": "2026-04-11T08:00:00Z",
+        "next_run": "2026-04-12T08:00:00Z",
+        "last_status": "success",
+        "created_by": "门店采购",
+        "tags": [
+          "补货",
+          "文具"
+        ],
+        "created_at": "2025-09-20T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-11T08:00:00Z",
+            "status": "success",
+            "duration_s": 22
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91005",
+        "name": "家用收纳自动补货（抽屉收纳）",
+        "cron_expression": "30 9 * * 2-6",
+        "action": "restock_storage_drawers",
+        "enabled": true,
+        "last_run": "2026-04-12T09:30:00Z",
+        "next_run": "2026-04-13T09:30:00Z",
+        "last_status": "success",
+        "created_by": "仓储运维",
+        "tags": [
+          "补货",
+          "家用收纳"
+        ],
+        "created_at": "2025-08-05T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-12T09:30:00Z",
+            "status": "success",
+            "duration_s": 18
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91006",
+        "name": "灯具自动补货（壁灯）",
+        "cron_expression": "0 11 * * 1-3",
+        "action": "restock_lighting_wall",
+        "enabled": false,
+        "last_run": "2026-03-21T11:00:00Z",
+        "next_run": null,
+        "last_status": "failed",
+        "created_by": "供应链运营",
+        "tags": [
+          "补货",
+          "灯具"
+        ],
+        "created_at": "2025-12-15T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-03-21T11:00:00Z",
+            "status": "failed",
+            "duration_s": 7,
+            "error": "DisabledJobError: job is disabled"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91007",
+        "name": "宠物用品自动补货（猫砂）",
+        "cron_expression": "0 8 * * 4",
+        "action": "restock_pet_litter",
+        "enabled": true,
+        "last_run": "2026-04-10T08:00:00Z",
+        "next_run": "2026-04-17T08:00:00Z",
+        "last_status": "success",
+        "created_by": "门店采购",
+        "tags": [
+          "补货",
+          "宠物用品"
+        ],
+        "created_at": "2025-07-12T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-10T08:00:00Z",
+            "status": "success",
+            "duration_s": 20
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91008",
+        "name": "运动器材自动补货（折叠哑铃）",
+        "cron_expression": "0 9 * * 3",
+        "action": "restock_sports_dumbbell",
+        "enabled": true,
+        "last_run": "2026-04-08T09:00:00Z",
+        "next_run": "2026-04-15T09:00:00Z",
+        "last_status": "success",
+        "created_by": "供应链运营",
+        "tags": [
+          "补货",
+          "运动器材"
+        ],
+        "created_at": "2025-06-28T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-08T09:00:00Z",
+            "status": "success",
+            "duration_s": 25
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将故障链重点从“failed任务”扩展到“disabled任务导致的库存断档因果链”，并加入一条disabled但无真实库存破线对应的干扰任务说明。",
+    "fixture_design_summary": [
+      "JOB-91001：enabled=false 且 last_status=success，用于构成真实故障链1；其覆盖“灯具（落地/台灯）”且对应集成 INT-910 为 active，同时多款产品 quantity < reorder_level。",
+      "JOB-91002：enabled=true 但 last_status=failed，error 为 IntegrationInactiveError，对应集成 INT-911 为 inactive，并对应多款“厨房电器”低于安全线。",
+      "JOB-91006：enabled=false 且 last_status=failed，但仅覆盖“壁灯”场景；其对应的低库存灯具（如 INV-9104）与同集成 INT-910 的其它成功/未必覆盖链干扰用于帮助模型识别“表面告警但非故障链”，避免把该链硬凑成第二条真实链。",
+      "加入多条其他成功/失败任务（如文具/收纳/宠物/运动/露营）作为干扰，确保模型能通过“任务→集成状态→低库存产品一致性”来筛选真实链。"
+    ]
+  }
+}

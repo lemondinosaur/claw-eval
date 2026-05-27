@@ -1,0 +1,14 @@
+[
+  {
+    "message_id": "msg_ops_3307",
+    "from": "alarm.coordinator@prod-ops.example.com",
+    "to": "me@company.com",
+    "subject": "关于依赖异常时间线的跟踪说明（含误导点）",
+    "date": "2026-03-01T06:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位好，\n\n我们在凌晨开始观察到依赖侧波动：从 03:10 左右出现上游接口 502/超时，随后部分定时任务连续失败。\n\n但我这边一开始的判断有偏差：我认为是磁盘/存储压力触发的（此处仅供参考，可能不准确）。\n\n请你们以任务执行历史中的报错为准，完成依赖故障排查与必要的补偿链启用/调度错峰；对需要人工确认的依赖问题，麻烦通知运维跟进。\n\n— 告警协调人\nalarm.coordinator@prod-ops.example.com"
+  }
+]

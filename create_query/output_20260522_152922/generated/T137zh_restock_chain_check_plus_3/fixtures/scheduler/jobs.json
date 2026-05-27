@@ -1,0 +1,200 @@
+[
+  {
+    "job_id": "JOB-91001",
+    "name": "灯具自动补货（落地/台灯）",
+    "cron_expression": "0 9 * * 1-5",
+    "action": "restock_lighting_floor_table",
+    "enabled": false,
+    "last_run": "2026-03-18T09:00:00Z",
+    "next_run": null,
+    "last_status": "success",
+    "created_by": "供应链运营",
+    "tags": [
+      "补货",
+      "灯具"
+    ],
+    "created_at": "2025-11-10T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-03-18T09:00:00Z",
+        "status": "success",
+        "duration_s": 42
+      },
+      {
+        "run_at": "2026-03-11T09:00:00Z",
+        "status": "success",
+        "duration_s": 40
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91002",
+    "name": "厨房电器自动补货（热水壶/榨汁机）",
+    "cron_expression": "0 9 * * 1-5",
+    "action": "restock_kitchen_heater_juicer",
+    "enabled": true,
+    "last_run": "2026-04-10T09:00:00Z",
+    "next_run": "2026-04-13T09:00:00Z",
+    "last_status": "failed",
+    "created_by": "供应链运营",
+    "tags": [
+      "补货",
+      "厨房电器"
+    ],
+    "created_at": "2025-12-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-10T09:00:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "IntegrationInactiveError: kitchen_appliance integration is inactive"
+      },
+      {
+        "run_at": "2026-04-07T09:00:00Z",
+        "status": "failed",
+        "duration_s": 10,
+        "error": "IntegrationInactiveError: kitchen_appliance integration is inactive"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91003",
+    "name": "户外露营自动补货（帐篷）",
+    "cron_expression": "0 10 * * 6",
+    "action": "restock_camping_tent",
+    "enabled": true,
+    "last_run": "2026-04-15T10:00:00Z",
+    "next_run": "2026-04-22T10:00:00Z",
+    "last_status": "failed",
+    "created_by": "供应链运营",
+    "tags": [
+      "补货",
+      "户外露营"
+    ],
+    "created_at": "2025-10-15T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-15T10:00:00Z",
+        "status": "failed",
+        "duration_s": 5,
+        "error": "AuthenticationError: API credentials expired"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91004",
+    "name": "文具自动补货（便签/马克笔）",
+    "cron_expression": "0 8 * * 1-6",
+    "action": "restock_stationery_notes_markers",
+    "enabled": true,
+    "last_run": "2026-04-11T08:00:00Z",
+    "next_run": "2026-04-12T08:00:00Z",
+    "last_status": "success",
+    "created_by": "门店采购",
+    "tags": [
+      "补货",
+      "文具"
+    ],
+    "created_at": "2025-09-20T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-11T08:00:00Z",
+        "status": "success",
+        "duration_s": 22
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91005",
+    "name": "家用收纳自动补货（抽屉收纳）",
+    "cron_expression": "30 9 * * 2-6",
+    "action": "restock_storage_drawers",
+    "enabled": true,
+    "last_run": "2026-04-12T09:30:00Z",
+    "next_run": "2026-04-13T09:30:00Z",
+    "last_status": "success",
+    "created_by": "仓储运维",
+    "tags": [
+      "补货",
+      "家用收纳"
+    ],
+    "created_at": "2025-08-05T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-12T09:30:00Z",
+        "status": "success",
+        "duration_s": 18
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91006",
+    "name": "灯具自动补货（壁灯）",
+    "cron_expression": "0 11 * * 1-3",
+    "action": "restock_lighting_wall",
+    "enabled": false,
+    "last_run": "2026-03-21T11:00:00Z",
+    "next_run": null,
+    "last_status": "failed",
+    "created_by": "供应链运营",
+    "tags": [
+      "补货",
+      "灯具"
+    ],
+    "created_at": "2025-12-15T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-03-21T11:00:00Z",
+        "status": "failed",
+        "duration_s": 7,
+        "error": "DisabledJobError: job is disabled"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91007",
+    "name": "宠物用品自动补货（猫砂）",
+    "cron_expression": "0 8 * * 4",
+    "action": "restock_pet_litter",
+    "enabled": true,
+    "last_run": "2026-04-10T08:00:00Z",
+    "next_run": "2026-04-17T08:00:00Z",
+    "last_status": "success",
+    "created_by": "门店采购",
+    "tags": [
+      "补货",
+      "宠物用品"
+    ],
+    "created_at": "2025-07-12T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-10T08:00:00Z",
+        "status": "success",
+        "duration_s": 20
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-91008",
+    "name": "运动器材自动补货（折叠哑铃）",
+    "cron_expression": "0 9 * * 3",
+    "action": "restock_sports_dumbbell",
+    "enabled": true,
+    "last_run": "2026-04-08T09:00:00Z",
+    "next_run": "2026-04-15T09:00:00Z",
+    "last_status": "success",
+    "created_by": "供应链运营",
+    "tags": [
+      "补货",
+      "运动器材"
+    ],
+    "created_at": "2025-06-28T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-08T09:00:00Z",
+        "status": "success",
+        "duration_s": 25
+      }
+    ]
+  }
+]

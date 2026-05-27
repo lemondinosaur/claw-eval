@@ -1,0 +1,47 @@
+[
+  {
+    "integration_id": "INT-2101",
+    "name": "payment_gateway",
+    "display_name": "主支付网关",
+    "service": "payment",
+    "status": "active",
+    "last_verified": "2026-04-26T11:00:00+08:00",
+    "monthly_calls": 16400,
+    "error_rate": 1.9,
+    "notes": "运行中；5/6/7号出现局部超时导致重试与后续冲正回填。"
+  },
+  {
+    "integration_id": "INT-2102",
+    "name": "order_settlement_sync",
+    "display_name": "订单结算同步",
+    "service": "reconciliation",
+    "status": "degraded",
+    "last_verified": "2026-04-22T09:30:00+08:00",
+    "monthly_calls": 3100,
+    "error_rate": 7.8,
+    "last_sync": "2026-04-19T09:30:00+08:00",
+    "notes": "同步延迟约7天；补录队列回滚后，冲正流水部分未被财务侧完成补录。"
+  },
+  {
+    "integration_id": "INT-2103",
+    "name": "invoice_generation",
+    "display_name": "发票生成服务",
+    "service": "invoice",
+    "status": "error",
+    "last_verified": "2026-04-21T16:40:00+08:00",
+    "monthly_calls": 5200,
+    "error_rate": 120.0,
+    "notes": "月末前一周集成退回降级模式：API返回限流/版本错误；导致发票回传延迟3-6天。"
+  },
+  {
+    "integration_id": "INT-2104",
+    "name": "inventory_cost_reco",
+    "display_name": "库存成本对账",
+    "service": "inventory",
+    "status": "active",
+    "last_verified": "2026-04-26T10:10:00+08:00",
+    "monthly_calls": 900,
+    "error_rate": 0.3,
+    "notes": "库存同步总体正常；但对账报表发现单类耗材存在重复入账迹象（后续核算）。"
+  }
+]

@@ -1,0 +1,112 @@
+[
+  {
+    "contact_id": "CT-A11",
+    "name": "林晓",
+    "department": "认证与会话组",
+    "title": "认证中间件负责人",
+    "email": "linxiao@company.com",
+    "phone": "13911001101",
+    "location": "北京总部",
+    "notes": "负责OAuth/JWT校验、会话中间件、token刷新与登录态异常排查。"
+  },
+  {
+    "contact_id": "CT-A12",
+    "name": "宋健",
+    "department": "认证与会话组",
+    "title": "会话中间件工程师",
+    "email": "songjian@company.com",
+    "phone": "13911001102",
+    "location": "北京总部",
+    "notes": "负责会话持久化、cookie策略与登录态恢复。"
+  },
+  {
+    "contact_id": "CT-D21",
+    "name": "周敏",
+    "department": "数据同步与ETL组",
+    "title": "数据同步负责人",
+    "email": "zhoummin@company.com",
+    "phone": "13922002201",
+    "location": "上海分部",
+    "notes": "负责增量同步、ETL任务队列、数据积压与延迟定位。"
+  },
+  {
+    "contact_id": "CT-D22",
+    "name": "王宇",
+    "department": "数据同步与ETL组",
+    "title": "ETL运维工程师",
+    "email": "wangyu@company.com",
+    "phone": "13922002202",
+    "location": "上海分部",
+    "notes": "负责导入/同步失败重试、调度与血缘核查。"
+  },
+  {
+    "contact_id": "CT-C31",
+    "name": "许然",
+    "department": "缓存与性能组",
+    "title": "缓存性能负责人",
+    "email": "xuran@company.com",
+    "phone": "13933003301",
+    "location": "广州分部",
+    "notes": "负责CDN/缓存命中率、缓存失效、依赖缓存与页面加载性能。"
+  },
+  {
+    "contact_id": "CT-C32",
+    "name": "郑岚",
+    "department": "缓存与性能组",
+    "title": "性能与压测工程师",
+    "email": "zhengl@company.com",
+    "phone": "13933003302",
+    "location": "广州分部",
+    "notes": "负责慢请求定位、热点路由与缓存策略优化。"
+  },
+  {
+    "contact_id": "CT-S41",
+    "name": "赵磊",
+    "department": "依赖服务运维组",
+    "title": "平台依赖负责人",
+    "email": "zhaolei.ops@company.com",
+    "phone": "13944004401",
+    "location": "深圳分部",
+    "notes": "负责下游依赖服务健康、超时与调用链慢响应。"
+  },
+  {
+    "contact_id": "CT-S42",
+    "name": "高宁",
+    "department": "依赖服务运维组",
+    "title": "调用链运维工程师",
+    "email": "gaoning@company.com",
+    "phone": "13944004402",
+    "location": "深圳分部",
+    "notes": "负责网关/下游超时、服务依赖与SLA问题排障。"
+  },
+  {
+    "contact_id": "CT-SF51",
+    "name": "刘嘉",
+    "department": "安全组",
+    "title": "权限与审计负责人",
+    "email": "liujia.sec@company.com",
+    "phone": "13955005501",
+    "location": "北京总部",
+    "notes": "负责RBAC权限校验、API鉴权失败、审计与合规。"
+  },
+  {
+    "contact_id": "CT-AD61",
+    "name": "陈昕",
+    "department": "行政支持",
+    "title": "行政支持专员",
+    "email": "chenxin@company.com",
+    "phone": "13966006601",
+    "location": "北京总部",
+    "notes": "提供非技术类支持与资源协调。"
+  },
+  {
+    "contact_id": "CT-SEC71",
+    "name": "周航",
+    "department": "安全组",
+    "title": "安全运维工程师",
+    "email": "zhouhang.sec@company.com",
+    "phone": "13955005502",
+    "location": "上海分部",
+    "notes": "负责API权限拒绝、鉴权策略变更回滚与异常告警联动。"
+  }
+]

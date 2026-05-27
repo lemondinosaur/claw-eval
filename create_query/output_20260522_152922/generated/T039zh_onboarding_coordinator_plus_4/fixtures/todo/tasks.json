@@ -1,0 +1,28 @@
+[
+  {
+    "task_id": "TODO-610",
+    "title": "准备BI域名白名单申请",
+    "description": "整理BI新账号的域名访问清单并提交。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-03-08",
+    "tags": [
+      "BI",
+      "账号"
+    ],
+    "created_at": "2026-03-03T10:05:00+08:00"
+  },
+  {
+    "task_id": "TODO-611",
+    "title": "更新测试环境访问清单",
+    "description": "对测试环境权限进行梳理与变更记录归档。",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-03-06",
+    "tags": [
+      "测试",
+      "权限"
+    ],
+    "created_at": "2026-03-02T15:30:00+08:00"
+  }
+]

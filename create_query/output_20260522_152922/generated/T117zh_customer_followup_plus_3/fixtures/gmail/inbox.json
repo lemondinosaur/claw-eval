@@ -1,0 +1,170 @@
+[
+  {
+    "message_id": "mail_2001",
+    "from": "chen.gong@beichen-manufacture.cn",
+    "to": "crm@beichen-team.cn",
+    "subject": "BEI-OP-314：产线SOP联动的时间表与风险清单",
+    "date": "2026-06-02T09:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "陈工这里，关于BEI-OP-314产线SOP联动：\n1）请给出时间表\n2）风险清单希望分工可见\n另外麻烦预计回复时间（例如48小时内）。— 陈工"
+  },
+  {
+    "message_id": "mail_2002",
+    "from": "ops@beichen-manufacture.cn",
+    "to": "crm@beichen-team.cn",
+    "subject": "Re: BEI-OP-314 进展补充",
+    "date": "2026-05-20T18:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "补充说明：BEI-OP-314仍在推进，但需要我们确认SOP联动节点。来自北辰智造内部信息，供你们对齐。"
+  },
+  {
+    "message_id": "mail_2003",
+    "from": "liu.yuan@xinggang-med.com",
+    "to": "crm@xinggang-med.com",
+    "subject": "XH-HIS-778 接口联调排期与审计导出",
+    "date": "2026-05-30T11:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "院长确认：\n- XH-HIS-778接口联调排期希望尽快给到\n- 是否支持第三方审计导出（PDF/CSV都可以）\n请基于“排期+能力说明”回复我们。— 刘院长"
+  },
+  {
+    "message_id": "mail_2004",
+    "from": "it@xinggang-med.com",
+    "to": "crm@xinggang-med.com",
+    "subject": "XH-HIS-778 第三方导出能力确认",
+    "date": "2026-06-01T16:45:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "针对XH-HIS-778：\n我们希望你们确认第三方审计导出支持方式，并给出接口联调的预计起止日期。\n（邮件抄送为系统管理员）"
+  },
+  {
+    "message_id": "mail_2005",
+    "from": "zhaoming@qinglan-cloud.io",
+    "to": "customer@qinglan-cloud.io",
+    "subject": "QL-REP-2026-03：季度报表API自定义字段支持吗？",
+    "date": "2026-05-26T08:30:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "你好，关于季度报表API：是否支持自定义字段？\n版本号QL-REP-2026-03还请确认。\n如果可以，麻烦给个下一步建议。— 周经理"
+  },
+  {
+    "message_id": "mail_2006",
+    "from": "billing@other-customer.com",
+    "to": "sales@company.com",
+    "subject": "关于结算SLA的提醒（非目标客户）",
+    "date": "2026-06-03T13:00:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "这是一封关于结算SLA的通知，文中不包含北辰智造/星港医疗/青岚云计算关键字。"
+  },
+  {
+    "message_id": "mail_2007",
+    "from": "support@randomvendor.net",
+    "to": "sales@company.com",
+    "subject": "合作资料模板更新",
+    "date": "2026-05-12T10:12:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们更新了资料模板，与客户名/项目代号无关。"
+  },
+  {
+    "message_id": "mail_2008",
+    "from": "peng.jl@ruihang-retail.cn",
+    "to": "crm@ruihang-retail.cn",
+    "subject": "关于RHR-PO-9001的占位咨询（干扰）",
+    "date": "2026-06-04T09:00:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "仅提到RHR-PO-9001，但正文不包含其他客户关键字。此邮件不应被用于目标客户跟进。"
+  },
+  {
+    "message_id": "mail_2009",
+    "from": "product@yunqi-collab.com",
+    "to": "crm@yunqi-collab.com",
+    "subject": "YQ-SAML-AX12：请提供配置建议（干扰）",
+    "date": "2026-05-29T14:25:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "咨询YQ-SAML-AX12配置建议，但与“季度报表API/接口联调排期/BEI-OP-314”均不相关。"
+  },
+  {
+    "message_id": "mail_2010",
+    "from": "sun.gen@chenglan-logistics.com",
+    "to": "crm@chenglan-logistics.com",
+    "subject": "运费结算SLA（干扰）",
+    "date": "2026-05-15T17:40:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "澄澜物流：运费结算SLA的更新，内容与BEI-OP-314、XH-HIS-778、QL-REP-2026-03无关。"
+  },
+  {
+    "message_id": "mail_2011",
+    "from": "zhanghua@sunlight-media.com",
+    "to": "sales@company.com",
+    "subject": "（外部干扰）合作升级沟通安排",
+    "date": "2026-06-05T12:12:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "这封邮件看似未读，但不包含目标客户关键字（BEI-OP-314/XH-HIS-778/QL-REP-2026-03）。"
+  },
+  {
+    "message_id": "mail_2012",
+    "from": "he.laoshi@jinqiao-edu.cn",
+    "to": "crm@jinqiao-edu.cn",
+    "subject": "LMS-RFP-22 预算结果后再推进",
+    "date": "2026-05-10T09:45:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "何老师：LMS-RFP-22预算批复未出，建议等预算结果后再推进。此客户在CRM中为hold，不纳入。"
+  },
+  {
+    "message_id": "mail_2013",
+    "from": "zhou.t@hongtu-energy.com",
+    "to": "crm@hongtu-energy.com",
+    "subject": "关于不再续用的告知（已流失）",
+    "date": "2026-03-01T10:00:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "弘图能源表示后续不再续用。该客户为churned，不应被选入。"
+  },
+  {
+    "message_id": "mail_2014",
+    "from": "chen.gong@beichen-manufacture.cn",
+    "to": "crm@beichen-team.cn",
+    "subject": "BEI-OP-314：SOP联动节点确认（再次确认）",
+    "date": "2026-06-07T19:30:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "再确认一次：BEI-OP-314的SOP联动节点与预计回复时间。烦请尽快给出节点评估。— 陈工"
+  }
+]

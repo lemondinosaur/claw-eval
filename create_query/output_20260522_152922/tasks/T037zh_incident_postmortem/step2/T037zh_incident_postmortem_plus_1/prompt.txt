@@ -1,0 +1,911 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T037zh_incident_postmortem_plus_1",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/config/integrations.json",
+  "fixtures/gmail/inbox.json",
+  "fixtures/helpdesk/tickets.json",
+  "fixtures/kb/articles.json",
+  "fixtures/notes/meetings.json",
+  "fixtures/scheduler/jobs.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 1,
+  "new_task_id": "T037zh_incident_postmortem_plus_1",
+  "new_task_name": "API超时+缓存风暴复盘",
+  "task_goal": "基于给定数据源完成一次生产事故复盘：建立完整时间线、跨系统核对证据、定位根因（不是仅列症状），并输出影响评估与可执行改进建议。",
+  "user_request": "昨晚（给定日期）生产环境出现严重故障。请你像运维事后复盘一样写一份报告：1）用工单构建事件时间线（按时间顺序）；2）检查第三方集成的当前恢复状态与异常字段；3）从邮件中提取关键技术线索与处置动作；4）检索知识库是否存在类似事故与结论要点；5）结合会议记录判断哪些变更/评审流程存在缺口；6）检查定时任务的触发与执行历史，找出触发链条。注意：只做数据收集与根因分析，不要修改、关闭、通知或更新任何内容。",
+  "scenario": "故障表现为：API网关出现间歇性超时（P99显著抬升），同时CDN回源流量飙升导致缓存命中率暴跌；客服工单显示用户加载失败与下单确认慢；支付回调链路出现延迟。排查过程中发现：某个定时任务在高峰期错误地触发了“全站缓存预热/失效重建”，并且该任务配置了错误的“缓存版本号”回滚，触发了缓存穿透式回源。第三方集成“风控规则引擎”在故障期间处于degraded状态，error_rate升高，且notes提示与缓存失效风暴相关。知识库里有一篇与“缓存版本回滚+预热任务”类似的历史文章，但当次处置团队忽略了其“只更新增量键集”的TODO建议。",
+  "difference_from_source": "原题根因围绕CRM同步SQL与连接池耗尽；本题根因转为“定时任务错误缓存版本号/失效重建”引发缓存风暴，关联的是API超时、CDN回源与回调链路延迟，并包含第三方集成风控引擎degraded的侧证；时间线证据强调任务触发->缓存异常->回源->超时，而非连接池与SQL全表扫描。",
+  "service_and_tool_plan": "使用 helpdesk_* 获取不同团队在故障窗口的表现与处置时间点；使用 config_* 查看第三方集成在故障后的状态字段与notes线索；使用 gmail_* 提取值班工程师/架构师关于缓存版本与回源现象的分析；使用 kb_* 搜索“缓存版本”“预热”“回源”类历史事故；使用 notes_* 读取变更评审会议中对缓存策略/任务配置的讨论与遗漏；使用 scheduler_* 确认触发了哪个定时任务、其cron/启停状态与历史运行耗时异常，从而形成触发链条。",
+  "fixture_generation_plan": "生成与原服务/工具兼容的一组新 fixtures（6个文件）。helpdesk/tickets：10~14条，覆盖API超时、CDN回源、下单确认慢、支付回调延迟、缓存穿透/热点key异常、以及恢复后通知；包含不同状态分布（resolved/done/open/investigating）并确保关键证据工单在中段出现。config/integrations：3~5条集成记录，其中至少1条为风控/规则引擎状态degraded，至少1条为网关侧或缓存侧“cache_layer”状态degraded或error_rate升高，notes需明确关联“缓存失效重建/版本回滚”。gmail/inbox：2~4封邮件，至少一封包含技术分析（缓存版本号回滚/预热触发错误）并写明处置动作，另有一封包含发布或变更提醒。kb/articles：新增2~3篇与缓存风暴相关的文章，包含一篇带TODO建议（如“增量键集预热”）；保持与其它文章类别不同以便kb_search能命中。notes/meetings：2条会议记录，包含缓存策略变更评审与“跳过关键验证”的讨论点。scheduler/jobs：3~5个任务记录，其中1个任务在故障窗口发生异常触发（enabled=true但历史显示耗时显著变长或状态异常，如由success变为stopped/failed/运行过久），包含执行历史里明确“版本号/失效重建”相关文字与运行时间。",
+  "expected_behavior": "调用工具进行只读数据收集：先 helpdesk_list_tickets 过滤出故障窗口的高优先级与核心表现工单，随后对关键ticket用 helpdesk_get_ticket 深挖；用 config_list_integrations 找到degraded集成，再对关键integration调用 config_get_integration读取notes与字段；用 gmail_list_messages 按天范围拉取，再对技术邮件调用 gmail_get_message提取缓存版本与回源证据；用 kb_search 用关键词“缓存版本/预热/回源/失效重建”定位历史文章，再用 kb_get_article读取TODO缺口；用 notes_list/notes_get提取会议中的变更评审缺失；用 scheduler_list_jobs 找到“缓存预热/失效重建”相关任务，再用 scheduler_get_job 与 scheduler_job_history确认其在故障窗口的触发与异常耗时/状态。最终输出一份复盘报告：时间线（按分钟级或至少按顺序）、根因（任务配置错误导致缓存风暴）、因果链（触发->缓存异常->回源拥塞->API超时），影响评估（API/回调/用户体验）、过程缺口（评审/验证缺失）、改进建议（如增量预热、版本号回滚保护、限流与熔断、任务幂等与回滚验证）。",
+  "grading_plan": "grader.py 应检查最终报告包含：明确的根因结论（必须指向定时任务触发缓存版本/失效重建错误而非泛化）；时间线按先后顺序列出至少5个关键事件且覆盖工单+任务触发；引用跨系统证据（至少提到helpdesk、config、gmail、kb、notes、scheduler各一种证据点）；检查是否包含改进建议关键词（如“增量”“缓存版本”“预热”“限流/幂等/验证”）；检查只读合规（确保没有调用任何写/更新/发送类工具）；并验证报告长度满足最低要求。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T037zh_incident_postmortem",
+  "task_name": "Incident Postmortem — Root Cause Analysis",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "hard",
+  "tags": [
+    "general"
+  ],
+  "language": "zh",
+  "services": [
+    "helpdesk",
+    "config",
+    "gmail",
+    "kb",
+    "notes",
+    "scheduler"
+  ],
+  "tools": [
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "config_list_integrations",
+    "config_get_integration",
+    "gmail_list_messages",
+    "gmail_get_message",
+    "kb_search",
+    "kb_get_article",
+    "notes_list",
+    "notes_get",
+    "scheduler_list_jobs",
+    "scheduler_get_job",
+    "scheduler_job_history"
+  ],
+  "fixture_paths": [
+    "fixtures/config/integrations.json",
+    "fixtures/gmail/inbox.json",
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/kb/articles.json",
+    "fixtures/notes/meetings.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "sandbox_files": [
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/config/integrations.json",
+    "fixtures/gmail/inbox.json",
+    "fixtures/kb/articles.json",
+    "fixtures/notes/meetings.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T037zh_incident_postmortem
+task_name: Incident Postmortem — Root Cause Analysis
+version: '1.0'
+category: ops
+difficulty: hard
+tags:
+- general
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: tasks/T037zh_incident_postmortem/fixtures/helpdesk/tickets.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: tasks/T037zh_incident_postmortem/fixtures/config/integrations.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T037zh_incident_postmortem/fixtures/gmail/inbox.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T037zh_incident_postmortem/fixtures/kb/articles.json
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: tasks/T037zh_incident_postmortem/fixtures/notes/meetings.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: tasks/T037zh_incident_postmortem/fixtures/scheduler/jobs.json
+prompt:
+  text: '昨晚（2月28日）生产环境发生了一次重大故障。请帮我做一份事故复盘分析报告：
+
+    1. 收集所有相关工单建立故障时间线
+
+    2. 查看系统集成状态了解当前恢复情况
+
+    3. 查看相关邮件了解技术细节
+
+    4. 检查知识库是否有类似历史事故
+
+    5. 查看会议记录了解近期变更
+
+    6. 检查定时任务了解触发情况
+
+    注意：这是只读分析，不要修改、关闭、通知或更新任何内容。只做数据收集和根因分析。
+
+    '
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选：open, resolved, done, investigating
+      priority:
+        type: string
+        description: 按优先级筛选：low, medium, high, critical
+      date_from:
+        type: string
+        description: 起始日期 (ISO 8601)
+      date_to:
+        type: string
+        description: 截止日期 (ISO 8601)
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取单个工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: config_list_integrations
+  description: 获取所有第三方集成的列表（概览信息）
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选：active, degraded, expired
+    required: []
+- name: config_get_integration
+  description: 获取单个集成的完整配置信息
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: notes_list
+  description: 获取笔记/会议记录列表
+  input_schema:
+    type: object
+    properties:
+      date_from:
+        type: string
+        description: 起始日期
+      date_to:
+        type: string
+        description: 截止日期
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取笔记/会议记录详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 笔记ID
+    required:
+    - note_id
+- name: scheduler_list_jobs
+  description: 列出所有定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按最近运行状态筛选 (success/failed/stopped)
+      enabled:
+        type: boolean
+        description: 按启用状态筛选
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_job_history
+  description: 查看定时任务执行历史
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      limit:
+        type: integer
+        description: 返回条数
+        default: 10
+    required:
+    - job_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: scheduler_job_history
+  url: http://localhost:9112/scheduler/jobs/history
+  method: POST
+sandbox_files:
+- fixtures/helpdesk/tickets.json
+- fixtures/config/integrations.json
+- fixtures/gmail/inbox.json
+- fixtures/kb/articles.json
+- fixtures/notes/meetings.json
+- fixtures/scheduler/jobs.json
+environment:
+  timeout_seconds: 900
+  max_turns: 40
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/config/integrations.json ---
+[
+  {
+    "integration_id": "INT-201",
+    "name": "payment_gateway",
+    "display_name": "支付网关",
+    "status": "active",
+    "error_rate": 0.3,
+    "notes": "已恢复正常。故障期间（20:25-21:35）错误率达100%，原因为数据库连接不可用。",
+    "service": "payment",
+    "last_verified": "2026-03-01T08:00:00+08:00",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-202",
+    "name": "crm_sync",
+    "display_name": "CRM数据同步",
+    "status": "degraded",
+    "error_rate": 100,
+    "notes": "已暂停，等待查询优化。上周五发版引入的新SQL查询未经过性能评审，导致全表扫描。需要DBA添加合适的索引后才能恢复。",
+    "service": "data_sync",
+    "last_verified": "2026-03-01T08:00:00+08:00",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-203",
+    "name": "order_service",
+    "display_name": "订单服务",
+    "status": "active",
+    "error_rate": 0.5,
+    "notes": "已恢复。故障期间失败率95%+，约200笔订单状态异常待核对。",
+    "service": "core_service",
+    "last_verified": "2026-03-01T08:00:00+08:00",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-204",
+    "name": "database_primary",
+    "display_name": "主数据库",
+    "status": "active",
+    "connection_pool_size": 200,
+    "current_connections": 45,
+    "notes": "已恢复，昨晚高峰期达到200/200。crm_data_sync进程持有300+连接（超出连接池上限，挤占了其他服务的连接）。目前连接数45/200，运行正常。",
+    "service": "postgresql",
+    "last_verified": "2026-03-01T08:00:00+08:00",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  }
+]
+
+--- END FILE: fixtures/config/integrations.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_1901",
+    "from": "devops@company.com",
+    "to": "user@company.com",
+    "subject": "紧急：生产环境故障",
+    "body": "紧急通知：\n\n今晚20:15起，生产环境出现大面积服务异常。\n\n初步症状：\n1. 多个API端点响应超时（>5秒）\n2. 用户反馈页面无法加载\n3. 监控系统连续触发告警\n\n目前影响范围：\n- 支付服务不可用\n- 订单提交失败\n- 后台任务队列大量堆积\n\n请相关团队立即排查。DBA团队已介入调查数据库相关问题。\n\n运维团队",
+    "date": "2026-02-28T20:30:00+08:00",
+    "labels": ["INBOX", "IMPORTANT", "URGENT"],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1902",
+    "from": "wangxiao_dba@company.com",
+    "to": "user@company.com",
+    "subject": "Re: 生产故障 - 数据库分析",
+    "body": "各位好，\n\n我查了数据库慢查询日志，发现crm_data_sync进程在20:00启动后执行了一个新的SQL查询，这个查询没有走索引，做了全表扫描。这个SQL是上周五发版时改的CRM同步逻辑引入的。\n\n具体情况：\n- 进程名：crm_data_sync\n- 启动时间：20:00（定时任务触发）\n- 问题SQL：SELECT * FROM customers JOIN orders ON customers.id = orders.customer_id WHERE sync_status = 'pending'\n- 该查询扫描了约1200万行记录\n- 该进程持有超过300个数据库连接\n- 连接池被完全占满（200/200），其他服务无法获取新连接\n\n我已经在21:30手动kill了这个进程，并暂停了对应的定时任务。数据库连接正在恢复。\n\n后续需要：\n1. 给sync_status字段添加索引\n2. 将CRM同步查询迁移到读副本\n3. 限制单个进程的最大连接数\n\nDBA 小王",
+    "date": "2026-02-28T21:00:00+08:00",
+    "labels": ["INBOX", "IMPORTANT"],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1903",
+    "from": "pm@company.com",
+    "to": "user@company.com",
+    "subject": "上周五发版内容确认",
+    "body": "大家好，\n\n针对昨晚的故障，我整理了上周五（2月27日）的发版内容：\n\n发版变更列表：\n1. CRM客户数据同步优化（修改了同步查询逻辑）—— 开发团队负责\n2. 订单搜索功能改进 —— 已通过压测\n3. 支付结果页面优化 —— 前端变更，无后端影响\n\n代码评审记录显示：\n- CRM同步的SQL改动未经过DBA的性能评审\n- 评审会议上DBA曾建议补做性能测试，但因时间紧迫未被采纳\n- 该改动的评审者为开发负责人，跳过了DBA评审环节\n\n建议在复盘中讨论发版流程改进事项。\n\n项目经理",
+    "date": "2026-03-01T09:00:00+08:00",
+    "labels": ["INBOX"],
+    "is_read": false
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-1901",
+    "title": "API响应超时告警",
+    "reporter": "监控系统",
+    "created_at": "2026-02-28T20:15:00+08:00",
+    "priority": "high",
+    "status": "resolved",
+    "description": "多个API端点响应时间超过5秒，涉及 /api/orders、/api/payments、/api/users 等核心接口。告警阈值为3秒，当前P99延迟达到8.2秒。",
+    "tags": [
+      "monitoring",
+      "api",
+      "timeout"
+    ],
+    "assignee": "运维值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1902",
+    "title": "用户反馈页面加载缓慢",
+    "reporter": "客服部",
+    "created_at": "2026-02-28T20:18:00+08:00",
+    "priority": "medium",
+    "status": "resolved",
+    "description": "多名用户通过客服渠道反馈网站页面加载时间过长，无法正常下单。客服已收到约30条类似投诉。",
+    "tags": [
+      "user-report",
+      "performance"
+    ],
+    "assignee": "客服值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1903",
+    "title": "数据库连接池耗尽",
+    "reporter": "DBA告警",
+    "created_at": "2026-02-28T20:22:00+08:00",
+    "priority": "critical",
+    "status": "resolved",
+    "description": "PostgreSQL连接池使用率100%，所有新连接请求被拒绝。当前连接数200/200，等待队列已满。多个服务报告无法获取数据库连接。",
+    "tags": [
+      "database",
+      "connection-pool",
+      "critical"
+    ],
+    "assignee": "DBA小王",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1904",
+    "title": "支付服务503错误",
+    "reporter": "支付团队",
+    "created_at": "2026-02-28T20:25:00+08:00",
+    "priority": "critical",
+    "status": "resolved",
+    "description": "支付网关返回503，所有支付交易失败。错误信息：'Service Unavailable - unable to acquire database connection'。影响所有在线支付渠道。",
+    "tags": [
+      "payment",
+      "503",
+      "critical"
+    ],
+    "assignee": "支付团队值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1905",
+    "title": "订单提交失败率飙升",
+    "reporter": "电商平台",
+    "created_at": "2026-02-28T20:28:00+08:00",
+    "priority": "critical",
+    "status": "resolved",
+    "description": "订单提交接口失败率从0.1%飙升至95%以上，大量用户无法完成下单。错误日志显示数据库连接超时。",
+    "tags": [
+      "orders",
+      "failure-rate",
+      "critical"
+    ],
+    "assignee": "电商平台值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1906",
+    "title": "CDN缓存未命中率上升",
+    "reporter": "基础架构",
+    "created_at": "2026-02-28T20:35:00+08:00",
+    "priority": "low",
+    "status": "resolved",
+    "description": "CDN缓存命中率从95%降至60%。初步分析：由于后端API超时，CDN无法刷新缓存内容，导致命中率下降。这是次要症状，非根因。",
+    "tags": [
+      "cdn",
+      "cache",
+      "secondary"
+    ],
+    "assignee": "基础架构",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1907",
+    "title": "后台任务队列堆积",
+    "reporter": "运维",
+    "created_at": "2026-02-28T20:40:00+08:00",
+    "priority": "high",
+    "status": "resolved",
+    "description": "Celery任务队列堆积超过5万条，包括订单确认邮件、库存同步、数据分析等异步任务。原因：Worker进程因数据库连接不可用而阻塞。",
+    "tags": [
+      "queue",
+      "celery",
+      "backlog"
+    ],
+    "assignee": "运维值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1908",
+    "title": "CRM同步进程占用大量DB资源",
+    "reporter": "DBA小王",
+    "created_at": "2026-02-28T20:45:00+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "发现crm_data_sync进程持有300+数据库连接，执行一个全表扫描的SQL查询。该查询是上周五部署中新加的。SQL语句：SELECT * FROM customers JOIN orders ON customers.id = orders.customer_id WHERE sync_status = 'pending'，未使用索引，导致全表扫描。单次查询预计扫描1200万行记录。",
+    "tags": [
+      "database",
+      "crm",
+      "root-cause"
+    ],
+    "assignee": "DBA小王",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1909",
+    "title": "手动终止CRM同步进程",
+    "reporter": "DBA小王",
+    "created_at": "2026-02-28T21:30:00+08:00",
+    "priority": "critical",
+    "status": "done",
+    "description": "手动kill了crm_data_sync进程并暂停了对应定时任务，数据库连接开始恢复。连接池使用率在5分钟内从100%下降至25%。",
+    "tags": [
+      "database",
+      "crm",
+      "mitigation"
+    ],
+    "assignee": "DBA小王",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1910",
+    "title": "服务陆续恢复",
+    "reporter": "运维",
+    "created_at": "2026-02-28T21:35:00+08:00",
+    "priority": "high",
+    "status": "done",
+    "description": "支付服务和订单服务在5分钟内恢复正常。API响应时间回落至正常水平（P99 < 500ms）。Celery任务队列开始消化堆积。",
+    "tags": [
+      "recovery",
+      "services"
+    ],
+    "assignee": "运维值班",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1911",
+    "title": "部分用户订单数据不一致",
+    "reporter": "数据团队",
+    "created_at": "2026-02-28T21:45:00+08:00",
+    "priority": "medium",
+    "status": "open",
+    "description": "故障期间有约200笔订单状态异常，需要人工核对。部分订单支付成功但订单状态未更新，部分订单重复提交。已导出异常订单列表，等待人工处理。",
+    "tags": [
+      "data-consistency",
+      "orders",
+      "followup"
+    ],
+    "assignee": "数据团队",
+    "department": "技术部"
+  },
+  {
+    "ticket_id": "TK-1912",
+    "title": "监控告警恢复通知",
+    "reporter": "监控系统",
+    "created_at": "2026-02-28T21:50:00+08:00",
+    "priority": "low",
+    "status": "done",
+    "description": "所有监控指标已恢复正常。API响应时间、数据库连接池、支付成功率均已回到正常水平。告警已自动解除。",
+    "tags": [
+      "monitoring",
+      "recovery"
+    ],
+    "assignee": "运维值班",
+    "department": "技术部"
+  }
+]
+--- END FILE: fixtures/helpdesk/tickets.json ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "KB-601",
+    "title": "生产事故处理流程",
+    "category": "运维",
+    "tags": [
+      "incident",
+      "process",
+      "runbook"
+    ],
+    "created_at": "2025-06-15T10:00:00+08:00",
+    "content": "# 生产事故处理流程\n\n## 1. 事故分级\n- **P0（紧急）**：核心业务完全中断，如支付、订单系统不可用\n- **P1（高）**：核心业务严重受损，如响应时间超标、部分功能不可用\n- **P2（中）**：非核心功能异常，影响有限\n- **P3（低）**：轻微问题，不影响业务\n\n## 2. 响应流程\n1. 监控系统自动告警\n2. 值班人员确认并升级\n3. 组建应急响应小组\n4. 定位根因并制定修复方案\n5. 执行修复并验证恢复\n6. 事后复盘并输出改进措施\n\n## 3. 复盘要求\n- 故障发生后72小时内完成复盘\n- 复盘报告需包含：时间线、根因分析、影响范围、改进措施\n- 改进措施需指定责任人和完成时间\n- 复盘报告归档至知识库",
+    "last_updated": "2025-11-20T14:30:00+08:00",
+    "views": 0
+  },
+  {
+    "article_id": "KB-602",
+    "title": "数据库连接池管理最佳实践",
+    "category": "技术",
+    "tags": [
+      "database",
+      "connection-pool",
+      "postgresql",
+      "best-practice"
+    ],
+    "created_at": "2025-08-10T14:00:00+08:00",
+    "content": "# 数据库连接池管理最佳实践\n\n## 连接池配置\n- 默认最大连接数：200\n- 单个服务最大连接数：50\n- 连接超时时间：30秒\n- 空闲连接回收时间：300秒\n\n## 注意事项\n1. **重型查询应使用读副本**：批量数据同步、报表查询等重型操作不应在主库执行，应路由到读副本\n2. **连接泄漏检测**：启用连接泄漏检测，超过60秒未归还的连接自动回收\n3. **告警阈值**：连接池使用率超过80%时触发告警\n4. **单进程连接限制**：单个进程/任务不应占用超过总连接池的25%\n\n## 常见问题\n- 连接池耗尽通常由以下原因导致：\n  1. 慢查询长时间持有连接\n  2. 连接泄漏（未正确关闭）\n  3. 突发流量\n  4. 单个进程占用过多连接\n\n## 历史教训\n- 2025年12月事故中，报表查询未走读副本导致主库连接池压力过大\n- CRM同步任务原计划迁移到读副本，但尚未完成",
+    "last_updated": "2025-12-20T09:00:00+08:00",
+    "views": 0
+  },
+  {
+    "article_id": "KB-603",
+    "title": "2025年12月生产事故报告",
+    "category": "事故",
+    "tags": [
+      "incident",
+      "postmortem",
+      "database",
+      "2025-12"
+    ],
+    "created_at": "2025-12-20T16:00:00+08:00",
+    "content": "# 12月事故报告\n\n## 事件概述\n12月15日的API超时事故，根因是报表查询未走读副本，直接在主库执行大量聚合查询，导致数据库连接池压力过大。\n\n## 时间线\n- 14:00 报表任务启动，执行大量聚合查询\n- 14:15 数据库连接池使用率超过90%\n- 14:30 API响应超时告警\n- 15:00 手动终止报表任务\n- 15:10 服务恢复\n\n## 根因\n报表聚合查询未配置读副本路由，直接在主库执行，占用大量连接。\n\n## 改进措施\n1. 重型查询应使用读副本 —— 状态：已标记TODO，尚未实施\n2. 添加查询耗时监控 —— 状态：已完成\n3. 连接池设置告警阈值 —— 状态：已完成\n\n## 遗留问题\nCRM同步任务原计划迁移到读副本，但迁移工作标记为TODO，至今未完成。此问题如不解决，类似事故可能再次发生。",
+    "last_updated": "2026-01-10T11:00:00+08:00",
+    "views": 0
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+--- FILE: fixtures/notes/meetings.json ---
+[
+  {
+    "note_id": "NOTE-601",
+    "title": "周五发版评审会议",
+    "type": "meeting",
+    "participants": [
+      "开发负责人",
+      "DBA小王",
+      "运维值班",
+      "项目经理"
+    ],
+    "tags": [
+      "release",
+      "review",
+      "deployment"
+    ],
+    "content": "## 发版评审会议\n\n日期：2026年2月27日\n\n### 变更列表\n1. **CRM同步查询重构** —— 开发表示性能影响不大，未做压测。开发负责人认为只是修改了WHERE条件，不会有性能问题。\n2. **订单搜索改进** —— 已通过压测，QPS提升30%，无性能退化。\n3. **支付页面优化** —— 纯前端变更，无后端变更，风险低。\n\n### 讨论记录\n- DBA小王提出CRM同步改动涉及JOIN查询，建议先在预发布环境做性能测试\n- 开发负责人表示该需求客户催得急，建议先上线再观察\n- 项目经理同意先上线，如有问题立即回滚\n- DBA小王的建议未被采纳，会议记录已注明\n\n### 会议结论\n- CRM同步改动因时间紧迫，跳过了DBA的性能评审\n- DBA建议补做性能测试，但未被采纳\n- 计划周一上线（实际周五晚已部署）\n- 其他两项变更正常通过评审",
+    "created_at": "2026-02-27",
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-602",
+    "title": "故障复盘初步讨论",
+    "type": "meeting",
+    "participants": [
+      "CTO",
+      "运维总监",
+      "DBA小王",
+      "开发负责人"
+    ],
+    "tags": [
+      "incident",
+      "postmortem",
+      "discussion"
+    ],
+    "content": "## 故障复盘初步讨论\n\n日期：2026年3月1日上午\n\n### 讨论要点\n1. CTO要求彻底查明根因，不能只看表面症状\n2. 运维总监指出监控系统在20:15就发出了告警，但根因定位花了30分钟\n3. DBA小王怀疑CRM同步任务是罪魁祸首，20:45发现该进程占用了大量数据库连接\n4. 开发负责人确认上周五部署了CRM同步的SQL改动\n5. CTO提问：12月份不是也出过类似事故吗？CRM同步迁移到读副本的TODO完成了吗？\n6. 运维总监确认：12月事故后的改进措施中，CRM迁移读副本标记为TODO至今未完成\n\n### 待办\n- 输出完整的事故复盘报告（含时间线、根因、改进措施）\n- 梳理发版流程中的评审漏洞\n- 排查是否还有其他类似的潜在风险",
+    "created_at": "2026-03-01",
+    "duration_minutes": 60
+  }
+]
+
+--- END FILE: fixtures/notes/meetings.json ---
+--- FILE: fixtures/scheduler/jobs.json ---
+[
+  {
+    "job_id": "JOB-301",
+    "name": "crm_data_sync",
+    "description": "执行CRM客户数据全量同步，每天20:00运行",
+    "cron_expression": "0 20 * * *",
+    "enabled": true,
+    "last_status": "stopped",
+    "last_run": "2026-02-28T20:00:00+08:00",
+    "action": "执行CRM客户数据全量同步",
+    "created_by": "data_team",
+    "tags": ["crm", "sync", "data"],
+    "notes": "上周五部署后SQL查询已修改。新查询逻辑：SELECT * FROM customers JOIN orders ON customers.id = orders.customer_id WHERE sync_status = 'pending'。此查询未添加索引，存在全表扫描风险。",
+    "execution_history": [
+      {
+        "run_time": "2026-02-28T20:00:00+08:00",
+        "status": "stopped",
+        "duration_seconds": 5400,
+        "notes": "运行75分钟后被DBA手动终止（21:30 kill进程）。进程占用300+数据库连接，导致连接池耗尽。"
+      },
+      {
+        "run_time": "2026-02-27T20:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 180,
+        "notes": "旧查询逻辑，正常完成，耗时3分钟"
+      },
+      {
+        "run_time": "2026-02-26T20:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 175,
+        "notes": "正常完成"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-302",
+    "name": "database_backup",
+    "description": "每日凌晨3点执行数据库增量备份",
+    "cron_expression": "0 3 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T03:00:00+08:00",
+    "action": "执行PostgreSQL增量备份",
+    "created_by": "dba_team",
+    "tags": ["database", "backup"],
+    "notes": "常规备份任务，运行稳定",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T03:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 420,
+        "notes": "备份完成，大小12.3GB"
+      },
+      {
+        "run_time": "2026-02-28T03:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 415,
+        "notes": "备份完成"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-303",
+    "name": "monitoring_alerts",
+    "description": "每5分钟检查系统健康指标并触发告警",
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T08:00:00+08:00",
+    "action": "检查系统健康指标（API延迟、DB连接、错误率）",
+    "created_by": "ops_team",
+    "tags": ["monitoring", "alerts"],
+    "notes": "故障期间正常运行，按时触发了所有告警",
+    "execution_history": [
+      {
+        "run_time": "2026-02-28T20:15:00+08:00",
+        "status": "success",
+        "duration_seconds": 3,
+        "notes": "触发API超时告警：多个端点P99>5s"
+      },
+      {
+        "run_time": "2026-02-28T20:20:00+08:00",
+        "status": "success",
+        "duration_seconds": 3,
+        "notes": "触发数据库连接告警：连接池使用率100%"
+      },
+      {
+        "run_time": "2026-02-28T20:25:00+08:00",
+        "status": "success",
+        "duration_seconds": 3,
+        "notes": "触发支付服务503告警"
+      },
+      {
+        "run_time": "2026-02-28T21:35:00+08:00",
+        "status": "success",
+        "duration_seconds": 2,
+        "notes": "所有指标恢复正常"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-304",
+    "name": "log_rotation",
+    "description": "每日凌晨1点执行日志轮转和压缩",
+    "cron_expression": "0 1 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T01:00:00+08:00",
+    "action": "执行日志文件轮转和压缩归档",
+    "created_by": "ops_team",
+    "tags": ["logs", "maintenance"],
+    "notes": "常规维护任务",
+    "execution_history": [
+      {
+        "run_time": "2026-03-01T01:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 30,
+        "notes": "日志轮转完成"
+      }
+    ]
+  }
+]
+
+--- END FILE: fixtures/scheduler/jobs.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

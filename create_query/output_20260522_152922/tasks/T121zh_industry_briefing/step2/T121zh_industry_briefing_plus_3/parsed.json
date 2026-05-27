@@ -1,0 +1,230 @@
+{
+  "task_id": "T121zh_industry_briefing_plus_3",
+  "task_name": "医疗AI转化合规周报",
+  "prompt_text": "老板的医务助理要你写“医疗AI转化合规周报”（不发送邮件）。请：\n\n1）从RSS中筛选与“医疗AI临床应用/监管审评/医疗数据合规/模型验证/医院落地”直接相关的信息；排除泛泛的医学科普、可穿戴健康营销、非医疗领域的AI政策，以及仅发布模型能力但未涉及医疗场景或验证方法的内容。\n\n2）将筛到的信息按四类结构化归纳：\nA. 监管与审评\nB. 临床验证\nC. 数据与隐私\nD. 落地进展\n\n3）对每一类列出2条“风险点 + 应对建议”。语气务必谨慎、避免夸大结论。每条建议要能落到可执行的补充材料/验证设计/治理动作上。\n\n4）把内容整理成发给团队的邮件草稿（包含主题与正文结构），但不要调用发送接口，仅生成草稿供保存。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_889",
+        "from": "medical_admin@hospital.com",
+        "to": "team@hospital-ops.com",
+        "subject": "请输出《医疗AI转化合规周报》草稿（不发送）",
+        "date": "2026-04-11T09:30:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important",
+          "medical-ai"
+        ],
+        "body": "各位好，\n\n本周需要一份《医疗AI转化合规周报》草稿，发给团队内部讨论但不要发送。\n\n要求：\n1）请从RSS里只挑“医疗AI临床应用/监管审评/医疗数据合规/模型验证/医院落地”相关的文章；凡是偏科普、偏可穿戴健康、偏通用大模型趋势，或缺少医疗场景/验证方法/合规要点的，尽量剔除或只能以“信息不足、需进一步核实”的方式处理。\n2）按四类归纳：监管与审评/临床验证/数据与隐私/落地进展。\n3）每类必须2条：每条写清“风险点 + 应对建议”。整体语气要谨慎，不要给确定性过强的判断。\n4）邮件草稿请包含清晰分区标题与条目格式。\n\n谢谢！\n医务管理"
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "MED-A-01",
+        "title": "国家药监相关工作提示：医疗AI软件审评需明确临床用途与证据链",
+        "category": "医疗合规",
+        "content": "监管部门发布阶段性工作提示，强调医疗AI软件在申报/审评中需清晰界定临床用途、适用人群、预期使用环境，并提交可追溯的性能验证与风险管理证据链；若模型迭代频繁，应说明变更控制与再验证策略。",
+        "url": "https://regulation.example.org/medai-review-evidence-chain",
+        "tags": [
+          "医疗AI",
+          "监管",
+          "审评",
+          "风险管理"
+        ],
+        "source": "监管动态简报",
+        "published_at": "2026-04-10T01:00:00Z",
+        "summary": "强调医疗AI软件审评中临床用途界定、证据链与变更控制/再验证要求。",
+        "word_count": 84
+      },
+      {
+        "article_id": "MED-A-02",
+        "title": "海外通报：某影像AI产品在证据范围不匹配时被要求补充研究",
+        "category": "监管审评",
+        "content": "一则监管通报指出，部分影像AI产品在申报时适用范围与已完成研究的覆盖人群/采集设备存在不一致。监管要求补充说明数据来源代表性、跨设备性能一致性评估方法，并提交更新后的风险控制与临床评价材料。",
+        "url": "https://reg-news.example.org/ai-scope-mismatch-supplement",
+        "tags": [
+          "医疗影像AI",
+          "审评",
+          "人群覆盖",
+          "证据补充"
+        ],
+        "source": "监管通报汇总",
+        "published_at": "2026-04-09T12:00:00Z",
+        "summary": "因证据覆盖范围与适用范围不匹配，要求补充跨设备评估与风险控制材料。",
+        "word_count": 93
+      },
+      {
+        "article_id": "MED-B-01",
+        "title": "多中心临床验证报告：医疗AI模型在不同中心存在校准偏移",
+        "category": "临床验证",
+        "content": "某医疗AI在多中心研究中观察到校准偏移：同一模型在不同中心的分布差异导致阈值下的表现波动。文章讨论了校准验证、数据漂移监测和上线后的持续评估方案，并建议将校准策略纳入验证终点。",
+        "url": "https://clinical.example.org/multicenter-calibration-shift",
+        "tags": [
+          "临床验证",
+          "校准",
+          "多中心",
+          "数据漂移"
+        ],
+        "source": "临床研究通讯",
+        "published_at": "2026-04-08T03:00:00Z",
+        "summary": "多中心研究提示校准偏移与持续评估的重要性。",
+        "word_count": 88
+      },
+      {
+        "article_id": "MED-B-02",
+        "title": "前瞻性试验设计要点：把“验证指标”写进研究方案而非事后回算",
+        "category": "临床试验方法",
+        "content": "文章强调在医疗AI前瞻性研究中应预先定义主要/次要指标、阈值策略与统计处理流程，避免事后选择导致乐观偏差。还建议在方案中说明分层策略（按设备/人群特征）及盲法评估方式。",
+        "url": "https://trial-method.example.org/prospective-ai-endpoints",
+        "tags": [
+          "前瞻性",
+          "研究方案",
+          "统计偏差",
+          "阈值策略"
+        ],
+        "source": "临床试验方法专栏",
+        "published_at": "2026-04-10T06:30:00Z",
+        "summary": "建议预先定义终点与阈值策略，降低事后回算偏差风险。",
+        "word_count": 97
+      },
+      {
+        "article_id": "MED-C-01",
+        "title": "医疗数据合规解读：含敏感字段的影像注释需做目的限定与最小化",
+        "category": "数据合规",
+        "content": "合规解读指出：即使数据用于模型训练，医疗影像及其注释中仍可能包含可识别的敏感信息。应实施目的限定、数据最小化、访问控制和脱敏/去标识化策略，并对注释质量与偏差来源进行治理记录。",
+        "url": "https://privacy.example.org/medical-annotation-minimization",
+        "tags": [
+          "数据隐私",
+          "去标识化",
+          "最小化",
+          "注释治理"
+        ],
+        "source": "数据治理专刊",
+        "published_at": "2026-04-07T15:00:00Z",
+        "summary": "强调医疗注释的目的限定、最小化与去标识化治理。",
+        "word_count": 89
+      },
+      {
+        "article_id": "MED-C-02",
+        "title": "模型训练数据外溢风险：如何评估再识别与记忆效应",
+        "category": "隐私风险评估",
+        "content": "文章讨论对医疗场景中模型可能出现的“记忆效应/再识别”进行评估方法，包括对训练样本与外部样本的相似性分析、隐私攻击模拟、以及上线前的隐私测试用例设计；同时建议建立事件响应流程。",
+        "url": "https://privacy-risk.example.org/reidentification-risk-testing",
+        "tags": [
+          "再识别",
+          "记忆效应",
+          "隐私测试",
+          "事件响应"
+        ],
+        "source": "隐私安全研究简报",
+        "published_at": "2026-04-10T22:00:00Z",
+        "summary": "提出评估再识别/记忆效应的隐私测试与事件响应建议。",
+        "word_count": 90
+      },
+      {
+        "article_id": "MED-D-01",
+        "title": "医院落地复盘：AI辅助诊疗上线后仍需持续监测与人机协同SOP",
+        "category": "落地进展",
+        "content": "一篇落地复盘总结称：模型上线并不等于验证完成，需要持续监测性能、更新告警规则，并明确“何时由AI提示、何时必须人工复核”的SOP；同时要形成跨科室的数据反馈闭环与版本管理记录。",
+        "url": "https://deployment.example.org/continuous-monitoring-sop",
+        "tags": [
+          "医院落地",
+          "持续监测",
+          "人机协同",
+          "SOP"
+        ],
+        "source": "医院数字化实践",
+        "published_at": "2026-04-09T05:00:00Z",
+        "summary": "强调上线后持续监测、人机协同SOP与数据反馈闭环。",
+        "word_count": 86
+      },
+      {
+        "article_id": "MED-D-02",
+        "title": "接口与数据链路治理：临床系统接入需做版本兼容与回滚预案",
+        "category": "工程化落地",
+        "content": "文章聚焦将医疗AI接入HIS/影像工作站的工程要点：需要明确数据链路的版本兼容（DICOM/结构化字段）、异常处理策略、以及回滚预案；并建议在灰度发布阶段进行性能基线对比，避免升级导致的风险漂移。",
+        "url": "https://deployment-eng.example.org/interface-governance-rollback",
+        "tags": [
+          "数据链路",
+          "接口治理",
+          "回滚预案",
+          "灰度发布"
+        ],
+        "source": "医疗IT工程要闻",
+        "published_at": "2026-04-08T10:10:00Z",
+        "summary": "接入需做版本兼容、异常策略与回滚预案，并做灰度基线对比。",
+        "word_count": 95
+      },
+      {
+        "article_id": "GEN-01",
+        "title": "健康科普：如何管理睡眠质量（与AI无关）",
+        "category": "健康科普",
+        "content": "文章以生活方式建议为主，介绍睡眠管理方法和日常作息，不包含医疗AI、监管审评或验证设计信息。",
+        "url": "https://health.example.org/sleep-quality-basics",
+        "tags": [
+          "健康科普"
+        ],
+        "source": "大众健康资讯",
+        "published_at": "2026-04-10T02:00:00Z",
+        "summary": "生活方式睡眠管理科普。",
+        "word_count": 46
+      },
+      {
+        "article_id": "GEN-02",
+        "title": "可穿戴设备营销：心率与压力监测新品发布会",
+        "category": "可穿戴",
+        "content": "文章主要是产品功能宣传，未讨论临床验证、医疗数据合规或监管路径；仅提到“用于健康管理”。",
+        "url": "https://wearables.example.org/fitness-ring-press",
+        "tags": [
+          "可穿戴",
+          "营销"
+        ],
+        "source": "硬件新品发布",
+        "published_at": "2026-04-09T08:00:00Z",
+        "summary": "可穿戴设备功能宣传。",
+        "word_count": 44
+      },
+      {
+        "article_id": "GEN-03",
+        "title": "通用多模态模型发布：新能力展示但无医疗场景",
+        "category": "AI技术发布",
+        "content": "内容集中在模型多模态能力演示与基准测试展示，没有给出医疗AI用途、验证方法、合规审评要点或数据治理信息。",
+        "url": "https://ai-news.example.org/multimodal-demo-nonmedical",
+        "tags": [
+          "多模态",
+          "通用AI",
+          "演示"
+        ],
+        "source": "模型更新快报",
+        "published_at": "2026-04-10T09:00:00Z",
+        "summary": "通用多模态能力展示，无医疗场景与验证细节。",
+        "word_count": 55
+      },
+      {
+        "article_id": "GEN-04",
+        "title": "行业政策概览：AI总体治理讨论（非医疗专门）",
+        "category": "政策",
+        "content": "文章为AI治理通用框架综述，未给出医疗AI监管审评、临床验证或医疗数据合规的具体条款与实施要点。",
+        "url": "https://policy.example.org/general-ai-governance-overview",
+        "tags": [
+          "政策",
+          "通用治理"
+        ],
+        "source": "政策解读",
+        "published_at": "2026-04-08T18:00:00Z",
+        "summary": "通用AI治理概览，未聚焦医疗AI。",
+        "word_count": 53
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在RSS筛选标准上从通用AI/行业简报改为强聚焦“医疗AI转化合规”，并要求邮件按四类（监管与审评/临床验证/数据与隐私/落地进展）各给出2条“风险点+应对建议”。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 提供一封来自医务助理、强调“四类各2条风险+应对且语气谨慎、不发送”的新邮件。",
+      "rss/feeds.json 构造4类医疗AI合规相关文章各至少2条（MED-A/B/C/D 各两篇），每篇均包含可提炼的风险维度（证据链/人群覆盖/校准漂移/研究方案偏差/去标识化与最小化/再识别测试/持续监测与SOP/接口版本回滚）。",
+      "额外加入健康科普、可穿戴营销、通用多模态发布、非医疗AI治理政策干扰项（GEN-*），用于验证筛选与拒绝/不确定表述能力。",
+      "四类文章的实体与主题命名在不同fixture间保持一致的医疗AI合规模块引用，便于代理在邮件中稳定归类。"
+    ]
+  }
+}

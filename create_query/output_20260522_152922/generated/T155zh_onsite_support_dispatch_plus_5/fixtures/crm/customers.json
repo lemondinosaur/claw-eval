@@ -1,0 +1,50 @@
+[
+  {
+    "customer_id": "CUS-2101",
+    "name": "橙海电力集团",
+    "contact_person": "周楠",
+    "email": "zhounan@orangesea-power.com",
+    "phone": "13988112233",
+    "industry": "能源/电力",
+    "tier": "vip",
+    "annual_revenue": 8600000,
+    "last_contact_date": "2026-04-05",
+    "status": "active",
+    "location": "南京",
+    "sla_level": "vip-critical",
+    "sla_response": "主站45分钟内到达并开始故障定位；90分钟内未确认原因则转场备站",
+    "notes": "站点：主站南京（变电站监控平台运维机房），备站南京（第二运维机房）。派遣策略：优先选择可在45分钟内开始定位且具备告警抑制+DB写入阻塞/锁/慢查询排查技能的工程师；并在草稿中写明备站转场条件与预计时间。"
+  },
+  {
+    "customer_id": "CUS-2102",
+    "name": "星河物流有限公司",
+    "contact_person": "钱工",
+    "email": "qian@xinghe-logistics.cn",
+    "phone": "13988112244",
+    "industry": "物流",
+    "tier": "standard",
+    "annual_revenue": 1300000,
+    "last_contact_date": "2026-04-10",
+    "status": "active",
+    "location": "南京",
+    "sla_level": "standard",
+    "sla_response": "标准优先级远程优先",
+    "notes": "标准客户，存在critical告警但无需现场密集派遣。"
+  },
+  {
+    "customer_id": "CUS-2103",
+    "name": "北辰医疗器械",
+    "contact_person": "赵主任",
+    "email": "zhaozr@beichen-med.cn",
+    "phone": "13988112255",
+    "industry": "医疗器械",
+    "tier": "standard",
+    "annual_revenue": 520000,
+    "last_contact_date": "2026-04-12",
+    "status": "active",
+    "location": "苏州",
+    "sla_level": "standard",
+    "sla_response": "远程+次日现场",
+    "notes": "标准客户，现场要求较低。"
+  }
+]

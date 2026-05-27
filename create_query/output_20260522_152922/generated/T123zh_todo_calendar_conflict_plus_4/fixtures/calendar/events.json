@@ -1,0 +1,55 @@
+[
+  {
+    "event_id": "evt_406",
+    "title": "外部演示预约（确认）",
+    "start_time": "2026-06-07T14:30:00+08:00",
+    "end_time": "2026-06-07T17:30:00+08:00",
+    "location": "会展中心B馆",
+    "organizer": "外部客户对接组",
+    "attendees": [
+      "我"
+    ],
+    "description": "演示相关外部预约确认，占用时间内不可安排其它工作",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_407",
+    "title": "安全培训补考",
+    "start_time": "2026-06-08T09:00:00+08:00",
+    "end_time": "2026-06-08T11:30:00+08:00",
+    "location": "安全培训教室2",
+    "organizer": "EHS",
+    "attendees": [
+      "我"
+    ],
+    "description": "未通过安全培训的补考，必须在该时间段内完成签到与考试",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_408",
+    "title": "维护窗口（不可操作）",
+    "start_time": "2026-06-09T00:00:00+08:00",
+    "end_time": "2026-06-09T23:59:59+08:00",
+    "location": "生产/工具平台",
+    "organizer": "运维团队",
+    "attendees": [
+      "我"
+    ],
+    "description": "系统维护与不可操作窗口，期间不安排任何可执行工作",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_409",
+    "title": "短会：对齐演示脚本口径",
+    "start_time": "2026-06-08T15:00:00+08:00",
+    "end_time": "2026-06-08T15:30:00+08:00",
+    "location": "会议室C",
+    "organizer": "产品运营",
+    "attendees": [
+      "我",
+      "张敏"
+    ],
+    "description": "30分钟口径对齐会，只占用短时间",
+    "status": "confirmed"
+  }
+]

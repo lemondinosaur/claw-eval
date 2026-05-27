@@ -1,0 +1,98 @@
+task_id: T125zh_meeting_action_items_plus_1
+task_name: 发布会行动项去重
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T125zh_meeting_action_items_plus_1/fixtures/notes/meetings.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T125zh_meeting_action_items_plus_1/fixtures/todo/tasks.json
+prompt:
+  text: '公司正在筹备“旗舰终端V2”线上发布。请你：
+
+    1）列出所有会议纪要并逐份提取其中的行动项
+
+    2）查看当前待办清单（包含pending/in_progress/completed）
+
+    3）将会议行动项与已有待办做模糊匹配，识别已存在的（避免重复新建）；匹配到的需给出对应待办ID
+
+    4）列出需要新增的待办事项建议
+
+    5）输出行动项追踪表：每行包含【来源会议标题、行动项标题、负责人、截止日期、是否已有待办、已有待办ID（如有）】
+
+    注意：会议纪要中的干扰描述（例如只提到“下次复盘关注…”但没有负责人和截止日期）不要当成行动项。'
+  language: zh
+tools:
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: all
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

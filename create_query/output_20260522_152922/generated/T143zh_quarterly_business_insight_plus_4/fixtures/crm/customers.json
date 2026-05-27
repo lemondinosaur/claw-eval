@@ -1,0 +1,79 @@
+[
+  {
+    "customer_id": "CUS-204",
+    "name": "青岚零售科技",
+    "tier": "vip",
+    "status": "active",
+    "industry": "零售科技",
+    "annual_revenue": 860000,
+    "contract_end": "2026-07-31",
+    "notes": "Q1中途短暂停用后已重新激活；续签推进中",
+    "contact_person": "liang.chen@qinglanretail.example"
+  },
+  {
+    "customer_id": "CUS-205",
+    "name": "北桥物流服务",
+    "tier": "standard",
+    "status": "active",
+    "industry": "物流运输",
+    "annual_revenue": 1120000,
+    "contract_end": "2026-12-15",
+    "notes": "恢复较稳定，续约条款谈判顺利",
+    "contact_person": "yao.zhang@beiqiao-logistics.example"
+  },
+  {
+    "customer_id": "CUS-206",
+    "name": "星河制造精密",
+    "tier": "vip",
+    "status": "stopped",
+    "industry": "高端制造",
+    "annual_revenue": 1560000,
+    "contract_end": "2026-05-30",
+    "notes": "CRM标记停用，但财务显示在4月恢复交易；疑似状态更新延迟",
+    "contact_person": "wen.liu@xingherpm.example"
+  },
+  {
+    "customer_id": "CUS-207",
+    "name": "曙光教育平台",
+    "tier": "standard",
+    "status": "pending_update",
+    "industry": "教育科技",
+    "annual_revenue": 420000,
+    "contract_end": "2026-06-20",
+    "notes": "试用结束后重新采购在路上；等待续签确认",
+    "contact_person": "tang.zhao@shuguangedu.example"
+  },
+  {
+    "customer_id": "CUS-208",
+    "name": "澄海传媒集团",
+    "tier": "standard",
+    "status": "active",
+    "industry": "传媒广告",
+    "annual_revenue": 760000,
+    "contract_end": "2026-10-10",
+    "notes": "恢复交易集中在Q1末，Q2有预算恢复迹象",
+    "contact_person": "qian.wang@chenghai-media.example"
+  },
+  {
+    "customer_id": "CUS-209",
+    "name": "长风能源工程",
+    "tier": "vip",
+    "status": "churned",
+    "industry": "能源工程",
+    "annual_revenue": 0,
+    "contract_end": "2026-03-31",
+    "notes": "Q1持续中断，预算削减后仍未恢复",
+    "contact_person": "hao.chen@changfeng-energy.example"
+  },
+  {
+    "customer_id": "CUS-210",
+    "name": "金穗会展服务",
+    "tier": "standard",
+    "status": "active",
+    "industry": "会展服务",
+    "annual_revenue": 310000,
+    "contract_end": "2026-09-01",
+    "notes": "小额补记但尚未形成连续复购",
+    "contact_person": "ruan.su@goldsummit-events.example"
+  }
+]

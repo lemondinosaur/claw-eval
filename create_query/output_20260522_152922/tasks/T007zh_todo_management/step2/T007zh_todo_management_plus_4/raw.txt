@@ -1,0 +1,142 @@
+{
+  "task_id": "T007zh_todo_management_plus_4",
+  "task_name": "多时区式截点（边界）去重+过期",
+  "prompt_text": "帮我把待办整理一下：先识别重复项并将重复项标记为 completed（不要删除任何待办项，也不要影响非重复项状态）；再把“过期”的 pending 待办标出来：仅当 due_date 严格小于今天（2026-07-20）才算过期。注意 due_date 恰好等于今天的不能算过期；due_date 为 null 的也不算过期。completed 的待办不要再按“过期待办”处理。最后输出重复合并说明，并分别列出过期与未过期（含今天）的任务。",
+  "files": {
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "todo_1001",
+        "title": "升级告警规则",
+        "description": "将告警阈值与触发策略升级到v2（语义一致：升级告警规则）",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-07-20",
+        "tags": [
+          "告警",
+          "规则升级"
+        ],
+        "created_at": "2026-07-02T09:12:00Z"
+      },
+      {
+        "task_id": "todo_1002",
+        "title": "升级告警规则（V2）",
+        "description": "升级告警阈值与触发策略到v2；与“升级告警规则”语义一致（重复项测试）",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-07-23",
+        "tags": [
+          "告警",
+          "规则升级"
+        ],
+        "created_at": "2026-07-03T10:25:00Z"
+      },
+      {
+        "task_id": "todo_1003",
+        "title": "更新风控阈值映射",
+        "description": "检查并调整风控阈值映射表参数",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-07-19",
+        "tags": [
+          "风控"
+        ],
+        "created_at": "2026-06-29T16:40:00Z"
+      },
+      {
+        "task_id": "todo_1004",
+        "title": "升级告警规则（边界当天）",
+        "description": "同为告警规则升级，但为边界当天任务：due_date=今天不应判定过期",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-07-20",
+        "tags": [
+          "告警",
+          "边界"
+        ],
+        "created_at": "2026-07-05T08:05:00Z"
+      },
+      {
+        "task_id": "todo_1005",
+        "title": "准备客服话术包",
+        "description": "整理常见问题与回复话术，便于客服快速引用",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": null,
+        "tags": [
+          "客服"
+        ],
+        "created_at": "2026-07-01T12:30:00Z"
+      },
+      {
+        "task_id": "todo_1006",
+        "title": "归档旧报表（自动）",
+        "description": "把已完成的旧报表归档到归档目录（不要作为过期待办再处理）",
+        "status": "completed",
+        "priority": "low",
+        "due_date": "2026-07-19",
+        "tags": [
+          "归档"
+        ],
+        "created_at": "2026-07-10T18:20:00Z"
+      },
+      {
+        "task_id": "todo_1007",
+        "title": "更新域名解析",
+        "description": "为应用切换新域名服务，更新解析记录与TTL",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-07-22",
+        "tags": [
+          "运维"
+        ],
+        "created_at": "2026-07-04T14:10:00Z"
+      },
+      {
+        "task_id": "todo_1008",
+        "title": "备份数据库到对象存储",
+        "description": "执行周度备份并验证备份可恢复性",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-07-21",
+        "tags": [
+          "备份"
+        ],
+        "created_at": "2026-07-06T07:55:00Z"
+      },
+      {
+        "task_id": "todo_1009",
+        "title": "准备季度复盘大纲",
+        "description": "撰写季度复盘的提纲与问题清单",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-07-24",
+        "tags": [
+          "复盘"
+        ],
+        "created_at": "2026-07-08T11:11:00Z"
+      },
+      {
+        "task_id": "todo_1010",
+        "title": "同步工单状态到看板",
+        "description": "将关键工单状态同步到可视化看板，确保信息一致",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-07-20",
+        "tags": [
+          "看板"
+        ],
+        "created_at": "2026-07-09T09:40:00Z"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新增严格边界：due_date==2026-07-20 不算过期；同时包含重复合并测试，且边界任务不应被误标为过期。",
+    "fixture_design_summary": [
+      "当前日期锚点固定为 2026-07-20：设置了 due_date=2026-07-19（应过期）与 due_date=2026-07-20（不应过期）以及 due_date=null（不应过期）。",
+      "构造一组重复任务（todo_1001 与 todo_1002）：同语义升级告警规则，重复合并后将重复项标记为 completed，但确保 due_date=2026-07-20 的边界任务不被误判过期。",
+      "加入 completed 且 due_date=2026-07-19 的干扰项（todo_1006），验证 completed 不参与“过期待办”分组。",
+      "额外加入多个无关 pending 任务（更新域名解析/备份数据库/季度复盘等）用于干扰过期与去重逻辑。",
+      "不依赖任何删除/新增接口，仅通过 todo_update_task 标记重复项完成，符合新任务要求。"
+    ]
+  }
+}

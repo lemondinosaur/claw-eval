@@ -1,0 +1,38 @@
+[
+  {
+    "message_id": "msg_301",
+    "from": "productline@company.com",
+    "to": "me@company.com",
+    "subject": "预算评审会议时间临时调整：周三上午",
+    "date": "2026-03-03T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，因流程调整，我们的预算评审会临时变更到周三上午。\n\n请务必通知张经理参加。\n\n产品线团队"
+  },
+  {
+    "message_id": "msg_302",
+    "from": "hr@company.com",
+    "to": "me@company.com",
+    "subject": "关于会议安排的培训提醒",
+    "date": "2026-03-02T16:40:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "你好，提醒一下本周将有一次内部培训会议，麻烦关注参会安排与签到表。\n\n如需协助，请尽早对接相关负责人。\n\n人事团队"
+  },
+  {
+    "message_id": "msg_303",
+    "from": "org@company.com",
+    "to": "me@company.com",
+    "subject": "跨部门协作：王经理对接事项",
+    "date": "2026-03-01T11:20:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "你好，接下来有几项跨部门协作需要王经理确认，请及时跟进。\n\n谢谢。\n\n组织支持组"
+  }
+]

@@ -1,0 +1,117 @@
+task_id: T021zh_newsletter_curation_plus_1
+task_name: AI Ops 周报精选
+version: '1.0'
+category: content
+difficulty: easy
+tags:
+- general
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T021zh_newsletter_curation_plus_1/fixtures/rss/articles.json
+prompt:
+  text: '请从RSS源里挑选本周与“AI运维/生产化”强相关的文章，整理成一份《AI Ops 技术周报》并发布给指定团队收件人列表（研发/运维）。
+
+
+    要求：
+
+    1）阅读每篇入选文章的完整内容后再撰写周报，禁止编造原文不存在的事实；
+
+    2）Newsletter必须包含以下结构（中文）：
+
+    - 标题
+
+    - 导读（3-4句）
+
+    - 精选要点（按条目，至少5条），每条点名对应文章的主题并提炼对AI生产落地/运维的影响
+
+    - 本周值得关注的指标/实践（不少于5条，每条包含“指标/实践 + 目的/怎么用 + 观测口径/阈值建议”）
+
+    - 结尾的行动建议：给研发一句、给运维一句
+
+    3）RSS中存在混杂娱乐/健康/生活等干扰内容与“接近但不够AI运维”的边界文章：你必须优先保留与上线运行/监控告警/可观测性/事故响应/成本与发布相关的稿件；并且对两篇边界文章给出明确取舍理由（保留或剔除均可，但理由必须写清楚，且不得让无关娱乐/生活内容出现在周报正文中）。
+
+    4）为避免重复点堆叠：同一主题来自不同来源的文章需做“避免重复强调”的整合取舍。
+
+
+    你需要调用rss_list_feeds、rss_list_articles完成筛选；对最终入选文章逐篇调用rss_get_article；最后用rss_publish发布，content中必须出现“导读/精选要点/指标实践/行动建议”的结构关键词。'
+  language: zh
+tools:
+- name: rss_list_feeds
+  description: 获取所有RSS订阅源
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: rss_list_articles
+  description: 获取文章列表
+  input_schema:
+    type: object
+    properties:
+      source:
+        type: string
+        description: 按来源筛选
+      category:
+        type: string
+        description: 按类别筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章完整内容
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: rss_publish
+  description: 发布Newsletter
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: Newsletter标题
+      content:
+        type: string
+        description: Newsletter内容
+      recipients:
+        type: array
+        items:
+          type: string
+        description: 接收者列表
+    required:
+    - title
+    - content
+tool_endpoints:
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: rss_publish
+  url: http://localhost:9109/rss/publish
+  method: POST
+sandbox_files:
+- fixtures/rss/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

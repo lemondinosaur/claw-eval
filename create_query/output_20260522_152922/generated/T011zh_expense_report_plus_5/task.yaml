@@ -1,0 +1,88 @@
+task_id: T011zh_expense_report_plus_5
+task_name: 多币种换算与币种一致性校验（仅提交本币）
+version: '1.0'
+category: finance
+difficulty: easy
+tags:
+- general
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T011zh_expense_report_plus_5/fixtures/finance/transactions.json
+prompt:
+  text: '帮我整理并提交2026年6月的报销报告。
+
+    系统只允许提交人民币（CNY）费用：
+
+    1）若存在非CNY交易（如USD/EUR），请先排除并在提交说明中明确说明原因；即使交易描述里写了“已按汇率折算”，也不得使用其折算金额。
+
+    2）对CNY交易做安全去重：只有当“同一商户+同一日期+同一金额+同一币种”的记录完全一致时才可视为重复，不能把“同商户同日但币种不同”的记录当作重复或合并。
+
+    3）若存在CNY退款为负数，需要纳入提交的CNY总额计算。
+
+    最终提交时：提交的transactions全部为CNY，并且total_amount等于所有被提交CNY交易金额（含负数退款）的求和。'
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 获取费用交易记录列表
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 开始日期 (YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 结束日期 (YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取单笔交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: finance_submit_report
+  description: 提交费用报告
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 报告标题
+      transactions:
+        type: array
+        items:
+          type: string
+        description: 包含的交易ID列表
+      total_amount:
+        type: number
+        description: 总金额
+    required:
+    - title
+    - transactions
+    - total_amount
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: finance_submit_report
+  url: http://localhost:9104/finance/report/submit
+  method: POST
+sandbox_files:
+- fixtures/finance/transactions.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

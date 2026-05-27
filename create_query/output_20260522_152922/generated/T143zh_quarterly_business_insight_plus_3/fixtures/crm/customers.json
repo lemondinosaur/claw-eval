@@ -1,0 +1,90 @@
+[
+  {
+    "customer_id": "CUS-210",
+    "name": "北纬数据科技",
+    "tier": "vip",
+    "status": "active",
+    "industry": "数据服务",
+    "annual_revenue": 1240000,
+    "contract_end": "2026-07-20",
+    "notes": "目前为企业高级版；合同补充条款注明：若价格调整则可在不降级前提下置换为同级套餐。续费窗口临近但未触发降级条款。",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-211",
+    "name": "星河制造集团",
+    "tier": "standard",
+    "status": "active",
+    "industry": "工业制造",
+    "annual_revenue": 520000,
+    "contract_end": "2026-05-05",
+    "notes": "合同含“层级下调触发条款”：若连续两个月低于最低消费门槛，将自动进入降级流程；剩余天数较短，需重点跟进。",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-212",
+    "name": "云栈零售科技",
+    "tier": "standard",
+    "status": "active",
+    "industry": "零售电商",
+    "annual_revenue": 430000,
+    "contract_end": "2026-08-10",
+    "notes": "产品为标准版；合同显示“价格冻结至季度末”，但若Q2启用新定价则需重新评估；目前标注续费中等风险。",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-213",
+    "name": "金桥物流有限公司",
+    "tier": "vip",
+    "status": "active",
+    "industry": "物流运输",
+    "annual_revenue": 860000,
+    "contract_end": "2026-10-30",
+    "notes": "高级版在用；条款写明：若发生计费周期调整（如季度内延迟开票），系统会保持合同健康状态，降级仅在“开票后两周仍未补缴”时触发。",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-214",
+    "name": "梧桐教育培训",
+    "tier": "basic",
+    "status": "active",
+    "industry": "教育培训",
+    "annual_revenue": 240000,
+    "contract_end": "2026-04-18",
+    "notes": "已在2026年2月由高级版转为基础版；存在降级后的“价格更优但功能受限”条款。若Q2不续购增值包，续费大概率按基础版执行。",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-215",
+    "name": "华讯传媒广告",
+    "tier": "standard",
+    "status": "active",
+    "industry": "传媒广告",
+    "annual_revenue": 610000,
+    "contract_end": "2026-06-28",
+    "notes": "合同写明：如行业采用AI工作流导致替代方案采购上升，需在续费前完成“可替代性评估”；否则进入降级讨论。当前CRM标记为将进入评估阶段。",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-216",
+    "name": "澄海政府协同平台",
+    "tier": "standard",
+    "status": "active",
+    "industry": "政府机关",
+    "annual_revenue": 310000,
+    "contract_end": "2026-09-02",
+    "notes": "条款注明：预算重新分配期间，合同将保持active但不触发降级；若Q2预算批准延迟，将出现计费推后并在系统中短期呈现“健康”。",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-217",
+    "name": "融通云企服务",
+    "tier": "basic",
+    "status": "active",
+    "industry": "企业服务",
+    "annual_revenue": 180000,
+    "contract_end": "2026-03-30",
+    "notes": "合同即将到期；续费条款要求按季度签署且存在“连续低消费自动下调”条款；若Q1低于预期，将直接进入降级谈判。",
+    "contact_person": ""
+  }
+]

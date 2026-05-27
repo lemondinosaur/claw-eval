@@ -1,0 +1,80 @@
+[
+  {
+    "contact_id": "CT-2001",
+    "name": "林峻",
+    "department": "数据平台",
+    "title": "数据一致性与ETL资深工程师",
+    "email": "linjun@company.com",
+    "phone": "13800199111",
+    "location": "北京总部",
+    "skills": [
+      "数据完整性校验",
+      "ETL回滚",
+      "数据库一致性验证",
+      "批量数据污染止血"
+    ],
+    "notes": "擅长数据污染导致的批量放行失败；可快速定位脏读来源并执行回滚与一致性校验。"
+  },
+  {
+    "contact_id": "CT-2002",
+    "name": "周沐",
+    "department": "性能优化组",
+    "title": "性能优化工程师",
+    "email": "zhoumu@company.com",
+    "phone": "13800199222",
+    "location": "上海分部",
+    "skills": [
+      "性能优化",
+      "指标监控",
+      "资源调度",
+      "查询加速"
+    ],
+    "notes": "全天可用，但对ETL回滚与一致性验证经验不足；更适合作为备选支援。"
+  },
+  {
+    "contact_id": "CT-2003",
+    "name": "郑禾",
+    "department": "前端与集成",
+    "title": "前端/接口联调工程师",
+    "email": "zhenghe@company.com",
+    "phone": "13800199333",
+    "location": "广州分部",
+    "skills": [
+      "前端开发",
+      "接口联调",
+      "API契约校验",
+      "日志可视化"
+    ],
+    "notes": "擅长前端/接口联调，与数据一致性验证无直接经验；仅在技能不匹配情况下出现于候选。"
+  },
+  {
+    "contact_id": "CT-2004",
+    "name": "顾岚",
+    "department": "客户成功部",
+    "title": "客户经理",
+    "email": "gulan@company.com",
+    "phone": "13800199444",
+    "location": "武汉光谷区域驻点",
+    "skills": [
+      "客户关系",
+      "SLA沟通",
+      "现场协同协调"
+    ],
+    "notes": "对接VIP客户：星环生物医药；负责派遣通知与升级联络。"
+  },
+  {
+    "contact_id": "CT-2005",
+    "name": "陈霖",
+    "department": "技术管理",
+    "title": "技术总监",
+    "email": "chenlin@company.com",
+    "phone": "13800199555",
+    "location": "北京总部",
+    "skills": [
+      "技术管理",
+      "应急升级",
+      "风险评估"
+    ],
+    "notes": "VIP critical现场工单需升级通知与抄送；作为escalation contact。"
+  }
+]

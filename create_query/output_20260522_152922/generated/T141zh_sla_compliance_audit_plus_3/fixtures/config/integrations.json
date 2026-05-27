@@ -1,0 +1,61 @@
+[
+  {
+    "integration_id": "INT-E01",
+    "name": "四级SLA响应规则-新",
+    "status": "active",
+    "config": {
+      "critical": {
+        "response_time_minutes": 45,
+        "resolution_time_hours": 6,
+        "escalation_after_minutes": 20
+      },
+      "high": {
+        "response_time_minutes": 180,
+        "resolution_time_hours": 18,
+        "escalation_after_minutes": 90
+      },
+      "medium": {
+        "response_time_minutes": 360,
+        "resolution_time_hours": 36,
+        "escalation_after_minutes": 180
+      },
+      "low": {
+        "response_time_minutes": 1440,
+        "resolution_time_hours": 96,
+        "escalation_after_minutes": 720
+      }
+    },
+    "service": "sla_policy_v2",
+    "last_verified": "2026-04-10",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  },
+  {
+    "integration_id": "INT-E02",
+    "name": "补偿通知API-依赖异常",
+    "status": "error",
+    "config": {
+      "base_url": "https://api-notify.example.internal/v1",
+      "timeout_ms": 8000,
+      "auth": "mTLS"
+    },
+    "error_message": "依赖服务不可达：连接超时（upstream notify-gateway timeout）",
+    "service": "ticket_notification_api",
+    "last_verified": "2026-05-18",
+    "monthly_calls": 0,
+    "error_rate": 0.32
+  },
+  {
+    "integration_id": "INT-E03",
+    "name": "干扰健康通知集成",
+    "status": "active",
+    "config": {
+      "endpoint": "https://health.example.internal/webhook/heartbeat",
+      "channel": "ops-heartbeat"
+    },
+    "service": "webhook_health",
+    "last_verified": "2026-05-20",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "transaction_id": "TXN-501",
+    "type": "预算拨付",
+    "description": "2026年边缘节点阶段预算（服务器+网络）",
+    "amount": 2800000,
+    "currency": "CNY",
+    "date": "2026-02-01",
+    "category": "预算",
+    "department": "边缘基础架构部",
+    "approved_by": "总监",
+    "notes": "用于分阶段采购：先关键服务器稳定交付，再补齐网络配套。"
+  },
+  {
+    "transaction_id": "TXN-502",
+    "type": "采购支出",
+    "description": "上季度服务器备件与管理平台升级",
+    "amount": 640000,
+    "currency": "CNY",
+    "date": "2026-01-12",
+    "category": "设备采购",
+    "department": "边缘基础架构部",
+    "supplier": "北辰云栈科技",
+    "notes": "包含服务器运维软件订阅与边缘管理代理升级。"
+  },
+  {
+    "transaction_id": "TXN-503",
+    "type": "采购支出",
+    "description": "网络配套（交换/安全）历史批次",
+    "amount": 910000,
+    "currency": "CNY",
+    "date": "2025-12-20",
+    "category": "设备采购",
+    "department": "边缘基础架构部",
+    "supplier": "星港网络集成",
+    "notes": "网络交换机与边缘安全策略网关采购。"
+  },
+  {
+    "transaction_id": "TXN-504",
+    "type": "退货退款",
+    "description": "边缘试点网络设备兼容性整改退款（部分退货）",
+    "amount": 72000,
+    "currency": "CNY",
+    "date": "2026-02-10",
+    "category": "退款",
+    "department": "边缘基础架构部",
+    "supplier": "星港网络集成",
+    "notes": "因现场兼容性验证延迟产生小批退货，实际可用设备在整改后重新入库。"
+  },
+  {
+    "transaction_id": "TXN-505",
+    "type": "分期拨付",
+    "description": "供应商实施服务分期拨付（远程/现场）",
+    "amount": 300000,
+    "currency": "CNY",
+    "date": "2026-01-25",
+    "category": "服务采购",
+    "department": "边缘基础架构部",
+    "supplier": "长河数智采购代理",
+    "notes": "按远程诊断完成与现场验收节点分期支付。"
+  }
+]

@@ -1,0 +1,129 @@
+[
+  {
+    "message_id": "msg_2401",
+    "from": "billing@beifanghanglian.com",
+    "to": "me@company.com",
+    "subject": "【隐含费用条款】合同BFL-77：违约金豁免合计要求 10.0万（已等价）",
+    "date": "2026-03-02T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "fee-clause"
+    ],
+    "body": "你好，\n\n关于合同编号：BFL-77，条款名称：违约金豁免条款。\n\n我们理解贵司应承担等效赔付：违约金豁免合计 10.0万元（用于抵扣我方因逾期产生的可量化损失）。\n\n本邮件视为正式条款触发升级，请安排内部处理口径。\n\n客户编号：CUS-101\n客户名称：北方航联\n联系人：高然\n\n此致\n高然"
+  },
+  {
+    "message_id": "msg_2402",
+    "from": "ops@qingcheng-fin.com",
+    "to": "me@company.com",
+    "subject": "升级：服务费减免替代赔付（合同QCJ-2024，付款抵扣条款）USD 60k等值",
+    "date": "2026-03-02T10:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important",
+      "escalation",
+      "fee-clause"
+    ],
+    "body": "您好，\n\n合同编号：QCJ-2024\n条款名称：付款抵扣条款（服务费减免替代赔付）。\n\n根据条款，贵司可将赔付写为：服务费减免 USD 60k 等值金额；并且已按汇率换算为 CNY 420,000 元（即等效赔付口径）。\n\n请贵司以该等值金额作为承诺依据。\n\n客户编号：CUS-102\n客户名称：青橙金融\n联系人：周总\n\n感谢。\n周总"
+  },
+  {
+    "message_id": "msg_2403",
+    "from": "support@startool.io",
+    "to": "me@company.com",
+    "subject": "【待核算】隐含费用条款触发：违约金豁免合计=待确认（合同STG-12，SLA条款）",
+    "date": "2026-03-02T11:35:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "fee-clause"
+    ],
+    "body": "你好，\n\n合同编号：STG-12\n条款名称：SLA违约条款。\n\n根据条款，需以“违约金豁免合计”作为等效赔付，但金额目前标注为：待确认/另行核算。\n\n请勿直接承诺具体金额；我们希望贵司先更新工单到“待核算”并同步内部核算口径。\n\n客户编号：CUS-103\n客户名称：星图软件\n联系人：王经理\n\n王经理"
+  },
+  {
+    "message_id": "msg_2404",
+    "from": "legal@wanxiang-energy.cn",
+    "to": "me@company.com",
+    "subject": "【已终止/不续约】合同WX-901：服务费抵扣金额不再适用（争议条款）",
+    "date": "2026-03-02T12:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "fee-clause"
+    ],
+    "body": "敬启者：\n\n合同编号：WX-901\n条款名称：争议条款。\n\n由于合同已终止且我方不再续约，原“服务费抵扣金额”相关承诺不再适用。\n\n请贵司停止按该口径对外承诺，并进行法务评估。若仍需处理，请在系统中标记：异常-条款触发。\n\n客户编号：CUS-109\n客户名称：蓝鲸科技（已流失）\n联系人：陈总\n\n陈总"
+  },
+  {
+    "message_id": "msg_2405",
+    "from": "cs@rongda-manufacture.cn",
+    "to": "me@company.com",
+    "subject": "条款升级（合同RD-330）：服务费抵扣金额 15,0000元 作为等效赔付",
+    "date": "2026-03-02T13:40:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "fee-clause"
+    ],
+    "body": "您好，\n\n合同编号：RD-330\n条款名称：服务费减免/抵扣条款。\n\n根据条款，本次赔付以服务费抵扣金额形式呈现：\n- 服务费抵扣金额：150,000 元（等效赔付口径）\n\n我们要求贵司明确该等效金额并更新对应工单。\n\n客户编号：CUS-105\n客户名称：荣达制造\n联系人：孙经理\n\n孙经理"
+  },
+  {
+    "message_id": "msg_2406",
+    "from": "acct@yunlan-comm.com",
+    "to": "me@company.com",
+    "subject": "【隐含费用条款】合同YL-88：违约金豁免合计 8万（SLA条款）",
+    "date": "2026-03-02T14:25:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "fee-clause"
+    ],
+    "body": "你好，\n\n合同编号：YL-88\n条款名称：SLA违约条款。\n\n条款触发后，我方要求以违约金豁免合计形式替代赔付：\n- 违约金豁免合计：80,000 元（等效赔付金额）\n\n请据此更新工单并执行预算内处理通知。\n\n客户编号：CUS-106\n客户名称：云岚通信\n联系人：丁总\n\n丁总"
+  },
+  {
+    "message_id": "msg_2407",
+    "from": "ops@caihong-retail.com",
+    "to": "me@company.com",
+    "subject": "付款抵扣条款触发：服务费抵扣金额 20万（合同CHR-55）",
+    "date": "2026-03-02T15:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "fee-clause"
+    ],
+    "body": "您好，\n\n合同编号：CHR-55\n条款名称：付款抵扣条款。\n\n我们收到贵司通知后确认：本次等效赔付应以服务费抵扣金额表示：\n- 服务费抵扣金额：200,000 元（已等价为赔付口径）\n\n请按预算规则处理：若超出阈值则走审批草稿。\n\n客户编号：CUS-107\n客户名称：彩虹零售\n联系人：刘总\n\n刘总"
+  },
+  {
+    "message_id": "msg_2408",
+    "from": "support@haian-logistics.com",
+    "to": "me@company.com",
+    "subject": "【干扰】客户编号缺失：条款触发但无法匹配（合同HL-14，争议条款）",
+    "date": "2026-03-02T16:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "fee-clause"
+    ],
+    "body": "你好，\n\n合同编号：HL-14\n条款名称：争议条款。\n\n根据条款触发，我方要求等效赔付金额 50,000 元（服务费抵扣口径）。\n\n但本邮件未提供客户编号，导致无法在系统中定位客户与工单。\n\n（此为测试干扰样本）\n\n吴总"
+  },
+  {
+    "message_id": "msg_2409",
+    "from": "admin@changfeng.edu",
+    "to": "me@company.com",
+    "subject": "边界样本：违约金豁免合计=待承诺口径 5万（合同CEF-1，违约金豁免条款）",
+    "date": "2026-03-02T17:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "escalation",
+      "fee-clause"
+    ],
+    "body": "您好，\n\n合同编号：CEF-1\n条款名称：违约金豁免条款。\n\n根据条款触发，我方要求以违约金豁免合计作为等效赔付：\n- 违约金豁免合计：50,000 元\n\n该金额用于承诺等效赔付口径。\n\n客户编号：CUS-110\n客户名称：长风教育\n联系人：马校长\n\n马校长"
+  }
+]

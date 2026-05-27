@@ -1,0 +1,411 @@
+{
+  "task_id": "T161zh_automation_failure_recovery_plus_3",
+  "task_name": "多租户数据隔离异常引发链路停止",
+  "prompt_text": "你是运维：系统提示多项自动化任务连续失败，且仅表现为某些租户的库存可用性受影响。工单里也提到“A客户看得到但B客户看不到”或“隔离失败”。请按以下要求输出排查与恢复方案：\n\n1）列出失败定时任务及其依赖关系，重点还原从“租户隔离写入失败”到“下游安全中断/自动补货停止”的链路。\n2）检查API集成配置找出根因（与租户隔离标识相关，包含tenant_id/header/caller scope等）；说明为何是根因落在租户B而导致表象覆盖到所有租户。\n3）评估对库存可用性的影响范围：结合inventory中blocked/partial状态、last_sync跳变等现象，解释哪些商品受影响、受影响的原因是“写入403→一致性校验拒绝→共享缓存标记不可用→安全策略阻断”。\n4）关联对应用户工单并解释为什么只影响部分租户；区分“直接受影响租户工单 / 间接受影响（共享缓存告警触发）工单 / 与链路无关的硬件工单”。\n5）在知识库搜索并引用恢复方案，给出可操作步骤：修复隔离配置→验证写入成功→重跑一致性校验/清缓存→恢复自动补货并监控。\n6）输出故障分析和可执行恢复计划（按顺序、包含验证点），并说明在未完成关键修复前不应关闭工单。\n",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-TNT-9101",
+        "name": "租户范围库存写入（隔离作用域）",
+        "service": "inventory_writer_mt",
+        "status": "active",
+        "endpoint": "https://inv-writer.internal.example.com/api/v4/tenant/write",
+        "api_key": "sk-inv-writer-mt-xxxx-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-10T09:10:00Z",
+        "monthly_calls": 98000,
+        "error_rate": 0.18,
+        "notes": "启用后部分租户出现 tenant scope mismatch：请求头中的 tenant_id 来自租户B，但运行上下文/调用方标识却指向租户A；导致库存写入返回403（仅根因租户B配置标识错误）。"
+      },
+      {
+        "integration_id": "INT-TNT-9102",
+        "name": "租户范围库存写入（正确作用域）-备用配置",
+        "service": "inventory_writer_mt",
+        "status": "inactive",
+        "endpoint": "https://inv-writer.internal.example.com/api/v4/tenant/write",
+        "api_key": "sk-inv-writer-mt2-xxxx-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-09T16:20:00Z",
+        "monthly_calls": 0,
+        "error_rate": 0.0,
+        "notes": "用于修复：将tenant_id/header及caller scope映射修正为租户B对应的隔离标识。确认后再切换到生产使用。"
+      },
+      {
+        "integration_id": "INT-SUP-9103",
+        "name": "供应数据获取（价格/库存快照）",
+        "service": "supplier_api",
+        "status": "active",
+        "endpoint": "https://supplier-mock.internal.example.com/api/v1/snapshot",
+        "api_key": "sk-sup-snap-xxxx-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-20T12:00:00Z",
+        "monthly_calls": 5400,
+        "error_rate": 0.004,
+        "notes": "正常。下游失败不是因为上游供应数据不可用。"
+      },
+      {
+        "integration_id": "INT-HEALTH-9104",
+        "name": "通用健康检查与日志采集",
+        "service": "ops_health",
+        "status": "active",
+        "endpoint": "https://healthops.internal.example.com/api/v2/ingest",
+        "api_key": "sk-health-xxxx-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-21T08:30:00Z",
+        "monthly_calls": 12000,
+        "error_rate": 0.03,
+        "notes": "该集成在最近一次任务中触发超时错误，但与隔离链路无关（不应作为主因）。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-MT-4201",
+        "title": "租户B：库存显示可见但实际不可用，补货停止（隔离失败）",
+        "description": "我们是租户B。系统页面能看到部分库存数量，但下单/补货始终没有触发。日志里反复出现“tenant scope mismatch / 隔离标识错误”。请尽快恢复：A租户不受影响，B受影响最明显。",
+        "reporter": "运维-韩沐（tenant B）",
+        "department": "运维平台",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-22T08:05:00Z",
+        "tags": ["租户B", "隔离失败", "403", "补货停止"],
+        "category": "系统故障"
+      },
+      {
+        "ticket_id": "TK-MT-4202",
+        "title": "租户B：一致性校验拒绝执行，缓存标记不可用后导致链路中断",
+        "description": "触发自动化后，“隔离一致性校验”拒绝执行并把共享缓存置为不可用。导致后续所有租户的自动补货都停止（安全策略）。但根因似乎只发生在租户B的隔离标识。",
+        "reporter": "供应链-何晴（tenant B）",
+        "department": "供应链",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-22T08:40:00Z",
+        "tags": ["一致性校验", "共享缓存", "安全策略", "租户隔离"],
+        "category": "链路中断"
+      },
+      {
+        "ticket_id": "TK-MT-4203",
+        "title": "租户A：也收到共享缓存报警，但库存页仍可显示（疑似间接受影响）",
+        "description": "我们是租户A，库存数量看起来能显示，但共享缓存报警让我们看到“自动补货停止”的红色告警。请确认这是隔离校验失败引起的全局保护，而不是A的库存写入本身出了问题。",
+        "reporter": "运营-苏岑（tenant A）",
+        "department": "运营",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-22T09:10:00Z",
+        "tags": ["共享缓存报警", "保护机制", "租户A"],
+        "category": "告警异常"
+      },
+      {
+        "ticket_id": "TK-MT-4204",
+        "title": "硬件：温控模块读数异常（无关）",
+        "description": "机房温控模块偶发读数跳变，建议联系硬件同事处理。该问题与自动化链路应无直接关联。",
+        "reporter": "机房-周远",
+        "department": "基础设施",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-22T07:55:00Z",
+        "tags": ["硬件", "温控"],
+        "category": "硬件故障"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "SKU-MT-7001",
+        "name": "云办公座机-白色（512F）",
+        "category": "IT通信终端",
+        "quantity": 12,
+        "unit": "台",
+        "reorder_level": 20,
+        "supplier_integration": "INT-SUP-9103",
+        "last_sync": "2026-05-22T08:12:00Z",
+        "sync_status": "blocked",
+        "notes": "该商品状态被写入403链路触发后置为blocked；上游供应抓取正常，但写入到租户隔离层失败导致不可用。"
+      },
+      {
+        "product_id": "SKU-MT-7002",
+        "name": "工业路由器-ERX2000",
+        "category": "网络设备",
+        "quantity": 4,
+        "unit": "台",
+        "reorder_level": 6,
+        "supplier_integration": "INT-SUP-9103",
+        "last_sync": "2026-05-22T08:14:00Z",
+        "sync_status": "partial",
+        "notes": "部分字段更新成功但校验拒绝后无法触发补货；表现为quantity仍显示，但自动补货被安全策略阻断。"
+      },
+      {
+        "product_id": "SKU-MT-7003",
+        "name": "PoE交换机-8口（G2）",
+        "category": "网络设备",
+        "quantity": 7,
+        "unit": "台",
+        "reorder_level": 10,
+        "supplier_integration": "INT-SUP-9103",
+        "last_sync": "2026-05-22T08:10:00Z",
+        "sync_status": "blocked",
+        "notes": "最近一次同步后 last_sync 出现跳变；blocked 与共享缓存置不可用一致性校验拒绝相关。"
+      },
+      {
+        "product_id": "SKU-MT-7004",
+        "name": "无线网卡-AC1200",
+        "category": "网络设备",
+        "quantity": 19,
+        "unit": "个",
+        "reorder_level": 25,
+        "supplier_integration": "INT-SUP-9103",
+        "last_sync": "2026-05-22T08:13:00Z",
+        "sync_status": "partial",
+        "notes": "可见数量但无法用于自动补货计算；原因：租户隔离写入失败导致校验拒绝，补货触发被全局安全保护阻断。"
+      },
+      {
+        "product_id": "SKU-MT-7005",
+        "name": "电源适配器-65W通用",
+        "category": "IT外设",
+        "quantity": 0,
+        "unit": "个",
+        "reorder_level": 15,
+        "supplier_integration": "INT-SUP-9103",
+        "last_sync": "2026-05-22T08:09:00Z",
+        "sync_status": "blocked",
+        "notes": "quantity=0但并非真正耗尽：被 blocked 后无法完成一致性校验重算与补货触发。"
+      },
+      {
+        "product_id": "SKU-MT-7006",
+        "name": "办公椅-人体工学（黑）",
+        "category": "家具",
+        "quantity": 26,
+        "unit": "把",
+        "reorder_level": 8,
+        "supplier_integration": "INT-SUP-9103",
+        "last_sync": "2026-05-22T08:00:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "SKU-MT-7007",
+        "name": "A4纸-500张/包",
+        "category": "办公耗材",
+        "quantity": 210,
+        "unit": "包",
+        "reorder_level": 60,
+        "supplier_integration": "INT-SUP-9103",
+        "last_sync": "2026-05-22T08:00:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "SKU-MT-7008",
+        "name": "键盘-机械轴（青轴）",
+        "category": "IT外设",
+        "quantity": 52,
+        "unit": "个",
+        "reorder_level": 20,
+        "supplier_integration": "INT-SUP-9103",
+        "last_sync": "2026-05-22T08:00:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "SKU-MT-7009",
+        "name": "显示器-24英寸（IPS）",
+        "category": "IT设备",
+        "quantity": 8,
+        "unit": "台",
+        "reorder_level": 10,
+        "supplier_integration": "INT-SUP-9103",
+        "last_sync": "2026-05-22T08:15:00Z",
+        "sync_status": "partial",
+        "notes": "用于解释“看得到但不可用/无法触发补货”：该商品在页面仍显示quantity，但由于共享缓存不可用与校验拒绝，自动补货链路被中断。"
+      },
+      {
+        "product_id": "SKU-MT-7010",
+        "name": "鼠标-静音版（M900）",
+        "category": "IT外设",
+        "quantity": 33,
+        "unit": "个",
+        "reorder_level": 25,
+        "supplier_integration": "INT-SUP-9103",
+        "last_sync": "2026-05-22T08:00:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-MT-5101",
+        "title": "多租户隔离标识异常（tenant_id/header/caller scope）排查与修复",
+        "category": "运维手册",
+        "tags": ["多租户", "隔离", "403", "tenant_id", "scope", "header"],
+        "content": "## 多租户隔离标识异常排查与修复\n\n### 典型现象\n- 部分租户写入失败：HTTP 403，报错信息包含 tenant scope mismatch 或隔离标识错误\n- 下游校验可能拒绝执行，进而触发共享缓存保护与全局安全中断\n\n### 排查要点（按顺序）\n1. 在配置管理中定位“租户范围库存写入”集成，核对：\n   - 租户隔离标识来源：tenant_id/header 或 caller scope\n   - 请求上下文租户：调用方在执行链路中的 tenant\n2. 对比错误租户与正确租户的标识映射：\n   - 若出现“tenant_id来自B，但执行上下文为A（或相反）”，则属于配置映射错误\n3. 确认备用/修复版集成配置：启用正确作用域映射（如 INT-TNT-9102 类似配置）。\n\n### 修复步骤\n1. 将错误集成（包含隔离标识错误映射）的配置项修正为正确租户隔离标识。\n2. 切换到修复后的集成（或将修复配置状态改为active）。\n3. 重新触发一次租户写入链路验证：\n   - 观察写入从403恢复为成功\n   - 确认租户A/B的tenant scope匹配一致\n",
+        "last_updated": "2026-05-18",
+        "views": 312
+      },
+      {
+        "article_id": "KB-MT-5102",
+        "title": "一致性校验失败后的共享缓存恢复与自动补货恢复流程",
+        "category": "运维手册",
+        "tags": ["一致性校验", "缓存", "自动补货", "恢复", "重算", "监控"],
+        "content": "## 一致性校验失败后的共享缓存恢复与自动补货恢复流程\n\n### 适用场景\n- 隔离一致性校验因写入失败/租户隔离不匹配而拒绝执行\n- 系统将共享缓存标记为不可用，触发全局安全策略导致自动补货停止\n\n### 恢复顺序（必须按顺序执行）\n1. **先修复写入403根因**：确保租户隔离标识匹配后，重试写入/同步。\n2. **验证写入成功**：观察租户范围库存写入不再返回403。\n3. **恢复共享缓存**：\n   - 清理/重置共享缓存标记（不可用→可用）\n   - 触发一次一致性校验重新计算（确保校验通过）\n4. **恢复自动补货**：\n   - 在缓存可用且校验通过后，触发一次自动补货检查任务\n   - 验证：受影响商品从blocked/partial逐步恢复到可用状态，并生成补货请求\n5. **监控与确认**：\n   - 观察后续2-3个调度周期内 last_sync 是否稳定\n   - 观察自动补货失败率是否回落\n\n### 注意\n- 在隔离写入未恢复前，不要直接关闭工单或强制开启补货（会基于错误/不一致数据下单）。\n",
+        "last_updated": "2026-05-19",
+        "views": 227
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-MT-3001",
+        "name": "租户供应数据获取",
+        "cron_expression": "0 */3 * * *",
+        "action": "fetch_tenant_supply_snapshot",
+        "enabled": true,
+        "last_run": "2026-05-22T08:00:00Z",
+        "next_run": "2026-05-22T09:00:00Z",
+        "last_status": "success",
+        "created_by": "ops_team",
+        "tags": ["tenant", "supplier", "snapshot"],
+        "created_at": "2025-08-11T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T08:00:00Z",
+            "status": "success",
+            "duration_s": 38
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-MT-3002",
+        "name": "租户库存写入（隔离作用域）",
+        "cron_expression": "15 */3 * * *",
+        "action": "write_inventory_by_tenant_scope",
+        "enabled": true,
+        "last_run": "2026-05-22T08:15:00Z",
+        "next_run": "2026-05-22T09:15:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": ["inventory", "multitenant", "write", "403"],
+        "created_at": "2025-08-17T00:00:00Z",
+        "depends_on": [
+          "JOB-MT-3001"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T08:15:00Z",
+            "status": "failed",
+            "duration_s": 2,
+            "error": "HTTP 403: tenant scope mismatch — request tenant_id=B but execution context tenant=A；拒绝写入到租户隔离层"
+          },
+          {
+            "run_at": "2026-05-22T05:15:00Z",
+            "status": "failed",
+            "duration_s": 2,
+            "error": "HTTP 403: tenant scope mismatch — request caller scope=tenantB-map but target scope=tenantA；写入被隔离拒绝"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-MT-3003",
+        "name": "隔离一致性校验",
+        "cron_expression": "30 */3 * * *",
+        "action": "run_isolation_consistency_check",
+        "enabled": true,
+        "last_run": "2026-05-22T08:30:00Z",
+        "next_run": "2026-05-22T09:30:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": ["isolation", "consistency", "cache"],
+        "created_at": "2025-08-19T00:00:00Z",
+        "depends_on": [
+          "JOB-MT-3002"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T08:30:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "error": "ConsistencyCheckRefused: 检测到隔离写入失败，拒绝执行并将共享缓存标记为不可用（global cache_guard=unavailable）"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-MT-3004",
+        "name": "自动补货（安全策略阻断）",
+        "cron_expression": "*/20 * * * *",
+        "action": "run_auto_restock_with_cache_guard",
+        "enabled": true,
+        "last_run": "2026-05-22T08:40:00Z",
+        "next_run": "2026-05-22T09:00:00Z",
+        "last_status": "failed",
+        "created_by": "ops_team",
+        "tags": ["restock", "safety", "cache-guard"],
+        "created_at": "2025-09-03T00:00:00Z",
+        "depends_on": [
+          "JOB-MT-3003"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T08:40:00Z",
+            "status": "failed",
+            "duration_s": 1,
+            "error": "SafetyPolicyBlocked: 共享缓存不可用（cache_guard=unavailable），为了跨租户数据一致性保护，自动补货停止（非库存过期原因）"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-MT-3005",
+        "name": "租户库存可用性汇总（只读）",
+        "cron_expression": "10 */1 * * *",
+        "action": "summarize_inventory_availability",
+        "enabled": true,
+        "last_run": "2026-05-22T08:10:00Z",
+        "next_run": "2026-05-22T09:10:00Z",
+        "last_status": "success",
+        "created_by": "ops_team",
+        "tags": ["inventory", "reporting"],
+        "created_at": "2025-09-05T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T08:10:00Z",
+            "status": "success",
+            "duration_s": 6
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-MT-3006",
+        "name": "通用健康检查（无关失败）",
+        "cron_expression": "*/7 * * * *",
+        "action": "run_health_aggregator",
+        "enabled": true,
+        "last_run": "2026-05-22T08:41:00Z",
+        "next_run": "2026-05-22T08:48:00Z",
+        "last_status": "failed",
+        "created_by": "admin",
+        "tags": ["health", "logs", "aggregation"],
+        "created_at": "2025-09-09T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T08:41:00Z",
+            "status": "failed",
+            "duration_s": 2,
+            "error": "TimeoutError: 健康检查聚合上报超时（与隔离一致性校验链路无依赖关系）"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的供应商API迁移/补货触发失败替换为“租户B隔离标识错误→库存写入403→一致性校验拒绝→共享缓存不可用→安全策略导致跨租户表象停止补货”，并要求解释直接与间接受影响的工单。",
+    "fixture_design_summary": [
+      "scheduler链路新增JOB-MT-3002(403 tenant scope mismatch)→JOB-MT-3003(一致性校验拒绝并置共享缓存不可用)→JOB-MT-3004(安全策略阻断自动补货)，并加入无关健康检查失败JOB-MT-3006。",
+      "config/integrations.json中用INT-TNT-9101的notes描述隔离作用域映射错误，且提供INT-TNT-9102作为修复备用配置以支撑KB修复步骤。",
+      "inventory/items.json设置多个SKU为blocked/partial并保留部分ok，同时通过notes与last_sync跳变描述“可见但不可用/无法触发补货”的表象。",
+      "helpdesk/tickets.json区分租户B直接受影响、租户A间接受影响（共享缓存报警/保护导致表象）、以及1条硬件无关工单。",
+      "kb/articles.json提供KB-MT-5101与KB-MT-5102，内容覆盖“隔离标识配置修复”与“缓存恢复+一致性校验重算+补货恢复”的顺序流程。"
+    ]
+  }
+}

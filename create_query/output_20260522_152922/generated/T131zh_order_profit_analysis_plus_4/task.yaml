@@ -1,0 +1,131 @@
+task_id: T131zh_order_profit_analysis_plus_4
+task_name: 多币种折算下的利润率一致性
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_4/fixtures/finance/transactions.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_4/fixtures/inventory/items.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_4/fixtures/crm/customers.json
+prompt:
+  text: "请帮我分析各客户订单的利润情况（包含多币种回款折算一致性）：\n\n1) 从CRM获取每个客户的最近订单、每个订单的产品组合与订单售价（CRM中的total_price均以CNY计价）。\n\
+    2) 从库存系统获取订单内各产品的成本价（以CNY口径）。\n3) 从财务系统拉取指定日期区间内的收款与退款交易，逐笔核对：交易是否属于订单回款范围（订单收款/退款/冲正等），以及交易的币种currency与折算字段rate_to_cny与type/category。\n\
+    4) 对回款分析：\n   - 仅将与订单回款相关的交易纳入（排除如“开票服务费”等非订单相关交易）。\n   - 当currency为USD/EUR时，使用交易提供的rate_to_cny将amount折算到CNY，再计算该订单的净回款（净回款=折算后的收款金额合计+折算后的退款金额合计）。\n\
+    \   - 若某笔交易缺少currency或缺少rate_to_cny（或无法获得汇率折算所需字段），请在报告中标注“回款折算不可用”，并避免胡乱折算。\n\
+    \   - 当currency为CNY时，不需要折算。\n5) 利润率计算：利润率按(售价-成本)/售价计算，且不随币种变化（始终使用CRM订单售价CNY与库存成本CNY）。\n\
+    6) 输出：对每位客户汇总展示——订单售价、成本、利润率；折算后的净回款（或回款折算不可用）；以及异常说明（如退款导致净回款低于售价、欠款等；折算不可用需明确标注）。\n\
+    \n请在分析报告中清晰区分：利润率（必为CNY一致）与回款折算（可能出现不可用的边界情况）。"
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: inventory_list_items
+  description: 查看库存/产品列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取产品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

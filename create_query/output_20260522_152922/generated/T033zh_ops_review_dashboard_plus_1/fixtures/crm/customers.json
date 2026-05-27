@@ -1,0 +1,68 @@
+[
+  {
+    "customer_id": "CUS-401",
+    "name": "星澜贸易",
+    "tier": "vip",
+    "status": "active",
+    "annual_revenue": 16000000,
+    "contact_person": "周总",
+    "contact_email": "zhou@xinglan-trade.com",
+    "contact_phone": "180-0102-0401",
+    "industry": "跨境电商",
+    "contract_end_date": "2026-12-15",
+    "recent_interactions": [
+      {
+        "date": "2026-04-26",
+        "type": "complaint",
+        "channel": "客服工单",
+        "notes": "客户反馈：部分订单退款已发起但状态未同步，页面停留在“退款处理中”；希望在24小时内完成对账并回写状态"
+      },
+      {
+        "date": "2026-04-18",
+        "type": "order",
+        "channel": "系统",
+        "notes": "支付订单批量下单 320 笔，涉及支付网关回调后处理"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-402",
+    "name": "北桥工业",
+    "tier": "standard",
+    "status": "active",
+    "annual_revenue": 5200000,
+    "contact_person": "孙经理",
+    "contact_email": "sun@beiqiao-industry.cn",
+    "contact_phone": "180-0102-0402",
+    "industry": "工业制造",
+    "contract_end_date": "2027-05-30",
+    "recent_interactions": [
+      {
+        "date": "2026-04-24",
+        "type": "inquiry",
+        "channel": "邮件",
+        "notes": "询问：对账差异导致的账期延迟是否有临时对策"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-403",
+    "name": "朝阳零售",
+    "tier": "standard",
+    "status": "active",
+    "annual_revenue": 2800000,
+    "contact_person": "许店长",
+    "contact_email": "xu@chaoyang-retail.com",
+    "contact_phone": "180-0102-0403",
+    "industry": "零售",
+    "contract_end_date": "2026-08-20",
+    "recent_interactions": [
+      {
+        "date": "2026-04-25",
+        "type": "complaint",
+        "channel": "电话",
+        "notes": "仅少量订单出现“支付确认卡住”现象，疑似与夜间对账任务失败相关"
+      }
+    ]
+  }
+]

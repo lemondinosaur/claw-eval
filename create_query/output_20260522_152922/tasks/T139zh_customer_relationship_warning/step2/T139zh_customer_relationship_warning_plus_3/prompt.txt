@@ -1,0 +1,420 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T139zh_customer_relationship_warning_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/contacts/contacts.json",
+  "fixtures/crm/customers.json",
+  "fixtures/gmail/inbox.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务 environment.mock_today = 2026-03-26，如新任务涉及日期，请让 fixture 中的绝对日期与该日期锚点兼容。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T139zh_customer_relationship_warning_plus_3",
+  "new_task_name": "合同已逾期但仍在宽限期的续约跟进",
+  "task_goal": "处理“已逾期但在宽限期内”的客户：从CRM中找出合同到期日已早于mock_today但未超过宽限期天数的活跃客户；检查Gmail中是否有客户主动挽留/支付疑虑；对VIP客户起草“宽限期内续约确认与付款安排”邮件草稿，并生成跟进任务清单。",
+  "user_request": "请帮我检查所有活跃客户的合同到期情况，找出：合同到期日已过去但仍在宽限期（宽限期为15天）的客户。对每个客户：1）查看CRM详情（VIP/standard、是否存在账单/付款备注、客户状态如“宽限期中/已联系”）；2）查找销售负责人联系方式；3）检查收件箱是否有客户提出“延迟付款/担心服务中断/希望继续使用”的沟通；4）根据宽限期紧急程度与VIP等级生成续约宽限期预警报告，并为VIP客户起草邮件草稿，内容必须包含对付款安排与服务不中断的承诺表述。最后输出报告与VIP草稿保存结果。",
+  "scenario": "mock_today=2026-06-10。CRM active客户共7个，其中3个合同在过去15天内到期（宽限期内），包含2个VIP、1个standard；另有2个合同已逾期超过15天但仍为active（应排除或标注为“超宽限期需升级处理”，不纳入本次邮件草稿范围）。Gmail里与VIP相关各有1封邮件：一封包含“担心系统停用”、另一封包含“发票/付款时间不确定”。同时有1封干扰邮件来自法务/催办但并非客户沟通。",
+  "difference_from_source": "不再以“未来到期60天内”为唯一筛选条件，而改为“已逾期但在宽限期内”；紧急度计算与邮件措辞重点从“续约提醒”转为“宽限期续约确认+付款与不中断承诺”；并引入“超宽限期需升级处理”的边界排除。",
+  "service_and_tool_plan": "crm_list_customers获取active客户，再结合contract_end相对mock_today计算宽限期筛选与超宽限期标注；crm_get_customer读取付款/服务备注与销售负责人；contacts_search/contacts_get定位销售负责人邮箱；gmail_list_messages按较短days_back（如30）拉取，再用gmail_get_message核对客户是否表达付款疑虑或担心中断；仅对VIP且宽限期内客户调用gmail_save_draft保存草稿并在报告中列出后续跟进清单（无需额外工具）。",
+  "fixture_generation_plan": "contacts.json：至少4条联系人（2个销售负责人+1个干扰联系人+1个可能备用字段对应者），名称与邮箱不复用原题。crm/customers.json：7条记录：active里3条在mock_today前15天内到期（例如contract_end=2026-05-30/06-02/06-08等），2条超宽限期（>15天）且仍active但需标注不纳入草稿；其余为inactive或未到期很久。为宽限期内VIP客户在notes/字段中加入“付款安排备注/服务中断担忧线索”。gmail/inbox.json：至少10封邮件，其中3封与目标客户相关（2封VIP表达付款疑虑/担心中断、1封standard表达希望继续使用），其余为内部通知/法务催办干扰，且干扰邮件要包含与“续约/宽限/付款”相近关键词但发件人与收件人不对应。",
+  "expected_behavior": "1）从CRM筛选：contract_end <= mock_today 且 mock_today - contract_end <= 15 的active客户；2）同时对contract_end更早但仍active的客户在报告中标注“超宽限期（不生成邮件草稿）”；3）对宽限期内客户：用crm_get_customer获取VIP/standard与付款/服务备注；4）contacts_search得到销售负责人联系方式；5）用gmail_list_messages与gmail_get_message核对是否有客户主动表达付款疑虑或担心服务中断；6）生成预警报告：包含每个客户的到期时间差（逾期天数）、VIP等级、客户沟通证据摘要、紧急度（例如高/中/低）与建议的跟进动作清单；7）对VIP且宽限期内：用gmail_save_draft保存邮件草稿，邮件要明确包含：宽限期续约确认、付款安排可选方案（占位符）、确保服务不中断的承诺；不调用gmail_send_message。",
+  "grading_plan": "检查：宽限期内3个客户是否正确识别且包含逾期天数计算；超宽限期的客户是否被标注且不生成VIP草稿；VIP草稿是否包含付款安排与不中断承诺，并引用到Gmail证据；草稿保存数量=2；不得调用gmail_send_message。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T139zh_customer_relationship_warning",
+  "task_name": "客户关系到期预警与续约跟进",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "contacts",
+    "crm",
+    "gmail"
+  ],
+  "tools": [
+    "crm_list_customers",
+    "crm_get_customer",
+    "contacts_search",
+    "contacts_get",
+    "gmail_list_messages",
+    "gmail_get_message",
+    "gmail_save_draft",
+    "gmail_send_message"
+  ],
+  "fixture_paths": [
+    "fixtures/contacts/contacts.json",
+    "fixtures/crm/customers.json",
+    "fixtures/gmail/inbox.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T139zh_customer_relationship_warning
+task_name: 客户关系到期预警与续约跟进
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: tasks/T139zh_customer_relationship_warning/fixtures/contacts/contacts.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: tasks/T139zh_customer_relationship_warning/fixtures/crm/customers.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T139zh_customer_relationship_warning/fixtures/gmail/inbox.json
+prompt:
+  text: '请帮我检查所有活跃客户的合同到期情况，找出60天内即将到期的客户。
+
+    对于每个即将到期的客户：
+
+    1. 查看CRM中的客户详情（等级、收入、销售负责人）
+
+    2. 查找对应销售负责人的联系方式
+
+    3. 检查收件箱是否有该客户近期的沟通记录
+
+    4. 根据客户等级(VIP/standard)和紧急程度，为VIP客户起草续约提醒邮件草稿
+
+    最后输出一份完整的续约预警报告。
+
+    '
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选
+      tier:
+        type: string
+        description: 客户等级筛选(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 30
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  mock_today: '2026-03-26'
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/contacts/contacts.json ---
+[
+  {"contact_id":"CON-901","name":"赵蕾","email":"zhaolei@company.com","phone":"13800138001","department":"销售部","title":"高级客户经理","responsibilities":["VIP客户维护","合同续约"]},
+  {"contact_id":"CON-902","name":"张伟","email":"zhangwei@company.com","phone":"13800138002","department":"销售部","title":"客户经理","responsibilities":["标准客户维护","新客户开发"]},
+  {"contact_id":"CON-903","name":"王明","email":"wangming@company.com","phone":"13800138003","department":"客户成功部","title":"客户成功经理","responsibilities":["客户健康度监控","续约支持"]},
+  {"contact_id":"CON-904","name":"李华","email":"lihua@company.com","phone":"13800138004","department":"技术部","title":"高级架构师","responsibilities":["技术支持","方案咨询"]},
+  {"contact_id":"CON-905","name":"刘洋","email":"liuyang@company.com","phone":"13800138005","department":"财务部","title":"财务主管","responsibilities":["合同审核","应收管理"]},
+  {"contact_id":"CON-906","name":"陈婷","email":"chenting@company.com","phone":"13800138006","department":"法务部","title":"法务专员","responsibilities":["合同条款","法律审核"]}
+]
+
+--- END FILE: fixtures/contacts/contacts.json ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-901",
+    "name": "鼎新软件",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-04-15",
+    "annual_revenue": 960000,
+    "industry": "软件",
+    "sales_rep": "赵蕾",
+    "notes": "核心客户，去年续约时升级了服务包",
+    "contact_person": "赵蕾"
+  },
+  {
+    "customer_id": "CUS-902",
+    "name": "瀚海电商",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-05-20",
+    "annual_revenue": 360000,
+    "industry": "电商",
+    "sales_rep": "张伟",
+    "notes": "稳定客户，使用标准版",
+    "contact_person": "张伟"
+  },
+  {
+    "customer_id": "CUS-903",
+    "name": "万通物流",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-04-05",
+    "annual_revenue": 1200000,
+    "industry": "物流",
+    "sales_rep": "赵蕾",
+    "notes": "最大客户之一，对服务要求很高",
+    "contact_person": "赵蕾"
+  },
+  {
+    "customer_id": "CUS-904",
+    "name": "公共机构",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-08-01",
+    "annual_revenue": 180000,
+    "industry": "政府",
+    "sales_rep": "张伟",
+    "notes": "长期合作伙伴",
+    "contact_person": "张伟"
+  },
+  {
+    "customer_id": "CUS-905",
+    "name": "阳光传媒",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-12-31",
+    "annual_revenue": 720000,
+    "industry": "传媒",
+    "sales_rep": "赵蕾",
+    "notes": "去年新签的VIP客户",
+    "contact_person": "赵蕾"
+  },
+  {
+    "customer_id": "CUS-906",
+    "name": "前锋科技",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-04-30",
+    "annual_revenue": 240000,
+    "industry": "科技",
+    "sales_rep": "张伟",
+    "notes": "中等规模客户，关注性价比",
+    "contact_person": "张伟"
+  }
+]
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_901",
+    "from": "wangtong_liuwei@wantong.com",
+    "to": "me@company.com",
+    "subject": "关于续约条款的咨询",
+    "date": "2026-03-20T09:00:00Z",
+    "body": "您好，我们的合同快到期了，想提前了解一下续约的条款和价格。我们对目前的服务比较满意，但希望能在价格上有些优惠。请尽快安排时间沟通。——刘卫，万通物流",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_902",
+    "from": "dingxin_lina@dingxin.com",
+    "to": "me@company.com",
+    "subject": "服务升级意向",
+    "date": "2026-02-10T09:00:00Z",
+    "body": "你好，我们一直在使用贵公司的产品，想了解一下是否有更高级的服务方案。我们的业务规模在扩大，现有方案可能不够用了。——李娜，鼎新软件",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_903",
+    "from": "admin@company.com",
+    "to": "all@company.com",
+    "subject": "清明节放假通知",
+    "date": "2026-03-25T09:00:00Z",
+    "body": "全体同事：清明节放假安排为4月4日-4月6日，共3天。请提前安排好工作。——行政部",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

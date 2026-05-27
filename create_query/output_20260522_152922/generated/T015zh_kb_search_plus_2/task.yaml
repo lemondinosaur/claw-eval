@@ -1,0 +1,78 @@
+task_id: T015zh_kb_search_plus_2
+task_name: MFA登录受阻处理
+version: '1.0'
+category: knowledge
+difficulty: easy
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T015zh_kb_search_plus_2/fixtures/kb/articles.json
+prompt:
+  text: 我远程登录公司账号时总是遇到 MFA 验证失败：连续把验证码输错后还被账号锁定了。请基于知识库给出自助处理路径——如何先止损避免继续错误、如何等待/解锁账号、如何正确完成
+    MFA（区分短信验证码失败与 Authenticator 时间不同步等情况）、必要时如何进入密码重置流程并完成复测登录；同时给出避免再次失败的注意事项。请在回答中引用相关知识库文章的标题与文章ID。
+  language: zh
+tools:
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按类别筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: kb_update_article
+  description: 更新知识库文章内容
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+      content:
+        type: string
+        description: 更新后的内容
+    required:
+    - article_id
+    - content
+tool_endpoints:
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: kb_update_article
+  url: http://localhost:9106/kb/articles/update
+  method: POST
+sandbox_files:
+- fixtures/kb/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 25

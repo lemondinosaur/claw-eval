@@ -1,0 +1,510 @@
+你是一个 Claw-Eval 数据构造助手。现在给你一个已有 benchmark task 的 task.yaml 和 fixtures。
+
+你的任务：基于这个原始 task 的任务类型，设计 5 个新的任务描述。注意：这里只生成“新任务描述 JSON”，不要生成 task.yaml、fixtures、grader.py。
+
+必须遵守：
+1. 只输出一个 JSON 对象，不要 markdown，不要解释文字。
+2. 5 个新任务要和原 task 属于同一大类能力，能复用相同或高度相近的 service/tool schema。
+3. 5 个新任务必须和原题有较大区别，不能只是改名字、改日期、改语言。
+4. 每个新任务描述要足够具体，后续另一个模型可以直接根据描述生成 task.yaml、fixtures 和 grader.py。
+5. 不要复用原 fixture 中的具体实体名、邮箱、客户名、工单 ID、SKU、数值、原文段落。
+6. 尽量增加场景多样性：业务触发器、用户目标、状态分布、干扰信息、边界条件都要有变化。
+7. 新任务 id 必须严格使用：T143zh_quarterly_business_insight_plus_1 到 T143zh_quarterly_business_insight_plus_5。
+8. user_request 要和原任务语言一致；如果原题是中文，优先写中文。
+9. 不要引入原 task 没有的多轮澄清流程。
+
+输出 JSON 格式必须是：
+{
+  "source_task_id": "T143zh_quarterly_business_insight",
+  "source_summary": {
+    "task_type": "一句话概括原任务类型",
+    "services": ["从 task.yaml 读取的服务名"],
+    "tools": ["从 task.yaml 读取的工具名"],
+    "fixture_paths": ["fixtures/..."],
+    "core_capability": "这个任务主要考察的能力"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T143zh_quarterly_business_insight_plus_1",
+      "new_task_name": "简短英文或拼音名称",
+      "task_goal": "新任务要完成什么，写具体",
+      "user_request": "最终写入 task.yaml prompt.text 的自然语言用户请求",
+      "scenario": "新的业务/世界状态场景，必须具体",
+      "difference_from_source": "说明和原始任务的核心差异，不要空泛",
+      "service_and_tool_plan": "应该继续使用哪些服务和工具，以及为什么",
+      "fixture_generation_plan": "需要生成哪些 fixture、多少条记录、关键字段和状态分布",
+      "expected_behavior": "agent 应该如何完成任务，包括关键工具调用和最终输出要求",
+      "grading_plan": "后续生成 grader.py 时应检查什么，写成自然语言即可"
+    }
+  ]
+}
+
+原始任务元信息：
+{
+  "task_id": "T143zh_quarterly_business_insight",
+  "task_name": "Q1季度业务洞察与趋势分析",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "finance",
+    "crm",
+    "rss"
+  ],
+  "tools": [
+    "finance_list_transactions",
+    "finance_get_transaction",
+    "crm_list_customers",
+    "crm_get_customer",
+    "rss_list_feeds",
+    "rss_get_feed",
+    "rss_get_article"
+  ],
+  "fixture_paths": [
+    "fixtures/crm/customers.json",
+    "fixtures/finance/transactions.json",
+    "fixtures/rss/feeds.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+原始 task 文件如下：
+--- FILE: task.yaml ---
+task_id: T143zh_quarterly_business_insight
+task_name: Q1季度业务洞察与趋势分析
+version: "1.0"
+category: workflow
+difficulty: medium
+tags: [general, multi_service]
+
+services:
+  - name: finance
+    command: python mock_services/finance/server.py
+    port: 9104
+    health_check: http://localhost:9104/finance/transactions
+    health_check_method: POST
+    ready_timeout: 10
+    reset_endpoint: http://localhost:9104/finance/reset
+    env:
+      FINANCE_FIXTURES: tasks/T143zh_quarterly_business_insight/fixtures/finance/transactions.json
+  - name: crm
+    command: python mock_services/crm/server.py
+    port: 9110
+    health_check: http://localhost:9110/crm/customers
+    health_check_method: POST
+    ready_timeout: 10
+    reset_endpoint: http://localhost:9110/crm/reset
+    env:
+      CRM_FIXTURES: tasks/T143zh_quarterly_business_insight/fixtures/crm/customers.json
+  - name: rss
+    command: python mock_services/rss/server.py
+    port: 9109
+    health_check: http://localhost:9109/rss/feeds
+    health_check_method: POST
+    ready_timeout: 10
+    reset_endpoint: http://localhost:9109/rss/reset
+    env:
+      RSS_FIXTURES: tasks/T143zh_quarterly_business_insight/fixtures/rss/feeds.json
+
+prompt:
+  text: |
+    Q1即将结束，请帮我做一份季度业务分析报告：
+    1. 从财务系统拉取Q1各客户的收入数据，分析收入趋势（增长/持平/下降）
+    2. 查看CRM中的客户信息（等级、行业、合同状态）
+    3. 浏览行业RSS动态，了解各客户所在行业的市场趋势
+    4. 综合分析：哪些客户在增长（为什么）、哪些在下降（有什么风险）、流失客户的原因
+    5. 输出Q2预测和建议
+  language: zh
+
+tools:
+  - name: finance_list_transactions
+    description: 查看交易记录
+    input_schema:
+      type: object
+      properties:
+        start_date:
+          type: string
+          description: "起始日期(YYYY-MM-DD)"
+        end_date:
+          type: string
+          description: "截止日期(YYYY-MM-DD)"
+      required: []
+
+  - name: finance_get_transaction
+    description: 获取交易详情
+    input_schema:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          description: 交易ID
+      required: [transaction_id]
+
+  - name: crm_list_customers
+    description: 列出客户
+    input_schema:
+      type: object
+      properties:
+        status:
+          type: string
+          description: "客户状态筛选"
+        tier:
+          type: string
+          description: "客户等级筛选"
+      required: []
+
+  - name: crm_get_customer
+    description: 获取客户详情
+    input_schema:
+      type: object
+      properties:
+        customer_id:
+          type: string
+          description: 客户ID
+      required: [customer_id]
+
+  - name: rss_list_feeds
+    description: 列出RSS订阅源
+    input_schema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: rss_get_feed
+    description: 获取RSS源文章列表
+    input_schema:
+      type: object
+      properties:
+        feed_id:
+          type: string
+          description: 订阅源ID
+      required: [feed_id]
+
+  - name: rss_get_article
+    description: 获取文章详情
+    input_schema:
+      type: object
+      properties:
+        article_id:
+          type: string
+          description: 文章ID
+      required: [article_id]
+
+tool_endpoints:
+  - tool_name: finance_list_transactions
+    url: http://localhost:9104/finance/transactions
+    method: POST
+  - tool_name: finance_get_transaction
+    url: http://localhost:9104/finance/transactions/get
+    method: POST
+  - tool_name: crm_list_customers
+    url: http://localhost:9110/crm/customers
+    method: POST
+  - tool_name: crm_get_customer
+    url: http://localhost:9110/crm/customers/get
+    method: POST
+  - tool_name: rss_list_feeds
+    url: http://localhost:9109/rss/feeds
+    method: POST
+  - tool_name: rss_get_feed
+    url: http://localhost:9109/rss/feeds/get
+    method: POST
+  - tool_name: rss_get_article
+    url: http://localhost:9109/rss/articles/get
+    method: POST
+
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+scoring_components:
+  - name: data_analysis
+    weight: 0.35
+    check:
+      type: llm_judge
+      description: "Q1收入趋势分析是否准确（增长/持平/下降的分类和量化）"
+  - name: industry_correlation
+    weight: 0.35
+    check:
+      type: llm_judge
+      description: "客户收入变化与行业RSS动态的关联分析深度"
+  - name: insight_quality
+    weight: 0.30
+    check:
+      type: llm_judge
+      description: "Q2预测和建议的合理性与可执行性"
+
+safety_checks: []
+
+expected_actions: []
+
+judge_rubric: |
+  评估助手的Q1季度业务分析报告质量。
+
+  ## 正确的收入分析
+  | 客户 | 1月 | 2月 | 3月 | Q1总计 | 趋势 |
+  |------|------|------|------|--------|------|
+  | CUS-901 鼎新软件(VIP) | 85k | 90k | 95k | 270k | ↑增长(+11.8%) |
+  | CUS-902 瀚海电商 | 45k | 45k | 45k | 135k | →持平 |
+  | CUS-903 万通物流(VIP) | 120k | 120k | 115k | 355k | ↓微降(-4.2%) |
+  | CUS-904 前锋科技 | 30k | 30k | 25k | 85k | ↓下降(-16.7%) |
+  | CUS-905 阳光传媒(VIP) | 60k | 65k | 70k | 195k | ↑增长(+16.7%) |
+  | CUS-906 公共机构 | 0 | 0 | 0 | 0 | 已流失 |
+
+  ## 行业关联分析
+  - 鼎新(软件行业) ↔ RSS-901: 软件行业Q1增长12% → 解释了鼎新的增长
+  - 瀚海(电商) ↔ RSS-902: 电商流量增速放缓 → 解释了持平
+  - 万通(物流) ↔ RSS-903: 物流价格竞争激烈 → 解释了价格敏感和微降
+  - 前锋(制造业) ↔ RSS-904: 制造业IT预算收紧 → 解释了降级和下降
+  - 阳光(传媒) ↔ RSS-905: 传媒AI驱动增长 → 解释了快速增长
+  - 公共(政府) ↔ RSS-906: 政府预算调整 → 解释了流失原因
+
+  ## 风险与机会
+  - 风险: CUS-904合同4月到期+下降趋势+行业逆风 → 可能流失
+  - 风险: CUS-903虽然VIP但价格敏感，需关注
+  - 机会: CUS-905增长势头好，可推增值服务
+  - 机会: CUS-901持续增购，VIP价值提升
+
+  评分：
+  - 0.8-1.0: 收入分析准确，行业关联到位(至少4对)，预测合理
+  - 0.5-0.7: 收入分析大致正确，有部分行业关联
+  - 0.2-0.4: 仅列出了数据但缺乏分析
+  - 0.0-0.1: 分析不完整或数据错误
+
+reference_solution: |
+  1. finance_list_transactions() → 15笔Q1交易
+  2. crm_list_customers() → 6个客户(含1个churned)
+  3. 按客户汇总月度收入，计算环比趋势
+  4. rss_list_feeds() → 2个RSS源
+  5. rss_get_feed(feed_01) + rss_get_feed(feed_02) → 8篇文章
+  6. 逐客户+行业关联分析
+  7. 输出报告：收入趋势表 + 行业关联 + 风险预警 + Q2建议
+
+primary_dimensions: [completion, robustness, communication]
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-901",
+    "name": "鼎新软件",
+    "tier": "vip",
+    "status": "active",
+    "industry": "软件开发",
+    "annual_revenue": 1080000,
+    "contract_end": "2026-09-30",
+    "notes": "核心客户，持续增购中",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-902",
+    "name": "瀚海电商",
+    "tier": "standard",
+    "status": "active",
+    "industry": "电子商务",
+    "annual_revenue": 540000,
+    "contract_end": "2026-06-15",
+    "notes": "使用稳定，续约意向待确认",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-903",
+    "name": "万通物流",
+    "tier": "vip",
+    "status": "active",
+    "industry": "物流运输",
+    "annual_revenue": 1440000,
+    "contract_end": "2026-12-31",
+    "notes": "大客户，近期对价格敏感",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-904",
+    "name": "前锋科技",
+    "tier": "standard",
+    "status": "active",
+    "industry": "科技制造",
+    "annual_revenue": 360000,
+    "contract_end": "2026-04-30",
+    "notes": "已降级至基础版，合同即将到期",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-905",
+    "name": "阳光传媒",
+    "tier": "vip",
+    "status": "active",
+    "industry": "传媒广告",
+    "annual_revenue": 780000,
+    "contract_end": "2026-11-30",
+    "notes": "新VIP客户，增长势头好",
+    "contact_person": ""
+  },
+  {
+    "customer_id": "CUS-906",
+    "name": "公共机构",
+    "tier": "standard",
+    "status": "churned",
+    "industry": "政府机关",
+    "annual_revenue": 0,
+    "contract_end": "2026-01-31",
+    "notes": "已于1月底流失，预算削减导致",
+    "contact_person": ""
+  }
+]
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/finance/transactions.json ---
+[
+  {"transaction_id":"TXN-901","customer_id":"CUS-901","amount":85000,"type":"subscription","date":"2026-01-15","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-902","customer_id":"CUS-901","amount":90000,"type":"subscription","date":"2026-02-15","status":"completed","description":"2月订阅费"},
+  {"transaction_id":"TXN-903","customer_id":"CUS-901","amount":95000,"type":"subscription","date":"2026-03-15","status":"completed","description":"3月订阅费+增值服务"},
+  {"transaction_id":"TXN-904","customer_id":"CUS-902","amount":45000,"type":"subscription","date":"2026-01-10","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-905","customer_id":"CUS-902","amount":45000,"type":"subscription","date":"2026-02-10","status":"completed","description":"2月订阅费"},
+  {"transaction_id":"TXN-906","customer_id":"CUS-902","amount":45000,"type":"subscription","date":"2026-03-10","status":"completed","description":"3月订阅费"},
+  {"transaction_id":"TXN-907","customer_id":"CUS-903","amount":120000,"type":"subscription","date":"2026-01-20","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-908","customer_id":"CUS-903","amount":120000,"type":"subscription","date":"2026-02-20","status":"completed","description":"2月订阅费"},
+  {"transaction_id":"TXN-909","customer_id":"CUS-903","amount":115000,"type":"subscription","date":"2026-03-20","status":"completed","description":"3月订阅费(促销折扣)"},
+  {"transaction_id":"TXN-910","customer_id":"CUS-904","amount":30000,"type":"subscription","date":"2026-01-05","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-911","customer_id":"CUS-904","amount":30000,"type":"subscription","date":"2026-02-05","status":"completed","description":"2月订阅费"},
+  {"transaction_id":"TXN-912","customer_id":"CUS-904","amount":25000,"type":"subscription","date":"2026-03-05","status":"completed","description":"3月订阅费(降级)"},
+  {"transaction_id":"TXN-913","customer_id":"CUS-905","amount":60000,"type":"subscription","date":"2026-01-25","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-914","customer_id":"CUS-905","amount":65000,"type":"subscription","date":"2026-02-25","status":"completed","description":"2月订阅费+新模块"},
+  {"transaction_id":"TXN-915","customer_id":"CUS-905","amount":70000,"type":"subscription","date":"2026-03-25","status":"completed","description":"3月订阅费+增值"}
+]
+
+--- END FILE: fixtures/finance/transactions.json ---
+--- FILE: fixtures/rss/feeds.json ---
+[
+  {
+    "article_id": "RSS-901",
+    "title": "2026年Q1软件行业增长超预期",
+    "summary": "软件开发行业Q1整体增长12%，SaaS模式持续受到企业青睐，头部客户ARPU值提升明显。",
+    "tags": [
+      "软件",
+      "SaaS",
+      "增长"
+    ],
+    "url": "https://tech-observer.example.com/901",
+    "content": "软件开发行业Q1整体增长12%，SaaS模式持续受到企业青睐，头部客户ARPU值提升明显。",
+    "category": "软件, SaaS, 增长",
+    "source": "科技行业观察",
+    "published_at": "2026-03-20T00:00:00Z",
+    "word_count": 45
+  },
+  {
+    "article_id": "RSS-902",
+    "title": "电商平台面临流量增长放缓",
+    "summary": "多家电商运营数据显示，Q1流量增速降至个位数，中小电商加大成本控制力度。",
+    "tags": [
+      "电商",
+      "挑战"
+    ],
+    "url": "https://tech-observer.example.com/902",
+    "content": "多家电商运营数据显示，Q1流量增速降至个位数，中小电商加大成本控制力度。",
+    "category": "电商, 挑战",
+    "source": "科技行业观察",
+    "published_at": "2026-03-18T00:00:00Z",
+    "word_count": 36
+  },
+  {
+    "article_id": "RSS-903",
+    "title": "物流行业数字化转型加速",
+    "summary": "物流企业IT投入同比增长20%，但价格竞争激烈，利润率承压。头部企业更注重ROI。",
+    "tags": [
+      "物流",
+      "数字化"
+    ],
+    "url": "https://tech-observer.example.com/903",
+    "content": "物流企业IT投入同比增长20%，但价格竞争激烈，利润率承压。头部企业更注重ROI。",
+    "category": "物流, 数字化",
+    "source": "科技行业观察",
+    "published_at": "2026-03-22T00:00:00Z",
+    "word_count": 41
+  },
+  {
+    "article_id": "RSS-904",
+    "title": "制造业IT预算收紧趋势明显",
+    "summary": "受全球供应链波动影响，制造业企业普遍收紧IT预算，SaaS续约率下降5个百分点。",
+    "tags": [
+      "制造",
+      "预算"
+    ],
+    "url": "https://tech-observer.example.com/904",
+    "content": "受全球供应链波动影响，制造业企业普遍收紧IT预算，SaaS续约率下降5个百分点。",
+    "category": "制造, 预算",
+    "source": "科技行业观察",
+    "published_at": "2026-03-15T00:00:00Z",
+    "word_count": 40
+  },
+  {
+    "article_id": "RSS-905",
+    "title": "传媒广告行业迎来AI驱动增长",
+    "summary": "AI内容生成工具推动传媒行业降本增效，广告主数字化支出Q1增长18%。",
+    "tags": [
+      "传媒",
+      "AI",
+      "增长"
+    ],
+    "url": "https://market-weekly.example.com/905",
+    "content": "AI内容生成工具推动传媒行业降本增效，广告主数字化支出Q1增长18%。",
+    "category": "传媒, AI, 增长",
+    "source": "市场动态周刊",
+    "published_at": "2026-03-21T00:00:00Z",
+    "word_count": 35
+  },
+  {
+    "article_id": "RSS-906",
+    "title": "政府机关数字化转型预算调整",
+    "summary": "多地政府部门IT预算重新分配，部分SaaS项目被暂停或缩减规模。",
+    "tags": [
+      "政府",
+      "预算"
+    ],
+    "url": "https://market-weekly.example.com/906",
+    "content": "多地政府部门IT预算重新分配，部分SaaS项目被暂停或缩减规模。",
+    "category": "政府, 预算",
+    "source": "市场动态周刊",
+    "published_at": "2026-03-19T00:00:00Z",
+    "word_count": 32
+  },
+  {
+    "article_id": "RSS-907",
+    "title": "企业服务赛道投融资盘点",
+    "summary": "Q1企业服务领域完成融资42笔，AI相关项目占比超60%。",
+    "tags": [
+      "投融资",
+      "AI"
+    ],
+    "url": "https://market-weekly.example.com/907",
+    "content": "Q1企业服务领域完成融资42笔，AI相关项目占比超60%。",
+    "category": "投融资, AI",
+    "source": "市场动态周刊",
+    "published_at": "2026-03-23T00:00:00Z",
+    "word_count": 29
+  },
+  {
+    "article_id": "RSS-908",
+    "title": "新能源汽车销量再创新高",
+    "summary": "新能源汽车Q1销量突破200万辆。",
+    "tags": [
+      "汽车",
+      "新能源"
+    ],
+    "url": "https://market-weekly.example.com/908",
+    "content": "新能源汽车Q1销量突破200万辆。",
+    "category": "汽车, 新能源",
+    "source": "市场动态周刊",
+    "published_at": "2026-03-24T00:00:00Z",
+    "word_count": 17
+  }
+]
+--- END FILE: fixtures/rss/feeds.json ---

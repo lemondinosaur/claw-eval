@@ -1,0 +1,282 @@
+task_id: T041zh_scheduled_task_management_plus_5
+task_name: 安全审计：误配置与合规修订
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+services:
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: create_query/output_20260522_152922/generated/T041zh_scheduled_task_management_plus_5/fixtures/scheduler/jobs.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T041zh_scheduled_task_management_plus_5/fixtures/kb/articles.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T041zh_scheduled_task_management_plus_5/fixtures/gmail/inbox.json
+prompt:
+  text: '请对系统所有定时任务进行合规与安全审计：
+
+    1) 列出全部任务，定位风险任务：enabled=false 且可能属于“合规扫描误判”的任务、cron 频率疑似超规范的任务、缺少必要 tags（如 [owner:*]
+    / [sensitivity:*]）导致无法追踪风险等级的任务。
+
+    2) 按知识库执行修正：对可自动修复的任务调整 cron_expression、补齐 tags，并在合规前提下启用/停用；对涉及权限/敏感操作（如“对外发送数据/敏感导出/导出脱敏前数据”等）且知识库要求需要人工确认的变更，不要直接直接执行完整修复或跳过审批，而应触发邮件通知。
+
+    3) 邮件通知收件人使用 gmail_send_message，正文需包含：任务名称、拟变更点、合规风险说明、待审批事项。
+
+    4) 最后输出一份健康报告：按“合规通过/需修复/需审批”分组给出风险等级与建议动作清单，并明确依据来自知识库的哪些规则。'
+  language: zh
+tools:
+- name: scheduler_list_jobs
+  description: 列出所有定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按最近运行状态筛选 (success/failed)
+      enabled:
+        type: boolean
+        description: 按启用状态筛选
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_create_job
+  description: 创建新的定时任务
+  input_schema:
+    type: object
+    properties:
+      name:
+        type: string
+        description: 任务名称
+      cron_expression:
+        type: string
+        description: Cron表达式
+      action:
+        type: string
+        description: 任务执行的操作
+      enabled:
+        type: boolean
+        description: 是否启用
+        default: true
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+    required:
+    - name
+    - cron_expression
+    - action
+- name: scheduler_update_job
+  description: 更新定时任务配置
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      enabled:
+        type: boolean
+        description: 是否启用
+      cron_expression:
+        type: string
+        description: 新的Cron表达式
+      name:
+        type: string
+        description: 新名称
+      action:
+        type: string
+        description: 新操作
+      tags:
+        type: array
+        items:
+          type: string
+        description: 新标签
+    required:
+    - job_id
+- name: scheduler_delete_job
+  description: 删除定时任务
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_job_history
+  description: 查看定时任务执行历史
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      limit:
+        type: integer
+        description: 返回条数
+        default: 10
+    required:
+    - job_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: scheduler_create_job
+  url: http://localhost:9112/scheduler/jobs/create
+  method: POST
+- tool_name: scheduler_update_job
+  url: http://localhost:9112/scheduler/jobs/update
+  method: POST
+- tool_name: scheduler_delete_job
+  url: http://localhost:9112/scheduler/jobs/delete
+  method: POST
+- tool_name: scheduler_job_history
+  url: http://localhost:9112/scheduler/jobs/history
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+sandbox_files:
+- fixtures/scheduler/jobs.json
+- fixtures/kb/articles.json
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

@@ -1,0 +1,49 @@
+[
+  {
+    "article_id": "KB-401",
+    "title": "索引增量同步规则（历史版本，字段映射需复核）",
+    "category": "搜索与索引",
+    "tags": [
+      "索引",
+      "增量同步",
+      "回填",
+      "schema",
+      "字段映射"
+    ],
+    "content": "## 索引增量同步规则（历史版本，字段映射需复核）\n\n### 适用前提\n- 适用于“旧内容模型”：content_id 对应 index_doc_id\n- 类目维度使用 old_category_id 字段\n\n### 回填/重建触发\n1) 当接收到 content_updated 事件时，执行增量同步\n2) 若累计失败达到 3 次，触发全量重建（index_rebuild）\n3) 对于跳过的文档，使用 index_backfill_by_category 拉取\n\n### 关键字段\n- title 摘要字段：summary_text\n- 类目字段：old_category_id\n\n**注意**：当前平台若已迁移到新内容模型，请先更新字段映射再继续使用本规则。\n\n文档版本：v0.8\n",
+    "last_updated": "2025-09-03",
+    "author": "搜索中台团队",
+    "status": "published",
+    "views": 1220
+  },
+  {
+    "article_id": "KB-402",
+    "title": "搜索结果排序异常排查清单",
+    "category": "排障",
+    "tags": [
+      "排序",
+      "缓存",
+      "索引版本"
+    ],
+    "content": "## 搜索结果排序异常排查清单\n- 先确认索引版本时间戳是否更新\n- 再检查搜索页缓存 TTL\n- 最后回溯增量同步触发是否投递成功\n- 若 error_rate 为 0 但调用量骤降，优先排查上游触发链路\n",
+    "last_updated": "2026-01-20",
+    "author": "体验运维",
+    "status": "published",
+    "views": 610
+  },
+  {
+    "article_id": "KB-403",
+    "title": "索引回填任务运维操作手册（仅供参考）",
+    "category": "运维",
+    "tags": [
+      "index_backfill",
+      "重建",
+      "任务"
+    ],
+    "content": "## 索引回填任务运维操作手册（仅供参考）\n\n- backfill_by_category：按类目回填\n- rebuild_all：全量重建\n\n建议在执行前确认：\n1) schema_version 与任务参数一致\n2) 是否存在分布式锁导致任务跳过\n3) upstream 服务是否返回 503/超时\n\n（本手册不涉及写操作；仅列出观察与核对步骤）\n",
+    "last_updated": "2026-02-12",
+    "author": "运维值班",
+    "status": "published",
+    "views": 340
+  }
+]

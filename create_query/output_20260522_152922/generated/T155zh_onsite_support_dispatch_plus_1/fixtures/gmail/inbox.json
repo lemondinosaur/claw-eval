@@ -1,0 +1,40 @@
+[
+  {
+    "message_id": "msg_2201",
+    "from": "ops-legal@jiguangcloud.com",
+    "to": "support@company.com",
+    "subject": "合同升级提醒：到达后30分钟初始巡检窗口（断电/DR切换）",
+    "date": "2026-04-02T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important",
+      "urgent"
+    ],
+    "body": "贵司您好，我们是极光云计算法务/运营对接。\n\n关于本次机房断电导致关键业务恢复的 critical onsite 工单：\n1) 我们的SLA要求你们在收到通知后的 60分钟内到达“北京 朝阳区-数据中心园区A”。\n2) 更关键的是：工程师到达后 30分钟内必须完成“初始巡检”（包含电源/硬件状态确认与DR/主备切换可用性评估），否则将自动升级为合同罚款处理。\n\n请在派遣通知邮件中明确：到场预计时间、初始巡检开始与完成计划，以及若首选工程师受限的备选安排。\n\n如需确认窗口，请尽快回复。\n\n极光云计算 法务/运营\n—"
+  },
+  {
+    "message_id": "msg_2202",
+    "from": "security-alerts@company.com",
+    "to": "support@company.com",
+    "subject": "安全提醒：例行策略更新完成",
+    "date": "2026-04-02T08:40:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "策略更新已完成。无需采取额外行动。"
+  },
+  {
+    "message_id": "msg_2203",
+    "from": "newsletter@cloud-insider.com",
+    "to": "support@company.com",
+    "subject": "云计算行业周报：DR演练最佳实践",
+    "date": "2026-04-02T07:15:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "本周重点：DR演练、主备切换、断电应急流程..."
+  }
+]

@@ -1,0 +1,207 @@
+[
+  {
+    "job_id": "JOB-A001",
+    "name": "门店库存同步（A/B站点）",
+    "cron_expression": "0 */2 * * *",
+    "action": "sync_store_inventory",
+    "enabled": true,
+    "last_run": "2026-05-22T04:00:00Z",
+    "next_run": "2026-05-22T06:00:00Z",
+    "last_status": "failed",
+    "created_by": "ops_watcher",
+    "tags": [
+      "store",
+      "inventory",
+      "sync",
+      "401/403"
+    ],
+    "created_at": "2026-02-10T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T04:00:00Z",
+        "status": "failed",
+        "duration_s": 4,
+        "error": "HTTP 401: Unauthorized — token expired (old key INT-2401 active)"
+      },
+      {
+        "run_at": "2026-05-22T02:00:00Z",
+        "status": "failed",
+        "duration_s": 4,
+        "error": "HTTP 403: Forbidden — signature invalid (old key INT-2401 active)"
+      },
+      {
+        "run_at": "2026-05-22T00:00:00Z",
+        "status": "failed",
+        "duration_s": 4,
+        "error": "HTTP 404: Not Found — endpoint rejected for expired credentials"
+      },
+      {
+        "run_at": "2026-05-21T22:00:00Z",
+        "status": "success",
+        "duration_s": 38
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A002",
+    "name": "可发货库存更新",
+    "cron_expression": "30 */2 * * *",
+    "action": "update_sellable_inventory",
+    "enabled": true,
+    "last_run": "2026-05-22T04:30:00Z",
+    "next_run": "2026-05-22T06:30:00Z",
+    "last_status": "failed",
+    "created_by": "ops_watcher",
+    "tags": [
+      "inventory",
+      "sellable",
+      "dependency"
+    ],
+    "created_at": "2026-02-16T00:00:00Z",
+    "depends_on": [
+      "JOB-A001"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T04:30:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "DependencyError: 上游门店库存同步失败 — 无法更新可发货库存快照"
+      },
+      {
+        "run_at": "2026-05-22T02:30:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "DependencyError: 上游门店库存同步失败 — 数据源不可用"
+      },
+      {
+        "run_at": "2026-05-22T00:30:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "DependencyError: 上游门店库存同步失败 — 使用过期/unknown库存可能触发阈值"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A003",
+    "name": "发货资格检查",
+    "cron_expression": "10 */2 * * *",
+    "action": "check_fulfillment_eligibility",
+    "enabled": true,
+    "last_run": "2026-05-22T04:10:00Z",
+    "next_run": "2026-05-22T06:10:00Z",
+    "last_status": "failed",
+    "created_by": "ops_watcher",
+    "tags": [
+      "fulfillment",
+      "eligibility",
+      "threshold"
+    ],
+    "created_at": "2026-02-20T00:00:00Z",
+    "depends_on": [
+      "JOB-A002"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T04:10:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "error": "StaleDataError: 数据过期阈值拒绝 — 可发货库存更新时间超阈值（stale/unknown）"
+      },
+      {
+        "run_at": "2026-05-22T02:10:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "error": "StaleDataError: 数据过期阈值拒绝 — 资格检查基于过期快照"
+      },
+      {
+        "run_at": "2026-05-21T22:10:00Z",
+        "status": "success",
+        "duration_s": 28
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-N001",
+    "name": "监控磁盘告警聚合",
+    "cron_expression": "*/5 * * * *",
+    "action": "aggregate_monitoring_alerts",
+    "enabled": true,
+    "last_run": "2026-05-22T04:15:00Z",
+    "next_run": "2026-05-22T04:20:00Z",
+    "last_status": "success",
+    "created_by": "monitor_bot",
+    "tags": [
+      "monitoring",
+      "noise"
+    ],
+    "created_at": "2026-01-12T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T04:15:00Z",
+        "status": "success",
+        "duration_s": 6
+      },
+      {
+        "run_at": "2026-05-22T04:10:00Z",
+        "status": "success",
+        "duration_s": 5
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-N002",
+    "name": "日志清理与归档",
+    "cron_expression": "0 3 * * *",
+    "action": "cleanup_and_archive_logs",
+    "enabled": true,
+    "last_run": "2026-05-22T03:00:00Z",
+    "next_run": "2026-05-23T03:00:00Z",
+    "last_status": "success",
+    "created_by": "admin_ops",
+    "tags": [
+      "infrastructure",
+      "logs"
+    ],
+    "created_at": "2026-01-18T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T03:00:00Z",
+        "status": "success",
+        "duration_s": 140
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-N003",
+    "name": "订单处理（核心链路健康）",
+    "cron_expression": "*/15 * * * *",
+    "action": "process_orders",
+    "enabled": true,
+    "last_run": "2026-05-22T04:14:00Z",
+    "next_run": "2026-05-22T04:29:00Z",
+    "last_status": "success",
+    "created_by": "order_admin",
+    "tags": [
+      "orders",
+      "core"
+    ],
+    "created_at": "2026-01-05T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T04:14:00Z",
+        "status": "success",
+        "duration_s": 9
+      },
+      {
+        "run_at": "2026-05-22T03:59:00Z",
+        "status": "success",
+        "duration_s": 10
+      }
+    ]
+  }
+]

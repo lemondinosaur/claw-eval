@@ -1,0 +1,221 @@
+[
+  {
+    "message_id": "pa55_101",
+    "from": "maria.rios@mycompany.com",
+    "to": "delivery-ops@mycompany.com",
+    "subject": "Project Alpha Delivery Update: Integration Acceptance Window",
+    "date": "2026-07-05T10:20:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "delivery"
+    ],
+    "body": "Team, as of today Project Alpha integration is NOT yet accepted by QA. Engineering says core APIs are ready, but the integration acceptance window is still open: we have to complete verification of event flows end-to-end (orders -> dashboard -> webhooks). Proposed acceptance window: 07/15-07/17. If QA sign-off slips, our customer rollout will need a date adjustment.\n\nNext steps: please confirm the integration test environment is stable and provide the exact checklist for the handoff so delivery can coordinate with support for readiness."
+  },
+  {
+    "message_id": "pa55_102",
+    "from": "li.chen@mycompany.com",
+    "to": "engineering-leads@mycompany.com",
+    "subject": "Project Alpha Engineering Check-in: Core APIs Stabilized",
+    "date": "2026-07-07T18:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "engineering"
+    ],
+    "body": "Good news: by 07/06 the core API surface for Project Alpha is stable in staging. We completed integration test runs for the primary endpoints (auth + metrics read + export). No new regressions after the last WebSocket gateway patch.\n\nRemaining engineering work is limited to documentation polish and tightening alert thresholds. Engineering can support the integration acceptance checklist, but we need delivery to lock the QA window so we can staff on-call."
+  },
+  {
+    "message_id": "pa55_103",
+    "from": "victor.huang@mycompany.com",
+    "to": "support-oncall@mycompany.com",
+    "subject": "Project Alpha Support Concern: Post-Launch Ticket Volume Prep",
+    "date": "2026-07-10T09:40:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "support"
+    ],
+    "body": "We’re worried about support readiness for Project Alpha launch. Based on prior dashboards, we expect a spike in migration/help requests and incident reports during the first 72 hours.\n\nCurrent gaps:\n- We do not yet have the runbook for “export endpoint throttling” and “WebSocket reconnect behavior”.\n- The customer-facing troubleshooting flow is not final.\n- We need confirmation on the estimated rollout timing so we can ensure on-call coverage and training.\n\nPlease share: rollout schedule + the top 5 known issues with mitigations."
+  },
+  {
+    "message_id": "pa55_104",
+    "from": "natalie.park@mycompany.com",
+    "to": "csm-team@mycompany.com",
+    "subject": "Project Alpha Customer Success Sync: Training & Migration Assistance",
+    "date": "2026-07-12T16:25:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "customer-success",
+      "comms"
+    ],
+    "body": "CS update: customer calls are progressing for Project Alpha, but we need an early confirmation on training + migration help.\n\nWhat we told customers:\n- Training sessions start the week before rollout.\n- Migration assistance is included for the first two cycles.\n\nWhat we still need internally:\n1) confirm whether training is “recorded + live Q&A” or live-only\n2) confirm the migration assistance window (days) and who provides escalation\n3) align on one message for readiness: customers are hearing different timelines from different internal teams.\n\nIf we can’t align by 07/13, CS will pause new scheduling requests to avoid contradicting messaging."
+  },
+  {
+    "message_id": "pa55_105",
+    "from": "office-it@mycompany.com",
+    "to": "support-oncall@mycompany.com",
+    "subject": "Project Alpha Comms: Shared Uptime Dashboard Link",
+    "date": "2026-07-13T11:10:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "comms"
+    ],
+    "body": "FYI for Project Alpha stakeholders: the shared uptime dashboard is https://alpha-status.mycompany.internal (requires SSO). Please use it as the single source of truth for incident monitoring during rollout.\n\nIf you see discrepancies, escalate with timestamp + service name so we can correlate. Do not base ticket volume assumptions on internal estimates alone."
+  },
+  {
+    "message_id": "pa55_106",
+    "from": "qa-lead@mycompany.com",
+    "to": "delivery-ops@mycompany.com",
+    "subject": "Re: Project Alpha Integration Acceptance — Checklist Details",
+    "date": "2026-07-15T08:55:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "delivery"
+    ],
+    "body": "Acceptance checklist for Project Alpha integration (for QA sign-off):\n- Auth handshake completes for 3 test tenants\n- Metrics read returns correct counts for baseline dataset\n- Export endpoint returns expected file format for 2 scenarios\n- WebSocket gateway reconnect within 10s recovers stream\n- Audit log entries exist for all actions above\n\nWe can run the checklist during 07/15-07/17 as long as staging remains consistent. Please ensure Engineering does not introduce schema changes during this window."
+  },
+  {
+    "message_id": "pa55_107",
+    "from": "samantha.keller@mycompany.com",
+    "to": "leadership@mycompany.com",
+    "subject": "Metrics Definition Correction: Project Alpha “Success Rate” Calculation",
+    "date": "2026-07-18T14:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "comms"
+    ],
+    "body": "Correction / alignment notice (important): our previously reported “Success Rate” for Project Alpha used an inconsistent metrics definition.\n\nWhat changed:\n- Old definition (used in earlier status emails): Success Rate = successful events / all events observed in gateway logs.\n- New definition (now adopted): Success Rate = successful user sessions / total authenticated sessions (excludes failed auth).\n\nImpact:\n- The old metric will look lower in environments with auth failures.\n- Engineering’s staging numbers and Support’s production ticket correlates were comparing different denominators.\n\nGoing forward:\n- Use the new definition for all stakeholder reporting.\n- When discussing stability, separate “API success” from “session success”."
+  },
+  {
+    "message_id": "pa55_108",
+    "from": "raj.patel@mycompany.com",
+    "to": "engineering-leads@mycompany.com",
+    "subject": "Project Alpha Engineering Response: Follow-up on Acceptance + Metrics",
+    "date": "2026-07-20T09:30:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "engineering",
+      "comms"
+    ],
+    "body": "Responding to the acceptance checklist and metrics correction.\n\n1) Integration testing status: we completed endpoint verification in staging and agree the acceptance window still requires QA sign-off, per the checklist. We will not introduce schema changes during 07/15-07/17.\n2) Metrics: we confirm the “Success Rate” miscomparison was due to the session vs gateway denominator. Engineering agrees to report using the new definition from 07/18 onward.\n\nWe need delivery to update the rollout narrative accordingly so Support and CS are not using conflicting numbers."
+  },
+  {
+    "message_id": "pa55_109",
+    "from": "carlos.menendez@mycompany.com",
+    "to": "promotions@mycompany.com",
+    "subject": "Agenda: Weekend Social — Not for Project Alpha",
+    "date": "2026-07-08T12:00:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "agenda"
+    ],
+    "body": "Reminder for the weekend social. There is no Project Alpha content in this thread."
+  },
+  {
+    "message_id": "pa55_110",
+    "from": "noreply@webinars.example.com",
+    "to": "staff@mycompany.com",
+    "subject": "Promo: Get 30% off Analytics Pro (Limited Time)",
+    "date": "2026-07-14T06:45:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "promo"
+    ],
+    "body": "Special discount available for Analytics Pro. Unrelated to Project Alpha."
+  },
+  {
+    "message_id": "pa55_111",
+    "from": "events@conference.io",
+    "to": "scheduling@mycompany.com",
+    "subject": "Agenda for Customer Summit — Q3 2026",
+    "date": "2026-07-22T17:15:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "random"
+    ],
+    "body": "Schedule details for the Customer Summit. No reference to Project Alpha."
+  },
+  {
+    "message_id": "pa55_112",
+    "from": "noah.brown@mycompany.com",
+    "to": "engineering-team@mycompany.com",
+    "subject": "Random Thread: Deployment rotation questions",
+    "date": "2026-07-24T13:30:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "Questions about deployment rotation policy. Not related to Project Alpha."
+  },
+  {
+    "message_id": "pa55_113",
+    "from": "zoe.foster@mycompany.com",
+    "to": "csm-team@mycompany.com",
+    "subject": "Alphaware Update: Marketing dashboard status",
+    "date": "2026-07-09T11:05:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha"
+    ],
+    "body": "This is about Alphaware (a different internal initiative). It should be ignored when producing Project Alpha reporting."
+  },
+  {
+    "message_id": "pa55_114",
+    "from": "tanya.singh@mycompany.com",
+    "to": "leadership@mycompany.com",
+    "subject": "Project Alpha Status Alignment (Final for Leadership)",
+    "date": "2026-07-23T19:00:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha"
+    ],
+    "body": "Leadership alignment — consolidated for Project Alpha.\n\nResolved status after the metrics definition correction (07/18):\n- Engineering: core APIs are stable in staging; QA acceptance is still required but can proceed per checklist.\n- Delivery: integration acceptance window is confirmed for 07/15-07/17; rollout messaging will use the corrected “Success Rate” definition.\n- Support: runbooks are in draft; final top-5 issue list will be ready by 07/22; staffing coverage is being prepared pending rollout date confirmation.\n- Customer Success: training and migration assistance messaging is pending leadership confirmation for content format (recorded+live vs live-only) and the escalation owner.\n\nProposed rollout readiness target: after QA sign-off + final support/CS enablement.\n\nPlease confirm the following items by 07/24 COB: (1) training format and escalation owner (2) definitive rollout date after QA sign-off (3) approved customer communication language referencing corrected metrics."
+  },
+  {
+    "message_id": "pa55_115",
+    "from": "admin-notify@mycompany.com",
+    "to": "staff@mycompany.com",
+    "subject": "Project Alpha (FYI): Policy update on access controls",
+    "date": "2026-07-16T07:20:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "comms"
+    ],
+    "body": "Access control policy update for Project Alpha-related services. Please review by next week."
+  },
+  {
+    "message_id": "pa55_116",
+    "from": "support-ops@mycompany.com",
+    "to": "csm-team@mycompany.com",
+    "subject": "Re: Project Alpha Support Runbook Draft — Migration Assistance Workflow",
+    "date": "2026-07-21T15:35:00+00:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "project-alpha",
+      "support"
+    ],
+    "body": "Support runbook draft is ready for migration assistance workflow.\n- Includes escalation ladder and expected response times.\n- Covers “export throttling” and “WebSocket reconnect” with mitigation steps.\n\nWe still need one decision from leadership: who owns the customer escalation after the first 2 assistance cycles (Support vs CS). Once confirmed, we can finalize the customer-facing instructions."
+  }
+]

@@ -1,0 +1,262 @@
+{
+  "task_id": "T109zh_complaint_investigation_plus_2",
+  "task_name": "未发货款项/开票缺失的对账处理",
+  "prompt_text": "收件箱中有多封客户投诉邮件，主题集中在“付款已确认但未收到发票/对账不一致”。请你对每封投诉邮件逐一调查并给出处理建议。\n\n对每封邮件请完成：\n1）阅读邮件正文，提取关键线索：客户名称/客户ID（如有）、付款日期、付款金额、发票号/开票状态（如有）。\n2）在CRM核验客户信息：客户等级tier、合同类型/付款规则（里程碑/年度等）、以及里程碑完成约定与最近一次里程碑完成日期（如CRM字段/notes中有）。\n3）在财务系统中按付款日期窗口拉取交易记录，匹配客户ID，核对：\n- 是否存在“收款completed”但“开票pending”的记录；或\n- 是否存在收款不存在/金额不符/冲账更正导致对账差异。\n必要时通过交易详情核对category/type与状态。\n4）在通讯录中定位“财务开票/结算负责人”等相关联系人，并获取可用的联系方式。\n5）给出调查结论与处理建议（说明是系统未触发开票，还是客户付款到账时间/合同条款导致的不一致，并给出下一步动作与所需材料）。\n\n最后：根据“最紧急案件”优先级（例如开票pending持续时间更长、客户tier更高、或合同将到期带来的风险），为最紧急的一封投诉邮件起草回复邮件草稿，并使用gmail_save_draft保存草稿；不要发送邮件。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-701",
+        "name": "周岚",
+        "department": "财务部",
+        "title": "开票与结算专员",
+        "email": "lanzhou@company.com",
+        "phone": "13900641001",
+        "location": "上海总部",
+        "notes": "负责开票pending触发、发票寄送与结算台账"
+      },
+      {
+        "contact_id": "CT-702",
+        "name": "沈佳",
+        "department": "财务部",
+        "title": "应收对账分析师",
+        "email": "shenjia@company.com",
+        "phone": "13900641002",
+        "location": "上海总部",
+        "notes": "负责对账差异追踪、冲账/更正解释与客户对账确认"
+      },
+      {
+        "contact_id": "CT-703",
+        "name": "段祺",
+        "department": "客户成功部",
+        "title": "客户交付经理",
+        "email": "duanqi@company.com",
+        "phone": "13900641003",
+        "location": "北京分部",
+        "notes": "负责里程碑交付与账单触发状态核验"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-701",
+        "name": "海辰智能",
+        "contact_person": "许菲",
+        "email": "fei.xu@hechen-xx.com",
+        "phone": "13900651001",
+        "industry": "硬件与制造",
+        "tier": "vip",
+        "annual_revenue": 980000,
+        "last_contact_date": "2026-03-22",
+        "status": "active",
+        "notes": "合同类型：里程碑付款（40%/30%/30%）。里程碑1完成后：收款completed且系统收到交付确认后，通常T+3工作日触发开票；发票pending超过7天需人工复核。"
+      },
+      {
+        "customer_id": "CUS-702",
+        "name": "北陆云联",
+        "contact_person": "姜哲",
+        "email": "zhe.jiang@beilu-xx.com",
+        "phone": "13900651002",
+        "industry": "软件服务",
+        "tier": "standard",
+        "annual_revenue": 320000,
+        "last_contact_date": "2026-03-18",
+        "status": "active",
+        "notes": "合同类型：年度订阅。发票按年度开具；若发生更正/冲账，需以财务更正交易为准并在T+5工作日补开发票。"
+      },
+      {
+        "customer_id": "CUS-703",
+        "name": "星岚资本",
+        "contact_person": "陈洛",
+        "email": "luo.chen@xinglan-xx.com",
+        "phone": "13900651003",
+        "industry": "金融",
+        "tier": "standard",
+        "annual_revenue": 210000,
+        "last_contact_date": "2026-01-15",
+        "status": "inactive",
+        "notes": "疑似重复线索/旧合同终止：2026-01-10后不再触发新账单。若邮件声称付款，请先核实客户状态与合同编号。"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-7011",
+        "date": "2026-03-10",
+        "amount": 392000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "海辰智能",
+        "type": "里程碑1收款",
+        "category": "收款",
+        "description": "海辰智能里程碑1款项收款（40%）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-7012",
+        "date": "2026-03-13",
+        "amount": 392000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "海辰智能",
+        "type": "开票生成",
+        "category": "开票",
+        "description": "海辰智能发票生成请求（应在T+3触发）",
+        "status": "pending"
+      },
+      {
+        "transaction_id": "TXN-7013",
+        "date": "2026-03-20",
+        "amount": 392000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "海辰智能",
+        "type": "开票更正（冲账）",
+        "category": "开票更正",
+        "description": "系统更正：发票金额字段更换版本（尚未对外开出）",
+        "status": "pending"
+      },
+      {
+        "transaction_id": "TXN-7021",
+        "date": "2026-03-08",
+        "amount": 160000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "北陆云联",
+        "type": "年度订阅收款",
+        "category": "收款",
+        "description": "北陆云联2026年度订阅收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-7022",
+        "date": "2026-03-14",
+        "amount": 160000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "北陆云联",
+        "type": "年度发票开具",
+        "category": "开票",
+        "description": "北陆云联年度发票补开请求",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-7023",
+        "date": "2026-03-19",
+        "amount": -5000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "北陆云联",
+        "type": "对账更正冲账",
+        "category": "更正/冲账",
+        "description": "因税点差异冲账（客户原付款金额与合同含税口径不一致）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-7031",
+        "date": "2026-03-12",
+        "amount": 80000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-703",
+        "customer_name": "星岚资本",
+        "type": "收款completed（异常匹配）",
+        "category": "收款",
+        "description": "疑似对账噪音：内部录入的旧合同账目（需与当前合同核验）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-7032",
+        "date": "2026-03-12",
+        "amount": 75000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-703",
+        "customer_name": "星岚资本",
+        "type": "开票生成",
+        "category": "开票",
+        "description": "对应旧合同的开票pending（但客户已inactive）",
+        "status": "pending"
+      },
+      {
+        "transaction_id": "TXN-7041",
+        "date": "2026-03-17",
+        "amount": 120000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "海辰智能",
+        "type": "里程碑1款项（重复对账记录-干扰）",
+        "category": "收款",
+        "description": "对账系统重复导入记录：用于匹配错误金额（干扰项）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-7042",
+        "date": "2026-03-17",
+        "amount": 120000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "海辰智能",
+        "type": "对账凭证（金额不一致记录-干扰）",
+        "category": "对账差异",
+        "description": "金额与邮件声称不符：仅用于对账比对，不代表实际待开票",
+        "status": "completed"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_801",
+        "from": "fei.xu@hechen-xx.com",
+        "to": "support@company.com",
+        "subject": "开票缺失投诉：里程碑1已付但发票仍pending（订单HC-218）",
+        "date": "2026-03-27T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "您好，我们是海辰智能（CUS-701）。我们在3月10日完成里程碑1付款392,000元（银行回执见附件/邮件中不方便贴）。但截止今天仍未收到发票，系统里提示开票pending。\n合同约定里程碑1触发开票应在收款后T+3工作日内完成。请尽快核验：是否系统未触发开票，或是发票生成流程卡住了？\n另外麻烦告知预计发票寄送/交付时间。"
+      },
+      {
+        "message_id": "msg_802",
+        "from": "zhe.jiang@beilu-xx.com",
+        "to": "support@company.com",
+        "subject": "付款已确认但对账金额不一致：年度订阅发票补开",
+        "date": "2026-03-26T14:25:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，我是北陆云联（CUS-702）姜哲。我们于3月8日付款160,000元（年度订阅）。财务显示已收款completed，但我们收到的对账单上写的应开票金额与付款金额存在差异（我们这边实际入账显示160,000元，但对账单似乎按含税口径调整了。\n请你们核实：差异是否来自税点/更正冲账？是否已经完成补开发票？如需我们提供补充材料，请明确列出。"
+      },
+      {
+        "message_id": "msg_803",
+        "from": "luo.chen@xinglan-xx.com",
+        "to": "support@company.com",
+        "subject": "自称已付款：但我们从未收到发票（疑似旧合同）",
+        "date": "2026-03-25T11:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "支持团队您好，我是星岚资本陈洛（自称CUS-703）。我们声称在3月12日已付款80,000元，至今未收到发票。请帮忙尽快处理。\n但我们也担心可能是旧合同/旧账目，因为我们近期没有新采购。麻烦你们先核实账户状态与是否需要补开发票。"
+      },
+      {
+        "message_id": "msg_804",
+        "from": "fei.xu@hechen-xx.com",
+        "to": "support@company.com",
+        "subject": "对账错误干扰：收到重复对账提示但金额不匹配",
+        "date": "2026-03-24T17:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "海辰智能这边补充：你们发来的对账提示里出现了一条金额120,000元的记录，但我们付款回执对应的是392,000元的里程碑1款项。\n请确认120,000这条记录是不是系统重复导入或错误匹配？避免后续开票按错误金额生成。谢谢。客户ID：CUS-701。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题聚焦“付款已确认但未收到发票/开票pending与对账不一致”的开票处理，并加入金额不匹配的对账错误干扰项；草稿紧急度以开票pending时长与VIP合同风险为核心。",
+    "fixture_design_summary": [
+      "gmail inbox 共4封邮件：3封真实投诉（CUS-701/CUS-702/CUS-703），1封为金额不匹配的对账错误干扰（CUS-701）。",
+      "CRM：新增2个真实客户（CUS-701 vip里程碑付款规则；CUS-702 standard年度订阅规则）与1个inactive疑似旧合同干扰（CUS-703）。",
+      "Finance：为CUS-701构造“收款completed但开票pending/待更正”的链路，并添加120,000金额重复对账记录作为干扰；为CUS-702添加负数冲账以体现金额口径差异。",
+      "Contacts：提供开票与结算负责人CT-701以及对账分析师CT-702，确保跨系统能定位到回复草稿所需的内部联系人。"
+    ]
+  }
+}

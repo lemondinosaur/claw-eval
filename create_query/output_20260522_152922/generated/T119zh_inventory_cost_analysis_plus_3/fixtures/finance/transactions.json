@@ -1,0 +1,145 @@
+[
+  {
+    "transaction_id": "FIN-2001",
+    "date": "2026-03-03",
+    "amount": 6800.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公用品",
+    "description": "订书机 20台 × 340元/台",
+    "status": "completed",
+    "reference": "INV-2001"
+  },
+  {
+    "transaction_id": "FIN-2002",
+    "date": "2026-03-07",
+    "amount": 5040.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公用品",
+    "description": "订书针盒 600盒 × 8.40元/盒",
+    "status": "completed",
+    "reference": "INV-2002"
+  },
+  {
+    "transaction_id": "FIN-2003",
+    "date": "2026-03-09",
+    "amount": 96000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "IT设备",
+    "description": "笔记本电脑 20台 × 4800元/台",
+    "status": "completed",
+    "reference": "INV-2003"
+  },
+  {
+    "transaction_id": "FIN-2004",
+    "date": "2026-03-11",
+    "amount": 33000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "IT设备",
+    "description": "无线网卡 150张 × 220元/张",
+    "status": "completed",
+    "reference": "INV-2004"
+  },
+  {
+    "transaction_id": "FIN-2005",
+    "date": "2026-03-04",
+    "amount": 1410.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "耗材",
+    "description": "硒鼓 3个 × 470元/个",
+    "status": "completed",
+    "reference": "INV-2005"
+  },
+  {
+    "transaction_id": "FIN-2006a",
+    "date": "2026-03-06",
+    "amount": 1920.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "耗材",
+    "description": "打印纸A3 160卷 × 12元/卷",
+    "status": "completed",
+    "reference": "INV-2006"
+  },
+  {
+    "transaction_id": "FIN-2006b",
+    "date": "2026-03-12",
+    "amount": 1500.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "耗材",
+    "description": "打印纸A3 100卷 × 15元/卷",
+    "status": "completed",
+    "reference": "INV-2006"
+  },
+  {
+    "transaction_id": "FIN-2007",
+    "date": "2026-02-20",
+    "amount": 2100.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公用品",
+    "description": "马克笔 30支 × 70元/支（窗口外干扰）",
+    "status": "completed",
+    "reference": "INV-2007"
+  },
+  {
+    "transaction_id": "FIN-2008",
+    "date": "2026-03-10",
+    "amount": 1800.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "文具",
+    "description": "文件夹 90个 × 20元/个",
+    "status": "completed",
+    "reference": "INV-2008"
+  },
+  {
+    "transaction_id": "FIN-2009",
+    "date": "2026-03-13",
+    "amount": 900.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "耗材",
+    "description": "封箱胶带 50卷 × 18元/卷",
+    "status": "cancelled",
+    "reference": "INV-2009"
+  },
+  {
+    "transaction_id": "FIN-2010",
+    "date": "2026-03-14",
+    "amount": 1200.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "文具",
+    "description": "替芯签字笔 60支 × 20元/支",
+    "status": "completed",
+    "reference": "INV-2010"
+  },
+  {
+    "transaction_id": "FIN-2011",
+    "date": "2026-03-15",
+    "amount": 800.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "IT设备",
+    "description": "USB-C集线器 2个 × 400元/个（用于缺单判定的干扰外/非匹配）",
+    "status": "completed",
+    "reference": "INV-2011"
+  },
+  {
+    "transaction_id": "FIN-2012",
+    "date": "2026-04-01",
+    "amount": 720.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公用品",
+    "description": "胶棒 12支 × 60元/支（窗口外干扰）",
+    "status": "completed",
+    "reference": "INV-2012"
+  }
+]

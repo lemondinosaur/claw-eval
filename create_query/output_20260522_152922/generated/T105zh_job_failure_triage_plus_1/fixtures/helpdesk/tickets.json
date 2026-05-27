@@ -1,0 +1,127 @@
+[
+  {
+    "ticket_id": "ATK-812",
+    "title": "值班台缺少告警通知（消息未到达）",
+    "description": "值班台在 2026-05-22 02:18Z 之后未收到任何告警。告警中心页面可见，但值班台推送/转发通道显示“无事件”。同值班人员在 02:22Z 也反馈仍为空。疑似告警转发服务异常（队列/消息代理连接失败）。",
+    "reporter": "值班台-周敏",
+    "department": "运维值班",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-22T02:21:00Z",
+    "tags": [
+      "告警转发",
+      "值班台",
+      "缺失"
+    ],
+    "category": "告警链路故障"
+  },
+  {
+    "ticket_id": "ATK-813",
+    "title": "告警详情面板为空（转发结果缺失）",
+    "description": "告警详情面板在 02:26Z 之后偶发完全为空；手动刷新后仍无数据。前端控制台提示返回为空，并且与“转发到值班台”的同一批次任务失败时间吻合。排除硬件打印等非告警链路问题。",
+    "reporter": "SRE-王成",
+    "department": "SRE",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-22T02:28:30Z",
+    "tags": [
+      "告警转发",
+      "详情为空"
+    ],
+    "category": "告警链路故障"
+  },
+  {
+    "ticket_id": "ATK-814",
+    "title": "告警转发：Kafka broker 不可达导致堆积",
+    "description": "监控显示 02:10Z-02:33Z 期间转发消费者多次重连失败，错误与“Kafka broker 不可达/连接超时”一致。值班台端缺少告警；同一时间段告警详情面板也出现空白。请优先处理消息代理网络与连通性。",
+    "reporter": "网络运维-赵磊",
+    "department": "网络与消息",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-22T02:18:20Z",
+    "tags": [
+      "Kafka",
+      "告警转发",
+      "队列连接失败"
+    ],
+    "category": "告警链路故障"
+  },
+  {
+    "ticket_id": "ATK-815",
+    "title": "Webhook 签名校验失败（签名过期/未同步密钥）",
+    "description": "从 03:05Z 开始，告警转发到值班台的 Webhook 返回 401/签名错误。查看配置后发现签名密钥轮换已在部分环境完成，但值班台侧未同步，导致验签失败。影响：告警到达值班台失败，部分告警详情为空。",
+    "reporter": "平台集成-陈佳",
+    "department": "平台集成",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-22T03:06:10Z",
+    "tags": [
+      "Webhook",
+      "签名错误",
+      "密钥未同步"
+    ],
+    "category": "告警链路故障"
+  },
+  {
+    "ticket_id": "ATK-816",
+    "title": "告警转发失败：值班台只收到少量告警",
+    "description": "在 03:04Z-03:20Z 期间，值班台只收到少量告警，且多数告警在详情页表现为空。结合日志，属于转发到值班台的失败（而非告警源缺失）。建议检查签名密钥轮换是否全链路一致。",
+    "reporter": "运维值班-孙航",
+    "department": "运维值班",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-22T03:17:40Z",
+    "tags": [
+      "告警转发",
+      "不完整",
+      "Webhook"
+    ],
+    "category": "告警链路故障"
+  },
+  {
+    "ticket_id": "ATK-817",
+    "title": "告警转发任务错误重试风暴（需核对故障类型）",
+    "description": "告警转发服务在 02:40Z 左右出现重试风暴，错误汇总包含两类：连接到消息代理失败、以及部分回调验签失败（可能对应密钥轮换未同步）。本工单请求从任务失败日志与值班台现象做交叉验证，明确故障链路与对应时间段。",
+    "reporter": "SRE-李娜",
+    "department": "SRE",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-22T02:41:10Z",
+    "tags": [
+      "告警转发",
+      "错误类型",
+      "交叉验证"
+    ],
+    "category": "告警链路故障"
+  },
+  {
+    "ticket_id": "ATK-818",
+    "title": "网络打印机偶发卡顿（疑似硬件）",
+    "description": "3楼打印机在 02:15Z 左右偶发卡顿，影响少量文档输出。该问题在 02:33Z 后自行恢复。用户反馈与告警转发无明显关联，工单仅用于排除硬件干扰。",
+    "reporter": "行政部-刘雪",
+    "department": "行政部",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-22T02:16:50Z",
+    "tags": [
+      "打印机",
+      "硬件干扰"
+    ],
+    "category": "硬件故障"
+  },
+  {
+    "ticket_id": "ATK-819",
+    "title": "部分用户登录慢（与告警无时间重合）",
+    "description": "用户登录在 01:50Z-02:05Z 期间偶发慢，随后恢复正常。与告警转发失败窗口（02:10Z-02:33Z、03:05Z 之后）不存在明确时间重合；建议不要将其归因于告警链路故障。",
+    "reporter": "IAM-马超",
+    "department": "IAM",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-22T01:54:10Z",
+    "tags": [
+      "登录",
+      "干扰"
+    ],
+    "category": "用户体验"
+  }
+]

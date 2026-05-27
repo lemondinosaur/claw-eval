@@ -1,0 +1,290 @@
+task_id: T031zh_escalation_budget_triage_plus_5
+task_name: 跨区域客服风控：多重升级与重复客户去重
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T031zh_escalation_budget_triage_plus_5/fixtures/gmail/inbox.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T031zh_escalation_budget_triage_plus_5/fixtures/contacts/contacts.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T031zh_escalation_budget_triage_plus_5/fixtures/helpdesk/tickets.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T031zh_escalation_budget_triage_plus_5/fixtures/crm/customers.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T031zh_escalation_budget_triage_plus_5/fixtures/finance/transactions.json
+prompt:
+  text: "收件箱里存在来自不同区域（华东/华南/海外）的客户升级邮件。请处理并在末尾输出“按客户维度”的处理摘要。\n\n要求：\n1）读取收件箱中所有升级邮件并逐封解析：客户编号、客户名称（如有）、补偿金额、区域标识，以及是否包含“已停用账户/账户已停用”等停用线索。\n\
+    2）对每个客户，在CRM中查找该客户的 tier、annual_revenue、status。\n3）在帮助台工单系统中检索该客户的升级相关工单（可能多条）。\n\
+    4）去重：如果同一客户出现多封升级邮件，只保留该客户“最高要求补偿金额”的那封作为本次决策依据；其余邮件标记为“重复升级无需再发”，不得触发任何 send/draft\
+    \ 动作，但需在摘要说明。\n5）重复已处理识别：如果某客户在帮助台已有 tag='已提交审批'，且finance中存在 status='completed'\
+    \ 的已完成补偿记录，则该客户本轮跳过任何 send/draft 动作，仅对其相关工单更新 tag='无需重复'（并在摘要体现动作=skip-repeat）。\n\
+    6）决策规则（仅对未被重复跳过且状态有效的客户执行）：\n   - active 且未满足重复已处理：\n     * 补偿金额 / annual_revenue\
+    \ <= 5% ：向该客户服务联络人发送“处理通知”（gmail_send_message）。\n     * 补偿金额 / annual_revenue\
+    \ > 5% ：保存草稿给该客户服务联络人（gmail_save_draft），标注需上级审批。\n   - churned 或邮件含“已停用账户/账户已停用”：通知法务并更新工单异常标签（tag='异常-法务'），不做客户承诺（动作=legal）。\n\
+    7）对于同一客户的非最高金额邮件：在摘要标注“重复升级无需再发”，但不得发送/保存草稿。\n\n输出摘要（必须按客户汇总，不按邮件逐封输出）：每个客户至少包含：\n\
+    - 客户编号\n- 保留的那封邮件ID（最高金额那封；若因无效/无编号则无需参与决策）\n- 最高金额/年收入比率（百分比形式即可）\n- 动作（sent/draft/legal/skip-repeat/skip-invalid\
+    \ 等）\n- 处理到的工单ID列表（哪些工单被更新或用于决策）。\n\n额外说明：若发现无客户编号或补偿金额为负数/明显无效的邮件，请跳过对该封邮件的决策，但仍需在摘要体现对应原因。"
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_save_draft
+  description: 将邮件保存为草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+      reply_to_message_id:
+        type: string
+        description: 如果是回复邮件，原邮件ID
+    required:
+    - to
+    - subject
+    - body
+- name: contacts_search
+  description: 搜索通讯录中的联系人
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词（姓名、部门等）
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详细信息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选 (open/closed/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详细信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级 (low/medium/high/critical)
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 工单分类
+    required:
+    - ticket_id
+- name: crm_list_customers
+  description: 获取客户列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选 (active/churned)
+      tier:
+        type: string
+        description: 按等级筛选 (vip/standard)
+      industry:
+        type: string
+        description: 按行业筛选
+    required: []
+- name: crm_get_customer
+  description: 获取客户详细信息
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: finance_list_transactions
+  description: 获取财务交易记录列表
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 开始日期 (YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 结束日期 (YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取财务交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+- fixtures/crm/customers.json
+- fixtures/helpdesk/tickets.json
+- fixtures/contacts/contacts.json
+- fixtures/finance/transactions.json
+environment:
+  timeout_seconds: 900
+  max_turns: 40

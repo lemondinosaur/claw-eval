@@ -1,0 +1,72 @@
+[
+  {
+    "product_id": "INV-ZH-701",
+    "name": "Zyxel 数据中心服务器 X3000",
+    "category": "服务器",
+    "current_stock": 6,
+    "min_stock_threshold": 18,
+    "reorder_quantity": 24,
+    "status": "low_stock",
+    "unit_price": 89000,
+    "supplier": "环宇云联科技",
+    "lead_time_days": 16,
+    "last_reorder_date": "2026-02-01",
+    "notes": "高并发计算节点，二线机房扩容优先使用。"
+  },
+  {
+    "product_id": "INV-ZH-702",
+    "name": "Zyxel 数据中心服务器 X3000-长交付版",
+    "category": "服务器",
+    "current_stock": 2,
+    "min_stock_threshold": 12,
+    "reorder_quantity": 20,
+    "status": "critical",
+    "unit_price": 92000,
+    "supplier": "环宇云联科技",
+    "lead_time_days": 43,
+    "last_reorder_date": "2026-01-12",
+    "notes": "长交付规格，存在供货节奏显著偏离其他型号的风险。"
+  },
+  {
+    "product_id": "INV-BJ-703",
+    "name": "Beichen 智采企业服务器 B270",
+    "category": "服务器",
+    "current_stock": 9,
+    "min_stock_threshold": 14,
+    "reorder_quantity": 15,
+    "status": "low_stock",
+    "unit_price": 76000,
+    "supplier": "北辰智采商贸",
+    "lead_time_days": 12,
+    "last_reorder_date": "2026-02-14",
+    "notes": "业务系统通用部署，适配常规工作负载。"
+  },
+  {
+    "product_id": "INV-SC-704",
+    "name": "SinoCore 国产化服务器 SNR-2288M",
+    "category": "服务器",
+    "current_stock": 4,
+    "min_stock_threshold": 10,
+    "reorder_quantity": 18,
+    "status": "critical",
+    "unit_price": 70500,
+    "supplier": "华腾电子科技",
+    "lead_time_days": 24,
+    "last_reorder_date": "2026-01-07",
+    "notes": "信创适配方案，需关注兼容性与本地售后覆盖。"
+  },
+  {
+    "product_id": "INV-NW-705",
+    "name": "EagleNet 核心交换机 EN-9506",
+    "category": "网络设备",
+    "current_stock": 7,
+    "min_stock_threshold": 8,
+    "reorder_quantity": 8,
+    "status": "low_stock",
+    "unit_price": 64000,
+    "supplier": "星港维保与集成",
+    "lead_time_days": 26,
+    "last_reorder_date": "2026-02-08",
+    "notes": "作为扩容配套的干扰信息（本题重点为服务器）。"
+  }
+]

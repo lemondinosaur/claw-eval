@@ -1,0 +1,101 @@
+[
+  {
+    "message_id": "inv_msg_201",
+    "from": "ap@norvale-supplies.com",
+    "to": "user@company.com",
+    "subject": "[URGENT] Payment Upgrade Needed — Confirm Bank Account (2 hours)",
+    "body": "您好，\n\n我们已接到贵司关于本月发票的升级请求。为避免付款失败，请在2小时内确认收款银行账号变更并完成回传。\n\n请立即回复本邮件，确认以下信息无误：\n1) 收款户名\n2) 银行账号（完整信息）\n3) 开户行所在地\n\n另外请附上已签字的“变更确认表”作为附件回传（PDF）。\n\n注意：若未在截止时间前完成确认，系统将自动改为人工审批，导致付款延迟。\n\n— Accounts Payable\nNorvale Supplies AP Team",
+    "date": "2026-04-11T09:12:00Z",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "inv_msg_202",
+    "from": "finance-system@payflow-securemail.com",
+    "to": "user@company.com",
+    "subject": "Action Required: Approvals Pending — Return Attachment to Receive Payment",
+    "body": "发票审批流程已进入“付款可放行”阶段。\n\n为了防止付款信息被篡改，请在收到此邮件后尽快完成以下操作：\n\n(1) 登录“财务付款系统”并完成二次验证： https://payflow-securemail.com/verify\n(2) 下载本次附件表格，填写“付款账户确认”\n(3) 将填写后的表格通过邮件附件回传\n(4) 请在邮件回复中注明内部审批号：FP-48291-A\n\n在未完成回传前，付款将保持冻结状态。\n\n财务团队",
+    "date": "2026-04-11T10:05:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "inv_msg_203",
+    "from": "billing@lumenpackaging.co",
+    "to": "user@company.com",
+    "subject": "Vendor Change Notice — Supplier Details Updated for Invoice Processing",
+    "body": "尊敬的合作伙伴，\n\n我们已更新供应商信息，用于后续发票处理（不影响既有合同条款）。\n\n变更内容：\n- 地址：11 Riverstone Ave, Suite 400\n- 联系电话：+1 (415) 555-0198\n- 邮箱：ap@lumenpackaging.co\n\n如您需要对账，请使用贵司常用渠道提交差额单。此邮件为正式公告，不要求您回复或提供任何敏感信息。\n\n谢谢。\nLumen Packaging Accounts Desk",
+    "date": "2026-04-10T15:22:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "inv_msg_204",
+    "from": "ap@norvale-supplies.com",
+    "to": "user@company.com",
+    "subject": "Re: Invoice Discrepancy — Please Confirm Remittance Details",
+    "body": "Hi，\n\n关于发票 INV-77013 的差额，我们在贵司上次付款记录中发现以下不一致：\n- 发票金额：USD 48,260.00\n- 已确认付款：USD 47,990.00\n\n为完成付款升级并按正确金额放行，请您回复确认：\n1) 差额部分是否应由补充发票覆盖？\n2) 收款方式是否仍为电汇（Wire）？\n\n如需我们提供对账明细，请回复“Request Remittance Breakout”即可。\n\nRegards,\nNorvale Supplies — AP Reconciliation",
+    "date": "2026-04-11T12:40:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "inv_msg_205",
+    "from": "no-reply@ledger-approval.example",
+    "to": "user@company.com",
+    "subject": "Billing Approval Queue Update (No Action Needed)",
+    "body": "This is an automated notice.\n\nYour billing item has been moved into the approval queue.\n\nCurrent status：Waiting for department review.\n\n安全提示：本通知不会要求您提供银行账号、验证码或任何内部审批信息，也不会要求回传附件。\n\n无需回复此邮件。\n\n— Billing Platform",
+    "date": "2026-04-10T08:55:00Z",
+    "labels": [
+      "INBOX",
+      "CATEGORY_UPDATES"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "inv_msg_206",
+    "from": "procurement@kestrelcomponents.org",
+    "to": "user@company.com",
+    "subject": "Purchase Reconciliation: Need Your Confirmation on Line Items",
+    "body": "您好，\n\n我们正在进行采购对账。请核对以下行项目是否一致：\n- PO-55102 / Line 3: 120 units\n- PO-55102 / Line 4: 60 units\n\n如果存在差额，请在回复中标注“差额原因 + 期望数量”。我们会据此更新下一次发票模板。\n\n该邮件仅用于对账澄清，不包含任何银行信息请求，也不需要您回传附件。\n\n谢谢。\nKestrel Components Procurement",
+    "date": "2026-04-11T07:30:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "inv_msg_207",
+    "from": "accounts@vendor-bridge-partners.net",
+    "to": "user@company.com",
+    "subject": "Payment Upgrade Required — Confirm Bank Details & Upload PDF (48h)",
+    "body": "Dear Finance Team,\n\n我们已收到“发票差错/付款升级”的相关工单。为了让财务系统完成放款，请您在48小时内确认收款银行信息并上传回传。\n\n请按以下格式回复并上传PDF：\n- Account Holder Name:\n- IBAN / Account Number:\n- Bank Name:\n- Routing Code:\n\n同时请在附件中填写：Vendor Change Reference VC-21904。\n\n如果未按要求回传，付款将转入手工流程并产生额外延迟。\n\nSincerely,\nVendor Bridge Partners — Payments Desk",
+    "date": "2026-04-11T13:18:00Z",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "inv_msg_208",
+    "from": "susan.torres@lumenpackaging.co",
+    "to": "user@company.com",
+    "subject": "BEC Prevention Reminder — Use Approved Channel for Changes",
+    "body": "Hello,\n\n我们收到多起关于供应商信息冒充的诈骗报告。为避免对账或付款被错误引导，请仅通过我们此前登记的官方渠道确认变更。\n\n本邮件仅提醒安全注意事项，不要求您点击链接、回复银行信息或回传附件。\n\n如需验证供应商变更，请联系采购负责人或查阅对账系统。\n\nBest,\nSusan Torres\nLumen Packaging",
+    "date": "2026-04-10T18:06:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": false
+  }
+]

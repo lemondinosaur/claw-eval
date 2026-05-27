@@ -1,0 +1,93 @@
+[
+  {
+    "event_id": "evt_101",
+    "title": "周微 - 客户对齐",
+    "start_time": "2026-06-12T09:00:00Z",
+    "end_time": "2026-06-12T10:00:00Z",
+    "attendees": [
+      "周微",
+      "客户代表"
+    ],
+    "location": "会议室B",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_102",
+    "title": "周微 - 文档评审",
+    "start_time": "2026-06-12T13:00:00Z",
+    "end_time": "2026-06-12T13:45:00Z",
+    "attendees": [
+      "周微",
+      "质量负责人"
+    ],
+    "location": "会议室D",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_103",
+    "title": "董晨 - 需求澄清会",
+    "start_time": "2026-06-12T10:30:00Z",
+    "end_time": "2026-06-12T11:30:00Z",
+    "attendees": [
+      "董晨",
+      "产品经理"
+    ],
+    "location": "会议室A",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_104",
+    "title": "董晨 - 代码走查",
+    "start_time": "2026-06-12T15:30:00Z",
+    "end_time": "2026-06-12T16:30:00Z",
+    "attendees": [
+      "董晨",
+      "研发同事"
+    ],
+    "location": "会议室E",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_105",
+    "title": "午间会谈",
+    "start_time": "2026-06-12T12:00:00Z",
+    "end_time": "2026-06-12T12:30:00Z",
+    "attendees": [],
+    "location": "",
+    "recurring": true
+  },
+  {
+    "event_id": "evt_106",
+    "title": "大会议室 - 管理例会",
+    "start_time": "2026-06-12T14:00:00Z",
+    "end_time": "2026-06-12T15:00:00Z",
+    "attendees": [
+      "行政团队",
+      "张主管"
+    ],
+    "location": "大会议室",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_107",
+    "title": "周微 - 内部复盘",
+    "start_time": "2026-06-12T16:00:00Z",
+    "end_time": "2026-06-12T16:40:00Z",
+    "attendees": [
+      "周微"
+    ],
+    "location": "会议室F",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_108",
+    "title": "董晨 - 同步沟通",
+    "start_time": "2026-06-12T11:45:00Z",
+    "end_time": "2026-06-12T12:15:00Z",
+    "attendees": [
+      "董晨"
+    ],
+    "location": "会议室C",
+    "recurring": false
+  }
+]

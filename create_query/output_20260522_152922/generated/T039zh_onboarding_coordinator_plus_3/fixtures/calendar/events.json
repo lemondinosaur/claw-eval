@@ -1,0 +1,63 @@
+[
+  {
+    "event_id": "evt_701",
+    "title": "晨会例行（Ops）",
+    "organizer": "opslead@company.com",
+    "attendees": [
+      "opslead@company.com"
+    ],
+    "start_time": "2026-03-13T09:00:00+08:00",
+    "end_time": "2026-03-13T09:45:00+08:00",
+    "location": "会议室D",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_702",
+    "title": "客户现场回顾",
+    "organizer": "pm_jing@company.com",
+    "attendees": [
+      "pm_jing@company.com",
+      "all@company.com"
+    ],
+    "start_time": "2026-03-13T10:00:00+08:00",
+    "end_time": "2026-03-13T10:50:00+08:00",
+    "location": "线上会议",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_703",
+    "title": "安全专项审查（预留）",
+    "organizer": "security_lead@company.com",
+    "attendees": [
+      "security_lead@company.com"
+    ],
+    "start_time": "2026-03-13T11:00:00+08:00",
+    "end_time": "2026-03-13T12:00:00+08:00",
+    "location": "会议室E",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_704",
+    "title": "市场内容评审",
+    "organizer": "mkt_content@company.com",
+    "attendees": [
+      "mkt_content@company.com"
+    ],
+    "start_time": "2026-03-13T13:00:00+08:00",
+    "end_time": "2026-03-13T13:40:00+08:00",
+    "location": "会议室A",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_705",
+    "title": "供应链对齐会（仓配协同）",
+    "organizer": "supply_sync@company.com",
+    "attendees": [
+      "supply_sync@company.com"
+    ],
+    "start_time": "2026-03-13T14:30:00+08:00",
+    "end_time": "2026-03-13T15:15:00+08:00",
+    "location": "会议室C",
+    "status": "confirmed"
+  }
+]

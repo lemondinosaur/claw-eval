@@ -1,0 +1,123 @@
+[
+  {
+    "transaction_id": "TXN-9011",
+    "date": "2026-04-08",
+    "amount": 100000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-901",
+    "customer_name": "云栖制造",
+    "order_id": "ORD-901",
+    "type": "订单收款",
+    "category": "销售收入",
+    "description": "云栖制造ORD-901部分首款",
+    "status": "partial"
+  },
+  {
+    "transaction_id": "TXN-9012",
+    "date": "2026-04-18",
+    "amount": 88000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-901",
+    "customer_name": "云栖制造",
+    "order_id": "ORD-901",
+    "type": "订单收款",
+    "category": "销售收入",
+    "description": "云栖制造ORD-901第二笔回款",
+    "status": "partial"
+  },
+  {
+    "transaction_id": "TXN-9021",
+    "date": "2026-03-25",
+    "amount": 60000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-902",
+    "customer_name": "极光零售",
+    "order_id": "ORD-902",
+    "type": "订单收款",
+    "category": "销售收入",
+    "description": "极光零售ORD-902首款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-9022",
+    "date": "2026-03-29",
+    "amount": 64000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-902",
+    "customer_name": "极光零售",
+    "order_id": "ORD-902",
+    "type": "订单收款",
+    "category": "销售收入",
+    "description": "极光零售ORD-902尾款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-9031",
+    "date": "2026-04-16",
+    "amount": 191000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-903",
+    "customer_name": "澜桥科技",
+    "order_id": "ORD-903",
+    "type": "订单收款",
+    "category": "销售收入",
+    "description": "澜桥科技ORD-903全额收款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-9032",
+    "date": "2026-04-20",
+    "amount": -12000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-903",
+    "customer_name": "澜桥科技",
+    "order_id": "ORD-903",
+    "type": "退款",
+    "category": "销售退款",
+    "description": "澜桥科技ORD-903退款：实施阶段调整",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-9041",
+    "date": "2026-03-13",
+    "amount": 42000.0,
+    "currency": "CNY",
+    "customer_id": "CUS-904",
+    "customer_name": "海星物流",
+    "order_id": "ORD-904",
+    "type": "订单收款",
+    "category": "销售收入",
+    "description": "海星物流ORD-904全额收款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-INT-001",
+    "date": "2026-04-01",
+    "amount": 75000.0,
+    "currency": "CNY",
+    "type": "运费",
+    "category": "运营费用",
+    "description": "4月仓储与物流费用",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-INT-002",
+    "date": "2026-03-10",
+    "amount": 32000.0,
+    "currency": "CNY",
+    "type": "服务费",
+    "category": "运营费用",
+    "description": "第三方托管服务费",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-INT-003",
+    "date": "2026-04-12",
+    "amount": -2500.0,
+    "currency": "CNY",
+    "type": "杂项退款",
+    "category": "其他",
+    "description": "与订单无关的杂项退款（干扰）",
+    "status": "completed"
+  }
+]

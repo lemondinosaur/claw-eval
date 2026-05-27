@@ -1,0 +1,484 @@
+{
+  "task_id": "T131zh_order_profit_analysis_plus_4",
+  "task_name": "多币种折算下的利润率一致性",
+  "prompt_text": "请帮我分析各客户订单的利润情况（包含多币种回款折算一致性）：\n\n1) 从CRM获取每个客户的最近订单、每个订单的产品组合与订单售价（CRM中的total_price均以CNY计价）。\n2) 从库存系统获取订单内各产品的成本价（以CNY口径）。\n3) 从财务系统拉取指定日期区间内的收款与退款交易，逐笔核对：交易是否属于订单回款范围（订单收款/退款/冲正等），以及交易的币种currency与折算字段rate_to_cny与type/category。\n4) 对回款分析：\n   - 仅将与订单回款相关的交易纳入（排除如“开票服务费”等非订单相关交易）。\n   - 当currency为USD/EUR时，使用交易提供的rate_to_cny将amount折算到CNY，再计算该订单的净回款（净回款=折算后的收款金额合计+折算后的退款金额合计）。\n   - 若某笔交易缺少currency或缺少rate_to_cny（或无法获得汇率折算所需字段），请在报告中标注“回款折算不可用”，并避免胡乱折算。\n   - 当currency为CNY时，不需要折算。\n5) 利润率计算：利润率按(售价-成本)/售价计算，且不随币种变化（始终使用CRM订单售价CNY与库存成本CNY）。\n6) 输出：对每位客户汇总展示——订单售价、成本、利润率；折算后的净回款（或回款折算不可用）；以及异常说明（如退款导致净回款低于售价、欠款等；折算不可用需明确标注）。\n\n请在分析报告中清晰区分：利润率（必为CNY一致）与回款折算（可能出现不可用的边界情况）。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-901",
+        "name": "海纳创联",
+        "contact_person": "陈总监",
+        "email": "chen@hainachl.com",
+        "phone": "13901112233",
+        "industry": "制造",
+        "tier": "vip",
+        "annual_revenue": 6200000,
+        "last_contact_date": "2026-04-16",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-901",
+            "products": [
+              "SKU-101",
+              "SKU-102",
+              "SKU-106"
+            ],
+            "total_price": 165000,
+            "date": "2026-04-10"
+          }
+        ],
+        "notes": "长期战略客户"
+      },
+      {
+        "customer_id": "CUS-902",
+        "name": "北辰零售",
+        "contact_person": "李经理",
+        "email": "li@beichenretail.cn",
+        "phone": "13904445566",
+        "industry": "零售",
+        "tier": "standard",
+        "annual_revenue": 1400000,
+        "last_contact_date": "2026-04-18",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-902",
+            "products": [
+              "SKU-103",
+              "SKU-107"
+            ],
+            "total_price": 92000,
+            "date": "2026-04-12"
+          }
+        ],
+        "notes": "试点推广期"
+      },
+      {
+        "customer_id": "CUS-903",
+        "name": "天桥科技",
+        "contact_person": "孙总",
+        "email": "sun@tqtech.io",
+        "phone": "13905556677",
+        "industry": "科技",
+        "tier": "vip",
+        "annual_revenue": 3100000,
+        "last_contact_date": "2026-04-22",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-903",
+            "products": [
+              "SKU-101",
+              "SKU-104",
+              "SKU-108"
+            ],
+            "total_price": 238000,
+            "date": "2026-04-13"
+          }
+        ],
+        "notes": "高频迭代客户"
+      },
+      {
+        "customer_id": "CUS-904",
+        "name": "云港物流",
+        "contact_person": "周采购",
+        "email": "zhou@yunganglog.com",
+        "phone": "13906667788",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 950000,
+        "last_contact_date": "2026-04-25",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-904",
+            "products": [
+              "SKU-105",
+              "SKU-102",
+              "SKU-106",
+              "SKU-109"
+            ],
+            "total_price": 142000,
+            "date": "2026-04-17"
+          }
+        ],
+        "notes": "项目制交付"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-9011",
+        "date": "2026-04-10",
+        "amount": 60000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "海纳创联",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "海纳创联ORD-901首期收款（CNY）",
+        "status": "completed",
+        "order_id": "ORD-901"
+      },
+      {
+        "transaction_id": "TXN-9012",
+        "date": "2026-04-11",
+        "amount": 18000.0,
+        "currency": "USD",
+        "rate_to_cny": 7.18,
+        "customer_id": "CUS-901",
+        "customer_name": "海纳创联",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "海纳创联ORD-901尾款（USD）",
+        "status": "completed",
+        "order_id": "ORD-901"
+      },
+      {
+        "transaction_id": "TXN-9013",
+        "date": "2026-04-12",
+        "amount": -8000.0,
+        "currency": "EUR",
+        "rate_to_cny": 7.65,
+        "customer_id": "CUS-901",
+        "customer_name": "海纳创联",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "海纳创联ORD-901实施延期退款（EUR）",
+        "status": "completed",
+        "order_id": "ORD-901"
+      },
+      {
+        "transaction_id": "TXN-9021",
+        "date": "2026-04-12",
+        "amount": 50000.0,
+        "currency": "EUR",
+        "rate_to_cny": 7.72,
+        "customer_id": "CUS-902",
+        "customer_name": "北辰零售",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "北辰零售ORD-902预付款（EUR）",
+        "status": "completed",
+        "order_id": "ORD-902"
+      },
+      {
+        "transaction_id": "TXN-9022",
+        "date": "2026-04-15",
+        "amount": -12000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-902",
+        "customer_name": "北辰零售",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "北辰零售ORD-902部分退款（CNY）",
+        "status": "completed",
+        "order_id": "ORD-902"
+      },
+      {
+        "transaction_id": "TXN-9023",
+        "date": "2026-04-16",
+        "amount": 32000.0,
+        "currency": "USD",
+        "rate_to_cny": 7.09,
+        "customer_id": "CUS-902",
+        "customer_name": "北辰零售",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "北辰零售ORD-902尾款（USD）",
+        "status": "completed",
+        "order_id": "ORD-902"
+      },
+      {
+        "transaction_id": "TXN-9031",
+        "date": "2026-04-13",
+        "amount": 90000.0,
+        "currency": "USD",
+        "rate_to_cny": 7.20,
+        "customer_id": "CUS-903",
+        "customer_name": "天桥科技",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "天桥科技ORD-903首期（USD）",
+        "status": "completed",
+        "order_id": "ORD-903"
+      },
+      {
+        "transaction_id": "TXN-9032",
+        "date": "2026-04-14",
+        "amount": 45000.0,
+        "currency": "EUR",
+        "rate_to_cny": 7.60,
+        "customer_id": "CUS-903",
+        "customer_name": "天桥科技",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "天桥科技ORD-903中期（EUR）",
+        "status": "completed",
+        "order_id": "ORD-903"
+      },
+      {
+        "transaction_id": "TXN-9033",
+        "date": "2026-04-18",
+        "amount": -15000.0,
+        "currency": "USD",
+        "rate_to_cny": 7.20,
+        "customer_id": "CUS-903",
+        "customer_name": "天桥科技",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "天桥科技ORD-903服务调整退款（USD）",
+        "status": "completed",
+        "order_id": "ORD-903"
+      },
+      {
+        "transaction_id": "TXN-9034",
+        "date": "2026-04-19",
+        "amount": 28000.0,
+        "currency": "USD",
+        "customer_id": "CUS-903",
+        "customer_name": "天桥科技",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "天桥科技ORD-903尾款（USD缺失rate_to_cny，用于测试不可用）",
+        "status": "completed",
+        "order_id": "ORD-903"
+      },
+      {
+        "transaction_id": "TXN-9041",
+        "date": "2026-04-17",
+        "amount": 70000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-904",
+        "customer_name": "云港物流",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "云港物流ORD-904首期收款（CNY）",
+        "status": "completed",
+        "order_id": "ORD-904"
+      },
+      {
+        "transaction_id": "TXN-9042",
+        "date": "2026-04-18",
+        "amount": 8000.0,
+        "currency": "EUR",
+        "rate_to_cny": 7.66,
+        "customer_id": "CUS-904",
+        "customer_name": "云港物流",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "云港物流ORD-904补款（EUR）",
+        "status": "completed",
+        "order_id": "ORD-904"
+      },
+      {
+        "transaction_id": "TXN-9043",
+        "date": "2026-04-21",
+        "amount": -6000.0,
+        "currency": "USD",
+        "rate_to_cny": 7.05,
+        "customer_id": "CUS-904",
+        "customer_name": "云港物流",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "云港物流ORD-904部分退款（USD）",
+        "status": "completed",
+        "order_id": "ORD-904"
+      },
+      {
+        "transaction_id": "TXN-INT-1",
+        "date": "2026-04-16",
+        "amount": 1200.0,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "海纳创联",
+        "type": "开票服务费",
+        "category": "行政费用",
+        "description": "海纳创联开票服务费（不应纳入订单回款）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-INT-2",
+        "date": "2026-04-20",
+        "amount": 2200.0,
+        "currency": "USD",
+        "rate_to_cny": 7.10,
+        "customer_id": "CUS-902",
+        "customer_name": "北辰零售",
+        "type": "服务费",
+        "category": "非订单收入",
+        "description": "北辰零售服务费（不应纳入订单回款）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-9035",
+        "date": "2026-04-15",
+        "amount": 4000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-903",
+        "customer_name": "天桥科技",
+        "type": "冲正",
+        "category": "销售退补",
+        "description": "天桥科技ORD-903冲正调整（CNY）",
+        "status": "completed",
+        "order_id": "ORD-903"
+      },
+      {
+        "transaction_id": "TXN-9044",
+        "date": "2026-04-23",
+        "amount": 1500.0,
+        "currency": "EUR",
+        "customer_id": "CUS-904",
+        "customer_name": "云港物流",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "云港物流ORD-904杂项回款（EUR缺失rate_to_cny，用于测试不可用）",
+        "status": "completed",
+        "order_id": "ORD-904"
+      },
+      {
+        "transaction_id": "TXN-INT-3",
+        "date": "2026-04-11",
+        "amount": 5600.0,
+        "currency": "CNY",
+        "customer_id": "CUS-804",
+        "customer_name": "前锋科技",
+        "type": "开票服务费",
+        "category": "行政费用",
+        "description": "前锋科技开票服务费（干扰交易，不存在于CRM客户中）",
+        "status": "completed"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "SKU-101",
+        "name": "企业协同许可",
+        "category": "软件许可",
+        "quantity": 1200,
+        "unit": "个",
+        "unit_cost": 8200.0,
+        "selling_price": 32000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-102",
+        "name": "数据治理模块",
+        "category": "增值模块",
+        "quantity": 800,
+        "unit": "个",
+        "unit_cost": 16000.0,
+        "selling_price": 54000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-103",
+        "name": "全渠道零售许可",
+        "category": "软件许可",
+        "quantity": 650,
+        "unit": "个",
+        "unit_cost": 11000.0,
+        "selling_price": 46000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-104",
+        "name": "API网关套件",
+        "category": "增值模块",
+        "quantity": 500,
+        "unit": "个",
+        "unit_cost": 12500.0,
+        "selling_price": 42000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-105",
+        "name": "实施服务(快启)",
+        "category": "服务",
+        "quantity": 140,
+        "unit": "人天",
+        "unit_cost": 5200.0,
+        "selling_price": 18000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "交付团队"
+      },
+      {
+        "product_id": "SKU-106",
+        "name": "年度技术支持",
+        "category": "服务",
+        "quantity": 300,
+        "unit": "个",
+        "unit_cost": 9800.0,
+        "selling_price": 26000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "交付团队"
+      },
+      {
+        "product_id": "SKU-107",
+        "name": "性能优化包",
+        "category": "增值模块",
+        "quantity": 420,
+        "unit": "个",
+        "unit_cost": 7200.0,
+        "selling_price": 24000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-108",
+        "name": "风控策略中心",
+        "category": "增值模块",
+        "quantity": 360,
+        "unit": "个",
+        "unit_cost": 13000.0,
+        "selling_price": 50000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      },
+      {
+        "product_id": "SKU-109",
+        "name": "迁移实施服务",
+        "category": "服务",
+        "quantity": 160,
+        "unit": "人天",
+        "unit_cost": 6100.0,
+        "selling_price": 24000.0,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "交付团队"
+      },
+      {
+        "product_id": "SKU-110",
+        "name": "备份与恢复套件",
+        "category": "增值模块",
+        "quantity": 290,
+        "unit": "个",
+        "unit_cost": 8700.0,
+        "selling_price": 30000.0,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研平台"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原订单利润分析基础上加入USD/EUR多币种回款按rate_to_cny折算到CNY的一致性校验，并设置缺币种/缺rate_to_cny与非订单服务费干扰，要求标注“回款折算不可用”。",
+    "fixture_design_summary": [
+      "CRM：4个全新客户（CUS-901~904），每个recent_orders非空且订单total_price以CNY计价，并覆盖多产品组合。",
+      "库存：提供10个全新SKU，unit_cost与selling_price均为CNY，确保利润率只依赖CNY口径。",
+      "财务：约16条与订单回款相关的交易，包含USD/EUR/CNY；至少2单包含退款（amount为负且type='退款'）。",
+      "财务：加入2条干扰交易（type/category为开票服务费/服务费非订单收入），不应纳入订单回款。",
+      "财务：刻意设置至少2条缺少折算信息的回款记录：一条USD缺少rate_to_cny、一条EUR缺少rate_to_cny（并确保仍带有order_id），用于触发“回款折算不可用”。"
+    ]
+  }
+}

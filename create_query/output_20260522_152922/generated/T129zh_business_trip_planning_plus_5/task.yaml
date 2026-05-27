@@ -1,0 +1,137 @@
+task_id: T129zh_business_trip_planning_plus_5
+task_name: 国际会议前的国内对接
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T129zh_business_trip_planning_plus_5/fixtures/gmail/inbox.json
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: create_query/output_20260522_152922/generated/T129zh_business_trip_planning_plus_5/fixtures/calendar/events.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T129zh_business_trip_planning_plus_5/fixtures/contacts/contacts.json
+prompt:
+  text: "收件箱中包含多封与出差相关的邮件：国内对接会邀请、国际会议日程确认通知，以及一封无行程时间的议程干扰邮件。请你完成：\n1）识别并区分哪些邮件属于“国内对接会”，哪些属于“国际会议相关安排”；\n\
+    2）检查日历中“出发前一天（含上午时段）到国际会议当天”的关键时段是否发生冲突；\n3）为“国内对接会所在城市”和“国际会议所在城市”分别检索联系人清单；\n\
+    4）输出最终取舍与行程建议：\n   - 国内对接会明确写有“必须本人参加”时，若与内部同步会冲突，需要给出合理重排策略（必须基于日历的可用空窗/无冲突时段提出替代，如把内部同步会调整到出发前一天晚上空窗或改为电话/远程参与这一类不新增复杂流程的做法）；\n\
+    \   - 国际会议本体事件保持参加；\n   - 行程至少覆盖出发前一天上午/晚上、出发当天上午三段，并附上两地联系人清单。\n同时忽略不含具体行程时间的干扰邮件，并对“时区以当地为准”的提示作为干扰说明但仍以日历时间判断冲突。"
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+environment:
+  mock_today: '2026-03-25'
+  timeout_seconds: 600
+  max_turns: 30

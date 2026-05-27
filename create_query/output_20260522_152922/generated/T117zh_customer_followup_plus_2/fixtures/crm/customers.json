@@ -1,0 +1,93 @@
+[
+  {
+    "customer_id": "CUS-811",
+    "name": "明阶教育科技",
+    "contact_person": "陈校长",
+    "email": "principal.chen@mingjie-edu.com",
+    "phone": "18600110011",
+    "industry": "教育",
+    "tier": "vip",
+    "annual_revenue": 6900000,
+    "last_contact_date": "2026-02-28",
+    "status": "active",
+    "notes": "行业：教育培训/院校。近期更关心合规审计材料是否齐全、以及课堂管理效率（排课/点名）是否稳定。希望下次回访能先做现状确认，不要过度承诺。"
+  },
+  {
+    "customer_id": "CUS-812",
+    "name": "星航供应链",
+    "contact_person": "周总",
+    "email": "zhou@xinghang-scm.cn",
+    "phone": "18600110022",
+    "industry": "物流",
+    "tier": "vip",
+    "annual_revenue": 4200000,
+    "last_contact_date": "2026-01-30",
+    "status": "active",
+    "notes": "行业：物流/供应链。关注点主要在交付时效与异常单处理：希望了解是否能减少揽收到签收的波动，并优化异常告警的可读性。若近期不方便升级，可先给出优化建议与路线图。"
+  },
+  {
+    "customer_id": "CUS-813",
+    "name": "北辰云工厂",
+    "contact_person": "刘负责人",
+    "email": "liu@beichen-cloudfactory.com",
+    "phone": "18600110033",
+    "industry": "软件",
+    "tier": "standard",
+    "annual_revenue": 980000,
+    "last_contact_date": "2026-03-01",
+    "status": "active",
+    "notes": "行业：SaaS/软件集成。近期痛点是系统稳定性（高峰期响应）与与现有ERP/CRM的集成兼容。希望回访时简要确认当前集成是否仍需调整。"
+  },
+  {
+    "customer_id": "CUS-814",
+    "name": "恒桥物流服务",
+    "contact_person": "潘经理",
+    "email": "pan@hengqiao-logistics.com",
+    "phone": "18600110044",
+    "industry": "物流",
+    "tier": "standard",
+    "annual_revenue": 760000,
+    "last_contact_date": "2026-02-12",
+    "status": "active",
+    "notes": "行业：物流运营。关注交付时效与对账准确性；希望下一次沟通能确认异常差错是否减少。若不涉及大改动，倾向于小步优化与培训支持。"
+  },
+  {
+    "customer_id": "CUS-815",
+    "name": "纸鹤教育平台",
+    "contact_person": "胡老师",
+    "email": "hu@papercrane-edu.cn",
+    "phone": "18600110055",
+    "industry": "教育",
+    "tier": "standard",
+    "annual_revenue": 340000,
+    "last_contact_date": "2026-03-16",
+    "status": "active",
+    "notes": "行业：教育。该客户在60天边界内刚刚沟通过系统使用体验；不应纳入本次回访阈值。"
+  },
+  {
+    "customer_id": "CUS-816",
+    "name": "澄湾软件维护部",
+    "contact_person": "蒋主管",
+    "email": "jiang@chengwan-maint.com",
+    "phone": "18600110066",
+    "industry": "软件",
+    "tier": "standard",
+    "annual_revenue": 520000,
+    "last_contact_date": "2026-01-20",
+    "status": "active",
+    "notes": "客户仍为active，但备注含：暂停采购、仅维保。回访时语气要更保守，重点放在维保稳定性、故障响应与集成不变更的前提下的确认。"
+  },
+  {
+    "customer_id": "CUS-817",
+    "name": "海韵贸易集团",
+    "contact_person": "周采购",
+    "email": "cg@haiyun-trade.com",
+    "phone": "18600110077",
+    "industry": "贸易",
+    "tier": "vip",
+    "annual_revenue": 2500000,
+    "last_contact_date": "2026-02-05",
+    "status": "churned",
+    "notes": "已流失，不纳入回访。"
+  }
+]

@@ -1,0 +1,314 @@
+{
+  "task_id": "T109zh_complaint_investigation_plus_5",
+  "task_name": "权限变更误扣与合规退款流程建议",
+  "prompt_text": "收件箱中包含多封与“后台权限/套餐变更后仍被扣款、退款依据不清”相关的投诉邮件。请逐封完成调查与处理建议，并为最紧急案例起草回复邮件草稿（使用 gmail_save_draft 保存草稿，不要发送）。\n\n对每封邮件请做到：\n1) 读取邮件内容，提取关键线索（变更发生时间、涉及套餐/权限、客户诉求与对方提到的工单号/证据编号等）；\n2) 在CRM中核验客户状态（active/inactive）、套餐/权限档位（例如协作版/基础版等）以及是否存在“降配/升级/权限变更”记录线索；\n3) 在财务系统核对变更前后扣费周期与扣费类型/金额是否一致；重点识别是否存在“调整/更正/合规退款”类交易，且核对其状态（completed/pending）；\n4) 查找内部对应负责人的联系方式（合规/法务、财务退款执行等角色）；\n5) 给出每个案例的调查结论与处理建议：若发现误扣/扣费不一致，需说明建议走的合规退款或更正流程与预计时点；若缺少关键证据，给出需要客户补充的材料清单。\n\n最紧急案例的选择标准（综合）：客户为VIP且误扣发生在近期；财务侧存在退款 pending 或明显缺少/无法解释的调整记录。为最紧急客户起草回复草稿，内容需包含：已确认的误扣事实、CRM套餐/权限与财务扣费证据对齐结论、退款/更正计划与时间承诺、合规说明与责任归属、所需材料清单（不引用具体法律条文）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-701",
+        "name": "周婧",
+        "department": "合规法务部",
+        "title": "合规审查负责人",
+        "email": "jingzhou@company.com",
+        "phone": "13900107001",
+        "location": "上海总部",
+        "notes": "负责合规退款流程的审批口径与对外回复审核"
+      },
+      {
+        "contact_id": "CT-702",
+        "name": "陈浩",
+        "department": "财务部",
+        "title": "退款与调整执行主管",
+        "email": "chenhao@company.com",
+        "phone": "13900107002",
+        "location": "上海总部",
+        "notes": "负责退款/冲正交易创建与跟踪（pending/completed）"
+      },
+      {
+        "contact_id": "CT-703",
+        "name": "龚然",
+        "department": "客户成功部",
+        "title": "大客户运营经理",
+        "email": "gongran@company.com",
+        "phone": "13900107003",
+        "location": "北京分部",
+        "notes": "负责VIP客户现场沟通与证据收集协调"
+      },
+      {
+        "contact_id": "CT-704",
+        "name": "蔡妍",
+        "department": "财务部",
+        "title": "计费核对专员",
+        "email": "caiyan@company.com",
+        "phone": "13900107004",
+        "location": "上海总部",
+        "notes": "负责扣费周期与套餐档位计费规则核对"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-701",
+        "name": "北辰制造",
+        "contact_person": "孙怡",
+        "email": "yisun@beichen-mfg.com",
+        "phone": "13900107101",
+        "industry": "制造业",
+        "tier": "vip",
+        "annual_revenue": 1800000,
+        "last_contact_date": "2026-04-10",
+        "status": "active",
+        "notes": "套餐变更：2026-03-18由“协作版”降为“基础版”（后台权限同步）。需核验变更后计费是否仍按协作版扣费"
+      },
+      {
+        "customer_id": "CUS-702",
+        "name": "星桥科技",
+        "contact_person": "周磊",
+        "email": "leizhou@xingqiao-tech.com",
+        "phone": "13900107102",
+        "industry": "科技",
+        "tier": "standard",
+        "annual_revenue": 420000,
+        "last_contact_date": "2026-04-02",
+        "status": "active",
+        "notes": "权限状态：2026-03-20由“协作版”降为“基础版”。客户声称已退款但需核验退款依据与后续是否仍扣费"
+      },
+      {
+        "customer_id": "CUS-703",
+        "name": "青岚教育（已注销）",
+        "contact_person": "许宁",
+        "email": "ningxu@qinglan-edu.com",
+        "phone": "13900107103",
+        "industry": "教育培训",
+        "tier": "standard",
+        "annual_revenue": 180000,
+        "last_contact_date": "2026-01-15",
+        "status": "inactive",
+        "notes": "账号已于2025-12-10注销。仍收到扣款通知邮件属于干扰/历史邮件误触发，需解释与关闭通知渠道"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-701",
+        "date": "2026-03-19",
+        "amount": 52000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰制造",
+        "type": "月度服务费",
+        "category": "服务收入",
+        "description": "北辰制造2026-03-19协作版月费（变更前后需核验是否仍按协作版）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-702",
+        "date": "2026-03-20",
+        "amount": 52000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰制造",
+        "type": "月度服务费",
+        "category": "服务收入",
+        "description": "北辰制造2026-04月账期服务费（系统仍按协作版计费，疑似误扣）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-703",
+        "date": "2026-03-22",
+        "amount": -52000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰制造",
+        "type": "服务费冲正",
+        "category": "退款/冲正",
+        "description": "北辰制造协作版误扣冲正（待合规复核后发起实际退款）",
+        "status": "pending",
+        "approved_by": "CT-702"
+      },
+      {
+        "transaction_id": "TXN-704",
+        "date": "2026-03-26",
+        "amount": 26000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰制造",
+        "type": "月度服务费",
+        "category": "服务收入",
+        "description": "北辰制造基础版计费差额扣费（更正后应为基础版）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-705",
+        "date": "2026-03-20",
+        "amount": 38000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "星桥科技",
+        "type": "月度服务费",
+        "category": "服务收入",
+        "description": "星桥科技2026-04月账期协作版月费（与降配时间存在冲突）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-706",
+        "date": "2026-03-23",
+        "amount": -38000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "星桥科技",
+        "type": "合规退款冲正",
+        "category": "退款/冲正",
+        "description": "星桥科技退款冲正交易（客户声称已退款，需核验状态与回执）",
+        "status": "completed",
+        "approved_by": "CT-702"
+      },
+      {
+        "transaction_id": "TXN-707",
+        "date": "2026-03-25",
+        "amount": 19000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "星桥科技",
+        "type": "月度服务费",
+        "category": "服务收入",
+        "description": "星桥科技基础版计费（降配后应计费）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-708",
+        "date": "2026-03-24",
+        "amount": 26000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-703",
+        "customer_name": "青岚教育（已注销）",
+        "type": "月度服务费（通知重发）",
+        "category": "服务收入",
+        "description": "青岚教育2026-04月扣费通知（疑似系统重发/历史账单触达）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-709",
+        "date": "2026-03-24",
+        "amount": -26000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-703",
+        "customer_name": "青岚教育（已注销）",
+        "type": "通知更正/冲正",
+        "category": "退款/冲正",
+        "description": "青岚教育扣费通知更正冲正（用于关闭异常触达）",
+        "status": "completed",
+        "approved_by": "CT-702"
+      },
+      {
+        "transaction_id": "TXN-710",
+        "date": "2026-02-19",
+        "amount": 52000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰制造",
+        "type": "月度服务费",
+        "category": "服务收入",
+        "description": "北辰制造2026-03月协作版月费（变更窗口前）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-711",
+        "date": "2026-03-21",
+        "amount": 26000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰制造",
+        "type": "月度服务费（后续周期）",
+        "category": "服务收入",
+        "description": "北辰制造基础版后续周期计费（核对是否存在重复扣费）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-712",
+        "date": "2026-03-22",
+        "amount": -12000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "星桥科技",
+        "type": "差额调整",
+        "category": "退款/冲正",
+        "description": "星桥科技基础版差额调整（部分冲正已完成）",
+        "status": "pending",
+        "approved_by": "CT-704"
+      },
+      {
+        "transaction_id": "TXN-713",
+        "date": "2026-03-28",
+        "amount": -12000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "星桥科技",
+        "type": "差额调整",
+        "category": "退款/冲正",
+        "description": "星桥科技差额调整完成（pending后变更为完成）",
+        "status": "completed",
+        "approved_by": "CT-702"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_701",
+        "from": "yisun@beichen-mfg.com",
+        "to": "support@company.com",
+        "subject": "紧急：后台权限降配后仍被按协作版扣款（工单线索：CB-4182）",
+        "date": "2026-03-27T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "您好，我们是北辰制造。系统后台完成一次权限同步：2026年3月18日我们从“协作版”降为“基础版”（我们拿到过变更回执）。但财务侧仍在3月20日扣了协作版同额的费用。我们这边对照了合同月费与扣费项目，怀疑存在误扣。\n\n邮件里提到的工单线索编号：CB-4182（仅供你们排查，不需要你们以这个ID为主体去查表）。请尽快核对CRM套餐状态与财务扣费周期是否一致，并给出合规退款或冲正的预计时间。\n\n最晚我们需要在本周内拿到明确的退款依据与执行进度，否则将升级到更高层沟通。"
+      },
+      {
+        "message_id": "msg_702",
+        "from": "leizhou@xingqiao-tech.com",
+        "to": "support@company.com",
+        "subject": "关于“已退款但仍有扣款疑问”的澄清请求（线索：RMA-772）",
+        "date": "2026-03-26T15:25:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "团队您好，我是星桥科技的周磊。我们在2026年3月20日收到通知，权限从“协作版”降为“基础版”。\n\n但我们对账发现：3月20日仍有协作版计费扣款（金额与之前一致）。随后客服说已经为我们做了退款处理，我们也期待到账或看到冲正。\n\n目前我们这边仍担心是否存在未完成的退款/更正交易或退款依据不完整。请你们核对：1）CRM中该客户变更后的套餐是否已生效；2）财务交易里是否确实存在退款完成（或pending）的记录；3）若已退款，是否还有后续周期的重复扣费。\n\n工单线索：RMA-772（仅用于你们内部追踪）。请在回复里说明退款依据和时间节点。"
+      },
+      {
+        "message_id": "msg_703",
+        "from": "ningxu@qinglan-edu.com",
+        "to": "support@company.com",
+        "subject": "账号已注销仍收到扣款通知：请求关闭并确认更正",
+        "date": "2026-03-27T11:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "spam"
+        ],
+        "body": "你好，我是青岚教育（账号已注销）的许宁。我们在2025年12月10日已完成注销，但仍频繁收到类似“扣款成功/将扣费”的通知邮件。\n\n我们并未继续使用服务，也不存在有效的计费关系。请你们核验账号状态与财务侧是否发生过任何交易；如果只是通知系统重发，请确认已经做了更正/冲正，并说明后续如何停止通知。\n\n另外，请把你们核实后的结论发到本邮箱。"
+      },
+      {
+        "message_id": "msg_704",
+        "from": "newsletter@industry-weekly.com",
+        "to": "support@company.com",
+        "subject": "SaaS行业周报 - 2026年第20期",
+        "date": "2026-03-25T07:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "本期热点：企业SaaS合规与计费透明度..."
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "相较原题聚焦“账单异常/退款未到账”，新题强调“权限/套餐变更导致误扣 + 合规退款依据”，并加入“已注销账号仍收扣款通知”的干扰邮件分支。",
+    "fixture_design_summary": [
+      "构造4封邮件：3封有效投诉（2封对齐误扣/退款争议，1封已注销干扰），外加1封周报噪声。",
+      "CRM中建立3位客户（含1个inactive注销客户），在notes里明确降配/变更时间点以支撑调查一致性。",
+      "Finance中为前后窗口设置至少13条交易：包含协作版计费、基础版更正扣费、以及退款/冲正（pending与completed并存），并确保与CRM变更窗口相邻。",
+      "contacts中提供合规负责人与退款执行负责人等角色邮箱，确保最紧急案例草稿可引用对应流程与责任归属。"
+    ]
+  }
+}

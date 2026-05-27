@@ -1,0 +1,116 @@
+[
+  {
+    "ticket_id": "TK-2101",
+    "title": "风控网段不可用（critical，可远程）",
+    "description": "北辰金融（CUS-2201）报告：跨境专线BGP异常疑似导致风控网段不可用。当前问题可通过远程执行路由重置与脚本切换进行初步缓解，但仍需现场最终确认策略影响。\n\n误导点：requires_onsite=false（远程可处理），但本任务需要忽略该工单作为干扰目标，仅派遣真正需要现场SLA的工单。",
+    "customer_id": "CUS-2201",
+    "reporter": "周总",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-05T08:55:00+08:00",
+    "tags": [
+      "风控网段",
+      "BGP异常",
+      "远程缓解",
+      "VIP干扰"
+    ],
+    "category": "网络故障",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-05T10:55:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2102",
+    "title": "风控网段不可用（critical，需现场SLA）",
+    "description": "北辰金融（CUS-2201）报告：跨境专线BGP异常导致风控网段不可用。需要现场完成：\n- BGP/路由定位（会话/路径/策略路由）\n- 专线切换与安全加固排障（隔离与恢复验证）\n\n注意：SLA_deadline字段使用统一口径（北京时间）。客户邮件中截止时间以“本地时区+北京时间混写”，需先换算再判断边界。",
+    "customer_id": "CUS-2201",
+    "reporter": "周总",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-05T09:05:00+08:00",
+    "tags": [
+      "VIP",
+      "现场SLA",
+      "BGP",
+      "专线切换",
+      "安全加固"
+    ],
+    "category": "网络故障+安全加固",
+    "requires_onsite": true,
+    "sla_deadline": "2026-04-05T16:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2103",
+    "title": "交换机端口偶发抖动（open）",
+    "description": "星港保险（CUS-2202）反馈：核心交换机部分端口偶发Link flap，业务无完全中断，但连接稳定性下降。希望进行现场巡检或远程配置核对。",
+    "customer_id": "CUS-2202",
+    "reporter": "李总",
+    "department": "技术支持",
+    "priority": "open",
+    "status": "open",
+    "created_at": "2026-04-04T15:20:00+08:00",
+    "tags": [
+      "交换机",
+      "端口抖动"
+    ],
+    "category": "网络稳定性",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-06T12:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2104",
+    "title": "API限流策略建议（medium）",
+    "description": "和合云计算（CUS-2203）请求：对某批API在高峰期限流策略进行建议，提供参数建议与压测建议即可，无需现场。",
+    "customer_id": "CUS-2203",
+    "reporter": "陈经理",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-03T11:10:00+08:00",
+    "tags": [
+      "API",
+      "限流",
+      "性能优化"
+    ],
+    "category": "性能建议",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-06T18:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2105",
+    "title": "数据库备份验证（low）",
+    "description": "天翼教育（CUS-2205）希望安排一次备份集成校验说明，偏文档支持，远程即可。",
+    "customer_id": "CUS-2205",
+    "reporter": "孙老师",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-04T10:00:00+08:00",
+    "tags": [
+      "备份",
+      "验证"
+    ],
+    "category": "运维服务请求",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-10T10:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2106",
+    "title": "策略回归测试支持（medium，非现场）",
+    "description": "盛维零售（CUS-2204）反馈：上次变更后的安全策略需要回归测试支持，预计1-2天可在远程进行。",
+    "customer_id": "CUS-2204",
+    "reporter": "赵总监",
+    "department": "安全支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-05T07:25:00+08:00",
+    "tags": [
+      "策略回归",
+      "安全"
+    ],
+    "category": "安全支持",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-07T11:30:00+08:00"
+  }
+]

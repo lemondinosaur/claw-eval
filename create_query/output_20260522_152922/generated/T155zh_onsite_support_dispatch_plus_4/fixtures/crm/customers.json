@@ -1,0 +1,50 @@
+[
+  {
+    "customer_id": "CUS-2105",
+    "name": "蓝桥通信",
+    "contact_person": "董总",
+    "email": "dongzong@lanqiao-telecom.com",
+    "phone": "13900990001",
+    "industry": "通信",
+    "tier": "vip",
+    "annual_revenue": 3000000,
+    "last_contact_date": "2026-04-10",
+    "status": "active",
+    "location": "深圳南山区",
+    "sla_level": "platinum",
+    "sla_response": "4小时现场响应",
+    "notes": "VIP派遣策略：仅当工单状态为open、requires_onsite=true、且标签确认“真实故障”并且SLA_deadline未超时，才允许安排现场。若超SLA或状态为closed/reopened/或标签为“演练”，不补派；如客户通过邮件明确撤回现场需求，也应拒派并说明原因。对接客户经理：韩薇。抄送升级对象：技术总监张磊。"
+  },
+  {
+    "customer_id": "CUS-2106",
+    "name": "星云制造",
+    "contact_person": "周经理",
+    "email": "zhouj@xingyun-manufacture.com",
+    "phone": "13900990002",
+    "industry": "制造",
+    "tier": "standard",
+    "annual_revenue": 600000,
+    "last_contact_date": "2026-04-01",
+    "status": "active",
+    "location": "苏州工业园",
+    "sla_level": "standard",
+    "sla_response": "次日远程响应",
+    "notes": "非VIP客户，优先远程排障"
+  },
+  {
+    "customer_id": "CUS-2107",
+    "name": "云帆零售",
+    "contact_person": "赵总",
+    "email": "zhaoz@yunfan-retail.com",
+    "phone": "13900990003",
+    "industry": "零售",
+    "tier": "standard",
+    "annual_revenue": 420000,
+    "last_contact_date": "2026-03-29",
+    "status": "active",
+    "location": "杭州余杭",
+    "sla_level": "standard",
+    "sla_response": "次日远程响应",
+    "notes": "非VIP客户，除非requires_onsite=true且紧急，否则不安排现场"
+  }
+]

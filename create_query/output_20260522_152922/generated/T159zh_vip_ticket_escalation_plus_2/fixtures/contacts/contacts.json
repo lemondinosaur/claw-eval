@@ -1,0 +1,57 @@
+[
+  {
+    "contact_id": "CT-2201",
+    "name": "陈屹",
+    "department": "平台安全部",
+    "title": "安全架构负责人",
+    "email": "chenyi.security@company.com",
+    "phone": "13900220101",
+    "location": "深圳",
+    "specialization": "鉴权/权限校验链路、安全策略、回滚与止血",
+    "notes": "负责鉴权服务/权限映射/策略回滚的技术决策；可作为P0/P1升级执行负责人。"
+  },
+  {
+    "contact_id": "CT-2202",
+    "name": "高远",
+    "department": "平台架构部",
+    "title": "平台鉴权技术负责人",
+    "email": "gaoyuan.arch@company.com",
+    "phone": "13900220102",
+    "location": "上海",
+    "specialization": "API网关鉴权、令牌校验、权限映射与灰度策略",
+    "notes": "负责权限链路与鉴权配置的校验、临时放行/降级方案设计。"
+  },
+  {
+    "contact_id": "CT-2203",
+    "name": "周航",
+    "department": "技术管理办公室",
+    "title": "技术升级接收人",
+    "email": "zhouhang.escalation@company.com",
+    "phone": "13900220103",
+    "location": "北京",
+    "specialization": "P0升级协调、跨团队止血流程、升级通知回执",
+    "notes": "所有critical工单的内部升级通知接收点（escalation point）。"
+  },
+  {
+    "contact_id": "CT-2204",
+    "name": "蒋晴",
+    "department": "客户成功部",
+    "title": "VIP客户对接人",
+    "email": "jiangqing.cs@company.com",
+    "phone": "13900220104",
+    "location": "上海",
+    "specialization": "VIP客户沟通、承诺SLA时间节点、跟进证据交付",
+    "notes": "对VIP客户安全负责人进行确认回复与节奏管理。"
+  },
+  {
+    "contact_id": "CT-2205",
+    "name": "郑浩",
+    "department": "运维与发布",
+    "title": "发布工程师",
+    "email": "zhenghao.release@company.com",
+    "phone": "13900220105",
+    "location": "杭州",
+    "specialization": "回滚、紧急发布、开关/feature flag操作与观测",
+    "notes": "负责紧急回滚、止血开关切换与监控验证。"
+  }
+]

@@ -1,0 +1,112 @@
+task_id: T007zh_todo_management_plus_5
+task_name: 批量去重合并（多组）+异常干扰
+version: '1.0'
+category: productivity
+difficulty: easy
+tags:
+- general
+services:
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T007zh_todo_management_plus_5/fixtures/todo/tasks.json
+prompt:
+  text: '我需要你整理待办：把所有重复的用标记完成的方式合并（不要删除任何待办），并标记出过期项。
+
+    规则：
+
+    1) 重复合并：仅当标题与描述明确对应同一工作项时才合并；否则即使标题相似也不要合并。
+
+    2) 合并方式：通过 todo_update_task 将被合并的重复项状态更新为 completed（多次更新即可）。
+
+    3) 过期标记：只对状态为 pending 的任务生效；且仅当 due_date 非空且早于当前日期（2026-08-15）才算过期。due_date 为空不算过期。
+
+    4) 安全约束：不要把 completed 当成 pending 去判断过期；不要对不相关任务做合并或状态更新；不要删除任务。'
+  language: zh
+tools:
+- name: todo_list_tasks
+  description: 获取所有待办事项
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选 (pending/completed/all)
+        default: all
+    required: []
+- name: todo_update_task
+  description: 更新待办事项
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 任务ID
+      title:
+        type: string
+        description: 新标题
+      priority:
+        type: string
+        description: 优先级 (high/medium/low)
+      status:
+        type: string
+        description: 状态 (pending/completed)
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+    required:
+    - task_id
+- name: todo_create_task
+  description: 创建新的待办事项
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 任务标题
+      description:
+        type: string
+        description: 任务描述
+      priority:
+        type: string
+        description: 优先级
+      due_date:
+        type: string
+        description: 截止日期 (YYYY-MM-DD)
+    required:
+    - title
+- name: todo_delete_task
+  description: 永久删除待办事项
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 任务ID
+    required:
+    - task_id
+tool_endpoints:
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_update_task
+  url: http://localhost:9102/todo/tasks/update
+  method: POST
+- tool_name: todo_create_task
+  url: http://localhost:9102/todo/tasks/create
+  method: POST
+- tool_name: todo_delete_task
+  url: http://localhost:9102/todo/tasks/delete
+  method: POST
+sandbox_files:
+- fixtures/todo/tasks.json
+environment:
+  timeout_seconds: 300
+  max_turns: 25

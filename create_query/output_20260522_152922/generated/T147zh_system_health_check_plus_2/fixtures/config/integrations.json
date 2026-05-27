@@ -1,0 +1,82 @@
+[
+  {
+    "integration_id": "IDMAP-2001",
+    "name": "LDAP/SSO 映射（用户属性）",
+    "status": "error",
+    "config": {
+      "provider": "ldap",
+      "mapping_profile": "corp-prod-user-attr",
+      "required_fields": [
+        "uid",
+        "mail",
+        "department",
+        "roles"
+      ]
+    },
+    "error_rate": 0.73,
+    "error_message": "属性映射表缺失字段: mail/roles 中至少一项未在映射表中定义",
+    "description": "将 LDAP/SSO 的用户属性映射为系统用户画像字段",
+    "service": "identity-mapping",
+    "last_verified": "2026-04-18",
+    "monthly_calls": 124000
+  },
+  {
+    "integration_id": "UIMG-2002",
+    "name": "用户画像索引源（Index Feed）",
+    "status": "error",
+    "config": {
+      "source": "user_360",
+      "target_index": "user_portrait_v3",
+      "mode": "incremental"
+    },
+    "error_rate": 0.41,
+    "error_message": "字段不匹配：权限刷新所需的映射字段未在索引文档中找到，导致跳过写入",
+    "description": "为权限刷新/用户页面加载提供用户画像索引数据",
+    "service": "search-index-feed",
+    "last_verified": "2026-04-17",
+    "monthly_calls": 98000
+  },
+  {
+    "integration_id": "USER-SYNC-2003",
+    "name": "用户数据同步（增量）",
+    "status": "active",
+    "config": {
+      "source_system": "idm-platform",
+      "target_system": "core-user-center",
+      "sync_window_minutes": 15
+    },
+    "error_rate": 0.04,
+    "description": "从身份平台同步用户主数据与基础授权信息",
+    "service": "identity-sync",
+    "last_verified": "2026-04-20",
+    "monthly_calls": 650000
+  },
+  {
+    "integration_id": "PERM-RBAC-2004",
+    "name": "权限策略分发（RBAC）",
+    "status": "active",
+    "config": {
+      "policy_version": "rbac-2026Q2",
+      "refresh_mode": "delta"
+    },
+    "error_rate": 0.02,
+    "description": "将策略变更分发到权限刷新服务",
+    "service": "permission-rbac",
+    "last_verified": "2026-04-21",
+    "monthly_calls": 430000
+  },
+  {
+    "integration_id": "ANALYTICS-2005",
+    "name": "用户分析画像回填（Analytics Backfill）",
+    "status": "active",
+    "config": {
+      "workspace": "user-analytics-prod",
+      "job": "portrait_backfill_daily"
+    },
+    "error_rate": 0.08,
+    "description": "补齐分析侧画像字段（非主链路但会影响展示一致性）",
+    "service": "analytics-portrait",
+    "last_verified": "2026-04-19",
+    "monthly_calls": 210000
+  }
+]

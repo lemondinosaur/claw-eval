@@ -1,0 +1,90 @@
+{
+  "task_id": "T025zh_ambiguous_contact_email_plus_1",
+  "task_name": "预算评审-临时变更通知",
+  "prompt_text": "请查看收件箱最新收到的邮件：邮件中要求通知“张经理”参加一次“临时变更”的会议，会议时间已临时调整为“周三上午”。由于通讯录里“张经理”对应多个候选人且邮件正文只写了称谓，没有明确部门或邮箱，请你先列出所有可能的“张经理”候选（包含姓名-部门-职务-邮箱），并让用户明确选择；在用户确认前，请不要发送邮件（可先准备草稿，但需等待确认）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CTX-101",
+        "name": "张经理",
+        "department": "财务部",
+        "title": "预算管理经理",
+        "email": "zhang.manager.finance@company.com",
+        "phone": "13801010001",
+        "location": "北京总部"
+      },
+      {
+        "contact_id": "CTX-102",
+        "name": "张经理",
+        "department": "审计部",
+        "title": "审计经理",
+        "email": "zhang.manager.audit@company.com",
+        "phone": "13801010002",
+        "location": "上海分部"
+      },
+      {
+        "contact_id": "CTX-103",
+        "name": "张经理",
+        "department": "运营部",
+        "title": "运营经理",
+        "email": "zhang.manager.ops@company.com",
+        "phone": "13801010003",
+        "location": "深圳分部"
+      },
+      {
+        "contact_id": "CTX-104",
+        "name": "王经理",
+        "department": "人事部",
+        "title": "人才发展经理",
+        "email": "wang.manager.hr@company.com",
+        "phone": "13801010004",
+        "location": "北京总部"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_301",
+        "from": "productline@company.com",
+        "to": "me@company.com",
+        "subject": "预算评审会议时间临时调整：周三上午",
+        "date": "2026-03-03T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，因流程调整，我们的预算评审会临时变更到周三上午。\n\n请务必通知张经理参加。\n\n产品线团队"
+      },
+      {
+        "message_id": "msg_302",
+        "from": "hr@company.com",
+        "to": "me@company.com",
+        "subject": "关于会议安排的培训提醒",
+        "date": "2026-03-02T16:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "你好，提醒一下本周将有一次内部培训会议，麻烦关注参会安排与签到表。\n\n如需协助，请尽早对接相关负责人。\n\n人事团队"
+      },
+      {
+        "message_id": "msg_303",
+        "from": "org@company.com",
+        "to": "me@company.com",
+        "subject": "跨部门协作：王经理对接事项",
+        "date": "2026-03-01T11:20:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "你好，接下来有几项跨部门协作需要王经理确认，请及时跟进。\n\n谢谢。\n\n组织支持组"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将目标邮件从“周五预算评审会议”改为“流程调整导致周三上午临时变更”，且邮件仅提到“张经理”称谓不含部门/邮箱，要求先澄清同名候选再确认发送。",
+    "fixture_design_summary": [
+      "contacts.json 中新增 3 个同名“张经理”候选，部门与职务/邮箱均不同，并加入一个无关干扰的“王经理”。",
+      "gmail inbox.json 中放入 3 封邮件：一封最新的目标邮件只包含“张经理”称谓与“周三上午临时变更”关键信息；一封培训/会议安排干扰邮件不提“张经理”；一封提“王经理”且与本次通知无关的干扰邮件。"
+    ]
+  }
+}

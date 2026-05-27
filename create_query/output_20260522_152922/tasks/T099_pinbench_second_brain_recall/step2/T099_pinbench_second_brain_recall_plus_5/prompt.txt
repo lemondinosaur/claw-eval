@@ -1,0 +1,169 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T099_pinbench_second_brain_recall_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/notes/memory.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T099_pinbench_second_brain_recall_plus_5",
+  "new_task_name": "Second Brain: Support Runbook Snapshot",
+  "task_goal": "从 notes 中的“运维支持运行手册快照”记忆笔记回忆 5 个要点：常用排查层级、首次处理的故障类型、负责人姓名与团队、支持系统名称及其用途、以及值班的回呼校验词。",
+  "user_request": "Use the notes service as my persisted second brain. Find the stored support runbook snapshot and answer: 1) What troubleshooting layer do I usually start with? 2) What fault type did I handle first? 3) Who is the on-call lead and which team are they on? 4) What is the support system called and what is its purpose? 5) What is the on-duty callback verification word?",
+  "scenario": "notes 里混有“客户沟通摘要”“技术文章摘录”“运行手册片段”。目标笔记 title 含“runbook snapshot”，content 里包含从排查层级到故障类型、负责人、支持系统名称与用途、回呼校验词的全量信息。干扰笔记会引用类似“fault type”与“verification word”但各自属于不同片段，且支持系统用途描述略有差异。",
+  "difference_from_source": "原题以个人编程与导师为主。本新题转为运维支持运行手册：排查层级/故障类型/值班负责人+团队/支持系统用途/回呼校验词；仍是同一类“记忆检索与多点回忆”，但题材与字段完全不同。",
+  "service_and_tool_plan": "使用 notes_list 获取候选列表，随后 notes_get 读取候选内容。选择同时覆盖五类字段的笔记，然后从其 content 精确抽取答案。",
+  "fixture_generation_plan": "生成 fixtures/notes/memory.json 共 6 条：目标 1 条，其余 5 条干扰。干扰分布：至少 2 条包含“troubleshooting layer”但不含回呼校验词；至少 1 条包含 fault type 与负责人但缺支持系统用途；至少 1 条包含回呼校验词但短语不同且支持系统名不同。note_id、title、content 中的所有实体名/团队名/系统名/短语/层级文本均不复用原题。created_at 随机分布。",
+  "expected_behavior": "Agent 应完成：检索→定位唯一目标笔记→按 1~5 输出排查层级、首次故障类型、值班负责人及团队、支持系统名与用途、回呼校验词。不得输出任何干扰笔记中的字段组合。",
+  "grading_plan": "grader 校验五个答案是否与目标 note 的 content 完全一致，并确保全部来自同一 note_id；缺项或任一项不匹配即失败。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T099_pinbench_second_brain_recall",
+  "task_name": "Pinbench Second Brain Recall",
+  "task_type": "memory",
+  "category": "memory",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "en",
+  "services": [
+    "notes"
+  ],
+  "tools": [
+    "notes_list",
+    "notes_get"
+  ],
+  "fixture_paths": [
+    "fixtures/notes/memory.json"
+  ],
+  "sandbox_files": [
+    "fixtures/notes/memory.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "memory"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T099_pinbench_second_brain_recall
+task_name: Pinbench Second Brain Recall
+version: '1.0'
+category: memory
+difficulty: easy
+tags:
+- general
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: tasks/T099_pinbench_second_brain_recall/fixtures/notes/memory.json
+prompt:
+  text: 'Treat the notes service as a persisted second brain. Find the stored memory
+    note
+
+    and answer these questions:
+
+    1. What is my favorite programming language?
+
+    2. When did I start learning it?
+
+    3. What is my mentor''s name and affiliation?
+
+    4. What is my project called and what does it do?
+
+    5. What is my team''s secret code phrase?
+
+    '
+  language: en
+tools:
+- name: notes_list
+  description: List notes
+  input_schema:
+    type: object
+    properties:
+      max_results:
+        type: integer
+        default: 10
+    required: []
+- name: notes_get
+  description: Get one note
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+    required:
+    - note_id
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+sandbox_files:
+- fixtures/notes/memory.json
+environment:
+  timeout_seconds: 180
+  max_turns: 8
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/notes/memory.json ---
+[
+  {
+    "note_id": "mem_001",
+    "title": "Stored personal memory",
+    "content": "Favorite programming language: Rust\nStarted learning: January 15, 2024\nMentor: Dr. Elena Vasquez from Stanford\nProject: NeonDB, a distributed key-value store\nSecret phrase: purple elephant sunrise",
+    "created_at": "2026-02-10T09:00:00Z",
+    "participants": ["user"],
+    "duration_minutes": 5
+  }
+]
+
+--- END FILE: fixtures/notes/memory.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

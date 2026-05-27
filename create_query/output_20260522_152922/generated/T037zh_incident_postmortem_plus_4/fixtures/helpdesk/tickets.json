@@ -1,0 +1,127 @@
+[
+  {
+    "ticket_id": "TK-4201",
+    "title": "401 鉴权失败激增（认证服务负载飙升）",
+    "reporter": "监控告警系统",
+    "created_at": "2026-03-01T00:41:00+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "00:40 起 /login 与多个API鉴权端点401错误率快速上升：从基线0.02%升至约18%。认证服务CPU长期高位，持续出现“token refresh pending”堆积。认证服务同时报告对 identity_provider 的刷新请求超量。",
+    "tags": [
+      "auth",
+      "401",
+      "load"
+    ],
+    "assignee": "SRE值班",
+    "department": "SRE"
+  },
+  {
+    "ticket_id": "TK-4202",
+    "title": "部分接口500（少量）与认证失败串联",
+    "reporter": "API网关值班",
+    "created_at": "2026-03-01T00:46:00+08:00",
+    "priority": "high",
+    "status": "investigating",
+    "description": "故障窗口内500数量较少（约0.6%），大多出现在鉴权链路之后的资源服务。网关日志显示主要原因是认证失败（401）导致下游异常兜底。",
+    "tags": [
+      "api",
+      "500",
+      "auth-chain"
+    ],
+    "assignee": "API网关团队",
+    "department": "Edge"
+  },
+  {
+    "ticket_id": "TK-4203",
+    "title": "刷新请求洪泛：identity_provider degraded 且失败重试未退避",
+    "reporter": "认证平台",
+    "created_at": "2026-03-01T00:52:00+08:00",
+    "priority": "critical",
+    "status": "open",
+    "description": "认证平台从集成监控发现 identity_provider 状态为 degraded，刷新请求 error_rate 升至>40%。错误提示集中出现：refresh request flood / rate limit not applied。并且刷新失败后任务未执行指数退避，导致失败重试叠加轮询进一步加剧。",
+    "tags": [
+      "identity_provider",
+      "refresh-flood",
+      "retry"
+    ],
+    "assignee": "认证平台值班",
+    "department": "Auth"
+  },
+  {
+    "ticket_id": "TK-4204",
+    "title": "客户端重试触发二次雪上加霜（需仅观察）",
+    "reporter": "终端接入团队",
+    "created_at": "2026-03-01T00:57:00+08:00",
+    "priority": "high",
+    "status": "investigating",
+    "description": "在刷新失败后，部分客户端在短时间内进行快速重试（约每2秒重试一次）。因服务端未返回明确的退避指令，导致重试风暴叠加刷新洪泛。现已确认只读证据，不做策略变更。",
+    "tags": [
+      "client-retry",
+      "thundering-herd"
+    ],
+    "assignee": "终端接入团队",
+    "department": "Clients"
+  },
+  {
+    "ticket_id": "TK-4205",
+    "title": "恢复后缓存/会话逐步稳定（残留风险：失败退避仍需复核）",
+    "reporter": "认证平台",
+    "created_at": "2026-03-01T01:23:00+08:00",
+    "priority": "high",
+    "status": "resolved",
+    "description": "01:10 后 identity_provider error_rate 回落至约8-12%。认证服务CPU由长期高位降下来，401错误率从18%逐步回落到0.3%。但观察到仍有少量刷新失败重试周期性出现，可能表明失败退避/限流策略在部分token分支未完全生效，需在复盘中追查参数与保护条件。",
+    "tags": [
+      "recovery",
+      "residual-risk"
+    ],
+    "assignee": "认证平台值班",
+    "department": "Auth"
+  },
+  {
+    "ticket_id": "TK-4206",
+    "title": "令牌即将到期点集中刷新（参数与窗口计算错误推断）",
+    "reporter": "SRE值班",
+    "created_at": "2026-03-01T01:05:00+08:00",
+    "priority": "critical",
+    "status": "done",
+    "description": "对比刷新日志发现：失败峰值发生在令牌过期前后极短时间内。刷新请求时间戳与 token_expiry 对齐程度异常（大量刷新恰好发生在到期点）。该现象与“刷新提前量=0或负值导致窗口起点重叠”高度吻合。任务失败后重入导致请求放大。",
+    "tags": [
+      "token-window",
+      "refresh-lead-time",
+      "root-cause-hypothesis"
+    ],
+    "assignee": "SRE值班",
+    "department": "SRE"
+  },
+  {
+    "ticket_id": "TK-4207",
+    "title": "token_refresh_harvester 历史：故障窗口耗时增长+短时重入",
+    "reporter": "调度平台",
+    "created_at": "2026-03-01T01:12:00+08:00",
+    "priority": "critical",
+    "status": "resolved",
+    "description": "调度平台数据显示 token_refresh_harvester 在故障窗口内运行耗时出现明显增长（从正常的10-20s到>180s），且在失败后发生短时间重复启动/重入（可能未满足互斥/幂等条件）。需要复盘确认参数 refresh_lead_time_seconds 的变更来源与回退逻辑。",
+    "tags": [
+      "scheduler",
+      "reentry",
+      "duration-spike"
+    ],
+    "assignee": "调度平台团队",
+    "department": "Platform"
+  },
+  {
+    "ticket_id": "TK-4208",
+    "title": "影响范围：登录鉴权失败为主（逐步恢复，无需关闭服务）",
+    "reporter": "业务值班",
+    "created_at": "2026-03-01T01:35:00+08:00",
+    "priority": "medium",
+    "status": "done",
+    "description": "影响主要集中在用户登录与鉴权链路，401为主，500少量。故障缓解后业务逐步恢复，期间未观察到服务整体不可用宕机，但出现认证服务压力过高与会话刷新失败导致的拒绝。",
+    "tags": [
+      "impact",
+      "recovery"
+    ],
+    "assignee": "业务值班",
+    "department": "Business"
+  }
+]

@@ -1,0 +1,148 @@
+{
+  "task_id": "T111zh_expense_email_check_plus_4",
+  "task_name": "报销对账 D（交易缺失）",
+  "prompt_text": "请帮我核对报销申请：\n\n1) 从收件箱中识别并提取所有“报销申请”邮件；对每封报销邮件，提取发票号与金额。发票号必须严格按格式识别（例如必须包含“INV-”前缀），避免把正文里的相似数字串误当作发票号。\n\n2) 在财务系统中查找每个发票号对应的交易记录，并核对：\n- 金额是否一致\n- 交易状态是否为完成（completed）\n\n3) 若某个发票号在财务系统里完全找不到对应交易，请将该报销归类为“未找到交易/待核对”（并说明匹配结果为空）。\n\n4) 输出一份结构清晰的核对报告，分为四类：\n- 匹配正常\n- 金额不符\n- 状态异常（如非 completed）\n- 未找到交易/待核对\n\n要求：四类报告需覆盖所有报销邮件；非报销沟通邮件不得混入报告。",
+  "files": {
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXD-401",
+        "date": "2026-04-10",
+        "amount": 2560.0,
+        "currency": "CNY",
+        "type": "差旅费报销",
+        "category": "费用报销",
+        "description": "赵敏差旅报销，发票号INV-D112",
+        "status": "completed",
+        "approved_by": "财务经理"
+      },
+      {
+        "transaction_id": "TXD-402",
+        "date": "2026-04-10",
+        "amount": 1399.0,
+        "currency": "CNY",
+        "type": "办公用品报销",
+        "category": "费用报销",
+        "description": "周涛办公用品采购，发票号INV-D205",
+        "status": "completed",
+        "approved_by": "财务经理"
+      },
+      {
+        "transaction_id": "TXD-403",
+        "date": "2026-04-09",
+        "amount": 9800.0,
+        "currency": "CNY",
+        "type": "服务费",
+        "category": "外包成本",
+        "description": "第三方服务费结算（不含INV-发票）",
+        "status": "completed",
+        "approved_by": "采购负责人"
+      },
+      {
+        "transaction_id": "TXD-404",
+        "date": "2026-04-11",
+        "amount": 620.0,
+        "currency": "CNY",
+        "type": "通讯费",
+        "category": "运营成本",
+        "description": "通信费用对账单（发票编号疑似为D-620但非INV-格式）",
+        "status": "completed",
+        "approved_by": "行政主管"
+      },
+      {
+        "transaction_id": "TXD-405",
+        "date": "2026-04-08",
+        "amount": 4100.0,
+        "currency": "CNY",
+        "type": "交通补贴",
+        "category": "人力成本",
+        "description": "交通补贴发放（不含INV-）",
+        "status": "completed",
+        "approved_by": "人事经理"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_d01",
+        "from": "zhaomin@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：差旅 2560元（发票INV-D112）",
+        "date": "2026-04-10T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，我是赵敏。本次出差差旅费用合计2560元，发票号INV-D112。请财务审核报销。谢谢！"
+      },
+      {
+        "message_id": "msg_d02",
+        "from": "zhoutao@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：办公用品 1500元，需对账",
+        "date": "2026-04-10T10:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "财务部您好，我已完成办公用品采购，共计1500元，发票号INV-D205。若与系统金额有差异请核对。"
+      },
+      {
+        "message_id": "msg_d03",
+        "from": "chenrui@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：培训资料费 3200元",
+        "date": "2026-04-10T11:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "你好，请处理培训资料费报销：金额3200元，发票号INV-D778（本次发票信息已确认）。请审核。"
+      },
+      {
+        "message_id": "msg_d04",
+        "from": "ops@vendor.com",
+        "to": "ap@company.com",
+        "subject": "对账沟通：付款参考号 205xxxx（非发票）",
+        "date": "2026-04-10T13:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们收到贵司的对账请求。当前付款参考号为20588712，金额为1399元左右（请注意：该参考号不是INV格式发票号）。如需发票请以INV-前缀的编号为准。"
+      },
+      {
+        "message_id": "msg_d05",
+        "from": "it-support@company.com",
+        "to": "finance@company.com",
+        "subject": "沟通邮件：发票号疑似D-205（请确认INV-）",
+        "date": "2026-04-10T15:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位好，关于某笔费用我们看到疑似编号为D-205，但该字符串不包含INV-前缀。请以系统中的INV-发票号为准进行匹配。此邮件非报销申请。"
+      },
+      {
+        "message_id": "msg_d06",
+        "from": "hr@company.com",
+        "to": "all@company.com",
+        "subject": "审批提醒：请在今日17:00前提交报销单",
+        "date": "2026-04-10T16:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位同事注意，报销相关审批请在今天17:00前完成提交。此为通用提醒，不包含具体发票号与金额。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原报销核对基础上新增“财务侧缺失交易”归类，且通过多条非报销沟通邮件内的相似数字串验证必须严格识别INV-格式以避免误匹配。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 共6条：3条报销申请邮件（INV-D112、INV-D205、INV-D778）+ 2条非报销沟通邮件（含相似数字串但不含INV-前缀）+ 1条审批提醒（不含发票号）。",
+      "finance/transactions.json 共5条：仅包含INV-D112与INV-D205对应交易，其余交易均不含INV-D778，确保第三张发票触发“未找到交易/待核对”。",
+      "INV-D112对应交易amount与邮件一致且状态completed，用于“匹配正常”。",
+      "INV-D205邮件金额与交易金额故意不一致（邮件1500元 vs 交易1399元），用于“金额不符”。",
+      "不存在任何交易处于非completed状态，避免干扰“状态异常”分类。"
+    ]
+  }
+}

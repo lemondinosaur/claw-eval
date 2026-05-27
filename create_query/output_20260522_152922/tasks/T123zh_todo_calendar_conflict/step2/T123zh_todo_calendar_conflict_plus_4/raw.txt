@@ -1,0 +1,215 @@
+{
+  "task_id": "T123zh_todo_calendar_conflict_plus_4",
+  "task_name": "周边任务引发的串联冲突",
+  "prompt_text": "请帮我做串联冲突分析：\n1) 先查看日历事件（覆盖 2026-06-07 到 2026-06-10），找出导致关键待办无法按期完成的关键占用点；\n2) 再基于待办 description 中出现的依赖关键词（例如“需要A完成后才能开始B”“B完成后才能开始C”或等价表述）识别依赖链；当关键任务因日历占用需要延期时，把延期连锁传导到后续依赖任务；\n3) 最终输出一个可执行的重排链路（给出冲突点 + 依赖链路图式说明 A->B->C + 每个任务的最终建议完成日期与上午/下午/具体段落），且说明 2026-06-09 的维护窗口不可操作，因此不能把任务安排到该日；\n4) 同时识别并处理日历冲突层级：独立高优任务与干扰任务只做“是否与日历占用冲突”的处理，不要错误地参与到依赖传导链里。\n\n关键日期与事件：2026-06-07 14:30-17:30 外部演示预约（确认）；2026-06-08 09:00-11:30 安全培训补考；2026-06-09 全天维护窗口（不可操作）。\n\n待办目标：构建并重排 A（6/7下午 due 的高优任务）-> B（6/8上午 due 的中优任务）-> C（6/10 due 的低优任务）的依赖链，并给出最终可执行的时间安排。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_406",
+        "title": "外部演示预约（确认）",
+        "start_time": "2026-06-07T14:30:00+08:00",
+        "end_time": "2026-06-07T17:30:00+08:00",
+        "location": "会展中心B馆",
+        "organizer": "外部客户对接组",
+        "attendees": [
+          "我"
+        ],
+        "description": "演示相关外部预约确认，占用时间内不可安排其它工作",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_407",
+        "title": "安全培训补考",
+        "start_time": "2026-06-08T09:00:00+08:00",
+        "end_time": "2026-06-08T11:30:00+08:00",
+        "location": "安全培训教室2",
+        "organizer": "EHS",
+        "attendees": [
+          "我"
+        ],
+        "description": "未通过安全培训的补考，必须在该时间段内完成签到与考试",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_408",
+        "title": "维护窗口（不可操作）",
+        "start_time": "2026-06-09T00:00:00+08:00",
+        "end_time": "2026-06-09T23:59:59+08:00",
+        "location": "生产/工具平台",
+        "organizer": "运维团队",
+        "attendees": [
+          "我"
+        ],
+        "description": "系统维护与不可操作窗口，期间不安排任何可执行工作",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_409",
+        "title": "短会：对齐演示脚本口径",
+        "start_time": "2026-06-08T15:00:00+08:00",
+        "end_time": "2026-06-08T15:30:00+08:00",
+        "location": "会议室C",
+        "organizer": "产品运营",
+        "attendees": [
+          "我",
+          "张敏"
+        ],
+        "description": "30分钟口径对齐会，只占用短时间",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-401",
+        "title": "产出演示脚本（4小时）",
+        "description": "高优待办：需要在 2026-06-07 当天完成演示脚本整理。注意：该任务是后续“生成演示素材包”的前置项；需要A完成后才能开始B。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-06-07",
+        "assignee": "我",
+        "tags": [
+          "演示",
+          "脚本",
+          "前置A"
+        ],
+        "estimated_hours": 4
+      },
+      {
+        "task_id": "TODO-402",
+        "title": "生成演示素材包（3小时）",
+        "description": "中优待办：在脚本定稿后制作素材包。依赖关系：需要A完成后才能开始B；B完成后才能安排“做复盘文档（C）”的内容提取。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-06-08",
+        "assignee": "我",
+        "tags": [
+          "演示",
+          "素材",
+          "依赖B"
+        ],
+        "estimated_hours": 3
+      },
+      {
+        "task_id": "TODO-403",
+        "title": "做复盘文档（2小时）",
+        "description": "低优待办：将素材包产出结果固化为复盘文档。依赖关系：需要B完成后才能开始C，并在 2026-06-10 前完成初稿。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-06-10",
+        "assignee": "我",
+        "tags": [
+          "复盘",
+          "文档",
+          "依赖C"
+        ],
+        "estimated_hours": 2
+      },
+      {
+        "task_id": "TODO-404",
+        "title": "独立审批单（1小时）",
+        "description": "高优但不参与依赖链：独立审批处理，不包含“需要A/B完成后才能开始”的依赖关键词。",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-06-08",
+        "assignee": "我",
+        "tags": [
+          "审批",
+          "独立"
+        ],
+        "estimated_hours": 1
+      },
+      {
+        "task_id": "TODO-405",
+        "title": "准备背景数据（2小时）",
+        "description": "pending 干扰项：用于演示前背景准备。该任务不写任何A/B/C依赖关键词，但会与 2026-06-07 任务时段冲突。",
+        "status": "pending",
+        "priority": "pending",
+        "due_date": "2026-06-07",
+        "assignee": "我",
+        "tags": [
+          "数据",
+          "干扰"
+        ],
+        "estimated_hours": 2
+      },
+      {
+        "task_id": "TODO-406",
+        "title": "与张敏同步演示需求（1小时）",
+        "description": "干扰项：不依赖A/B/C；仅需在 2026-06-08 可工作时段内完成简要同步。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-06-08",
+        "assignee": "我",
+        "tags": [
+          "同步",
+          "干扰"
+        ],
+        "estimated_hours": 1
+      },
+      {
+        "task_id": "TODO-407",
+        "title": "已完成：采购对账（无需重排）",
+        "description": "completed 历史任务，不参与冲突分析与依赖传导（状态已完成）。",
+        "status": "completed",
+        "priority": "medium",
+        "due_date": "2026-06-07",
+        "assignee": "我",
+        "tags": [
+          "采购",
+          "历史"
+        ],
+        "estimated_hours": 2
+      },
+      {
+        "task_id": "TODO-408",
+        "title": "检查演示清单（1小时）",
+        "description": "辅助任务：不依赖A/B/C；建议放在演示预约前后的零碎可用时间完成。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-06-07",
+        "assignee": "我",
+        "tags": [
+          "演示",
+          "清单"
+        ],
+        "estimated_hours": 1
+      },
+      {
+        "task_id": "TODO-409",
+        "title": "准备材料归档（1小时）",
+        "description": "辅助任务：不含任何“需要A完成后才能开始B”或“需要B完成后才能开始C”等依赖关键词，仅做归档。",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-06-10",
+        "assignee": "我",
+        "tags": [
+          "归档"
+        ],
+        "estimated_hours": 1
+      },
+      {
+        "task_id": "TODO-410",
+        "title": "确认参会名单（1小时）",
+        "description": "辅助任务：与依赖链无关，不参与A/B/C的连锁重排；只需避开日历占用时间即可。",
+        "status": "pending",
+        "priority": "low",
+        "due_date": "2026-06-08",
+        "assignee": "我",
+        "tags": [
+          "参会名单"
+        ],
+        "estimated_hours": 1
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原“待办-日历冲突检测”基础上，本题新增从待办 description 抽取依赖并执行连锁重排，形成 A->B->C 串联链路。",
+    "fixture_design_summary": [
+      "calendar/events.json 放置 6/7 下午、6/8 上午、6/9 全天三段关键占用，并加入 6/8 下午短会作为二级干扰。",
+      "todo/tasks.json 构造依赖链：A（TODO-401）description 含“需要A完成后才能开始B”，B（TODO-402）含“B完成后才能开始C”，C（TODO-403）含“需要B完成后才能开始C”。",
+      "确保传导压力：A 在 6/7 14:30-17:30 被占用且 A 估时 4 小时；B due 为 6/8 且估时 3 小时同时被 6/8 09:00-11:30 占用，迫使 B 调整从而影响 C。",
+      "加入干扰项：TODO-404（独立审批单）不包含依赖关键词；TODO-405（准备背景数据）不含依赖关键词但与 A 同日 due 造成并发冲突；TODO-407 为 completed 不参与判断。",
+      "约束 6/9 不可操作：通过 calendar 的全天维护窗口（evt_408）使连锁重排不得把任务安排在该日。"
+    ]
+  }
+}

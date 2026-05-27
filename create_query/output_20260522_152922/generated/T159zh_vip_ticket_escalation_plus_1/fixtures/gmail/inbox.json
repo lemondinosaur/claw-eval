@@ -1,0 +1,52 @@
+[
+  {
+    "message_id": "msg_2301",
+    "from": "lin@star-lane-merchant.com",
+    "to": "support@company.com",
+    "subject": "【critical】回调接口超时&重试风暴风险扩散：请1小时内给出止损与恢复窗口",
+    "date": "2026-04-13T08:55:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "vip-critical"
+    ],
+    "body": "你好，我是星澜商户集团的林总（运营负责人）。\n\n我们侧支付回调接口在特定交易批次上持续超时，系统开始触发重试风暴，导致部分订单出现资金状态不一致风险（对账差异在扩大）。当前问题已持续约35分钟，并且正在影响多个下游商户的对账结果。\n\n合同条款里对资金一致性/对账差异的止损与恢复要求非常明确：\n1）请在1小时内给出明确的止损方案；\n2）请同时给出预计恢复时间窗口（不是“正在排查”）；\n3）若因你方原因导致服务异常扩大影响范围，我们将按条款追究赔付责任。\n\n麻烦你们立刻启动紧急升级流程。我需要今天内看到可执行的恢复路径和下一节点时间点。\n\n谢谢。\n林总\n电话：13900423001"
+  },
+  {
+    "message_id": "msg_2302",
+    "from": "product-ops@company.com",
+    "to": "all-staff@company.com",
+    "subject": "生产周报：支付链路观测指标与报警规则回顾",
+    "date": "2026-04-13T07:30:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "本周重点：\n- 新增回调超时告警与重试风暴阈值\n- 优化幂等写入与对账延迟观测\n\n请相关团队确认演练记录是否更新。"
+  },
+  {
+    "message_id": "msg_2303",
+    "from": "reliability@company.com",
+    "to": "support@company.com",
+    "subject": "提醒：部分回调重试退避配置可能在某批次上未生效",
+    "date": "2026-04-13T08:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox",
+      "important"
+    ],
+    "body": "简要提醒：最近一次配置变更后，存在少量批次队列退避参数未正确下发的风险。建议结合工单定位触发批次的路由与配置来源。"
+  },
+  {
+    "message_id": "msg_2304",
+    "from": "ops-notify@company.com",
+    "to": "support@company.com",
+    "subject": "内部通知：本周双写一致性验收节点",
+    "date": "2026-04-12T18:00:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各团队请在本周内完成双写一致性验收材料补充。"
+  }
+]

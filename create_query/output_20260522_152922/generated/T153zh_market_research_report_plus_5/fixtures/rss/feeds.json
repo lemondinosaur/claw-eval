@@ -1,0 +1,177 @@
+[
+  {
+    "article_id": "RSS-2301",
+    "title": "金融科技合规新规：证据包与等保材料一致性要求升级",
+    "category": "金融合规",
+    "content": "监管强调金融科技产品在认证与审计阶段必须提供可追溯证据包，要求材料与实际控制能力一致。若材料更新滞后或证据链断裂，将导致审计结论不通过并影响后续续约审批节奏。",
+    "url": "https://reg.example.com/fintech-evidence-consistency",
+    "tags": [
+      "金融",
+      "监管",
+      "证据包",
+      "审计"
+    ],
+    "source": "监管简报",
+    "published_at": "2026-03-26T09:10:00Z",
+    "summary": "监管强调证据包与等保/控制能力一致性，证据链断裂会导致审计不通过并影响续约审批节奏。",
+    "word_count": 92
+  },
+  {
+    "article_id": "RSS-2302",
+    "title": "数据治理与可审计性成为审计关注点：访问留痕与导出审批入表",
+    "category": "数据治理",
+    "content": "行业审计越来越关注访问留痕、导出行为与审批流程是否可被查询与复核。建议企业建立可审计权限模型：最小权限+审批流+日志留存，并形成可复用的报表模板以降低返工。",
+    "url": "https://audit.example.com/audit-log-export-approval",
+    "tags": [
+      "审计",
+      "权限",
+      "访问留痕",
+      "导出审批"
+    ],
+    "source": "审计观察",
+    "published_at": "2026-03-24T13:30:00Z",
+    "summary": "审计关注访问留痕与导出审批可查询与复核，建议建立可审计权限模型并复用报表模板。",
+    "word_count": 118
+  },
+  {
+    "article_id": "RSS-2303",
+    "title": "数据出境监管趋严：脱敏与边界说明需可核验",
+    "category": "数据出境",
+    "content": "相关部门要求对跨境处理提供明确的脱敏策略、数据边界与日志记录，材料需可核验。数据出境顾虑成为客户续约决策的重要因素，缺少说明会导致内部审批推迟甚至终止合作。",
+    "url": "https://compliance.example.com/data-cross-border-verifiable",
+    "tags": [
+      "数据出境",
+      "脱敏",
+      "边界说明"
+    ],
+    "source": "合规要闻",
+    "published_at": "2026-03-25T08:40:00Z",
+    "summary": "跨境处理需提供可核验的脱敏策略、数据边界与日志记录；缺少说明会推迟审批甚至终止合作。",
+    "word_count": 103
+  },
+  {
+    "article_id": "RSS-2304",
+    "title": "认证周期延后风险上升：企业需建立里程碑与回归验证机制",
+    "category": "认证合规",
+    "content": "行业内有多家企业因认证材料准备不充分或回归验证不足导致周期延后。分析建议企业用里程碑看板管理控制项实现，变更后执行回归验证确保证据可用，减少“材料与实际不一致”问题。",
+    "url": "https://industry.example.com/certification-delay-risk",
+    "tags": [
+      "认证",
+      "里程碑",
+      "回归验证"
+    ],
+    "source": "行业分析",
+    "published_at": "2026-03-23T17:20:00Z",
+    "summary": "认证延后常见于材料准备不足与回归验证缺失；建议里程碑看板与证据回归确保可用。",
+    "word_count": 121
+  },
+  {
+    "article_id": "RSS-2305",
+    "title": "合规成本上行：第三方评估与整改闭环的预算压力扩大",
+    "category": "合规成本",
+    "content": "企业合规成本持续上行，尤其是第三方评估、材料补齐与整改闭环的时间成本。具备成熟证据体系和运营流程的公司更能降低返工率，并在续约谈判中获得更高信任度。",
+    "url": "https://cost.example.com/compliance-cost-up",
+    "tags": [
+      "合规成本",
+      "整改闭环",
+      "返工率"
+    ],
+    "source": "管理洞察",
+    "published_at": "2026-03-22T12:00:00Z",
+    "summary": "合规成本上行，预算压力来自第三方评估与整改闭环；证据体系成熟的企业返工更低。",
+    "word_count": 97
+  },
+  {
+    "article_id": "RSS-2306",
+    "title": "非合规领域噪声：区块链应用市场热度波动（与合规路线无直接关系）",
+    "category": "区块链噪声",
+    "content": "近期区块链相关应用热度波动，部分项目融资放缓。但该内容与公司年度合规与数据治理路线图的监管/认证要点关联较弱。",
+    "url": "https://noise.example.com/blockchain-heat",
+    "tags": [
+      "区块链"
+    ],
+    "source": "科技快讯",
+    "published_at": "2026-03-21T10:00:00Z",
+    "summary": "区块链热度波动，与合规路线图监管认证要点关联较弱。",
+    "word_count": 44
+  },
+  {
+    "article_id": "RSS-2307",
+    "title": "非合规领域噪声：AI聊天工具的用户增长与法规无关",
+    "category": "AI噪声",
+    "content": "AI聊天工具用户增长迅速，但该趋势更多反映产品使用规模变化，无法直接转化为“认证/审计证据”或“数据出境可核验材料”的能力建设要求。",
+    "url": "https://noise.example.com/ai-chat-users",
+    "tags": [
+      "AI",
+      "用户增长"
+    ],
+    "source": "行业快报",
+    "published_at": "2026-03-20T09:30:00Z",
+    "summary": "AI聊天工具用户增长与认证/审计证据要求关联较弱。",
+    "word_count": 49
+  },
+  {
+    "article_id": "RSS-2308",
+    "title": "制造业客户续约变动：合规证明缺失导致审批延期",
+    "category": "客户续约",
+    "content": "部分制造企业在续约时将合规证明作为关键门槛。若供应商无法按期提供合规证明（证书/报告/证据包），客户内部审批将延期，影响合同签署节奏。",
+    "url": "https://industry.example.com/renewal-proof-missing-manufacturing",
+    "tags": [
+      "续约",
+      "合规证明",
+      "审批延期"
+    ],
+    "source": "行业观察",
+    "published_at": "2026-03-24T06:50:00Z",
+    "summary": "合规证明缺失会导致客户内部审批延期，从而影响合同签署节奏。",
+    "word_count": 84
+  },
+  {
+    "article_id": "RSS-2309",
+    "title": "审计不通过案例复盘：证据链断裂与权限不可追溯",
+    "category": "审计风险",
+    "content": "审计不通过的常见原因包括证据链断裂以及权限/导出行为不可追溯。整改需要将控制项落到流程与系统日志，并以可复用模板提交证据包，从而降低后续复查成本。",
+    "url": "https://audit.example.com/audit-fail-evidence-chain",
+    "tags": [
+      "审计不通过",
+      "证据链",
+      "权限追溯"
+    ],
+    "source": "审计复盘",
+    "published_at": "2026-03-25T11:05:00Z",
+    "summary": "审计不通过常因证据链断裂与权限不可追溯；整改需把控制落到流程与系统日志并复用模板。",
+    "word_count": 110
+  },
+  {
+    "article_id": "RSS-2310",
+    "title": "行业趋势：数据治理台账与控制项矩阵被视为“可审计资产”",
+    "category": "数据治理趋势",
+    "content": "越来越多的客户把数据治理台账与控制项矩阵视为可审计资产。建议将治理框架产品化为可检查的清单，明确负责人、频率、验收标准与证据留存位置。",
+    "url": "https://trend.example.com/control-matrix-auditable-asset",
+    "tags": [
+      "数据治理",
+      "控制矩阵",
+      "可审计资产"
+    ],
+    "source": "战略简报",
+    "published_at": "2026-03-26T15:40:00Z",
+    "summary": "治理台账与控制项矩阵被视为可审计资产，建议产品化清单明确责任与验收证据留存。",
+    "word_count": 96
+  },
+  {
+    "article_id": "RSS-2311",
+    "title": "教育/医疗合规需求变化：隐私保护与访问控制成为采购要点",
+    "category": "隐私合规",
+    "content": "在教育与医疗场景中，客户在采购与续约阶段强调隐私保护与访问控制的可审计性；若缺少访问审批记录或无法提供可核验证据包，会增加审批摩擦并降低续约概率。",
+    "url": "https://sector.example.com/privacy-access-audit-education-medical",
+    "tags": [
+      "隐私",
+      "访问控制",
+      "教育医疗"
+    ],
+    "source": "行业动态",
+    "published_at": "2026-03-23T09:15:00Z",
+    "summary": "教育与医疗场景采购强调隐私保护与访问控制可审计性，缺证据包会增加审批摩擦。",
+    "word_count": 105
+  }
+]

@@ -1,0 +1,159 @@
+{
+  "task_id": "T093_pinbench_email_triage_report_plus_4",
+  "task_name": "Legal Notice & Data Leak Rumor",
+  "prompt_text": "请帮我做邮件分诊报告：读取所有收件箱邮件，按 P0-P4 分配优先级、填写类别和推荐动作。对与法律/数据安全相关的邮件要特别区分：\n- 真实紧急/需要证据保全的法律通知（优先级更高，推荐立即行动）\n- 未经证实的“网传/截图/谣言”（优先级更低，推荐先验证来源与影响，避免扩散）\n- 安全监控告警但仅说明扫描活动增加、未证实数据外泄（不要与证据保全同级，建议进一步核查指标）\n同时：销售续费跟进若有明确截止日期应提高优先级并给出联系与跟进动作；订阅/新闻通讯/促销应降优先级或建议归档。\n\n在顶部给出最紧急事项摘要（说明为什么是最高优先级）并列出今天的处理计划。不要发送任何邮件。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "lnr_004_001",
+        "from": "legal-notices@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "LEGAL NOTICE: Preserve Evidence Immediately (suspected data leak window)",
+        "date": "2026-05-22T08:40:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "legal"],
+        "body": "This is a formal legal notice. We have reason to believe that a potential data exposure may have occurred between 2026-05-18 19:00-22:30 UTC involving employee account access logs and potential download events. You must preserve relevant evidence immediately, including: (1) web/app access logs, (2) proxy/DLP detections, (3) mailbox delivery metadata for outbound messages, and (4) any incident tickets created during that window. Do not alter, delete, or anonymize records. A written confirmation is required by end of day today."
+      },
+      {
+        "message_id": "lnr_004_002",
+        "from": "it-security@mycompany.com",
+        "to": "security-ops@mycompany.com",
+        "subject": "[Alert] Possible compromise indicators - suspicious sign-in patterns detected",
+        "date": "2026-05-22T09:10:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "security"],
+        "body": "We observed anomalous sign-in patterns from two geo regions within 20 minutes. Indicators show increased authentication failures, then a single successful session using a new device fingerprint. No confirmed exfiltration markers are present yet, but this may precede further activity. Please validate: (a) whether any records downloads occurred, (b) whether OAuth token grants spiked, and (c) if any mailbox access from service accounts occurred after 08:35 UTC."
+      },
+      {
+        "message_id": "lnr_004_003",
+        "from": "noreply@monitoringportal.example",
+        "to": "oncall@mycompany.com",
+        "subject": "[SECURITY MONITOR] Scan activity increase (no data transfer confirmed)",
+        "date": "2026-05-22T07:55:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "alert", "monitoring"],
+        "body": "Security monitor reports: scan activity increased by 42% compared to baseline over the last hour. Current telemetry does not indicate outbound data transfer or payload exfiltration. Affected assets: only public endpoints on api-edge.example. Recommended next step: review WAF blocks and confirm that no sensitive paths were accessed."
+      },
+      {
+        "message_id": "lnr_004_004",
+        "from": "mila.singh@partnermail.com",
+        "to": "me@mycompany.com",
+        "subject": "Fwd: Screenshot circulating—\"Company leaked customer data\"",
+        "date": "2026-05-22T06:30:00+00:00",
+        "is_read": false,
+        "labels": ["inbox"],
+        "body": "Sharing something that’s going around internally. Attached screenshot suggests that \"customer records\" were leaked, but there’s no link, no source, and no technical details. The poster claims it happened \"recently\" and that the data is \"for sale\". Please treat this as unverified and let me know if you have any confirmation."
+      },
+      {
+        "message_id": "lnr_004_005",
+        "from": "cynthia.ortiz@myclientco.com",
+        "to": "me@mycompany.com",
+        "subject": "Renewal check-in needed by Friday (Acct: Vertex Atlas)",
+        "date": "2026-05-22T09:30:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "client"],
+        "body": "Hi—quick renewal status check. Our procurement team needs a decision by Friday 17:00 local time. Could you confirm whether we can extend the platform agreement for another 12 months and what the expected timeline is for the new invoicing cycle? If possible, please share the renewal quote and any updated SLA notes by tomorrow."
+      },
+      {
+        "message_id": "lnr_004_006",
+        "from": "security-updates@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "Reminder: Monthly compliance attestation due (May)",
+        "date": "2026-05-22T10:05:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "compliance"],
+        "body": "Monthly compliance attestation is due by 2026-05-24. Please confirm completion of access reviews and verify that required documentation is current. This is not an incident notification."
+      },
+      {
+        "message_id": "lnr_004_007",
+        "from": "hr-ops@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "Action required: Update emergency contact by May 28",
+        "date": "2026-05-21T16:20:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "hr"],
+        "body": "Please update your emergency contact details in the HR portal by May 28. This ensures correct routing during internal events."
+      },
+      {
+        "message_id": "lnr_004_008",
+        "from": "newsletter@orbitnews.io",
+        "to": "me@mycompany.com",
+        "subject": "OrbitNews Weekly: Market updates & product highlights",
+        "date": "2026-05-21T12:15:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "newsletter"],
+        "body": "This week: market updates, customer stories, and product highlights. No direct action required."
+      },
+      {
+        "message_id": "lnr_004_009",
+        "from": "sales@saasforge.com",
+        "to": "me@mycompany.com",
+        "subject": "Last chance: 30% off annual plan ends tonight",
+        "date": "2026-05-21T20:10:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "promotional"],
+        "body": "Use code SAVE30 to get 30% off an annual plan. Offer ends at 23:59 tonight. Unsubscribe anytime."
+      },
+      {
+        "message_id": "lnr_004_010",
+        "from": "team-lead@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "Team update: Q2 milestones & blocker summaries",
+        "date": "2026-05-21T09:05:00+00:00",
+        "is_read": false,
+        "labels": ["inbox"],
+        "body": "Sharing a brief team update: milestones for Q2, upcoming reviews, and a summary of blockers from last week. Reply only if you need escalation."
+      },
+      {
+        "message_id": "lnr_004_011",
+        "from": "calendar@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "Canceled: Quarterly Security Readout (Team Session)",
+        "date": "2026-05-22T00:25:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "calendar"],
+        "body": "This meeting has been canceled. Original title: Quarterly Security Readout (Team Session). No reschedule has been set."
+      },
+      {
+        "message_id": "lnr_004_012",
+        "from": "comms@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "Your subscription preferences (confirm to keep receiving updates)",
+        "date": "2026-05-20T18:42:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "newsletter"],
+        "body": "We have updated our communication preferences. Confirm your preferences to continue receiving updates. Otherwise you may miss product announcements."
+      },
+      {
+        "message_id": "lnr_004_013",
+        "from": "noreply@status.mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "Service status notice: Routine maintenance completed",
+        "date": "2026-05-20T11:05:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "status"],
+        "body": "Maintenance window has completed successfully. No customer action is required."
+      },
+      {
+        "message_id": "lnr_004_014",
+        "from": "dpo@mycompany.com",
+        "to": "legal-notices@mycompany.com",
+        "subject": "DP privacy workflow: checklist for incident-related requests",
+        "date": "2026-05-22T10:35:00+00:00",
+        "is_read": false,
+        "labels": ["inbox", "privacy"],
+        "body": "Sharing a checklist for incident-related privacy requests: verify data categories, identify affected systems, document retention steps, and prepare any customer notification templates if required. Use only if aligned with legal notice guidance."
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题围绕生产故障与监控告警；本题改为法律/数据安全证据保全、数据泄露传闻与扫描告警的分诊，并要求对“证据保全=高优先级、谣言/无证据告警=降优先级”给出更明确的推荐动作。",
+    "fixture_design_summary": [
+      "包含1封法务“立即保存证据”的P0高优先级邮件（含疑似泄露时间窗与证据类型、要求当天确认）。",
+      "包含1封安全告警邮件（P1），强调可行动的验证项但尚无确认外传证据；另有1封“扫描活动增加/无数据外传”告警（P3/P4倾向，建议核查而非当泄露）。",
+      "包含1封转发截图/无来源的“网传数据泄露”传闻邮件（P2/P3倾向），推荐先验证来源与避免扩散。",
+      "包含1封销售续费跟进邮件（P1），给出明确截止时间与所需材料。",
+      "其余加入合规/HR提醒、订阅/促销、团队更新、会议取消、状态通知等用于覆盖P3/P4归档与低优先级分类。"
+    ]
+  }
+}

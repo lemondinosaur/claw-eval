@@ -1,0 +1,73 @@
+task_id: T009zh_contact_lookup_plus_3
+task_name: Multiple Matches, Single Best Answer
+version: '1.0'
+category: communication
+difficulty: easy
+tags:
+- general
+services:
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T009zh_contact_lookup_plus_3/fixtures/contacts/contacts.json
+prompt:
+  text: 帮我查一下“孙凯”在研发中心的联系人。对方负责数据平台那条线。请给我他的邮箱和座机号码，并说明你为什么选择这一位（用标题/备注中的“数据平台/数据中台”线索消歧），同时简要说明另外一位同名研发中心候选为什么不符合。
+  language: zh
+tools:
+- name: contacts_search
+  description: 按名字搜索联系人
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词（姓名）
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 根据ID获取联系人详细信息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: contacts_send_message
+  description: 给联系人发送消息
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+      message:
+        type: string
+        description: 消息内容
+    required:
+    - contact_id
+    - message
+tool_endpoints:
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: contacts_send_message
+  url: http://localhost:9103/contacts/send_message
+  method: POST
+sandbox_files:
+- fixtures/contacts/contacts.json
+environment:
+  timeout_seconds: 300
+  max_turns: 15

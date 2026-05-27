@@ -1,0 +1,164 @@
+[
+  {
+    "transaction_id": "TXN-21001",
+    "customer_id": "CUS-2101",
+    "amount": 62000,
+    "type": "subscription",
+    "date": "2026-04-01",
+    "status": "completed",
+    "description": "4月订阅费（基础版）"
+  },
+  {
+    "transaction_id": "TXN-21002",
+    "customer_id": "CUS-2101",
+    "amount": 42000,
+    "type": "addon",
+    "date": "2026-04-18",
+    "status": "completed",
+    "description": "AI分析加购（本月续费；用户要求降级谈判后调整配额）"
+  },
+  {
+    "transaction_id": "TXN-21003",
+    "customer_id": "CUS-2101",
+    "amount": -42000,
+    "type": "addon",
+    "date": "2026-05-22",
+    "status": "completed",
+    "description": "addon终止/降级：AI分析加购于5月中止，导致续费延后审批"
+  },
+  {
+    "transaction_id": "TXN-21004",
+    "customer_id": "CUS-2102",
+    "amount": 51000,
+    "type": "subscription",
+    "date": "2026-04-09",
+    "status": "completed",
+    "description": "订阅费（含部分高级接口包）"
+  },
+  {
+    "transaction_id": "TXN-21005",
+    "customer_id": "CUS-2102",
+    "amount": 25000,
+    "type": "addon",
+    "date": "2026-04-27",
+    "status": "completed",
+    "description": "线路优化addon（已开票）"
+  },
+  {
+    "transaction_id": "TXN-21006",
+    "customer_id": "CUS-2102",
+    "amount": -25000,
+    "type": "addon",
+    "date": "2026-05-14",
+    "status": "completed",
+    "description": "addon终止：对账争议导致线路优化服务下线，收入下降"
+  },
+  {
+    "transaction_id": "TXN-21007",
+    "customer_id": "CUS-2103",
+    "amount": 74000,
+    "type": "subscription",
+    "date": "2026-04-12",
+    "status": "completed",
+    "description": "4月订阅费"
+  },
+  {
+    "transaction_id": "TXN-21008",
+    "customer_id": "CUS-2103",
+    "amount": 30000,
+    "type": "addon",
+    "date": "2026-04-28",
+    "status": "completed",
+    "description": "报表增强addon（按计划开通）"
+  },
+  {
+    "transaction_id": "TXN-21009",
+    "customer_id": "CUS-2103",
+    "amount": 30000,
+    "type": "addon",
+    "date": "2026-05-30",
+    "status": "pending",
+    "description": "addon续费延迟：报表异常未修复，财务等待确认后放行"
+  },
+  {
+    "transaction_id": "TXN-21010",
+    "customer_id": "CUS-2104",
+    "amount": 39000,
+    "type": "subscription",
+    "date": "2026-04-22",
+    "status": "completed",
+    "description": "订阅费（基础）"
+  },
+  {
+    "transaction_id": "TXN-21011",
+    "customer_id": "CUS-2104",
+    "amount": 16000,
+    "type": "addon",
+    "date": "2026-05-02",
+    "status": "completed",
+    "description": "营销自动化addon（已计提；但客户要求调整账单）"
+  },
+  {
+    "transaction_id": "TXN-21012",
+    "customer_id": "CUS-2104",
+    "amount": -16000,
+    "type": "addon",
+    "date": "2026-05-26",
+    "status": "completed",
+    "description": "addon调整/中断：因对账差异于5月下旬停止扣费"
+  },
+  {
+    "transaction_id": "TXN-21013",
+    "customer_id": "CUS-2105",
+    "amount": 28000,
+    "type": "subscription",
+    "date": "2026-04-05",
+    "status": "completed",
+    "description": "订阅费（标准）"
+  },
+  {
+    "transaction_id": "TXN-21014",
+    "customer_id": "CUS-2105",
+    "amount": -12000,
+    "type": "addon",
+    "date": "2026-05-11",
+    "status": "completed",
+    "description": "降级证据：学习数据addon于5月起终止，整体收入下降"
+  },
+  {
+    "transaction_id": "TXN-21015",
+    "customer_id": "CUS-2105",
+    "amount": 16000,
+    "type": "subscription",
+    "date": "2026-05-25",
+    "status": "completed",
+    "description": "5月续费（基础化）"
+  },
+  {
+    "transaction_id": "TXN-21016",
+    "customer_id": "CUS-2102",
+    "amount": 17000,
+    "type": "subscription",
+    "date": "2026-05-30",
+    "status": "completed",
+    "description": "5月订阅补差：因功能无法落地进行服务抵扣"
+  },
+  {
+    "transaction_id": "TXN-21017",
+    "customer_id": "CUS-2101",
+    "amount": 58000,
+    "type": "subscription",
+    "date": "2026-05-05",
+    "status": "completed",
+    "description": "5月订阅费（续费批注：等待整改闭环）"
+  },
+  {
+    "transaction_id": "TXN-21018",
+    "customer_id": "CUS-2103",
+    "amount": 74000,
+    "type": "subscription",
+    "date": "2026-05-12",
+    "status": "completed",
+    "description": "5月订阅费（含服务补偿）"
+  }
+]

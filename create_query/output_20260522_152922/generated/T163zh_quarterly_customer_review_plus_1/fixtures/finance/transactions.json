@@ -1,0 +1,326 @@
+[
+  {
+    "transaction_id": "TXN-2101",
+    "customer_id": "CUS-2101",
+    "amount": 72000,
+    "type": "subscription",
+    "date": "2026-04-18",
+    "status": "completed",
+    "description": "4月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2102",
+    "customer_id": "CUS-2101",
+    "amount": 73500,
+    "type": "subscription",
+    "date": "2026-05-18",
+    "status": "completed",
+    "description": "5月订阅费+用量增长"
+  },
+  {
+    "transaction_id": "TXN-2103",
+    "customer_id": "CUS-2101",
+    "amount": 76000,
+    "type": "subscription",
+    "date": "2026-06-18",
+    "status": "completed",
+    "description": "6月订阅费+增值包"
+  },
+  {
+    "transaction_id": "TXN-2104",
+    "customer_id": "CUS-2102",
+    "amount": 52000,
+    "type": "subscription",
+    "date": "2026-04-07",
+    "status": "completed",
+    "description": "4月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2105",
+    "customer_id": "CUS-2102",
+    "amount": 50000,
+    "type": "subscription",
+    "date": "2026-05-07",
+    "status": "failed",
+    "description": "5月订阅费（支付失败）"
+  },
+  {
+    "transaction_id": "TXN-2106",
+    "customer_id": "CUS-2102",
+    "amount": 50000,
+    "type": "subscription",
+    "date": "2026-05-15",
+    "status": "completed",
+    "description": "5月补单（支付失败后重试）"
+  },
+  {
+    "transaction_id": "TXN-2107",
+    "customer_id": "CUS-2102",
+    "amount": 51000,
+    "type": "subscription",
+    "date": "2026-06-10",
+    "status": "partial_refund",
+    "description": "6月部分退款（折扣调整）"
+  },
+  {
+    "transaction_id": "TXN-2108",
+    "customer_id": "CUS-2102",
+    "amount": 54000,
+    "type": "subscription",
+    "date": "2026-06-20",
+    "status": "completed",
+    "description": "6月补单（差额补缴）"
+  },
+  {
+    "transaction_id": "TXN-2109",
+    "customer_id": "CUS-2103",
+    "amount": 98000,
+    "type": "subscription",
+    "date": "2026-04-22",
+    "status": "completed",
+    "description": "4月订阅费+运力模块"
+  },
+  {
+    "transaction_id": "TXN-2110",
+    "customer_id": "CUS-2103",
+    "amount": 99000,
+    "type": "subscription",
+    "date": "2026-05-22",
+    "status": "completed",
+    "description": "5月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2111",
+    "customer_id": "CUS-2103",
+    "amount": 45000,
+    "type": "subscription",
+    "date": "2026-06-22",
+    "status": "partial_refund",
+    "description": "6月部分退款（合同口径更正）"
+  },
+  {
+    "transaction_id": "TXN-2112",
+    "customer_id": "CUS-2103",
+    "amount": 52000,
+    "type": "subscription",
+    "date": "2026-06-27",
+    "status": "completed",
+    "description": "6月补单（退款后补缴）"
+  },
+  {
+    "transaction_id": "TXN-2113",
+    "customer_id": "CUS-2104",
+    "amount": 36000,
+    "type": "subscription",
+    "date": "2026-04-03",
+    "status": "completed",
+    "description": "4月订阅费（基础版）"
+  },
+  {
+    "transaction_id": "TXN-2114",
+    "customer_id": "CUS-2104",
+    "amount": 35000,
+    "type": "subscription",
+    "date": "2026-05-03",
+    "status": "completed",
+    "description": "5月订阅费（续费）"
+  },
+  {
+    "transaction_id": "TXN-2115",
+    "customer_id": "CUS-2104",
+    "amount": 33000,
+    "type": "subscription",
+    "date": "2026-06-03",
+    "status": "failed",
+    "description": "6月订阅费（扣款失败）"
+  },
+  {
+    "transaction_id": "TXN-2116",
+    "customer_id": "CUS-2104",
+    "amount": 33000,
+    "type": "subscription",
+    "date": "2026-06-17",
+    "status": "completed",
+    "description": "6月补单（失败后补缴）"
+  },
+  {
+    "transaction_id": "TXN-2117",
+    "customer_id": "CUS-2105",
+    "amount": 41000,
+    "type": "subscription",
+    "date": "2026-04-12",
+    "status": "completed",
+    "description": "4月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2118",
+    "customer_id": "CUS-2105",
+    "amount": 42500,
+    "type": "subscription",
+    "date": "2026-05-12",
+    "status": "completed",
+    "description": "5月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2119",
+    "customer_id": "CUS-2105",
+    "amount": 44000,
+    "type": "subscription",
+    "date": "2026-06-12",
+    "status": "completed",
+    "description": "6月订阅费+课程治理包"
+  },
+  {
+    "transaction_id": "TXN-2120",
+    "customer_id": "CUS-2106",
+    "amount": 88000,
+    "type": "subscription",
+    "date": "2026-04-25",
+    "status": "completed",
+    "description": "4月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2121",
+    "customer_id": "CUS-2106",
+    "amount": 90000,
+    "type": "subscription",
+    "date": "2026-05-25",
+    "status": "completed",
+    "description": "5月订阅费+工艺看板"
+  },
+  {
+    "transaction_id": "TXN-2122",
+    "customer_id": "CUS-2106",
+    "amount": 91500,
+    "type": "subscription",
+    "date": "2026-06-25",
+    "status": "completed",
+    "description": "6月订阅费+产线扩展"
+  },
+  {
+    "transaction_id": "TXN-2123",
+    "customer_id": "CUS-2107",
+    "amount": 30000,
+    "type": "subscription",
+    "date": "2026-04-16",
+    "status": "completed",
+    "description": "4月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2124",
+    "customer_id": "CUS-2107",
+    "amount": 30500,
+    "type": "subscription",
+    "date": "2026-05-16",
+    "status": "completed",
+    "description": "5月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2125",
+    "customer_id": "CUS-2107",
+    "amount": 12000,
+    "type": "subscription",
+    "date": "2026-06-16",
+    "status": "partial_refund",
+    "description": "6月部分退款（账单更正）"
+  },
+  {
+    "transaction_id": "TXN-2126",
+    "customer_id": "CUS-2107",
+    "amount": 33000,
+    "type": "subscription",
+    "date": "2026-06-26",
+    "status": "completed",
+    "description": "6月补单（更正后补缴）"
+  },
+  {
+    "transaction_id": "TXN-2127",
+    "customer_id": "CUS-2108",
+    "amount": 61000,
+    "type": "subscription",
+    "date": "2026-04-09",
+    "status": "completed",
+    "description": "4月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2128",
+    "customer_id": "CUS-2108",
+    "amount": 64000,
+    "type": "subscription",
+    "date": "2026-05-09",
+    "status": "completed",
+    "description": "5月订阅费+智能分发"
+  },
+  {
+    "transaction_id": "TXN-2129",
+    "customer_id": "CUS-2108",
+    "amount": 66500,
+    "type": "subscription",
+    "date": "2026-06-09",
+    "status": "completed",
+    "description": "6月订阅费+席位扩充"
+  },
+  {
+    "transaction_id": "TXN-2130",
+    "customer_id": "CUS-2109",
+    "amount": 45000,
+    "type": "subscription",
+    "date": "2026-04-14",
+    "status": "completed",
+    "description": "4月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2131",
+    "customer_id": "CUS-2109",
+    "amount": 43000,
+    "type": "subscription",
+    "date": "2026-05-14",
+    "status": "completed",
+    "description": "5月订阅费（小幅回落）"
+  },
+  {
+    "transaction_id": "TXN-2132",
+    "customer_id": "CUS-2109",
+    "amount": 20000,
+    "type": "subscription",
+    "date": "2026-06-14",
+    "status": "failed",
+    "description": "6月订阅费（扣款失败）"
+  },
+  {
+    "transaction_id": "TXN-2133",
+    "customer_id": "CUS-2109",
+    "amount": 20000,
+    "type": "subscription",
+    "date": "2026-06-24",
+    "status": "completed",
+    "description": "6月补单（失败后补缴）"
+  },
+  {
+    "transaction_id": "TXN-2134",
+    "customer_id": "CUS-2110",
+    "amount": 37000,
+    "type": "subscription",
+    "date": "2026-04-20",
+    "status": "completed",
+    "description": "4月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2135",
+    "customer_id": "CUS-2110",
+    "amount": 37500,
+    "type": "subscription",
+    "date": "2026-05-20",
+    "status": "completed",
+    "description": "5月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2136",
+    "customer_id": "CUS-2110",
+    "amount": 39200,
+    "type": "subscription",
+    "date": "2026-06-20",
+    "status": "completed",
+    "description": "6月订阅费+能力扩展包"
+  }
+]

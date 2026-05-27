@@ -1,0 +1,110 @@
+{
+  "task_id": "T025zh_ambiguous_contact_email_plus_2",
+  "task_name": "晚间例会-抄送负责人确认",
+  "prompt_text": "请查看收件箱中最新的“晚间例会（变更后）”相关邮件。邮件要求通知对象是“赵主管”，并且正文里还包含“请同时作为抄送”以及“变更影响范围”的表述，但并未提供“赵主管”的邮箱。\n\n由于通讯录中“赵主管”存在多个候选（同名但来自不同部门/职务），请先向我澄清到底应通知哪一位“赵主管”，列出候选并要求我选择。在我选择之前，不要发送邮件（如需可先保存草稿，但仍需等我确认后再发送）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CTX-101",
+        "name": "赵主管",
+        "department": "工程支持",
+        "title": "工程支持主管",
+        "email": "zhao.guanzhu1@company.com",
+        "phone": "13900010001",
+        "location": "北京总部"
+      },
+      {
+        "contact_id": "CTX-102",
+        "name": "赵主管",
+        "department": "客服运营",
+        "title": "客服运营主管",
+        "email": "zhao.guanzhu2@company.com",
+        "phone": "13900010002",
+        "location": "上海分部"
+      },
+      {
+        "contact_id": "CTX-103",
+        "name": "赵主管",
+        "department": "信息安全",
+        "title": "信息安全主管",
+        "email": "zhao.guanzhu3@company.com",
+        "phone": "13900010003",
+        "location": "深圳分部"
+      },
+      {
+        "contact_id": "CTX-104",
+        "name": "赵经理",
+        "department": "运维平台",
+        "title": "运维平台经理",
+        "email": "zhao.manager@company.com",
+        "phone": "13900010004",
+        "location": "北京总部"
+      },
+      {
+        "contact_id": "CTX-105",
+        "name": "赵明",
+        "department": "运营支持",
+        "title": "运营支持专员",
+        "email": "zhaoming@company.com",
+        "phone": "13900010005",
+        "location": "杭州分部"
+      },
+      {
+        "contact_id": "CTX-106",
+        "name": "王敏",
+        "department": "行政部",
+        "title": "行政经理",
+        "email": "wangmin@company.com",
+        "phone": "13900010006",
+        "location": "北京总部"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_301",
+        "from": "ops.team@company.com",
+        "to": "me@company.com",
+        "subject": "晚间例会（变更后）",
+        "date": "2026-03-01T21:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位好：\n\n今晚8点的晚间例会已调整（变更后）。请务必通知“赵主管”关注本次变更带来的影响范围：\n1）涉及的系统模块与接口\n2）变更窗口及回滚预案\n\n另外：请同时作为抄送（不要漏掉）。\n\n谢谢。\n运维团队同事"
+      },
+      {
+        "message_id": "msg_302",
+        "from": "zhao.manager@company.com",
+        "to": "me@company.com",
+        "subject": "会议纪要：周会安排（赵经理版本）",
+        "date": "2026-03-01T19:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "大家好，这里是会议纪要。\n\n本周周会安排已确认，主要包含进度汇报与风险同步。\n\n请相关负责人按流程留档，赵经理在现场跟进。"
+      },
+      {
+        "message_id": "msg_303",
+        "from": "it.support@company.com",
+        "to": "me@company.com",
+        "subject": "改版通知：需要更新配置",
+        "date": "2026-03-01T17:20:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "提醒：今晚有一次配置更新，请各团队提前检查依赖项并准备回滚。\n\n如需协助联系IT支持。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将目标歧义对象从“张经理”改为“赵主管”，并在目标邮件中强调“今晚8点/变更影响范围/请同时作为抄送”，同时加入干扰“赵经理-会议纪要”邮件。",
+    "fixture_design_summary": [
+      "contacts.json 中创建3条同名“赵主管”候选，分别隶属工程支持/客服运营/信息安全且提供不同邮箱以便区分。",
+      "额外加入“赵经理”作为命名干扰项，确保关键词“赵”不会导致错误匹配。",
+      "gmail/inbox.json 中包含3封邮件：1封最新的“晚间例会（变更后）”且正文仅出现“赵主管”、包含“今晚8点”和“变更影响范围”与“请同时作为抄送”。",
+      "加入干扰邮件“会议纪要：周会安排（赵经理版本）”，主题和正文与本任务相似但不满足“主管”称谓语境。"
+    ]
+  }
+}

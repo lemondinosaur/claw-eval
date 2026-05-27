@@ -1,0 +1,119 @@
+[
+  {
+    "task_id": "TODO-611",
+    "title": "审计证据清单整理与自查",
+    "description": "整理审计证据清单并完成自查，输出整改差距摘要",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-06-20",
+    "assignee": "陈岚",
+    "tags": [
+      "治理与合规",
+      "审计"
+    ]
+  },
+  {
+    "task_id": "TODO-612",
+    "title": "整改计划甘特图同步",
+    "description": "更新整改计划甘特图并同步负责人，确保里程碑可追踪",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-06-22",
+    "assignee": "周远",
+    "tags": [
+      "治理与合规",
+      "审计"
+    ]
+  },
+  {
+    "task_id": "TODO-613",
+    "title": "数据访问权限抽样核验报告",
+    "description": "完成数据访问权限抽样核验报告并形成证据包",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-06-24",
+    "assignee": "刘敏",
+    "tags": [
+      "治理与合规",
+      "数据治理"
+    ]
+  },
+  {
+    "task_id": "TODO-614",
+    "title": "数据分类分级策略说明书",
+    "description": "完成数据分类分级策略说明书并提交评审",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-06-21",
+    "assignee": "韩雪",
+    "tags": [
+      "治理与合规",
+      "隐私"
+    ]
+  },
+  {
+    "task_id": "TODO-615",
+    "title": "ROPA差距梳理与修订建议",
+    "description": "梳理新业务处理记录差距并给出修订建议，形成修订要点",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-06-23",
+    "assignee": "刘敏",
+    "tags": [
+      "治理与合规",
+      "隐私"
+    ]
+  },
+  {
+    "task_id": "TODO-616",
+    "title": "反欺诈策略变更影响评估表",
+    "description": "输出反欺诈策略变更影响评估表并附合规口径说明",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-06-22",
+    "assignee": "王涛",
+    "tags": [
+      "治理与合规",
+      "风控"
+    ]
+  },
+  {
+    "task_id": "TODO-617",
+    "title": "反欺诈误报率复盘与处置闭环",
+    "description": "复盘近30天误报率与处置闭环，输出改进建议",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-06-24",
+    "assignee": "韩雪",
+    "tags": [
+      "治理与合规",
+      "风控"
+    ]
+  },
+  {
+    "task_id": "TODO-618",
+    "title": "合规口径文档更新与发布",
+    "description": "更新合规口径文档并发布到知识库，包含变更记录",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-06-25",
+    "assignee": "刘敏",
+    "tags": [
+      "治理与合规",
+      "合规"
+    ]
+  },
+  {
+    "task_id": "TODO-619",
+    "title": "重点渠道风控阈值校验",
+    "description": "对重点渠道进行风控阈值校验，形成校验结果表",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-06-26",
+    "assignee": "周远",
+    "tags": [
+      "治理与合规",
+      "风控"
+    ]
+  }
+]

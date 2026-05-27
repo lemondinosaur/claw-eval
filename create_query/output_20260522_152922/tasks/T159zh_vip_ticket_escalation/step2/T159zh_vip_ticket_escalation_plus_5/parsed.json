@@ -1,0 +1,352 @@
+{
+  "task_id": "T159zh_vip_ticket_escalation_plus_5",
+  "task_name": "VIP多工单合并升级与并行草稿",
+  "prompt_text": "有同一VIP客户提交了多张紧急工单（同一customer_id下包含critical与其他紧急告警）。请完成升级与邮件草稿生成流程：\n\n1）使用helpdesk_list_tickets找出该VIP客户的所有open紧急工单，并列出清单；在其中识别最需要优先升级的一张critical工单。\n2）对最critical工单使用helpdesk_get_ticket获取关键详情，提取影响点与严重性（例如：搜索服务错误率升高/搜索不可用、影响运营活动等）。\n3）使用crm_get_customer确认该VIP客户SLA（重点引用其中的“1小时响应/4小时解决”等承诺到邮件中）。\n4）读取该VIP客户来信：使用gmail_list_messages+gmail_get_message定位到来自该VIP客户业务负责人的那封邮件，并提取其明确要求（优先修复路径、预计窗口、并行处理其他紧急问题的同步说明）。\n5）使用kb_search（以“搜索错误率/错误率升高/服务降级/应急回滚/降级”等关键词）找到最匹配的KB文章，再用kb_get_article获取全文并用于应急要点摘要。\n6）使用contacts_search定位搜索/后端技术负责人、以及升级接收人与客户对接人，然后据此完成升级分配信息。\n7）保存两封邮件草稿（仅保存不发送）：\n   - 客户确认回复草稿：明确说明已识别到同客户的其他紧急工单并正并行推进，但本封邮件聚焦最紧急那张critical工单；给出优先修复路径与预计恢复窗口；引用VIP SLA节点。\n   - 内部升级通知草稿：说明critical工单严重性、分配执行人/升级接收点；总结KB应急要点；简述并行其他紧急工单的状态与SLA节点。\n\n最终：不得关闭工单、不得发送邮件；只保存两封草稿。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-1601",
+        "name": "陈屹",
+        "department": "技术部",
+        "title": "搜索平台负责人",
+        "email": "chenyi.search@company.com",
+        "phone": "13900210001",
+        "location": "深圳分部",
+        "specialization": "搜索与检索平台",
+        "notes": "负责搜索服务（核心索引、检索链路、错误率/降级策略）应急处置与技术升级分配"
+      },
+      {
+        "contact_id": "CT-1602",
+        "name": "蒋岚",
+        "department": "技术部",
+        "title": "后端可靠性工程负责人",
+        "email": "jianglan.sre@company.com",
+        "phone": "13900210002",
+        "location": "上海总部",
+        "specialization": "SRE与故障响应",
+        "notes": "负责后端链路降级/回滚、观测指标与应急联动；作为内部升级接收点之一"
+      },
+      {
+        "contact_id": "CT-1603",
+        "name": "郑致远",
+        "department": "技术部",
+        "title": "技术总监",
+        "email": "zhengzy.tech@company.com",
+        "phone": "13900210003",
+        "location": "上海总部",
+        "specialization": "技术管理与升级接收",
+        "notes": "所有P0/P1事故升级的最终接收人，负责跨部门技术协调与资源调度"
+      },
+      {
+        "contact_id": "CT-1604",
+        "name": "周沫",
+        "department": "客户成功部",
+        "title": "VIP客户对接经理",
+        "email": "zhoumo.vipsuccess@company.com",
+        "phone": "13900210004",
+        "location": "北京分部",
+        "specialization": "VIP客户管理与升级沟通",
+        "notes": "负责VIP客户沟通窗口、对接客户业务负责人并同步升级进展"
+      },
+      {
+        "contact_id": "CT-1605",
+        "name": "姚诗韵",
+        "department": "技术部",
+        "title": "日志与观测工程师",
+        "email": "yaoshiyun.obs@company.com",
+        "phone": "13900210005",
+        "location": "杭州分部",
+        "specialization": "日志采集与观测",
+        "notes": "负责日志采集延迟与观测链路问题定位；与并行工单协同"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-1601",
+        "name": "星岚零售集团",
+        "contact_person": "顾总裁",
+        "email": "gu@xinglan-retail.com",
+        "phone": "13900220001",
+        "industry": "零售",
+        "tier": "vip",
+        "annual_revenue": 2100000,
+        "sla": "1小时响应，4小时解决",
+        "last_contact_date": "2026-03-26",
+        "status": "active",
+        "contract_end_date": "2027-08-15",
+        "notes": "VIP客户，搜索服务稳定性直接影响全站推荐与促销活动；要求快速响应并在窗口内给出预计恢复时间"
+      },
+      {
+        "customer_id": "CUS-1602",
+        "name": "北斗云计算",
+        "contact_person": "许经理",
+        "email": "xu@beidou-cloud.com",
+        "phone": "13900220002",
+        "industry": "云计算",
+        "tier": "standard",
+        "annual_revenue": 420000,
+        "sla": "4小时响应，24小时解决",
+        "last_contact_date": "2026-03-22",
+        "status": "active",
+        "contract_end_date": "2026-12-01",
+        "notes": "标准客户，偶发性能问题"
+      },
+      {
+        "customer_id": "CUS-1603",
+        "name": "海鸥物流配车",
+        "contact_person": "周主管",
+        "email": "zhou@seagull-shipping.com",
+        "phone": "13900220003",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 510000,
+        "sla": "4小时响应，24小时解决",
+        "last_contact_date": "2026-03-18",
+        "status": "active",
+        "contract_end_date": "2026-10-30",
+        "notes": "标准客户，关注接口稳定性"
+      },
+      {
+        "customer_id": "CUS-1604",
+        "name": "晨光教育科技",
+        "contact_person": "沈总监",
+        "email": "shen@chengluxedu.com",
+        "phone": "13900220004",
+        "industry": "教育科技",
+        "tier": "standard",
+        "annual_revenue": 300000,
+        "sla": "24小时响应，72小时解决",
+        "last_contact_date": "2026-03-16",
+        "status": "active",
+        "contract_end_date": "2026-11-20",
+        "notes": "标准客户，内容平台使用较多"
+      },
+      {
+        "customer_id": "CUS-1605",
+        "name": "融桥金融服务",
+        "contact_person": "王副总",
+        "email": "wang@rongqiao-fin.com",
+        "phone": "13900220005",
+        "industry": "金融",
+        "tier": "standard",
+        "annual_revenue": 680000,
+        "sla": "4小时响应，24小时解决",
+        "last_contact_date": "2026-03-20",
+        "status": "active",
+        "contract_end_date": "2026-12-15",
+        "notes": "标准客户，偶发后台任务延迟"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_1601",
+        "from": "gu@xinglan-retail.com",
+        "to": "support@company.com",
+        "subject": "紧急：搜索服务错误率升高影响多场促销，请1小时内给优先修复路径与窗口，并同步并行处理",
+        "date": "2026-03-26T11:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "各位支持团队好，我是星岚零售集团的顾总裁。\n\n我们发现搜索/推荐相关服务自今天上午10:40左右开始出现异常：返回错误率显著升高，导致站内搜索不可用，进而影响至少三场线上运营活动（如“闪购专场”“门店到家推荐”“新客首单”活动）。\n\n请你们立刻启动VIP紧急响应：\n1）在1小时内给出本次问题的优先修复路径与预计恢复窗口；\n2）我们同一时间还有其他紧急告警也在故障排查中（例如日志采集延迟等），希望你们在沟通里明确“已并行处理其他问题，但本封邮件聚焦最严重的critical搜索异常”。\n3）请说明你们会按我们的SLA节点执行（1小时响应、4小时解决）。\n\n谢谢。\n顾总裁\n电话：13900220001"
+      },
+      {
+        "message_id": "msg_1602",
+        "from": "ops-bot@company.com",
+        "to": "all-staff@company.com",
+        "subject": "告警汇总：任务队列积压（非VIP）",
+        "date": "2026-03-26T09:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "本轮告警汇总：\n- 任务队列积压（与VIP无关）\n- 处理建议：观察2小时后评估是否需要扩容\n"
+      },
+      {
+        "message_id": "msg_1603",
+        "from": "security@company.com",
+        "to": "security-team@company.com",
+        "subject": "例行扫描结果：未发现高危",
+        "date": "2026-03-26T08:55:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "例行漏洞扫描完成，未发现高危漏洞；低危问题已纳入修复计划。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-1601",
+        "title": "搜索服务错误率升高导致检索不可用（影响促销活动）",
+        "description": "星岚零售集团（CUS-1601）反馈：今天10:40开始搜索与推荐链路返回异常，错误率快速上升，用户端表现为搜索不可用。影响至少三场运营促销活动（闪购专场/门店到家推荐/新客首单）。客户要求按VIP SLA进行紧急响应，并在1小时内给出修复路径与预计恢复窗口。该告警被标记为critical，需要优先处置搜索服务应急方案。",
+        "customer_id": "CUS-1601",
+        "reporter": "顾总裁",
+        "department": "客户支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-26T10:58:00Z",
+        "tags": [
+          "VIP",
+          "搜索服务",
+          "错误率升高",
+          "促销影响",
+          "紧急"
+        ],
+        "category": "搜索故障"
+      },
+      {
+        "ticket_id": "TK-1602",
+        "title": "日志采集延迟：观测指标滞后影响排障",
+        "description": "星岚零售集团（CUS-1601）并行报告：部分服务日志采集存在延迟，导致平台侧观测指标更新滞后，影响错误定位与回归验证。当前告警为high，需并行处理但本次邮件聚焦critical搜索错误率问题。",
+        "customer_id": "CUS-1601",
+        "reporter": "运维值班",
+        "department": "客户支持",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-26T10:35:00Z",
+        "tags": [
+          "日志采集",
+          "延迟",
+          "观测"
+        ],
+        "category": "观测与日志"
+      },
+      {
+        "ticket_id": "TK-1603",
+        "title": "推荐服务响应变慢（资源争用）",
+        "description": "星岚零售集团（CUS-1601）反馈：除搜索错误外，推荐服务在部分时段响应变慢，疑似与资源争用有关。当前优先级为medium，已同步排查并与critical搜索并行推进。",
+        "customer_id": "CUS-1601",
+        "reporter": "产品经理",
+        "department": "客户支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-26T10:25:00Z",
+        "tags": [
+          "推荐服务",
+          "性能",
+          "资源争用"
+        ],
+        "category": "性能问题"
+      },
+      {
+        "ticket_id": "TK-1604",
+        "title": "北斗云：报表接口偶发超时",
+        "description": "北斗云计算（CUS-1602）报告：报表接口在高峰时段偶发超时，非VIP紧急。",
+        "customer_id": "CUS-1602",
+        "reporter": "许经理",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-26T09:20:00Z",
+        "tags": [
+          "报表",
+          "超时"
+        ],
+        "category": "性能问题"
+      },
+      {
+        "ticket_id": "TK-1605",
+        "title": "海鸥物流：订单同步重试失败",
+        "description": "海鸥物流配车（CUS-1603）反馈：订单同步在部分批次重试失败，当前为low优先级。",
+        "customer_id": "CUS-1603",
+        "reporter": "周主管",
+        "department": "技术支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-26T12:10:00Z",
+        "tags": [
+          "同步",
+          "重试"
+        ],
+        "category": "集成问题"
+      },
+      {
+        "ticket_id": "TK-1606",
+        "title": "晨光教育：内容发布后延迟",
+        "description": "晨光教育科技（CUS-1604）报告：内容发布后在前台展示有短暂延迟，当前为low。",
+        "customer_id": "CUS-1604",
+        "reporter": "沈总监",
+        "department": "产品支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-26T13:05:00Z",
+        "tags": [
+          "内容发布",
+          "延迟"
+        ],
+        "category": "功能问题"
+      },
+      {
+        "ticket_id": "TK-1607",
+        "title": "融桥金融：后台任务执行慢",
+        "description": "融桥金融服务（CUS-1605）反馈：后台任务执行较慢，非关键路径，当前为medium。",
+        "customer_id": "CUS-1605",
+        "reporter": "王副总",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-26T11:35:00Z",
+        "tags": [
+          "后台任务",
+          "性能"
+        ],
+        "category": "性能问题"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-1601",
+        "title": "搜索服务错误率升高应急处置：回滚/降级与恢复验证",
+        "category": "技术应急",
+        "tags": [
+          "搜索服务",
+          "错误率升高",
+          "服务降级",
+          "应急回滚",
+          "检索不可用"
+        ],
+        "content": "## 搜索服务错误率升高应急处置（VIP适用）\n\n### 可能原因（优先假设）\n- 索引/检索链路依赖组件发生异常，导致响应错误率快速上升\n- 最近一次发布引入的兼容性问题或查询策略变化\n- 降级开关未生效，错误未被快速熔断\n\n### 立即动作（前30分钟）\n1. **启用服务降级**：将搜索请求路由到降级模式（返回更保守结果或缓存结果），降低错误放大。\n2. **执行应急回滚**：若确认与最近发布相关，按发布回滚流程将相关版本回退到上一个稳定版本。\n3. **验证指标**：观测搜索错误率、超时率与查询成功率；同时检查熔断/限流开关状态。\n\n### 预计恢复路径（1小时目标）\n- 先完成降级稳定（错误率下降、功能可用性恢复到可控水平）\n- 再完成回滚或热修复（保证稳定检索链路）\n\n### 升级条件\n- 搜索错误率显著上升或检索不可用，影响核心业务/运营活动 → 按VIP升级并维持P0处理\n- 若在降级后仍持续高错误率 → 触发更高级别升级与跨团队联动\n\n### 后续恢复验证（4小时内）\n- 对比关键查询集的结果正确性与延迟\n- 复盘发布差异，形成后续修复计划与回归验证用例",
+        "last_updated": "2026-03-20",
+        "views": 2410
+      },
+      {
+        "article_id": "KB-1602",
+        "title": "数据库连接池与慢查询优化（不适用于本案）",
+        "category": "技术文档",
+        "tags": [
+          "数据库",
+          "连接池",
+          "慢查询"
+        ],
+        "content": "## 数据库连接池与慢查询优化\n\n### 常见原因\n- 连接池耗尽\n- 慢查询导致占用连接\n\n### 建议\n- 优先做慢查询分析\n- 调整连接池参数\n",
+        "last_updated": "2026-03-01",
+        "views": 990
+      },
+      {
+        "article_id": "KB-1603",
+        "title": "权限异常排查（不适用于本案）",
+        "category": "使用指南",
+        "tags": [
+          "权限",
+          "授权",
+          "角色"
+        ],
+        "content": "## 权限异常排查\n\n### 常见原因\n- 角色未正确分配\n- 权限缓存未刷新\n\n### 建议\n- 校验用户-角色映射\n- 刷新权限缓存\n",
+        "last_updated": "2026-02-18",
+        "views": 430
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题要求先识别同一VIP客户的多张紧急工单并在客户邮件中强调并行处理，随后仅为最critical的搜索错误率工单完成KB匹配与两封邮件草稿起草。",
+    "fixture_design_summary": [
+      "helpdesk/tickets.json中同一VIP客户CUS-1601包含1条critical（搜索错误率升高）+1条high（日志采集延迟）+1条medium（推荐变慢）并附带多条其他客户干扰工单。",
+      "gmail/inbox.json加入来自CUS-1601业务负责人的新邮件msg_1601，明确要求1小时内给优先修复路径/预计窗口，并同步说明“并行处理其他问题但聚焦critical”。",
+      "crm/customers.json新增CUS-1601（tier vip）并给出SLA为“1小时响应，4小时解决”，供邮件草稿引用。",
+      "kb/articles.json新增搜索服务错误率升高应急处置KB-1601，内容包含降级/回滚/验证与升级条件，避免与数据库/API超时类干扰文章混淆。",
+      "contacts/contacts.json提供搜索负责人、后端可靠性升级接收点、技术总监与客户对接经理，保证跨模块定位一致。"
+    ]
+  }
+}

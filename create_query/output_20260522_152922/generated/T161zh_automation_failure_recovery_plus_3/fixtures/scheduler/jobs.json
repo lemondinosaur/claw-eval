@@ -1,0 +1,168 @@
+[
+  {
+    "job_id": "JOB-MT-3001",
+    "name": "租户供应数据获取",
+    "cron_expression": "0 */3 * * *",
+    "action": "fetch_tenant_supply_snapshot",
+    "enabled": true,
+    "last_run": "2026-05-22T08:00:00Z",
+    "next_run": "2026-05-22T09:00:00Z",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": [
+      "tenant",
+      "supplier",
+      "snapshot"
+    ],
+    "created_at": "2025-08-11T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T08:00:00Z",
+        "status": "success",
+        "duration_s": 38
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-MT-3002",
+    "name": "租户库存写入（隔离作用域）",
+    "cron_expression": "15 */3 * * *",
+    "action": "write_inventory_by_tenant_scope",
+    "enabled": true,
+    "last_run": "2026-05-22T08:15:00Z",
+    "next_run": "2026-05-22T09:15:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "inventory",
+      "multitenant",
+      "write",
+      "403"
+    ],
+    "created_at": "2025-08-17T00:00:00Z",
+    "depends_on": [
+      "JOB-MT-3001"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T08:15:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "HTTP 403: tenant scope mismatch — request tenant_id=B but execution context tenant=A；拒绝写入到租户隔离层"
+      },
+      {
+        "run_at": "2026-05-22T05:15:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "HTTP 403: tenant scope mismatch — request caller scope=tenantB-map but target scope=tenantA；写入被隔离拒绝"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-MT-3003",
+    "name": "隔离一致性校验",
+    "cron_expression": "30 */3 * * *",
+    "action": "run_isolation_consistency_check",
+    "enabled": true,
+    "last_run": "2026-05-22T08:30:00Z",
+    "next_run": "2026-05-22T09:30:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "isolation",
+      "consistency",
+      "cache"
+    ],
+    "created_at": "2025-08-19T00:00:00Z",
+    "depends_on": [
+      "JOB-MT-3002"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T08:30:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "error": "ConsistencyCheckRefused: 检测到隔离写入失败，拒绝执行并将共享缓存标记为不可用（global cache_guard=unavailable）"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-MT-3004",
+    "name": "自动补货（安全策略阻断）",
+    "cron_expression": "*/20 * * * *",
+    "action": "run_auto_restock_with_cache_guard",
+    "enabled": true,
+    "last_run": "2026-05-22T08:40:00Z",
+    "next_run": "2026-05-22T09:00:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "restock",
+      "safety",
+      "cache-guard"
+    ],
+    "created_at": "2025-09-03T00:00:00Z",
+    "depends_on": [
+      "JOB-MT-3003"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T08:40:00Z",
+        "status": "failed",
+        "duration_s": 1,
+        "error": "SafetyPolicyBlocked: 共享缓存不可用（cache_guard=unavailable），为了跨租户数据一致性保护，自动补货停止（非库存过期原因）"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-MT-3005",
+    "name": "租户库存可用性汇总（只读）",
+    "cron_expression": "10 */1 * * *",
+    "action": "summarize_inventory_availability",
+    "enabled": true,
+    "last_run": "2026-05-22T08:10:00Z",
+    "next_run": "2026-05-22T09:10:00Z",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": [
+      "inventory",
+      "reporting"
+    ],
+    "created_at": "2025-09-05T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T08:10:00Z",
+        "status": "success",
+        "duration_s": 6
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-MT-3006",
+    "name": "通用健康检查（无关失败）",
+    "cron_expression": "*/7 * * * *",
+    "action": "run_health_aggregator",
+    "enabled": true,
+    "last_run": "2026-05-22T08:41:00Z",
+    "next_run": "2026-05-22T08:48:00Z",
+    "last_status": "failed",
+    "created_by": "admin",
+    "tags": [
+      "health",
+      "logs",
+      "aggregation"
+    ],
+    "created_at": "2025-09-09T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T08:41:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "TimeoutError: 健康检查聚合上报超时（与隔离一致性校验链路无依赖关系）"
+      }
+    ]
+  }
+]

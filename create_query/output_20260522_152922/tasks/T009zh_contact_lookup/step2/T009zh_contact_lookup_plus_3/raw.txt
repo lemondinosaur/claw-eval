@@ -1,0 +1,135 @@
+{
+  "task_id": "T009zh_contact_lookup_plus_3",
+  "task_name": "Multiple Matches, Single Best Answer",
+  "prompt_text": "帮我查一下“孙凯”在研发中心的联系人。对方负责数据平台那条线。请给我他的邮箱和座机号码，并说明你为什么选择这一位（用标题/备注中的“数据平台/数据中台”线索消歧），同时简要说明另外一位同名研发中心候选为什么不符合。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "c_101",
+        "name": "孙凯",
+        "department": "研发中心",
+        "title": "数据平台负责人（数据中台）",
+        "email": "sun.kai.data.platform@company.com",
+        "phone": "010-8899-2101",
+        "location": "北京总部 C座 9楼",
+        "notes": "负责数据中台/数据平台建设与治理（ETL、元数据、数据质量）。"
+      },
+      {
+        "contact_id": "c_102",
+        "name": "孙凯",
+        "department": "研发中心",
+        "title": "客户端研发工程师（移动端）",
+        "email": "sun.kai.mobile.client@company.com",
+        "phone": "010-8899-2102",
+        "location": "北京总部 C座 9楼",
+        "notes": "主要负责移动端客户端与性能优化，不对数据平台线口径负责。"
+      },
+      {
+        "contact_id": "c_103",
+        "name": "孙凯",
+        "department": "咨询服务",
+        "title": "客户顾问",
+        "email": "sun.kai.consulting@company.com",
+        "phone": "021-6677-3103",
+        "location": "上海分部 D座 4楼",
+        "notes": "与研发无直接数据平台职能，偏交付支持。"
+      },
+      {
+        "contact_id": "c_104",
+        "name": "孙凯",
+        "department": "研发",
+        "title": "数据管道工程师",
+        "email": "sun.kai.pipeline@company.com",
+        "phone": "010-8899-2104",
+        "location": "北京总部 C座 7楼",
+        "notes": "数据管道运维与调度，部分涉及数据平台组件。"
+      },
+      {
+        "contact_id": "c_105",
+        "name": "周敏",
+        "department": "研发中心",
+        "title": "平台运维经理",
+        "email": "zhou.min.ops@company.com",
+        "phone": "010-8899-3105",
+        "location": "北京总部 C座 6楼",
+        "notes": "负责基础平台稳定性与运维保障。"
+      },
+      {
+        "contact_id": "c_106",
+        "name": "陈浩",
+        "department": "产品部",
+        "title": "数据产品经理",
+        "email": "chen.hao.product@company.com",
+        "phone": "010-8899-4106",
+        "location": "北京总部 E座 3楼"
+      },
+      {
+        "contact_id": "c_107",
+        "name": "刘宁",
+        "department": "研发中心",
+        "title": "后端研发工程师",
+        "email": "liu.ning.backend@company.com",
+        "phone": "010-8899-5107",
+        "location": "北京总部 C座 8楼",
+        "notes": "负责业务后端服务，不属于数据平台线。"
+      },
+      {
+        "contact_id": "c_108",
+        "name": "赵敏",
+        "department": "市场部",
+        "title": "解决方案专家",
+        "email": "zhao.min.solutions@company.com",
+        "phone": "010-8899-6108",
+        "location": "北京总部 F座 2楼"
+      },
+      {
+        "contact_id": "c_109",
+        "name": "王超",
+        "department": "研发中心",
+        "title": "测试负责人",
+        "email": "wang.chao.qa@company.com",
+        "phone": "010-8899-7109",
+        "location": "北京总部 C座 5楼"
+      },
+      {
+        "contact_id": "c_110",
+        "name": "郑琳",
+        "department": "研发",
+        "title": "移动端研发负责人",
+        "email": "zheng.lin.mobile@company.com",
+        "phone": "010-8899-8110",
+        "location": "北京总部 C座 10楼",
+        "notes": "主要负责移动端研发与交付。"
+      },
+      {
+        "contact_id": "c_111",
+        "name": "孙凯",
+        "department": "研发中心",
+        "title": "数据分析师（报表）",
+        "email": "sun.kai.reporting@company.com",
+        "phone": "010-8899-2111",
+        "location": "北京总部 C座 9楼",
+        "notes": "偏报表分析，不是数据平台建设负责人。"
+      },
+      {
+        "contact_id": "c_112",
+        "name": "孙凯",
+        "department": "运营中心",
+        "title": "数据运营专员",
+        "email": "sun.kai.data.ops@company.com",
+        "phone": "010-8899-3112",
+        "location": "北京总部 G座 2楼",
+        "notes": "运营数据看板维护，不负责数据中台平台线。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在“研发中心”下存在多名同名孙凯时，利用“数据平台/数据中台”标题/备注作为主消歧线索，选择最相关的那位并输出其邮箱与座机号。",
+    "fixture_design_summary": [
+      "contacts.json 共 12 条记录，包含至少 4 条 name='孙凯'：其中 c_101 与 c_102 在研发中心（制造歧义）；其余 c_103/c_111/c_112 在非“数据平台”相关线作为干扰。",
+      "c_101 的 title/notes 明确包含“数据中台/数据平台”，用于成为最终最佳答案。",
+      "c_102 的 title 为“客户端研发/移动端”，用于作为同部门同名但被排除项，便于在回复中解释消歧。",
+      "干扰项中包含“咨询服务/运营中心”等部门，避免直接匹配“研发中心+数据平台”组合。"
+    ]
+  }
+}

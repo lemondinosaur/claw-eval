@@ -1,0 +1,453 @@
+{
+  "task_id": "T041zh_scheduled_task_management_plus_5",
+  "task_name": "安全审计：误配置与合规修订",
+  "prompt_text": "请对系统所有定时任务进行合规与安全审计：\n1) 列出全部任务，定位风险任务：enabled=false 且可能属于“合规扫描误判”的任务、cron 频率疑似超规范的任务、缺少必要 tags（如 [owner:*] / [sensitivity:*]）导致无法追踪风险等级的任务。\n2) 按知识库执行修正：对可自动修复的任务调整 cron_expression、补齐 tags，并在合规前提下启用/停用；对涉及权限/敏感操作（如“对外发送数据/敏感导出/导出脱敏前数据”等）且知识库要求需要人工确认的变更，不要直接直接执行完整修复或跳过审批，而应触发邮件通知。\n3) 邮件通知收件人使用 gmail_send_message，正文需包含：任务名称、拟变更点、合规风险说明、待审批事项。\n4) 最后输出一份健康报告：按“合规通过/需修复/需审批”分组给出风险等级与建议动作清单，并明确依据来自知识库的哪些规则。\n",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_3147",
+        "from": "compliance_auditor@vendor-qa.com",
+        "to": "me@company.com",
+        "subject": "合规复核提示：近期定时调度存在不一致（含干扰条目）",
+        "date": "2026-04-18T09:15:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，\n\n我们在最近一次发布后做了合规复核。初步疑似存在以下调度合规风险：\n- 任务 log_cleanup 被错误禁用，原因标记为“合规扫描误判”，建议尽快复核并按规范处理。\n- 任务 high_freq_audit 的 cron 频率过高，疑似超过合规阈值。\n\n注意：下面这条指认很可能与事实不符，仅供审计排查干扰：\n- 我们声称任务 weekly_report 的 enabled=false，但该说法在当前证据中不一致。\n\n请你们基于知识库《定时任务合规规范》完成核查与修订；如涉及敏感导出变更需走人工确认流程。\n\n谢谢。\n合规审计员\ncompliance_auditor@vendor-qa.com"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-701",
+        "title": "定时任务合规规范（频率/标签/追踪）",
+        "category": "运维合规",
+        "tags": [
+          "定时任务",
+          "cron",
+          "频率上限",
+          "tags",
+          "owner",
+          "sensitivity"
+        ],
+        "content": "# 定时任务合规规范（频率/标签/追踪）\n\n## 1) Cron 频率上限\n- 日常级（常规检查/健康探测/轻量同步）：最小间隔不得小于 5 分钟。\n- 安全审计/合规扫描：最小间隔不得小于 10 分钟。\n- 任何“导出/对外发送数据/敏感处理”相关任务：默认最小间隔不得小于 30 分钟，且必须人工确认变更。\n\n## 2) 标签要求（可追踪性）\n所有定时任务必须至少包含：\n- owner 标签：tags 中必须存在形如 `owner:<负责人>` 的键值。\n- sensitivity 标签：tags 中必须存在形如 `sensitivity:<等级>` 的键值（例如 sensitivity:low/medium/high）。\n缺失 owner 或 sensitivity 的任务，视为“风险不可分级”，必须补齐后才能完成修复/启用。\n\n## 3) 禁用任务的误判处理\n- 当 last_disable_reason 包含“合规扫描误判/误判”字样时，优先按“误操作禁用恢复流程”重新启用前先核对 cron 与标签。\n- 若同时满足 cron 在合规范围、且 tags 追踪完整，则允许 enabled 置回 true 并补齐审计标签。\n\n## 4) 健康审计输出要求\n健康报告中每项风险必须说明对应条款：频率上限、标签要求或误判禁用规则。\n",
+        "last_updated": "2026-03-20",
+        "views": 311
+      },
+      {
+        "article_id": "KB-702",
+        "title": "误判禁用重新启用流程（含最小化变更）",
+        "category": "合规流程",
+        "tags": [
+          "误判",
+          "enabled",
+          "重新启用",
+          "最小化变更"
+        ],
+        "content": "# 误判禁用重新启用流程（含最小化变更）\n\n## 适用条件\n- last_disable_reason 包含“合规扫描误判”或“合规扫描误报”。\n\n## 执行原则\n1. 重新启用前必须核对两项：\n   - cron_expression 是否满足 KB-701 的频率上限\n   - tags 是否包含 owner 与 sensitivity\n2. 若仅存在启用状态误判：采用最小化变更——\n   - 优先 enabled=true\n   - 若 tags 缺失则补齐 tags（不改 action，除非知识库明确要求）\n3. 若 cron 超规范：必须先降频再启用。\n\n## 不要做\n- 不要直接删除任务。\n- 不要在敏感操作任务上跳过人工确认。\n",
+        "last_updated": "2026-04-02",
+        "views": 144
+      },
+      {
+        "article_id": "KB-703",
+        "title": "敏感操作变更审批准则与通知要点",
+        "category": "安全审批",
+        "tags": [
+          "敏感导出",
+          "对外发送",
+          "人工确认",
+          "通知"
+        ],
+        "content": "# 敏感操作变更审批准则与通知要点\n\n## 1) 判定敏感操作\naction 文本中出现以下关键词任一，即视为敏感操作：\n- 对外发送数据\n- 敏感导出\n- 脱敏前数据导出\n- 外部渠道投递\n\n## 2) 变更审批规则\n- 涉及敏感操作的任务：当需要变更（包括调 cron 或 enabled 或修改包含敏感指令的 action）时，必须人工确认。\n- 自动化只能做：\n  - 若任务目前 enabled=true 且仅缺 tags：可补齐 tags\n  - 若需启用/降频/调整会影响敏感导出行为：不得直接完成，需要邮件触发审批。\n\n## 3) 通知要点（邮件内容必须包含）\n通知邮件必须包含：\n- 任务名称与 job_id\n- 拟变更点（例如：enabled、cron、tags）\n- 合规风险条款引用（频率上限/标签要求/敏感审批）\n- 待审批事项与审批人建议邮箱（以运维/安全负责人为准）\n",
+        "last_updated": "2026-04-10",
+        "views": 98
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-201",
+        "name": "ops_backup_nightly",
+        "cron_expression": "0 1 * * *",
+        "action": "执行每日夜间备份并落盘到 /mnt/backup/ops/",
+        "enabled": true,
+        "last_run": "2026-04-17T01:00:00+08:00",
+        "next_run": "2026-04-18T01:00:00+08:00",
+        "last_status": "success",
+        "created_by": "ops_admin",
+        "tags": [
+          "owner:ops-admin",
+          "sensitivity:low",
+          "backup",
+          "storage"
+        ],
+        "created_at": "2026-01-09T10:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-17T01:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 401
+          },
+          {
+            "run_time": "2026-04-16T01:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 389
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-202",
+        "name": "high_freq_external_audit",
+        "cron_expression": "*/10 * * * *",
+        "action": "执行对外合规审计快照生成，并将结果发送至外部合规系统（可能包含敏感字段）",
+        "enabled": true,
+        "last_run": "2026-04-18T08:50:00+08:00",
+        "next_run": "2026-04-18T09:00:00+08:00",
+        "last_status": "success",
+        "created_by": "security_ops",
+        "tags": [
+          "owner:secops",
+          "sensitivity:high",
+          "audit",
+          "external"
+        ],
+        "created_at": "2026-02-03T09:40:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-18T08:50:00+08:00",
+            "status": "success",
+            "duration_seconds": 73
+          },
+          {
+            "run_time": "2026-04-18T08:40:00+08:00",
+            "status": "success",
+            "duration_seconds": 79
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-203",
+        "name": "sync_orders_to_warehouse",
+        "cron_expression": "*/5 * * * *",
+        "action": "将订单增量同步到仓储库（warehouse）",
+        "enabled": true,
+        "last_run": "2026-04-18T09:10:00+08:00",
+        "next_run": "2026-04-18T09:15:00+08:00",
+        "last_status": "success",
+        "created_by": "data_team",
+        "tags": [
+          "owner:data-team",
+          "sensitivity:medium",
+          "sync",
+          "orders"
+        ],
+        "created_at": "2026-01-22T11:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-18T09:10:00+08:00",
+            "status": "success",
+            "duration_seconds": 132
+          },
+          {
+            "run_time": "2026-04-18T09:05:00+08:00",
+            "status": "success",
+            "duration_seconds": 118
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-204",
+        "name": "log_cleanup_reports",
+        "cron_expression": "0 2 * * *",
+        "action": "清理超过 45 天的历史日志，释放磁盘空间",
+        "enabled": false,
+        "last_run": "2026-04-16T02:00:00+08:00",
+        "next_run": null,
+        "last_status": "success",
+        "error": "",
+        "created_by": "ops_admin",
+        "last_disable_reason": "合规扫描误判：误认为维护窗口冲突",
+        "tags": [
+          "maintenance",
+          "logs"
+        ],
+        "created_at": "2026-01-12T10:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-16T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 95
+          },
+          {
+            "run_time": "2026-04-15T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 90
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-205",
+        "name": "customer_segment_export",
+        "cron_expression": "*/20 * * * *",
+        "action": "将客户分群数据进行敏感导出（脱敏前字段），并对外发送到第三方数据渠道",
+        "enabled": true,
+        "last_run": "2026-04-18T09:00:00+08:00",
+        "next_run": "2026-04-18T09:20:00+08:00",
+        "last_status": "failed",
+        "error": "合规拦截：敏感导出链路需要审批凭证",
+        "created_by": "marketing_data",
+        "tags": [
+          "owner:marketing-data",
+          "sensitivity:high",
+          "export"
+        ],
+        "created_at": "2026-03-01T09:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-18T09:00:00+08:00",
+            "status": "failed",
+            "error": "合规拦截：敏感导出链路需要审批凭证",
+            "duration_seconds": 21
+          },
+          {
+            "run_time": "2026-04-18T08:40:00+08:00",
+            "status": "success",
+            "duration_seconds": 147
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-206",
+        "name": "weekly_finance_digest",
+        "cron_expression": "0 8 * * 1",
+        "action": "生成每周财务摘要并发送到内部邮箱列表",
+        "enabled": true,
+        "last_run": "2026-04-13T08:00:00+08:00",
+        "next_run": "2026-04-20T08:00:00+08:00",
+        "last_status": "success",
+        "created_by": "finance_team",
+        "tags": [
+          "owner:finance-team",
+          "sensitivity:medium",
+          "report",
+          "finance"
+        ],
+        "created_at": "2025-12-11T10:30:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-13T08:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 56
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-207",
+        "name": "security_patch_check",
+        "cron_expression": "*/1 * * * *",
+        "action": "检查镜像与补丁状态（安全健康探测），并拉取变更差异",
+        "enabled": true,
+        "last_run": "2026-04-18T09:20:00+08:00",
+        "next_run": "2026-04-18T09:21:00+08:00",
+        "last_status": "success",
+        "created_by": "security_ops",
+        "tags": [
+          "sensitivity:medium",
+          "patch",
+          "security"
+        ],
+        "created_at": "2026-03-12T15:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-18T09:20:00+08:00",
+            "status": "success",
+            "duration_seconds": 14
+          },
+          {
+            "run_time": "2026-04-18T09:19:00+08:00",
+            "status": "success",
+            "duration_seconds": 13
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-208",
+        "name": "alert_escalation_rules",
+        "cron_expression": "0 */2 * * *",
+        "action": "对告警进行升级处理（按规则聚合并触达负责人）",
+        "enabled": true,
+        "last_run": "2026-04-18T08:00:00+08:00",
+        "next_run": "2026-04-18T10:00:00+08:00",
+        "last_status": "success",
+        "created_by": "sre",
+        "tags": [
+          "owner:sre",
+          "sensitivity:low",
+          "alerting"
+        ],
+        "created_at": "2026-02-11T09:20:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-18T08:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 22
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-209",
+        "name": "tenant_quota_sync",
+        "cron_expression": "0 9 * * *",
+        "action": "同步租户配额到鉴权服务",
+        "enabled": true,
+        "last_run": "2026-04-18T09:00:00+08:00",
+        "next_run": "2026-04-19T09:00:00+08:00",
+        "last_status": "success",
+        "created_by": "platform_team",
+        "tags": [
+          "owner:platform-team"
+        ],
+        "created_at": "2026-03-28T13:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-18T09:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 88
+          }
+        ],
+        "missing_reason_note": "sensitivity 标签缺失（用于测试）"
+      },
+      {
+        "job_id": "JOB-210",
+        "name": "cache_invalidation_warmup",
+        "cron_expression": "*/30 * * * *",
+        "action": "刷新缓存并预热关键查询（warming）",
+        "enabled": true,
+        "last_run": "2026-04-18T09:00:00+08:00",
+        "next_run": "2026-04-18T09:30:00+08:00",
+        "last_status": "success",
+        "created_by": "app_team",
+        "tags": [
+          "owner:app-team",
+          "sensitivity:low",
+          "cache",
+          "warmup"
+        ],
+        "created_at": "2026-02-18T09:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-18T09:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 64
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-211",
+        "name": "artifact_integrity_scan",
+        "cron_expression": "*/15 * * * *",
+        "action": "对构建制品完整性扫描并将报告写入审计仓库（不对外发送）",
+        "enabled": true,
+        "last_run": "2026-04-18T08:45:00+08:00",
+        "next_run": "2026-04-18T09:00:00+08:00",
+        "last_status": "success",
+        "created_by": "secops",
+        "tags": [
+          "owner:secops",
+          "sensitivity:medium",
+          "integrity",
+          "scan"
+        ],
+        "created_at": "2026-02-25T10:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-18T08:45:00+08:00",
+            "status": "success",
+            "duration_seconds": 41
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-212",
+        "name": "hourly_metric_compaction",
+        "cron_expression": "0 * * * *",
+        "action": "对监控指标做小时级压缩归档",
+        "enabled": true,
+        "last_run": "2026-04-18T09:00:00+08:00",
+        "next_run": "2026-04-18T10:00:00+08:00",
+        "last_status": "success",
+        "created_by": "observability",
+        "tags": [
+          "owner:observability",
+          "sensitivity:low",
+          "metrics"
+        ],
+        "created_at": "2026-01-30T09:15:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-18T09:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 47
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-213",
+        "name": "staging_to_prod_rollout_checks",
+        "cron_expression": "*/2 * * * *",
+        "action": "检查灰度发布条件并推送到流水线（仅内部）",
+        "enabled": true,
+        "last_run": "2026-04-18T09:18:00+08:00",
+        "next_run": "2026-04-18T09:20:00+08:00",
+        "last_status": "success",
+        "created_by": "release_eng",
+        "tags": [
+          "owner:release-eng",
+          "sensitivity:low",
+          "release",
+          "pipeline"
+        ],
+        "created_at": "2026-03-05T12:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-18T09:18:00+08:00",
+            "status": "success",
+            "duration_seconds": 29
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-214",
+        "name": "weekly_data_funnel_export",
+        "cron_expression": "0 7 * * 5",
+        "action": "每周导出数据用于内部统计分析（不包含敏感导出）",
+        "enabled": false,
+        "last_run": "2026-04-10T07:00:00+08:00",
+        "next_run": null,
+        "last_status": "success",
+        "created_by": "analytics_ops",
+        "last_disable_reason": "维护窗口变更后未重新启用",
+        "tags": [
+          "owner:analytics-ops"
+        ],
+        "created_at": "2026-01-18T10:45:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-04-10T07:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 260
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的故障排障式健康检查替换为合规与安全审计：新增误判禁用恢复、cron 频率推断降频、tags 追踪补齐，并对敏感导出/权限变更走邮件人工确认路径。",
+    "fixture_design_summary": [
+      "scheduler/jobs.json 共 14 个任务：包含 1 个 enabled=false 且 last_disable_reason 含“合规扫描误判”的任务 log_cleanup_reports，并缺少 owner/sensitivity tags 用于触发重新启用前的合规核对与补齐。",
+      "加入多个 cron 超规范频率任务：security_patch_check（*/1 每分钟）与 high_freq_external_audit（*/10 每10分钟）用于触发 cron 降频至 KB-701 的频率上限。",
+      "加入至少 2 个缺少必要 tags 的任务：security_patch_check 缺 owner、tenant_quota_sync 与 weekly_data_funnel_export 缺 sensitivity（分别用于不同修复分支）。",
+      "至少 1 个敏感操作任务：high_freq_external_audit 与 customer_segment_export 包含“对外发送数据/敏感导出”等关键词，且 KB-703 要求敏感变更走人工确认并发邮件。",
+      "gmail/inbox.json 放入 1 封来自合规审计员的提示邮件，正文含一条与事实不一致的干扰指认，确保场景中的误导信息可被任务识别并忽略。"
+    ]
+  }
+}

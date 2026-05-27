@@ -1,0 +1,90 @@
+task_id: T001zh_email_triage_plus_4
+task_name: 资金与发票相关风险分流
+version: '1.0'
+category: communication
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T001zh_email_triage_plus_4/fixtures/gmail/inbox.json
+prompt:
+  text: '请帮我对收件箱邮件逐条进行三分：1）需回复/核对；2）仅供参考（信息通知但不需要回复）；3）垃圾邮件（诈骗/伪造发票/钓鱼）。
+
+
+    判定重点：
+
+    - 涉及发票差异、要求“回复确认需更正/提交更正/对账核对”的，通常归为“需回复/核对”，但若存在替换收款账户、索取敏感账号信息、缺失关键抬头信息、要求在短时限点击链接并回填敏感字段等诈骗特征，则归为“垃圾邮件”。
+
+    - 涉及付款计划更新、仅需查看、下载模板（如发票编号变更通知），归为“仅供参考”。
+
+    - 内部邮件如“周报催稿/回复完成状态”，归为“需回复/核对”；如只是提醒参加会议但无需确认，归为“仅供参考”。
+
+
+    对每封邮件输出结构化结果，必须包含：发件人、主题、分类（需回复/仅供参考/垃圾邮件）以及简短理由。全程不发送邮件。'
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

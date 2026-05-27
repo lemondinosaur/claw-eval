@@ -1,0 +1,63 @@
+task_id: T099_pinbench_second_brain_recall_plus_5
+task_name: 'Second Brain: Support Runbook Snapshot'
+version: '1.0'
+category: memory
+difficulty: easy
+tags:
+- general
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T099_pinbench_second_brain_recall_plus_5/fixtures/notes/memory.json
+prompt:
+  text: 'Use the notes service as my persisted second brain. Find the stored support
+    runbook snapshot and answer:
+
+
+    1) What troubleshooting layer do I usually start with?
+
+    2) What fault type did I handle first?
+
+    3) Who is the on-call lead and which team are they on?
+
+    4) What is the support system called and what is its purpose?
+
+    5) What is the on-duty callback verification word?'
+  language: en
+tools:
+- name: notes_list
+  description: List notes
+  input_schema:
+    type: object
+    properties:
+      max_results:
+        type: integer
+        default: 10
+    required: []
+- name: notes_get
+  description: Get one note
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+    required:
+    - note_id
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+sandbox_files:
+- fixtures/notes/memory.json
+environment:
+  timeout_seconds: 180
+  max_turns: 8

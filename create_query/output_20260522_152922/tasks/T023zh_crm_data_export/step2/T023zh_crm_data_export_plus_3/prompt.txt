@@ -1,0 +1,289 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T023zh_crm_data_export_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/crm/customers.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T023zh_crm_data_export_plus_3",
+  "new_task_name": "Two-Stage Recovery 导出",
+  "task_goal": "在“分批导出”场景中导出VIP客户：先导出最近联系日期在近30天内的VIP客户，若导出失败则自动改为导出“最近联系日期最早的VIP客户”作为兜底批次，并在报告标题/summary中说明采用的兜底策略。",
+  "user_request": "请从CRM系统导出VIP客户报告，但需要考虑系统导出接口可能失败。要求：1）先筛选VIP客户中最近联系日期在最近30天内的客户；2）生成汇总报告（名称、行业、年收入、最近联系日期）；3）如果在导出步骤crm_export_report报错，请改为导出“最近联系日期最早的两位VIP客户”作为兜底，并在摘要里说明你为什么切换了策略；4）如查询或导出失败请重试。",
+  "scenario": "测试数据中VIP客户不少，但“最近30天内”只有2-4位；同时准备了导出接口触发错误的情形（由grader/fixtures模拟），要求agent体现策略切换。还存在边界：部分VIP的last_contact_date为同一天，最早值存在并列时应只取两位（任意两位但需在summary声明存在并列）。",
+  "difference_from_source": "原题是一次性导出所有VIP；新题把导出拆成分批并加入失败兜底策略（根据导出失败切换为另一批次），同时要求在summary里记录策略切换原因。",
+  "service_and_tool_plan": "使用crm_list_customers筛选tier=VIP；对候选调用crm_get_customer获取last_contact_date后在agent侧按“近30天”筛出第一批；调用crm_export_report导出第一批；若crm_export_report失败则使用同一套数据选择“最早的两位VIP”调用crm_export_report第二次。必要时对列表/详情调用重试。",
+  "fixture_generation_plan": "生成fixtures/crm/customers.json：12-16条，VIP至少5条；last_contact_date覆盖近期与较早日期（以固定日期字段即可，无需真实系统时钟），保证“近30天内”的VIP数量为2-4。最早日期在至少两位VIP间出现并列。notes可有可无，但不要作为判定依据。customer_id用新前缀如VIPR-01等。",
+  "expected_behavior": "1）调用crm_list_customers筛出VIP；2）对所有VIP或至少对用于筛选的候选调用crm_get_customer以获取last_contact_date；3）选择第一批（近30天内）并调用crm_export_report；4）若crm_export_report失败，重试导出；若仍失败，切换为最早两位VIP并再次调用crm_export_report；5）最终用户看到的报告summary必须明确写出“使用第一批/使用兜底批次”的原因与选择依据；输出必需字段齐全。",
+  "grading_plan": "检查：agent是否实现了“先按近30天导出、导出失败则切换兜底”的逻辑；是否在summary中说明切换原因；是否第二次导出使用的是最早两位VIP（或在并列情况下说明）；工具调用顺序合理，且对可能失败的调用进行了重试。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T023zh_crm_data_export",
+  "task_name": "CRM Data Export with Error Recovery",
+  "task_type": "operations",
+  "category": "operations",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "zh",
+  "services": [
+    "crm"
+  ],
+  "tools": [
+    "crm_list_customers",
+    "crm_get_customer",
+    "crm_export_report"
+  ],
+  "fixture_paths": [
+    "fixtures/crm/customers.json"
+  ],
+  "sandbox_files": [
+    "fixtures/crm/customers.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "operations"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T023zh_crm_data_export
+task_name: CRM Data Export with Error Recovery
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+prompt:
+  text: '帮我从CRM系统导出一份VIP客户报告。需要：
+
+    1. 列出所有VIP客户
+
+    2. 获取每位VIP客户的详细信息
+
+    3. 生成一份包含所有VIP客户的汇总报告，包括客户名称、行业、年收入和最近联系日期
+
+    注意：系统最近不太稳定，如果遇到错误请重试。
+
+    '
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 获取CRM客户列表，可按状态、等级、行业筛选
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选：active, inactive, churned
+      tier:
+        type: string
+        description: 客户等级筛选：VIP, standard
+      industry:
+        type: string
+        description: 按行业筛选
+    required: []
+- name: crm_get_customer
+  description: 获取单个客户的完整详细信息
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: crm_export_report
+  description: 导出客户汇总报告
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 报告标题
+      customer_ids:
+        type: array
+        items:
+          type: string
+        description: 要包含的客户ID列表
+      summary:
+        type: string
+        description: 报告摘要内容
+    required:
+    - title
+    - customer_ids
+    - summary
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: crm_export_report
+  url: http://localhost:9110/crm/export
+  method: POST
+sandbox_files:
+- fixtures/crm/customers.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-001",
+    "name": "北京云创科技有限公司",
+    "contact_person": "王明",
+    "email": "wangming@yunchuang.cn",
+    "phone": "13800001111",
+    "industry": "科技",
+    "tier": "VIP",
+    "annual_revenue": 5200000,
+    "last_contact_date": "2026-02-20",
+    "status": "active",
+    "notes": "Q1 合同续签中，需重点跟进"
+  },
+  {
+    "customer_id": "CUS-002",
+    "name": "上海锦程贸易有限公司",
+    "contact_person": "李芳",
+    "email": "lifang@jincheng.com",
+    "phone": "13900002222",
+    "industry": "贸易",
+    "tier": "standard",
+    "annual_revenue": 1800000,
+    "last_contact_date": "2026-01-15",
+    "status": "active",
+    "notes": "对新产品线感兴趣"
+  },
+  {
+    "customer_id": "CUS-003",
+    "name": "深圳智联电子科技有限公司",
+    "contact_person": "赵强",
+    "email": "zhaoqiang@zhilian.tech",
+    "phone": "13700003333",
+    "industry": "电子",
+    "tier": "VIP",
+    "annual_revenue": 8900000,
+    "last_contact_date": "2026-02-25",
+    "status": "active",
+    "notes": "年度大客户，定制化需求"
+  },
+  {
+    "customer_id": "CUS-004",
+    "name": "杭州绿源环保有限公司",
+    "contact_person": "陈静",
+    "email": "chenjing@lvyuan.com",
+    "phone": "13600004444",
+    "industry": "环保",
+    "tier": "standard",
+    "annual_revenue": 950000,
+    "last_contact_date": "2025-12-10",
+    "status": "inactive",
+    "notes": "合同已到期，未续签"
+  },
+  {
+    "customer_id": "CUS-005",
+    "name": "成都天府软件园科技公司",
+    "contact_person": "张磊",
+    "email": "zhanglei@tianfu.io",
+    "phone": "13500005555",
+    "industry": "科技",
+    "tier": "VIP",
+    "annual_revenue": 3600000,
+    "last_contact_date": "2026-02-27",
+    "status": "active",
+    "notes": "正在评估企业版升级"
+  },
+  {
+    "customer_id": "CUS-006",
+    "name": "广州华达物流有限公司",
+    "contact_person": "刘洋",
+    "email": "liuyang@huada-logistics.cn",
+    "phone": "13400006666",
+    "industry": "物流",
+    "tier": "standard",
+    "annual_revenue": 2100000,
+    "last_contact_date": "2026-02-18",
+    "status": "active",
+    "notes": "物流系统集成项目进行中"
+  },
+  {
+    "customer_id": "CUS-007",
+    "name": "武汉光谷生物科技有限公司",
+    "contact_person": "孙婷",
+    "email": "sunting@guanggu-bio.cn",
+    "phone": "13300007777",
+    "industry": "生物科技",
+    "tier": "VIP",
+    "annual_revenue": 12000000,
+    "last_contact_date": "2026-02-26",
+    "status": "active",
+    "notes": "战略合作伙伴，多个进行中项目"
+  },
+  {
+    "customer_id": "CUS-008",
+    "name": "南京紫金山文化传媒有限公司",
+    "contact_person": "周敏",
+    "email": "zhoumin@zijinshan-media.com",
+    "phone": "13200008888",
+    "industry": "传媒",
+    "tier": "standard",
+    "annual_revenue": 780000,
+    "last_contact_date": "2025-11-20",
+    "status": "churned",
+    "notes": "因预算缩减已流失"
+  }
+]
+
+--- END FILE: fixtures/crm/customers.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

@@ -1,0 +1,103 @@
+[
+  {
+    "event_id": "evt_6001",
+    "title": "数据治理周会",
+    "start_time": "2026-04-24T09:30:00+08:00",
+    "end_time": "2026-04-24T10:15:00+08:00",
+    "location": "A座-1209",
+    "organizer": "许霖",
+    "attendees": [
+      "许霖",
+      "沈岚",
+      "周凯"
+    ],
+    "description": "本周数据治理复盘，关联纪要: NOTE-X1",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_6002",
+    "title": "安全基线复核会",
+    "start_time": "2026-04-29T15:00:00+08:00",
+    "end_time": "2026-04-29T16:30:00+08:00",
+    "location": "B座-会议室2",
+    "organizer": "沈岚",
+    "attendees": [
+      "沈岚",
+      "张澄",
+      "周凯"
+    ],
+    "description": "安全基线与审计检查，关联纪要: NOTE-X2",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_6003",
+    "title": "研发计划评审会",
+    "start_time": "2026-05-02T10:00:00+08:00",
+    "end_time": "2026-05-02T11:00:00+08:00",
+    "location": "线上会议",
+    "organizer": "周凯",
+    "attendees": [
+      "周凯",
+      "许霖",
+      "顾宁"
+    ],
+    "description": "研发里程碑对齐，关联纪要: NOTE-X3",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_6004",
+    "title": "周一例行对齐",
+    "start_time": "2026-04-27T09:00:00+08:00",
+    "end_time": "2026-04-27T09:20:00+08:00",
+    "location": "走廊咖啡区",
+    "organizer": "顾宁",
+    "attendees": [
+      "顾宁",
+      "许霖"
+    ],
+    "description": "无纪要的日常同步",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_6005",
+    "title": "跨团队同步",
+    "start_time": "2026-05-04T14:00:00+08:00",
+    "end_time": "2026-05-04T15:00:00+08:00",
+    "location": "C座-402",
+    "organizer": "张澄",
+    "attendees": [
+      "张澄",
+      "沈岚",
+      "顾宁"
+    ],
+    "description": "无纪要的跨团队同步",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_6006",
+    "title": "学习分享会",
+    "start_time": "2026-05-06T12:10:00+08:00",
+    "end_time": "2026-05-06T13:00:00+08:00",
+    "location": "D座-一楼大厅",
+    "organizer": "HR",
+    "attendees": [
+      "全员"
+    ],
+    "description": "无纪要的学习分享",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_6007",
+    "title": "产品需求澄清会",
+    "start_time": "2026-05-07T16:00:00+08:00",
+    "end_time": "2026-05-07T16:40:00+08:00",
+    "location": "E座-小会议室",
+    "organizer": "许霖",
+    "attendees": [
+      "许霖",
+      "顾宁"
+    ],
+    "description": "无纪要的需求澄清",
+    "status": "confirmed"
+  }
+]

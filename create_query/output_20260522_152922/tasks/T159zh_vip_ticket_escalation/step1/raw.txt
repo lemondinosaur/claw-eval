@@ -1,0 +1,104 @@
+{
+  "source_task_id": "T159zh_vip_ticket_escalation",
+  "source_summary": {
+    "task_type": "当VIP客户提交critical/高紧急工单时，跨 helpdesk/crm/kb/contacts/gmail 完成升级判定、方案匹配、找到技术负责人并起草邮件草稿的工作流任务",
+    "services": [
+      "helpdesk",
+      "crm",
+      "gmail",
+      "contacts",
+      "kb"
+    ],
+    "tools": [
+      "helpdesk_list_tickets",
+      "helpdesk_get_ticket",
+      "helpdesk_update_ticket",
+      "helpdesk_close_ticket",
+      "crm_list_customers",
+      "crm_get_customer",
+      "kb_search",
+      "kb_get_article",
+      "contacts_search",
+      "contacts_get",
+      "gmail_list_messages",
+      "gmail_get_message",
+      "gmail_save_draft",
+      "gmail_send_message"
+    ],
+    "fixture_paths": [
+      "fixtures/contacts/contacts.json",
+      "fixtures/crm/customers.json",
+      "fixtures/gmail/inbox.json",
+      "fixtures/helpdesk/tickets.json",
+      "fixtures/kb/articles.json"
+    ],
+    "core_capability": "workflow"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T159zh_vip_ticket_escalation_plus_1",
+      "new_task_name": "VIP关键链路中断升级",
+      "task_goal": "识别一张VIP客户的critical工单，确认其SLA要求；结合工单现象在知识库匹配正确应急方案；定位需要参与的技术负责人与客户对接人；并在Gmail中分别为“客户确认回复”和“内部升级通知”保存邮件草稿（不发送）。",
+      "user_request": "有一位VIP客户提交了critical级别的工单，请帮我按紧急升级流程处理：查看工单详情与客户CRM信息→在知识库中搜索并提取应急步骤→找到合适的技术负责人与升级接收人→起草两封邮件草稿（给客户的确认回复、给内部的升级通知）。请严格遵守VIP客户SLA，在内部邮件中包含预计处置路径与对客户的预计响应时间。",
+      "scenario": "场景中工单涉及“支付回调接口在特定交易批次上出现超时并触发重试风暴”，导致商户后台出现资金状态不一致风险。工单数据表明该问题已持续约35分钟，且对多个下游商户产生连锁影响。工单标题包含“callback timeout spike”字样，优先级为critical。收件箱存在一封来自该VIP客户运营负责人的不满邮件：要求在1小时内给出明确的止损方案与恢复时间窗口，并提醒合同条款中有服务不可用的赔付口径。",
+      "difference_from_source": "原题是数据库连接池耗尽；本题是支付回调接口在特定批次触发超时与重试风暴。知识库应匹配“API超时/回调异常与止损”类文章，并且内部升级接收人应偏向架构/平台方向而非纯DBA；客户邮件触发点与强调的风险点也从“系统不可用”变为“资金状态不一致风险与止损”。",
+      "service_and_tool_plan": "继续使用helpdesk获取critical工单并确认其关联客户；用crm获取客户的VIP等级与SLA约束；用gmail读取客户投诉邮件以把握语气与紧急程度；用kb_search与kb_get_article匹配应急处置步骤（强调止损与恢复窗口）；用contacts_search定位架构/平台技术负责人与客户成功对接人；用gmail_save_draft保存两封草稿，避免gmail_send_message。",
+      "fixture_generation_plan": "生成helpdesk/tickets.json新增10条左右记录：其中1条critical、至少2条其他优先级用于干扰，确保关键工单状态为open且包含回调超时/重试风暴的描述。生成crm/customers.json新增至少5条客户：包含1个tier为vip且SLA为“1小时响应，4小时解决”或等价更短窗口（需能在文本中体现），其余为standard或其他SLA用于干扰。生成gmail/inbox.json新增至少4封邮件：包含1封来自VIP客户运营负责人的关键不满邮件（内容强调止损方案、预计窗口、合同条款），其余为内部周报/通知/低相关邮件。生成kb/articles.json新增至少3条文章：至少1条与“API回调超时/重试风暴止损”强匹配，包含可执行应急措施与升级条件；其余提供相近但不应被选中的干扰主题。生成contacts/contacts.json不复用原实体名：需新增或替换为不同联系人条目（保持同schema），至少包含：平台架构负责人（偏架构/中间件）、客户成功对接人（VIP对接）、以及可能的升级接收人（技术总监类角色但名称不同）。关键状态分布：critical工单为open；客户邮件is_read可为false或true皆可；KB中匹配文章需与工单关键词高度相关。",
+      "expected_behavior": "智能体应：1）调用helpdesk_list_tickets过滤并定位critical工单；2）调用helpdesk_get_ticket获得现象与关联customer_id；3）调用crm_get_customer确认该客户为VIP且读取其SLA（写入邮件）；4）调用gmail_list_messages并gmail_get_message抓取来自该VIP客户的投诉邮件，提取其关键要求（止损与恢复窗口、时间约束、语气）；5）调用kb_search使用与“回调超时/重试风暴/止损”相关关键词，随后kb_get_article获取全文；6）调用contacts_search确定平台架构负责人作为执行人、技术管理负责人作为内部升级接收点、以及客户成功对接人；7）必要时可用helpdesk_update_ticket更新标签/分配但不得关闭；8）调用gmail_save_draft保存至少两封草稿：a. 给客户的确认回复（确认已收到、解释已启动紧急止损路径、给出预计响应时间与恢复窗口、保持专业且安抚语气）；b. 内部升级通知（说明工单严重性、分配执行人、引用KB应急要点摘要、强调SLA与预计节点）。最终输出应包含：所选工单ID、客户ID、KB文章ID、内部与客户邮件草稿的to/subject要点与草稿内容摘要。",
+      "grading_plan": "grader应检查：是否选择了正确的critical工单并确认其VIP客户与SLA；是否在KB中匹配到对应“回调/重试风暴止损”文章而非数据库或权限类文章；是否识别并使用了正确类型的负责人（平台架构/升级接收/客户对接，且角色与数量满足要求）；是否调用了gmail_save_draft两次且未调用gmail_send_message；客户草稿中是否包含：确认+止损路径+预计时间窗口；内部草稿中是否包含：严重性说明+已分配执行人+KB应急摘要+SLA要求。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T159zh_vip_ticket_escalation_plus_2",
+      "new_task_name": "VIP鉴权异常强制升级",
+      "task_goal": "针对一张VIP客户的critical工单，完成升级判定与SLA确认；从知识库匹配“鉴权/权限异常”类处置建议；找到对应的安全/架构技术负责人；并起草两封邮件草稿（客户确认回复与内部升级通知），在内部邮件中明确需要的处置顺序与回滚策略。",
+      "user_request": "VIP客户提交了critical工单，请你执行升级流程：读取工单与客户CRM信息→结合收件箱中该客户的紧急邮件内容→在知识库里搜索最匹配的解决方案并提炼关键处置顺序→找到合适的技术负责人和VIP对接人→起草两封邮件草稿并保存到Gmail（不要发送）。邮件里必须体现SLA时间承诺，并在内部升级通知中给出回滚/止血策略。",
+      "scenario": "工单现象为“用户登录后权限校验失败，导致部分核心页面返回401/403”，影响VIP客户客服与账务系统的关键操作。工单描述明确该问题在发布后10分钟内迅速扩大，且当前仍有持续告警。收件箱中出现一封来自VIP客户信息安全负责人的邮件：强调他们要求在1小时内提供‘已定位原因的证据摘要’和‘临时可用的止血措施’，否则将暂停相关外部对接并启动法律合规流程。该VIP客户在CRM中标注tier为vip，SLA要求较短。",
+      "difference_from_source": "原题偏数据库连接池与DBA；本题偏鉴权/权限链路异常与回滚止血，知识库应匹配权限/鉴权手册或安全处置类文章；负责人角色从DBA转为安全/架构或平台鉴权负责人；邮件内容强调‘证据摘要与止血/回滚’而非数据库连接数调整。",
+      "service_and_tool_plan": "使用helpdesk_list_tickets与helpdesk_get_ticket定位critical工单与其客户；用crm_get_customer确认VIP与SLA；用gmail_list_messages与gmail_get_message读取客户安全负责人的紧急要求；用kb_search与kb_get_article获取与鉴权/权限异常相关的处置与回滚建议；用contacts_search确定需要的安全/架构负责人、升级接收人及客户对接人；用gmail_save_draft保存两封草稿并避免发送。",
+      "fixture_generation_plan": "生成helpdesk/tickets.json新增：1条critical open工单，工单内容包含‘鉴权失败/权限校验/401 403’等关键词并关联到某vip客户；再加入至少3条不同优先级干扰工单（如低优先级UI问题、标准客户慢查询等）。生成crm/customers.json新增：1个vip客户（tier为vip）且SLA体现‘1小时响应，4小时解决’或更短；再加入至少4个standard客户作为干扰。生成gmail/inbox.json新增：1封来自VIP客户信息安全负责人的邮件（强调证据摘要、止血措施、合规风险与1小时要求），以及至少2封与鉴权无关的内部邮件。生成kb/articles.json新增至少3条文章：至少1条与‘权限/鉴权异常排查与回滚’强相关，并包含升级条件与步骤；其余文章与‘报表性能/连接池’相近但不应被选中。生成contacts/contacts.json：新增或替换联系人条目（不沿用原姓名/邮箱），至少包括鉴权/安全方向负责人、技术管理升级接收人、VIP客户成功对接人；确保contacts_search能通过部门或关键词检索到这些角色。",
+      "expected_behavior": "智能体应从工单与CRM识别VIP critical并读出SLA；从gmail中提取客户强调的‘证据摘要与止血措施’要点；在KB中检索权限/鉴权异常相关文章并引用其关键处置顺序（例如：检查鉴权配置/权限映射→核对令牌与策略→验证回滚点→临时放行或降级方案）；找到安全/架构负责人作为执行人，同时给出内部升级接收点与客户成功对接人；最后通过gmail_save_draft保存两封草稿：客户回复需包含已启动止血与预计时间节点、说明会提供证据摘要；内部通知需包含工单严重性、分配负责人、回滚/止血策略概要与SLA承诺。",
+      "grading_plan": "grader应检查：关键工单是否为critical且客户tier为vip；SLA文本是否被正确引用到两封草稿中；KB文章是否匹配鉴权/权限异常类别；联系人角色是否正确（鉴权/安全负责人+升级接收人+客户对接人）；是否保存了两封草稿且未发送；客户草稿是否包含证据摘要承诺与止血措施；内部草稿是否包含处置顺序与回滚/止血策略。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T159zh_vip_ticket_escalation_plus_3",
+      "new_task_name": "VIP数据同步延迟P0升级",
+      "task_goal": "发现VIP客户critical工单后，完成升级流转：确认工单与客户SLA；在知识库中找到与‘数据同步/消息堆积’相关方案；识别执行的后端/中台技术负责人；并起草两封邮件草稿，内部邮件要明确需要的观察指标与恢复时间窗口。",
+      "user_request": "请处理一张VIP客户的critical工单：按升级流程完成信息核对、知识库方案匹配、技术负责人定位，并保存两封邮件草稿（客户确认回复+内部升级通知）。客户要求你在1小时内给出同步恢复的可能原因方向和预计恢复窗口，并要求内部同步到相关负责人。",
+      "scenario": "工单描述为“订单状态同步延迟超过阈值”，导致VIP客户的履约系统显示数据滞后。系统监控显示消息队列堆积，且有部分重试失败记录。收件箱里有VIP客户的邮件，语气偏冷但非常紧迫：他们指出过去两周类似问题已发生，要求立即给出恢复窗口并说明是否需要临时降级（例如切换读取模式到缓存/只读）。该VIP客户CRM中tier为vip，SLA要求较短。",
+      "difference_from_source": "原题是数据库连接池；本题是数据同步延迟与消息堆积，知识库检索重点应转向消息队列/同步机制与恢复窗口。执行负责人应偏后端中台或数据平台方向，而非DBA为主；邮件内容要突出观察指标（堆积量、重试失败率）与恢复窗口，以及临时降级方案。",
+      "service_and_tool_plan": "用helpdesk_list_tickets与helpdesk_get_ticket定位critical工单与其客户；用crm_get_customer确认VIP与SLA；用gmail读取客户邮件以提取其对‘恢复窗口+是否降级’的要求；用kb_search与kb_get_article匹配数据同步/消息堆积的排查与应急步骤；用contacts_search找到后端中台负责人、升级接收人与VIP客户对接人；用gmail_save_draft保存两封草稿并禁止发送。",
+      "fixture_generation_plan": "helpdesk/tickets.json新增：1条critical工单，标题含“sync lag/queue backlog”类字样并明确仍在持续；添加至少2条medium/high用于干扰但非VIP。crm/customers.json新增：1个vip客户（tier为vip）并配置SLA为“1小时响应，4小时解决”或同等级更短；其他standard客户作为干扰。gmail/inbox.json新增：1封来自该VIP客户运营或CTO办公室的邮件（强调恢复窗口、是否临时降级、历史复发提醒），以及至少2封无关通知邮件。kb/articles.json新增：至少1条关于“消息队列堆积/数据同步延迟”应急与升级条件的文章；另加2条与API性能/权限管理相近但不匹配的干扰文章。contacts/contacts.json新增相应联系人：数据/中台后端负责人（可通过specialization包含“数据平台/中台”检索到）、技术总监/升级接收人、客户成功对接人；注意不复用原具体实体名与邮箱。",
+      "expected_behavior": "智能体应完成：critical识别与VIP/SLA确认；读取客户邮件获得其对恢复窗口与降级方案的硬性要求；在KB中用与“同步延迟/消息队列堆积/重试失败”相关关键词检索到对应文章并提炼关键步骤（例如：检查队列堆积与消费速率→定位失败原因→清理/重放策略→必要时切换读路径到缓存或只读降级）；联系人定位后起草两封草稿：客户回复包含已启动的恢复方向、预计恢复窗口、是否评估临时降级及其影响说明；内部通知包含工单严重性、分配执行负责人、需要关注的指标与SLA承诺。",
+      "grading_plan": "grader应检查：选择的工单是否critical且关联vip客户；SLA是否正确写入两封草稿；KB文章是否与数据同步/消息堆积强相关；联系人类型是否匹配（中台/后端执行负责人+升级接收+客户对接）；是否仅保存草稿未发送；客户草稿是否包含恢复窗口与降级评估承诺；内部草稿是否包含观察指标与关键排查/恢复步骤摘要。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T159zh_vip_ticket_escalation_plus_4",
+      "new_task_name": "VIP安全告警升级与应急处置",
+      "task_goal": "对VIP critical工单执行升级：确认客户SLA与告警性质；在知识库中匹配与‘安全告警/可疑活动处置’相关方案；找到安全负责人并准备升级邮件草稿，邮件需包含应急处置范围、取证建议与预计响应节点。",
+      "user_request": "VIP客户提交critical级别的安全相关工单，请你完成升级流程：查工单与客户CRM并确认SLA→读取收件箱中的客户安全告警邮件→在知识库中匹配最相关的应急处置方案并提炼要点→定位安全负责人和升级接收人→保存两封邮件草稿（客户确认回复、内部升级通知）。内部邮件中务必写清取证与应急处置边界。",
+      "scenario": "工单内容为“疑似账号异常登录并触发风控封禁”，导致VIP客户关键系统无法登录，且他们担心可能存在未授权访问。收件箱有一封来自VIP客户安全经理的邮件：要求在1小时内给出是否确认入侵迹象的结论方向、提供取证计划摘要，并说明对其业务的临时恢复方式（例如仅对特定IP网段解封或切换到只读模式）。CRM显示该客户为vip，SLA为短响应。",
+      "difference_from_source": "原题偏运维DB故障与邮件模板；本题偏安全告警与取证边界，KB检索重点应是安全事件响应流程（取证、隔离、临时恢复），联系人应优先安全/应急负责人而不是技术总监+DBA的典型组合；邮件重点从性能/连接调整变为取证计划与安全处置边界。",
+      "service_and_tool_plan": "用helpdesk_list_tickets定位critical工单并helpdesk_get_ticket获取详情；crm_get_customer确认vip与SLA；gmail_list_messages与gmail_get_message抓取客户安全告警邮件；kb_search与kb_get_article匹配安全应急处置文章并提炼取证与隔离/恢复步骤；contacts_search定位安全负责人、升级接收人与客户对接人；用gmail_save_draft保存两封草稿，确保不调用发送工具。",
+      "fixture_generation_plan": "helpdesk/tickets.json新增：1条critical open的安全告警工单（包含‘账号异常/风控封禁/疑似未授权’等关键词）；再添加至少2条非VIP或非critical干扰工单。crm/customers.json新增：1个vip客户（tier vip）与SLA（1小时响应，4小时解决），其他standard干扰。gmail/inbox.json新增：1封来自VIP客户安全经理的不安邮件（强调取证计划、临时恢复方式、1小时要求），以及至少2封无关内部邮件。kb/articles.json新增：至少1条安全事件响应/告警处置类文章，包含取证、隔离、恢复步骤与升级条件；再加2条干扰文章（如API性能、权限管理）。contacts/contacts.json新增联系人：安全事件负责人（specialization可写“安全/风控”）、技术管理升级接收人、VIP客户对接人；不复用原具体实体名与邮箱。",
+      "expected_behavior": "智能体应：识别critical工单并确认客户为VIP且读取SLA；读取客户邮件提取其对取证计划、业务临时恢复与安全结论方向的要求；在KB中检索安全事件响应方案并提取边界（哪些数据需保全、隔离范围、恢复策略）；找到安全负责人作为执行人与升级接收点；起草并保存两封邮件草稿：客户确认回复需包含已启动安全应急、取证计划摘要、当前风险判断的‘结论方向’表述、预计1小时内的下一次更新节点与临时业务恢复方式；内部升级通知需包含工单严重性、分配的安全负责人、应急处置与取证边界摘要、SLA节点与需要协同部门。",
+      "grading_plan": "grader应检查：critical工单与vip客户匹配正确；SLA准确引用到邮件中；KB文章是否属于安全事件响应/告警处置范畴；联系人角色是否匹配安全负责人+升级接收+客户对接人；是否仅gmail_save_draft且未发送；客户草稿是否包含取证计划摘要与临时恢复方式承诺；内部草稿是否包含取证与应急处置边界、分配与SLA节点。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T159zh_vip_ticket_escalation_plus_5",
+      "new_task_name": "VIP多工单合并升级与并行草稿",
+      "task_goal": "处理一组与同一VIP客户相关的critical工单：确认是否存在多个关键告警需要并行升级；为最关键的那张工单完成升级流程（VIP/SLA确认、KB方案匹配、负责人定位）；同时起草两封邮件草稿并在草稿内容中明确并行处理状态（但不进行额外澄清对话）。",
+      "user_request": "有同一VIP客户提交了多张紧急工单，其中包含critical级别。请你完成升级：先列出工单并确定最需要优先升级的一张，然后结合其详情与客户CRM/SLA→读取与该客户相关的收件箱邮件→在知识库中匹配解决方案→找到技术负责人→保存两封邮件草稿（客户确认回复+内部升级通知）。在邮件中需要说明：已经识别到同客户的其他紧急工单，并将并行处理，但本次邮件聚焦最紧急那张critical工单。",
+      "scenario": "helpdesk中存在同一个vip客户的多条工单：一条critical涉及“核心搜索服务返回错误率升高”，另一条high涉及“日志采集延迟”。收件箱中有一封来自该VIP客户的业务负责人邮件：抱怨搜索功能不可用、影响多个运营活动，并要求在1小时内给出优先修复路径与预计窗口，同时希望看到‘并行处理其他问题’的同步说明。该VIP客户CRM明确SLA为快速响应。",
+      "difference_from_source": "原题是单一critical工单直接升级；本题要求先通过helpdesk_list_tickets判断同客户存在多工单并行，并在邮件中明确聚焦策略与并行状态；知识库匹配应与搜索服务/错误率升高相关（而非数据库连接池/API超时或权限异常）。",
+      "service_and_tool_plan": "使用helpdesk_list_tickets获取并筛选出同一customer_id下的multiple urgent tickets，选择critical优先升级；用helpdesk_get_ticket获取关键critical工单详情；crm_get_customer获取VIP/SLA；gmail_list_messages与gmail_get_message获取客户邮件中的聚焦要求；用kb_search与kb_get_article匹配搜索服务错误率/故障的应急方案；用contacts_search定位搜索/后端技术负责人、升级接收人与客户对接人；用gmail_save_draft保存两封草稿并禁止发送。",
+      "fixture_generation_plan": "helpdesk/tickets.json：新增至少7条记录，其中同一个vip customer_id下包含1条critical（搜索服务错误率升高）与1-2条high/medium干扰（如日志延迟、推荐服务慢等），并另加入若干其他客户干扰工单；确保critical工单为open且含清晰关键词。crm/customers.json：新增1个vip客户（tier vip）及SLA（1小时响应，4小时解决），再加至少4个standard客户干扰。gmail/inbox.json：新增1封来自该VIP客户业务负责人的邮件（提到搜索不可用、运营活动受影响、要求优先修复路径与预计窗口、希望看到并行处理说明），以及至少2封无关内部邮件。kb/articles.json：新增至少1条搜索服务故障排查/应急（包含错误率提升原因假设、回滚/降级与应急步骤、升级条件），再加2条不相关文章作干扰。contacts/contacts.json：新增或替换联系人，至少包括搜索/后端负责人、技术管理升级接收人、VIP客户对接人；不要复用原姓名/邮箱。",
+      "expected_behavior": "智能体应执行：1）helpdesk_list_tickets定位并筛出同vip客户的多张紧急工单，选择critical工单作为邮件聚焦对象；2）helpdesk_get_ticket获取critical工单细节并提取影响范围（搜索错误率、影响运营活动）；3）crm_get_customer确认SLA并在邮件中引用；4）gmail_list_messages+gmail_get_message读取客户邮件，提取其要求（优先修复路径、预计窗口、并行处理说明）；5）kb_search以“搜索错误率/错误率升高/服务降级/应急回滚”等关键词检索，并通过kb_get_article提取应急步骤；6）contacts_search定位搜索服务执行负责人与升级接收点、客户对接人；7）起草并保存两封草稿：客户回复需说明已识别其他紧急工单并并行推进，但本封邮件聚焦critical搜索工单、给出优先修复路径与预计窗口；内部通知需说明关键工单严重性、分配执行人、KB应急要点摘要、并行工单的简要状态与SLA节点。不得关闭工单，不得发送邮件，只保存草稿。",
+      "grading_plan": "grader应检查：是否正确识别同一vip客户存在多张紧急工单并选择critical作为聚焦点；SLA是否准确引用；KB文章是否与搜索服务错误率/故障处置强相关；是否在客户草稿中明确提到“并行处理其他紧急工单但聚焦critical”；是否保存两封草稿且未发送；内部草稿是否包含分配负责人、KB要点摘要、并行工单状态简述与SLA节点。"
+    }
+  ]
+}

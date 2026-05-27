@@ -1,0 +1,227 @@
+[
+  {
+    "task_id": "TODO-901",
+    "title": "Orchid发布需求评审结论与验收口径",
+    "description": "将需求评审结论与验收口径在团队协作平台发布，并通知相关负责人。",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-05-07",
+    "assignee": "周琳",
+    "tags": [
+      "Orchid",
+      "需求"
+    ],
+    "project": "Orchid"
+  },
+  {
+    "task_id": "TODO-902",
+    "title": "Orchid接口字段映射表（联调用）",
+    "description": "输出接口联调用字段映射表，支持联调与灰度验证。",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-05-09",
+    "assignee": "陈远",
+    "tags": [
+      "Orchid",
+      "接口联调"
+    ],
+    "project": "Orchid"
+  },
+  {
+    "task_id": "TODO-903",
+    "title": "Orchid前端联调回归用例清单（含回放脚本）",
+    "description": "完成前端联调回归用例清单与缺陷回放脚本；用于本周回归演练。",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-05-12",
+    "assignee": "柳青",
+    "tags": [
+      "Orchid",
+      "回归"
+    ],
+    "project": "Orchid"
+  },
+  {
+    "task_id": "TODO-904",
+    "title": "Orchid灰度验证API回放脚本",
+    "description": "提交灰度验证需要的API回放脚本并附上执行说明。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-13",
+    "assignee": "陈远",
+    "tags": [
+      "Orchid",
+      "验证"
+    ],
+    "project": "Orchid"
+  },
+  {
+    "task_id": "TODO-905",
+    "title": "Orchid鉴权重试与幂等策略运行时开关文档",
+    "description": "完成运行时开关文档，便于联调期间调参与复盘。",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-05-10",
+    "assignee": "林涛",
+    "tags": [
+      "Orchid",
+      "运维"
+    ],
+    "project": "Orchid"
+  },
+  {
+    "task_id": "TODO-906",
+    "title": "Cobalt核心服务稳定化任务清单",
+    "description": "整理核心服务稳定化的开发任务清单并提交到迭代看板。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-05-08",
+    "assignee": "郑浩",
+    "tags": [
+      "Cobalt",
+      "开发"
+    ],
+    "project": "Cobalt"
+  },
+  {
+    "task_id": "TODO-907",
+    "title": "Cobalt迭代验证用例与测试数据准备清单",
+    "description": "制定迭代验证用例并提交测试数据准备清单给测试团队。",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-05-09",
+    "assignee": "沈佳",
+    "tags": [
+      "Cobalt",
+      "测试"
+    ],
+    "project": "Cobalt"
+  },
+  {
+    "task_id": "TODO-908",
+    "title": "Cobalt关键交付评审资料包（待外部输入）",
+    "description": "准备关键交付评审所需资料包；需要外部审计需求输入后才能完成最终材料。",
+    "status": "blocked",
+    "priority": "high",
+    "due_date": "2026-05-09",
+    "assignee": "郑浩",
+    "tags": [
+      "Cobalt",
+      "交付评审"
+    ],
+    "project": "Cobalt",
+    "blocked_by": "外部审计需求尚未提交，导致评审材料口径无法定稿"
+  },
+  {
+    "task_id": "TODO-909",
+    "title": "Cobalt对齐关键交付评审口径（周内复核）",
+    "description": "对齐评审口径并完成内部复核；依赖关键交付评审材料已定稿。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-10",
+    "assignee": "顾宁",
+    "tags": [
+      "Cobalt",
+      "协调"
+    ],
+    "project": "Cobalt"
+  },
+  {
+    "task_id": "TODO-910",
+    "title": "Cobalt迭代看板里程碑更新",
+    "description": "根据迭代计划会更新看板里程碑状态与预计完成时间。",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-05-07",
+    "assignee": "顾宁",
+    "tags": [
+      "Cobalt",
+      "计划"
+    ],
+    "project": "Cobalt"
+  },
+  {
+    "task_id": "TODO-911",
+    "title": "Ruby里程碑验收预检检查表发布",
+    "description": "发布里程碑验收预检检查表（含缺陷门禁）。",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-05-07",
+    "assignee": "魏婧",
+    "tags": [
+      "Ruby",
+      "验收预检"
+    ],
+    "project": "Ruby"
+  },
+  {
+    "task_id": "TODO-912",
+    "title": "Ruby迁移作业日志归档目录结构与样例文件",
+    "description": "给出迁移作业日志归档目录结构与样例文件。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-05-09",
+    "assignee": "高航",
+    "tags": [
+      "Ruby",
+      "迁移日志"
+    ],
+    "project": "Ruby"
+  },
+  {
+    "task_id": "TODO-913",
+    "title": "Ruby验收预检资料包清单整理",
+    "description": "整理验收预检需要的资料包清单并持续更新缺口。",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-05-10",
+    "assignee": "王珂",
+    "tags": [
+      "Ruby",
+      "交付资料"
+    ],
+    "project": "Ruby"
+  },
+  {
+    "task_id": "TODO-914",
+    "title": "Ruby回滚演练记录与SQL变更说明",
+    "description": "完成回滚演练并输出演练记录（含SQL变更说明）。",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-05-10",
+    "assignee": "高航",
+    "tags": [
+      "Ruby",
+      "回滚演练"
+    ],
+    "project": "Ruby"
+  },
+  {
+    "task_id": "TODO-915",
+    "title": "Ruby补齐迁移作业日志归档缺失文件（预检缺口）",
+    "description": "补齐迁移作业日志归档中预检发现的缺失文件。",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-05-12",
+    "assignee": "王珂",
+    "tags": [
+      "Ruby",
+      "迁移日志"
+    ],
+    "project": "Ruby"
+  },
+  {
+    "task_id": "TODO-916",
+    "title": "Ruby对外说明文档：迁移回滚演练说明（与纪要部分对应）",
+    "description": "补齐迁移回滚演练的对外说明文档。该任务的部分要点在纪要行动项中出现，但仍缺少一项“合规审阅签字页”。",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-11",
+    "assignee": "王珂",
+    "tags": [
+      "Ruby",
+      "文档"
+    ],
+    "project": "Ruby"
+  }
+]

@@ -1,0 +1,118 @@
+task_id: T003zh_calendar_scheduling_plus_1
+task_name: 跨时区并发会议找空档
+version: '1.0'
+category: productivity
+difficulty: easy
+tags:
+- general
+services:
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: create_query/output_20260522_152922/generated/T003zh_calendar_scheduling_plus_1/fixtures/calendar/events.json
+prompt:
+  text: 请帮我在2026年3月3日（周二）安排“季度复盘会”1小时。参会者为沈佳、周航和我自己（组织者：林川）。要求大家都空闲，并且在按时区换算后仍需落在同一天。会议地点：远程会议室。系统时区为UTC；参会者日历事件以各自时区记录。请计算三方共同空闲的1小时窗口，并在创建请求中使用ISO
+    8601的UTC时间。
+  language: zh
+tools:
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取单个事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+- name: calendar_create_event
+  description: 创建新的日历事件
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 事件标题
+      start_time:
+        type: string
+        description: 开始时间 (ISO 8601)
+      end_time:
+        type: string
+        description: 结束时间 (ISO 8601)
+      attendees:
+        type: array
+        items:
+          type: string
+        description: 参加者列表
+      location:
+        type: string
+        description: 地点
+    required:
+    - title
+    - start_time
+    - end_time
+- name: calendar_get_user_events
+  description: 获取指定用户的日历事件
+  input_schema:
+    type: object
+    properties:
+      user:
+        type: string
+        description: 用户姓名
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+    required:
+    - user
+    - date
+- name: calendar_delete_event
+  description: 删除日历事件
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+tool_endpoints:
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+- tool_name: calendar_create_event
+  url: http://localhost:9101/calendar/events/create
+  method: POST
+- tool_name: calendar_get_user_events
+  url: http://localhost:9101/calendar/user_events
+  method: POST
+- tool_name: calendar_delete_event
+  url: http://localhost:9101/calendar/events/delete
+  method: POST
+sandbox_files:
+- fixtures/calendar/events.json
+environment:
+  mock_today: '2026-03-02'
+  timeout_seconds: 300
+  max_turns: 20

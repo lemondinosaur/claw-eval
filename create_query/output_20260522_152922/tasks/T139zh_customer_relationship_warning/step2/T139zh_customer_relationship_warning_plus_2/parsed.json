@@ -1,0 +1,371 @@
+{
+  "task_id": "T139zh_customer_relationship_warning_plus_2",
+  "task_name": "多地分支续约提醒：关键联系人缺失场景",
+  "prompt_text": "请帮我检查所有活跃客户的合同到期情况，找出未来60天内即将到期的客户并做重点跟进分配。\n\n对每个客户：\n1）查看CRM客户详情（等级、合同到期日、销售负责人、是否为多地分支客户、关键联系人是否缺失标记、备用联系人字段如backup_owner）；\n2）到通讯录查找销售负责人联系方式：若找不到，则使用CRM中的backup_owner作为替代联系人继续检索通讯录，并在报告中标记“主负责人缺失，使用备用联系人”；\n3）检查收件箱是否有该客户来自不同分支的沟通记录（不同分支用“北区/东区/分公司简称”等关键词标注），并判断分支沟通活跃度（高/中/低）；\n4）根据客户等级与“缺失程度/分支沟通活跃度”生成续约预警报告（含优先级）。\n\n对VIP客户：起草续约提醒邮件草稿，邮件subject需包含“续约提醒+分支安排”，正文必须明确写出“分支维度沟通安排”（例如先北区后东区，或安排一次线上分部门会议，并给出需要对方确认的事项占位符）。\n\n最后输出完整报告；但仅保存VIP客户的邮件草稿，并确保不发送邮件。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-101",
+        "name": "周晓岚",
+        "email": "zhouxiaolan@company.com",
+        "phone": "13900139001",
+        "department": "销售一部",
+        "title": "大客户经理",
+        "responsibilities": [
+          "VIP客户维护",
+          "分区续约跟进"
+        ]
+      },
+      {
+        "contact_id": "CON-102",
+        "name": "孙凯",
+        "email": "sunkai@company.com",
+        "phone": "13900139002",
+        "department": "销售二部",
+        "title": "客户经理",
+        "responsibilities": [
+          "标准客户维护",
+          "续约支持"
+        ]
+      },
+      {
+        "contact_id": "CON-103",
+        "name": "程可欣",
+        "email": "chengkexin@company.com",
+        "phone": "13900139003",
+        "department": "客户成功部",
+        "title": "客户成功经理",
+        "responsibilities": [
+          "续约风险预警",
+          "多分支沟通对接"
+        ]
+      },
+      {
+        "contact_id": "CON-104",
+        "name": "马俊",
+        "email": "majun@company.com",
+        "phone": "13900139004",
+        "department": "销售运营部",
+        "title": "销售运营专员",
+        "responsibilities": [
+          "合同节奏管理"
+        ]
+      },
+      {
+        "contact_id": "CON-105",
+        "name": "林语薇",
+        "email": "linyuwei@company.com",
+        "phone": "13900139005",
+        "department": "法务部",
+        "title": "合同合规专员",
+        "responsibilities": [
+          "合同条款评审"
+        ]
+      },
+      {
+        "contact_id": "CON-106",
+        "name": "赵昊",
+        "email": "zhaohao@company.com",
+        "phone": "13900139006",
+        "department": "销售一部",
+        "title": "区域客户经理",
+        "responsibilities": [
+          "北区客户跟进",
+          "分支沟通协同"
+        ]
+      },
+      {
+        "contact_id": "CON-107",
+        "name": "许嘉宁",
+        "email": "xujianing@company.com",
+        "phone": "13900139007",
+        "department": "销售二部",
+        "title": "客户经理",
+        "responsibilities": [
+          "东区客户跟进",
+          "续约资料整理"
+        ]
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-201",
+        "name": "极光通信",
+        "tier": "vip",
+        "status": "active",
+        "contract_end": "2026-03-15",
+        "annual_revenue": 1520000,
+        "industry": "通信",
+        "sales_rep": "林思源",
+        "backup_owner": "周晓岚",
+        "notes": "多地分支：北区(NZ)、东区(EZ)。关键联系人缺失：销售负责人不在通讯录。"
+      },
+      {
+        "customer_id": "CUS-202",
+        "name": "星澜制造",
+        "tier": "vip",
+        "status": "active",
+        "contract_end": "2026-04-18",
+        "annual_revenue": 2380000,
+        "industry": "制造",
+        "sales_rep": "周晓岚",
+        "notes": "多地分支：北区(NZ)。关键联系人齐全：销售负责人在通讯录。"
+      },
+      {
+        "customer_id": "CUS-203",
+        "name": "海港物流",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-05-05",
+        "annual_revenue": 560000,
+        "industry": "物流",
+        "sales_rep": "孙凯",
+        "notes": "标准客户，多地分支：东区(EZ)。"
+      },
+      {
+        "customer_id": "CUS-204",
+        "name": "银桥金融",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-03-28",
+        "annual_revenue": 420000,
+        "industry": "金融",
+        "sales_rep": "陈子航",
+        "backup_owner": "许嘉宁",
+        "notes": "多地分支：东区(EZ)、分公司简称‘东分’。关键联系人缺失：销售负责人不在通讯录。"
+      },
+      {
+        "customer_id": "CUS-205",
+        "name": "云桥医疗",
+        "tier": "vip",
+        "status": "active",
+        "contract_end": "2026-05-25",
+        "annual_revenue": 1780000,
+        "industry": "医疗",
+        "sales_rep": "赵昊",
+        "notes": "多地分支：北区(NZ)。VIP客户，需分支维度沟通安排。"
+      },
+      {
+        "customer_id": "CUS-206",
+        "name": "绿洲能源",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-10-10",
+        "annual_revenue": 310000,
+        "industry": "能源",
+        "sales_rep": "马俊",
+        "notes": "不在60天窗口内，用于干扰。"
+      },
+      {
+        "customer_id": "CUS-207",
+        "name": "北辰教育",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-09-09",
+        "annual_revenue": 260000,
+        "industry": "教育",
+        "sales_rep": "孙凯",
+        "notes": "不在60天窗口内，用于干扰。"
+      },
+      {
+        "customer_id": "CUS-208",
+        "name": "泰合零售",
+        "tier": "vip",
+        "status": "active",
+        "contract_end": "2026-08-08",
+        "annual_revenue": 990000,
+        "industry": "零售",
+        "sales_rep": "程可欣",
+        "notes": "不在60天窗口内，用于干扰。"
+      },
+      {
+        "customer_id": "CUS-209",
+        "name": "天穹软件",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-07-01",
+        "annual_revenue": 330000,
+        "industry": "软件",
+        "sales_rep": "周晓岚",
+        "notes": "不在60天窗口内，用于干扰。"
+      },
+      {
+        "customer_id": "CUS-210",
+        "name": "蓝海科技",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-06-20",
+        "annual_revenue": 480000,
+        "industry": "科技",
+        "sales_rep": "程可欣",
+        "notes": "不在60天窗口内，用于干扰。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg-301",
+        "from": "sales@jiguangtx.com",
+        "to": "me@company.com",
+        "subject": "【北区】NZ 续约沟通安排确认（极光通信）",
+        "date": "2026-01-24T08:40:00Z",
+        "body": "您好，北区（NZ）这边希望尽快确认续约沟通安排。极光通信需要覆盖多分支：北区与东区同步推进。——极光通信-北区BD",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg-302",
+        "from": "biz@jiguangtx.com",
+        "to": "me@company.com",
+        "subject": "东区(EZ)进度反馈：分公司简称仅供内部使用（续约）",
+        "date": "2026-02-10T10:15:00Z",
+        "body": "您好，东区(EZ)这边完成了对接资料整理。公司全称在附件/内部系统中体现，邮件正文只写“东区/分公司简称”。目前关注：续约价格口径与服务边界。——极光通信-东区运营",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg-303",
+        "from": "meeting@xinglan-mfg.cn",
+        "to": "me@company.com",
+        "subject": "北区(NZ)：星澜制造续约需求梳理",
+        "date": "2026-02-02T03:20:00Z",
+        "body": "北区(NZ)已完成续约需求梳理：希望按服务包分档推进，并同步更新合同条款清单。——星澜制造-客户经理",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-304",
+        "from": "ops@xinglan-mfg.cn",
+        "to": "me@company.com",
+        "subject": "【北区】补充：星澜制造续约口径一致性（仅北区）",
+        "date": "2026-02-18T07:05:00Z",
+        "body": "补充说明：本次续约口径仅覆盖北区(NZ)。若需要跨区协同，请先在北区完成确认。——星澜制造-运营",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg-305",
+        "from": "support@haigang-log.cn",
+        "to": "me@company.com",
+        "subject": "东区(EZ)客户协同：海港物流续约窗口期",
+        "date": "2026-02-14T11:30:00Z",
+        "body": "东区(EZ)这边希望确认续约窗口期，海港物流计划在两周内完成内部评审。——海港物流-东区协调",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-306",
+        "from": "team@yinqiao-fin.com",
+        "to": "me@company.com",
+        "subject": "东分通知：银桥金融续约条款预审（仅东分关键点）",
+        "date": "2026-02-01T09:10:00Z",
+        "body": "东分/分公司简称口径：我们已提交续约条款预审清单。请安排对接人确认关键条款与回款节奏。——银桥金融-东区合规",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg-307",
+        "from": "hr@yinqiao-fin.com",
+        "to": "me@company.com",
+        "subject": "【EZ】跟进：分公司简称‘东分’沟通纪要（续约）",
+        "date": "2026-02-20T06:45:00Z",
+        "body": "EZ沟通纪要：续约推进中遇到两点疑问（价格条款与服务边界）。正文仅提及分公司简称：东分。——银桥金融-东区项目经理",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-308",
+        "from": "contact@yunqiao-med.com",
+        "to": "me@company.com",
+        "subject": "北区(NZ)续约推进：云桥医疗分部门会议请求",
+        "date": "2026-02-12T08:00:00Z",
+        "body": "北区(NZ)希望安排一次分部门线上会议，云桥医疗这边需要确认交付范围与支持响应时效。——云桥医疗-北区商务",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg-309",
+        "from": "admin@othercorp.com",
+        "to": "me@company.com",
+        "subject": "【北区】通知：服务变更公告（与客户无关）",
+        "date": "2026-02-11T12:10:00Z",
+        "body": "北区(NZ)服务变更公告，请相关团队关注。该邮件与具体客户无关，仅为通知。",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-310",
+        "from": "notify@river-edu.cn",
+        "to": "me@company.com",
+        "subject": "东区(EZ)培训：分公司简称东分参会名单",
+        "date": "2026-02-05T02:25:00Z",
+        "body": "东区(EZ)培训安排，分公司简称：东分。参会名单已发送至内部系统。",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg-311",
+        "from": "team@beiqu-demo.com",
+        "to": "me@company.com",
+        "subject": "【北区】沟通记录汇总：仅含简称NZ（干扰项）",
+        "date": "2026-02-16T09:55:00Z",
+        "body": "本邮件仅包含北区简称NZ与沟通记录汇总，未包含客户全称（干扰项）。",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg-312",
+        "from": "vendor@marketing-hub.cn",
+        "to": "me@company.com",
+        "subject": "关于续约资料模板更新（与客户无关）",
+        "date": "2026-02-08T04:00:00Z",
+        "body": "续约资料模板更新通知，请按最新模板提交资料。",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新增了“通讯录缺失+backup_owner替代检索”与“多地分支沟通关键词映射”逻辑，并要求VIP草稿显式包含分支维度沟通安排。",
+    "fixture_design_summary": [
+      "contacts.json 提供可命中的联系人：周晓岚、孙凯、程可欣、马俊、林语薇、赵昊、许嘉宁，并加入1条无关联系人干扰环境。",
+      "customers.json 共10个客户，其中active且在60天窗口内的5个：极光通信(CUS-201, VIP缺失主负责人)、星澜制造(CUS-202, VIP齐全)、海港物流(CUS-203, standard)、银桥金融(CUS-204, standard缺失主负责人)、云桥医疗(CUS-205, VIP齐全)。其余5个为干扰（不在窗口内）。",
+      "gmail/inbox.json 为极光通信与银桥金融、星澜制造、云桥医疗分别布置了带北区(NZ)/东区(EZ)/东分等关键词的邮件，并确保极光通信至少两封邮件跨不同日期、且一封包含公司全称另一封仅含分支简称以支持映射判断；同时加入至少5封与关键词相似但不对应客户的干扰邮件。"
+    ]
+  }
+}

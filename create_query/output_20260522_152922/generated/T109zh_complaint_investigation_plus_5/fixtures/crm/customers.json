@@ -1,0 +1,41 @@
+[
+  {
+    "customer_id": "CUS-701",
+    "name": "北辰制造",
+    "contact_person": "孙怡",
+    "email": "yisun@beichen-mfg.com",
+    "phone": "13900107101",
+    "industry": "制造业",
+    "tier": "vip",
+    "annual_revenue": 1800000,
+    "last_contact_date": "2026-04-10",
+    "status": "active",
+    "notes": "套餐变更：2026-03-18由“协作版”降为“基础版”（后台权限同步）。需核验变更后计费是否仍按协作版扣费"
+  },
+  {
+    "customer_id": "CUS-702",
+    "name": "星桥科技",
+    "contact_person": "周磊",
+    "email": "leizhou@xingqiao-tech.com",
+    "phone": "13900107102",
+    "industry": "科技",
+    "tier": "standard",
+    "annual_revenue": 420000,
+    "last_contact_date": "2026-04-02",
+    "status": "active",
+    "notes": "权限状态：2026-03-20由“协作版”降为“基础版”。客户声称已退款但需核验退款依据与后续是否仍扣费"
+  },
+  {
+    "customer_id": "CUS-703",
+    "name": "青岚教育（已注销）",
+    "contact_person": "许宁",
+    "email": "ningxu@qinglan-edu.com",
+    "phone": "13900107103",
+    "industry": "教育培训",
+    "tier": "standard",
+    "annual_revenue": 180000,
+    "last_contact_date": "2026-01-15",
+    "status": "inactive",
+    "notes": "账号已于2025-12-10注销。仍收到扣款通知邮件属于干扰/历史邮件误触发，需解释与关闭通知渠道"
+  }
+]

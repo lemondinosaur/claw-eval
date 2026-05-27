@@ -8,8 +8,12 @@ from pathlib import Path
 
 from ..models.trace import (
     AuditSnapshot,
+    CompactEvent,
     GradingResult,
     MediaLoad,
+    SystemPromptSnapshot,
+    TraceEvent,
+    ToolsSnapshot,
     ToolDispatch,
     TraceEnd,
     TraceMessage,
@@ -18,18 +22,21 @@ from ..models.trace import (
 
 _EVENT_MAP = {
     "trace_start": TraceStart,
+    "system_prompt": SystemPromptSnapshot,
+    "tools_snapshot": ToolsSnapshot,
     "message": TraceMessage,
     "tool_dispatch": ToolDispatch,
     "audit_snapshot": AuditSnapshot,
     "media_load": MediaLoad,
+    "compact": CompactEvent,
     "trace_end": TraceEnd,
     "grading_result": GradingResult,
 }
 
 
-def read_events(path: str | Path) -> Iterator[TraceStart | TraceMessage | ToolDispatch | AuditSnapshot | MediaLoad | TraceEnd]:
+def read_events(path: str | Path) -> Iterator[TraceEvent]:
     """Parse each JSONL line by its ``type`` discriminator field."""
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
             if not line:
@@ -49,7 +56,9 @@ def load_trace(
 
     Returns (start, messages, dispatches, media_events, end, audit_data).
     audit_data is keyed by service_name from AuditSnapshot events.
-    GradingResult events are silently skipped (they are post-hoc additions).
+    SystemPromptSnapshot, ToolsSnapshot, CompactEvent, and GradingResult
+    events are silently skipped here; they are stored for trace completeness,
+    but are not needed by current graders.
     """
     start: TraceStart | None = None
     messages: list[TraceMessage] = []
@@ -62,6 +71,10 @@ def load_trace(
         match event:
             case TraceStart():
                 start = event
+            case SystemPromptSnapshot():
+                pass
+            case ToolsSnapshot():
+                pass
             case TraceMessage():
                 messages.append(event)
             case ToolDispatch():
@@ -70,6 +83,8 @@ def load_trace(
                 audit_data[event.service_name] = event.audit_data
             case MediaLoad():
                 media_events.append(event)
+            case CompactEvent():
+                pass
             case TraceEnd():
                 end = event
             case GradingResult():

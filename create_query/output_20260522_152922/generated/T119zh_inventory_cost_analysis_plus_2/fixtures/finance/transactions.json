@@ -1,0 +1,104 @@
+[
+  {
+    "transaction_id": "FTR-9001",
+    "date": "2026-03-06",
+    "amount": 3000.0,
+    "currency": "USD",
+    "type": "采购",
+    "category": "网络硬件",
+    "description": "无线网卡模块 50个 × 60.00 USD/个；汇率 7.20 CNY/USD",
+    "status": "completed",
+    "reference": "PITEM-NWK-01",
+    "exchange_rate_to_cny": 7.2
+  },
+  {
+    "transaction_id": "FTR-9002",
+    "date": "2026-03-20",
+    "amount": 43200.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "网络硬件",
+    "description": "无线网卡模块 40个 × 1080.00 CNY/个",
+    "status": "completed",
+    "reference": "PITEM-NWK-01"
+  },
+  {
+    "transaction_id": "FTR-9003",
+    "date": "2026-03-09",
+    "amount": 12000.0,
+    "currency": "EUR",
+    "type": "采购",
+    "category": "办公耗材",
+    "description": "打印机硒鼓 20个 × 600.00 EUR/个；汇率 7.85 CNY/EUR",
+    "status": "completed",
+    "reference": "PITEM-DRUM-02",
+    "exchange_rate_to_cny": 7.85
+  },
+  {
+    "transaction_id": "FTR-9004",
+    "date": "2026-03-11",
+    "amount": 9800.0,
+    "currency": "EUR",
+    "type": "采购",
+    "category": "办公耗材",
+    "description": "打印机硒鼓 14个 × 700.00 EUR/个；汇率 7.00 CNY/EUR",
+    "status": "pending",
+    "reference": "PITEM-DRUM-02",
+    "exchange_rate_to_cny": 7.0
+  },
+  {
+    "transaction_id": "FTR-9005",
+    "date": "2026-03-14",
+    "amount": 15000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "门禁耗材",
+    "description": "门禁卡 100张 × 150.00 CNY/张",
+    "status": "completed",
+    "reference": "PITEM-ACC-99"
+  },
+  {
+    "transaction_id": "FTR-9006",
+    "date": "2026-03-16",
+    "amount": 17500.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "门禁耗材",
+    "description": "门禁卡 50张 × 350.00 CNY/张（干扰：reference 指向其他 product）",
+    "status": "completed",
+    "reference": "PITEM-ACC-OTHER-01"
+  },
+  {
+    "transaction_id": "FTR-9007",
+    "date": "2026-03-18",
+    "amount": 9200.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "网络硬件",
+    "description": "无线网卡模块 10个 × 500.00 CNY/个（干扰：reference 指向错误产品）",
+    "status": "completed",
+    "reference": "PITEM-WNW-999"
+  },
+  {
+    "transaction_id": "FTR-9008",
+    "date": "2026-03-17",
+    "amount": 5600.0,
+    "currency": "CNY",
+    "type": "服务",
+    "category": "维修",
+    "description": "网络设备维修服务费",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "FTR-9009",
+    "date": "2026-03-07",
+    "amount": 20160.0,
+    "currency": "USD",
+    "type": "采购",
+    "category": "网络硬件",
+    "description": "无线网卡模块 36个 × 560.00 USD/个；汇率 6.90 CNY/USD（注意：只用于换算验证的不同汇率干扰）",
+    "status": "completed",
+    "reference": "PITEM-NWK-02",
+    "exchange_rate_to_cny": 6.9
+  }
+]

@@ -1,0 +1,57 @@
+[
+  {
+    "contact_id": "CT-2101",
+    "name": "陈屹",
+    "department": "数据平台部",
+    "title": "后端技术负责人",
+    "email": "chenyi.data-platform@company.com",
+    "phone": "13900211001",
+    "location": "杭州",
+    "specialization": "数据平台/中台",
+    "notes": "负责数据同步链路、消息队列消费与中台服务的故障处置；对P0/P1数据一致性与延迟问题负技术牵头责任"
+  },
+  {
+    "contact_id": "CT-2102",
+    "name": "蒋岚",
+    "department": "技术管理部",
+    "title": "技术总监",
+    "email": "jianglan.tech-mgmt@company.com",
+    "phone": "13900211002",
+    "location": "上海总部",
+    "specialization": "技术管理/升级接收人",
+    "notes": "P0/P1升级接收点；负责跨团队协调并确认升级策略与对外承诺风险控制"
+  },
+  {
+    "contact_id": "CT-2103",
+    "name": "周晴",
+    "department": "客户成功部",
+    "title": "VIP客户经理",
+    "email": "zhouqing.cs@company.com",
+    "phone": "13900211003",
+    "location": "上海总部",
+    "specialization": "客户成功/VIP对接",
+    "notes": "负责VIP客户沟通、升级节奏跟进与客户侧需求汇总；会参与客户确认邮件的内容校对"
+  },
+  {
+    "contact_id": "CT-2104",
+    "name": "程昊",
+    "department": "运维与可靠性",
+    "title": "SRE值班",
+    "email": "chenghao.sre@company.com",
+    "phone": "13900211004",
+    "location": "深圳",
+    "specialization": "可靠性/监控与应急",
+    "notes": "负责观测指标收敛（队列积压、消费速率、重试失败率）与应急执行（熔断/降级/回滚）"
+  },
+  {
+    "contact_id": "CT-2105",
+    "name": "唐薇",
+    "department": "中台工程",
+    "title": "消息系统工程师",
+    "email": "tangwei.messaging@company.com",
+    "phone": "13900211005",
+    "location": "杭州",
+    "specialization": "消息队列/同步机制",
+    "notes": "负责消息队列与同步机制相关优化；可协助定位重试失败、死信队列、消费位点异常等"
+  }
+]

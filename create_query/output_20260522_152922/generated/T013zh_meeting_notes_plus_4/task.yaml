@@ -1,0 +1,72 @@
+task_id: T013zh_meeting_notes_plus_4
+task_name: 客户对齐会行动项与回执
+version: '1.0'
+category: productivity
+difficulty: easy
+tags:
+- general
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T013zh_meeting_notes_plus_4/fixtures/notes/meetings.json
+prompt:
+  text: 请把“客户对齐会议”的行动项整理成内部回执清单：从主纪要中提取所有对外承诺的交付事项，但要转换为内部可执行的工作（写清内部负责人/要做的动作/交付给客户的内容/时间或待定）。需要排除纪要中仅提及但没有形成承诺的“下次还要讨论事项”。如果出现“稍后再确认时间”这类表述，请标注为“待定（时间未确认）”并仍保留在列表中。最后将回执清单发送给该会议中标注为“核心”的内部参会人（只发核心，不要包含非核心成员）。
+  language: zh
+tools:
+- name: notes_list
+  description: 获取会议记录列表
+  input_schema:
+    type: object
+    properties:
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 10
+    required: []
+- name: notes_get
+  description: 根据ID获取会议记录详细内容
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 会议记录ID
+    required:
+    - note_id
+- name: notes_share
+  description: 将会议记录分享给其他人
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 会议记录ID
+      recipients:
+        type: array
+        items:
+          type: string
+        description: 接收人列表
+    required:
+    - note_id
+    - recipients
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: notes_share
+  url: http://localhost:9105/notes/share
+  method: POST
+sandbox_files:
+- fixtures/notes/meetings.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

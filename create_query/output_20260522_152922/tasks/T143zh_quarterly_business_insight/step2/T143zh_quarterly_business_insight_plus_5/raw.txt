@@ -1,0 +1,518 @@
+{
+  "task_id": "T143zh_quarterly_business_insight_plus_5",
+  "task_name": "季度口径校验与异常对账洞察",
+  "prompt_text": "Q1即将结束，请为Q1季度输出一份“口径校验与异常对账洞察”，目标是完成跨财务与CRM的收入口径校验，并解释异常背后的外部原因，同时给出Q2是否应调整收入/续费预测的结论与建议。\n\n要求：\n1）从财务系统拉取Q1交易，检查并归类异常：\n- 金额突增（相对前期明显倍数）\n- 同一客户短周期多笔（如两周内多笔集中）\n- 异常交易类型占比失衡（如一次性/订阅占比异常）\n- 带有退款/failed等状态的“结算重记/重算”线索\n- 一次性补记/补录（description体现补记/重算/渠道结算调整等）\n2）查看CRM中对应客户的合同状态与到期/争议/停用信息（active/停用/争议/到期），并与财务异常客户交叉核对，指出“财务显示有收入但CRM状态不一致”的风险点。\n3）浏览RSS中与以下主题相关的文章：行业价格战、监管核查、结算政策变化、支付渠道调整（或类似关键词）。结合这些外部线索解释异常可能原因。\n4）输出：\n- 异常客户清单（至少5个），每个包含：异常类型、财务证据、CRM证据、可能原因\n- 基于对账结果，给出Q2是否应调整收入/续费预测（上修/下修/保持不变）并说明所依据的“口径修正”（例如剔除一次性补记、对退款重记单独处理、对疑似滞后状态做保守折扣等）\n- 提供2条对账改进建议（需指向具体改进点，如核对字段、建立规则、增加校验频率、校验流程等）",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-1001",
+        "name": "北辰工业云",
+        "tier": "vip",
+        "status": "active",
+        "industry": "工业软件",
+        "annual_revenue": 1320000,
+        "contract_end": "2026-09-10",
+        "notes": "合同稳定，近期存在结算口径调整风险，需要对齐财务入账口径",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-1002",
+        "name": "星河电商集成",
+        "tier": "standard",
+        "status": "active",
+        "industry": "电子商务",
+        "annual_revenue": 610000,
+        "contract_end": "2026-07-05",
+        "notes": "季末集中扣费正常，但需确认是否含一次性补记",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-1003",
+        "name": "金桥物流云",
+        "tier": "vip",
+        "status": "active",
+        "industry": "物流运输",
+        "annual_revenue": 980000,
+        "contract_end": "2026-10-30",
+        "notes": "价格战期间续费谈判进行中，可能出现订阅与服务拆分入账差异",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-1004",
+        "name": "皓月制造集团",
+        "tier": "standard",
+        "status": "disputed",
+        "industry": "制造业",
+        "annual_revenue": 420000,
+        "contract_end": "2026-04-18",
+        "notes": "出现争议工单：部分发票与交付里程碑对不上，财务入账需保守处理",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-1005",
+        "name": "海潮教育科技",
+        "tier": "vip",
+        "status": "active",
+        "industry": "教育科技",
+        "annual_revenue": 760000,
+        "contract_end": "2026-08-22",
+        "notes": "预计续费但CRM可能存在更新滞后，需对齐财务失败后重记的时间线",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-1006",
+        "name": "长风媒体广告",
+        "tier": "standard",
+        "status": "churned",
+        "industry": "传媒广告",
+        "annual_revenue": 0,
+        "contract_end": "2026-01-25",
+        "notes": "已停用并流失，但财务仍可能存在退款后重记入账，需排查补记",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-1007",
+        "name": "安泰政务服务",
+        "tier": "standard",
+        "status": "inactive",
+        "industry": "政府服务",
+        "annual_revenue": 250000,
+        "contract_end": "2026-02-28",
+        "notes": "合同到期未续，CRM标记停用但需核对是否存在渠道支付调整导致的延后扣费",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-1008",
+        "name": "云栈零售平台",
+        "tier": "standard",
+        "status": "active",
+        "industry": "零售电商",
+        "annual_revenue": 340000,
+        "contract_end": "2026-06-12",
+        "notes": "疑似一次性结算占比异常，需核对type与计费项目映射",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-1009",
+        "name": "极光网络安全",
+        "tier": "vip",
+        "status": "active",
+        "industry": "网络安全",
+        "annual_revenue": 1140000,
+        "contract_end": "2026-11-08",
+        "notes": "订阅为主，但存在一次性补录导致的收入结构偏差可能",
+        "contact_person": ""
+      },
+      {
+        "customer_id": "CUS-1010",
+        "name": "晨曦医疗信息",
+        "tier": "standard",
+        "status": "disputed",
+        "industry": "医疗信息化",
+        "annual_revenue": 300000,
+        "contract_end": "2026-05-30",
+        "notes": "存在争议与部分退款记录，需对齐财务退款重记与CRM合同状态",
+        "contact_person": ""
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2001",
+        "customer_id": "CUS-1001",
+        "amount": 98000,
+        "type": "subscription",
+        "date": "2026-01-12",
+        "status": "completed",
+        "description": "1月订阅费-工业云平台"
+      },
+      {
+        "transaction_id": "TXN-2002",
+        "customer_id": "CUS-1001",
+        "amount": 102000,
+        "type": "subscription",
+        "date": "2026-02-10",
+        "status": "completed",
+        "description": "2月订阅费-工业云平台"
+      },
+      {
+        "transaction_id": "TXN-2003",
+        "customer_id": "CUS-1001",
+        "amount": 265000,
+        "type": "subscription",
+        "date": "2026-03-09",
+        "status": "completed",
+        "description": "3月订阅费+扩容包（入账金额明显上浮）"
+      },
+      {
+        "transaction_id": "TXN-2004",
+        "customer_id": "CUS-1001",
+        "amount": 132000,
+        "type": "one_time",
+        "date": "2026-03-22",
+        "status": "refunded",
+        "description": "合规整改补偿（退款后重记风险：需核对退款/重算口径）"
+      },
+      {
+        "transaction_id": "TXN-2005",
+        "customer_id": "CUS-1002",
+        "amount": 52000,
+        "type": "subscription",
+        "date": "2026-01-18",
+        "status": "completed",
+        "description": "1月基础订阅"
+      },
+      {
+        "transaction_id": "TXN-2006",
+        "customer_id": "CUS-1002",
+        "amount": 56000,
+        "type": "subscription",
+        "date": "2026-02-16",
+        "status": "completed",
+        "description": "2月基础订阅"
+      },
+      {
+        "transaction_id": "TXN-2007",
+        "customer_id": "CUS-1002",
+        "amount": 56000,
+        "type": "subscription",
+        "date": "2026-03-05",
+        "status": "completed",
+        "description": "3月基础订阅"
+      },
+      {
+        "transaction_id": "TXN-2008",
+        "customer_id": "CUS-1002",
+        "amount": 118000,
+        "type": "one_time",
+        "date": "2026-03-11",
+        "status": "completed",
+        "description": "一次性接口开通（价格战期间促销打包）"
+      },
+      {
+        "transaction_id": "TXN-2009",
+        "customer_id": "CUS-1003",
+        "amount": 74000,
+        "type": "subscription",
+        "date": "2026-01-24",
+        "status": "completed",
+        "description": "1月订阅费-运管平台"
+      },
+      {
+        "transaction_id": "TXN-2010",
+        "customer_id": "CUS-1003",
+        "amount": 76000,
+        "type": "subscription",
+        "date": "2026-02-22",
+        "status": "completed",
+        "description": "2月订阅费-运管平台"
+      },
+      {
+        "transaction_id": "TXN-2011",
+        "customer_id": "CUS-1003",
+        "amount": 77000,
+        "type": "subscription",
+        "date": "2026-03-03",
+        "status": "completed",
+        "description": "3月订阅费-运管平台"
+      },
+      {
+        "transaction_id": "TXN-2012",
+        "customer_id": "CUS-1003",
+        "amount": 91000,
+        "type": "subscription",
+        "date": "2026-03-10",
+        "status": "completed",
+        "description": "短期追加模块扣费（同客户两周内多笔集中）"
+      },
+      {
+        "transaction_id": "TXN-2013",
+        "customer_id": "CUS-1003",
+        "amount": 88500,
+        "type": "subscription",
+        "date": "2026-03-18",
+        "status": "completed",
+        "description": "短期追加模块扣费（两周内多笔集中）"
+      },
+      {
+        "transaction_id": "TXN-2014",
+        "customer_id": "CUS-1004",
+        "amount": 41000,
+        "type": "subscription",
+        "date": "2026-01-09",
+        "status": "completed",
+        "description": "1月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2015",
+        "customer_id": "CUS-1004",
+        "amount": 42000,
+        "type": "subscription",
+        "date": "2026-02-08",
+        "status": "failed",
+        "description": "2月订阅费扣款失败（支付失败：需确认是否重试成功）"
+      },
+      {
+        "transaction_id": "TXN-2016",
+        "customer_id": "CUS-1004",
+        "amount": 99000,
+        "type": "subscription",
+        "date": "2026-03-02",
+        "status": "completed",
+        "description": "重试成功+补差重算（补录/重算口径需校验）"
+      },
+      {
+        "transaction_id": "TXN-2017",
+        "customer_id": "CUS-1005",
+        "amount": 63000,
+        "type": "subscription",
+        "date": "2026-01-21",
+        "status": "completed",
+        "description": "1月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2018",
+        "customer_id": "CUS-1005",
+        "amount": 64500,
+        "type": "subscription",
+        "date": "2026-02-20",
+        "status": "completed",
+        "description": "2月订阅费"
+      },
+      {
+        "transaction_id": "TXN-2019",
+        "customer_id": "CUS-1005",
+        "amount": 64000,
+        "type": "subscription",
+        "date": "2026-03-07",
+        "status": "failed",
+        "description": "3月订阅费扣款失败（渠道切换影响：需结合外部渠道调整解释）"
+      },
+      {
+        "transaction_id": "TXN-2020",
+        "customer_id": "CUS-1005",
+        "amount": 128000,
+        "type": "subscription",
+        "date": "2026-03-20",
+        "status": "completed",
+        "description": "失败后重记成功（同月集中入账：重记/口径差异风险）"
+      },
+      {
+        "transaction_id": "TXN-2021",
+        "customer_id": "CUS-1006",
+        "amount": 26000,
+        "type": "one_time",
+        "date": "2026-01-15",
+        "status": "completed",
+        "description": "年中结算补录（客户已停用但财务仍入账：需对账）"
+      },
+      {
+        "transaction_id": "TXN-2022",
+        "customer_id": "CUS-1006",
+        "amount": 41000,
+        "type": "subscription",
+        "date": "2026-02-14",
+        "status": "completed",
+        "description": "退款后重记订阅（description含重记）"
+      },
+      {
+        "transaction_id": "TXN-2023",
+        "customer_id": "CUS-1007",
+        "amount": 30000,
+        "type": "subscription",
+        "date": "2026-01-28",
+        "status": "completed",
+        "description": "到期前最后一次订阅扣费"
+      },
+      {
+        "transaction_id": "TXN-2024",
+        "customer_id": "CUS-1007",
+        "amount": 30500,
+        "type": "subscription",
+        "date": "2026-03-06",
+        "status": "completed",
+        "description": "渠道调整后延后扣费（CRM已停用：需校验字段口径）"
+      },
+      {
+        "transaction_id": "TXN-2025",
+        "customer_id": "CUS-1008",
+        "amount": 9000,
+        "type": "subscription",
+        "date": "2026-01-06",
+        "status": "completed",
+        "description": "小额基础订阅"
+      },
+      {
+        "transaction_id": "TXN-2026",
+        "customer_id": "CUS-1008",
+        "amount": 83000,
+        "type": "one_time",
+        "date": "2026-02-27",
+        "status": "completed",
+        "description": "一次性清算结算（一次性占比异常偏高）"
+      },
+      {
+        "transaction_id": "TXN-2027",
+        "customer_id": "CUS-1008",
+        "amount": 79000,
+        "type": "one_time",
+        "date": "2026-03-14",
+        "status": "completed",
+        "description": "一次性清算结算（集中补记/重算口径待确认）"
+      },
+      {
+        "transaction_id": "TXN-2028",
+        "customer_id": "CUS-1009",
+        "amount": 95000,
+        "type": "subscription",
+        "date": "2026-01-11",
+        "status": "completed",
+        "description": "1月订阅费-安全防护"
+      },
+      {
+        "transaction_id": "TXN-2029",
+        "customer_id": "CUS-1009",
+        "amount": 96000,
+        "type": "subscription",
+        "date": "2026-02-11",
+        "status": "completed",
+        "description": "2月订阅费-安全防护"
+      },
+      {
+        "transaction_id": "TXN-2030",
+        "customer_id": "CUS-1009",
+        "amount": 220000,
+        "type": "one_time",
+        "date": "2026-03-27",
+        "status": "completed",
+        "description": "监管核查整改专项补录（一次性补记：需调整预测口径）"
+      },
+      {
+        "transaction_id": "TXN-2031",
+        "customer_id": "CUS-1010",
+        "amount": 37000,
+        "type": "subscription",
+        "date": "2026-01-20",
+        "status": "completed",
+        "description": "1月订阅费-医疗信息平台"
+      },
+      {
+        "transaction_id": "TXN-2032",
+        "customer_id": "CUS-1010",
+        "amount": 39000,
+        "type": "subscription",
+        "date": "2026-02-19",
+        "status": "completed",
+        "description": "2月订阅费-医疗信息平台"
+      },
+      {
+        "transaction_id": "TXN-2033",
+        "customer_id": "CUS-1010",
+        "amount": 52000,
+        "type": "subscription",
+        "date": "2026-03-08",
+        "status": "refunded",
+        "description": "发票争议退款（退款后重记需谨慎：与CRM争议状态交叉核对）"
+      },
+      {
+        "transaction_id": "TXN-2034",
+        "customer_id": "CUS-1010",
+        "amount": 104000,
+        "type": "subscription",
+        "date": "2026-03-25",
+        "status": "completed",
+        "description": "退款后重算补差重记（财务看似回补但口径需分拆）"
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-3001",
+        "title": "2026年Q1结算政策更新：退款后重记的入账口径调整",
+        "summary": "监管与审计要求下，结算系统更新：退款状态可能触发二次入账重记。建议在预测时将退款后重记单独拆分，不与正常订阅收入混算。",
+        "tags": [
+          "结算政策变化",
+          "退款重记",
+          "审计"
+        ],
+        "url": "https://finance-digest.example.com/3001",
+        "content": "2026年Q1结算政策更新：退款状态可能触发二次入账重记。建议将退款后重记单独拆分，避免与正常订阅收入混算。",
+        "category": "财务,结算政策变化,退款重记",
+        "source": "财务合规快讯",
+        "published_at": "2026-03-21T00:00:00Z",
+        "word_count": 84
+      },
+      {
+        "article_id": "RSS-3002",
+        "title": "支付渠道切换导致扣款失败后延后成功：对账窗口需放宽",
+        "summary": "部分支付通道在Q1出现切换，短期可能表现为failed后在后续批次补扣成功。企业对账时应对齐“交易发起时间 vs 入账时间”的差异。",
+        "tags": [
+          "支付渠道调整",
+          "failed",
+          "对账窗口"
+        ],
+        "url": "https://payments-weekly.example.com/3002",
+        "content": "支付渠道切换可能导致failed后在后续批次补扣成功。对账需对齐交易发起时间与入账时间差异。",
+        "category": "支付,支付渠道调整,对账",
+        "source": "支付周刊",
+        "published_at": "2026-03-17T00:00:00Z",
+        "word_count": 61
+      },
+      {
+        "article_id": "RSS-3003",
+        "title": "行业价格战加剧：订阅与一次性服务拆分更频繁",
+        "summary": "价格战期间，部分客户倾向于将优惠以一次性模块/扩容包形式结算，导致一次性收入占比短期抬升。需结合CRM合同条款拆分判断可持续性。",
+        "tags": [
+          "价格战",
+          "一次性/订阅拆分",
+          "续费"
+        ],
+        "url": "https://industry-brief.example.com/3003",
+        "content": "价格战期间，优惠可能以一次性模块/扩容包形式结算，导致一次性收入占比短期抬升。需结合合同条款拆分判断续费可持续性。",
+        "category": "行业,价格战,收入拆分",
+        "source": "行业简报",
+        "published_at": "2026-03-19T00:00:00Z",
+        "word_count": 72
+      },
+      {
+        "article_id": "RSS-3004",
+        "title": "监管核查升温：合规整改专项补录增加，一次性补记比例上升",
+        "summary": "监管核查趋严，企业合规整改费用更集中入账，表现为一次性补录增长。预测时应把整改专项从订阅收入中剔除。",
+        "tags": [
+          "监管核查",
+          "合规整改",
+          "一次性补记"
+        ],
+        "url": "https://regwatch.example.com/3004",
+        "content": "监管核查升温使合规整改费用更集中入账，表现为一次性补录增加。预测时应剔除整改专项。",
+        "category": "监管,监管核查,一次性补记",
+        "source": "监管观察",
+        "published_at": "2026-03-23T00:00:00Z",
+        "word_count": 66
+      },
+      {
+        "article_id": "RSS-3005",
+        "title": "结算与渠道联动：到期未续客户可能仍出现延后结算",
+        "summary": "在结算系统与渠道对接调整期间，到期未续客户仍可能发生延后结算入账。建议以CRM合同到期时间为准，并对延后扣费做标记规则。",
+        "tags": [
+          "结算政策变化",
+          "到期未续",
+          "延后结算"
+        ],
+        "url": "https://ops-insight.example.com/3005",
+        "content": "结算系统与渠道对接调整期间，到期未续客户仍可能发生延后结算入账。建议以合同到期时间为准做标记规则。",
+        "category": "运营,结算政策变化,延后结算",
+        "source": "运营洞察",
+        "published_at": "2026-03-16T00:00:00Z",
+        "word_count": 58
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题偏收入趋势与预测，本题新增核心：先做跨系统口径校验与异常对账，再决定Q2预测是否应因补记/退款重记/状态滞后等口径问题进行上/下修，并给出对账改进建议。",
+    "fixture_design_summary": [
+      "finance.transactions.json 生成Q1交易（覆盖短周期多笔、金额突增、failed/退款、一次性补记、一次性/订阅占比失衡等异常类型），并确保至少5个异常客户可被抽取。",
+      "crm.customers.json 为上述异常客户设置对应的合同状态（active/停用/inactive/争议/disputed/流失churned），并加入至少2处“CRM状态不一致但财务仍入账”的对账冲突客户。",
+      "rss.feeds.json 提供与异常类型强相关的外部解释线索：结算政策变化导致退款重记、支付渠道调整导致failed后延后成功、价格战导致一次性/订阅拆分、监管核查导致一次性补记、到期未续可能延后结算。",
+      "跨fixture实体引用一致：finance中的 customer_id 与crm中的 customer_id 对应；rss article_id 独立用于检索外部原因，不与客户直接绑定。"
+    ]
+  }
+}

@@ -1,0 +1,80 @@
+[
+  {
+    "product_id": "PRD-CL-A-19",
+    "name": "冷链检测试剂A（CL-A-24Q2-19）",
+    "category": "冷链检测试剂A",
+    "quantity": 0,
+    "unit": "盒",
+    "unit_cost": 5666.67,
+    "location": "冷链仓1-02（低温冻结区）",
+    "reorder_level": 90,
+    "supplier": "青岚生物科技（冷链源）",
+    "last_restock_date": "2026-03-25",
+    "notes": "库存已清零；该批次对应供应商合规暂停直至放行。"
+  },
+  {
+    "product_id": "PRD-CL-B-07",
+    "name": "冷链检测试剂B（CL-B-24Q2-07）",
+    "category": "冷链检测试剂B",
+    "quantity": 12,
+    "unit": "盒",
+    "unit_cost": 6000.0,
+    "location": "冷链仓2-01（保鲜区）",
+    "reorder_level": 60,
+    "supplier": "青岚生物科技（冷链源）",
+    "last_restock_date": "2026-04-01",
+    "notes": "低于安全库存（12<60），可用量不足；供应侧等待放行。"
+  },
+  {
+    "product_id": "PRD-AUTO-IMM-33",
+    "name": "自动化配套试剂（替代兼容）IMM-33",
+    "category": "冷链检测试剂配套",
+    "quantity": 220,
+    "unit": "盒",
+    "unit_cost": 2100.0,
+    "location": "常温仓3-05",
+    "reorder_level": 100,
+    "supplier": "恒谱生物供应链",
+    "last_restock_date": "2026-04-10",
+    "notes": "库存充足，可用于部分检测流程的替代方案（需客户确认兼容性）。"
+  },
+  {
+    "product_id": "PRD-CL-ALT-884",
+    "name": "冷链替代试剂（ALT-884）",
+    "category": "冷链替代试剂",
+    "quantity": 95,
+    "unit": "盒",
+    "unit_cost": 3100.0,
+    "location": "冷链仓1-03",
+    "reorder_level": 50,
+    "supplier": "恒谱生物供应链",
+    "last_restock_date": "2026-04-14",
+    "notes": "库存偏稳，可作为应急替代；不对应CL-A/CL-B原批次。"
+  },
+  {
+    "product_id": "PRD-PACK-4412",
+    "name": "冷媒袋（4412）",
+    "category": "冷媒耗材",
+    "quantity": 650,
+    "unit": "个",
+    "unit_cost": 18.5,
+    "location": "包装仓5-02",
+    "reorder_level": 300,
+    "supplier": "海棠医疗耗材",
+    "last_restock_date": "2026-04-14",
+    "notes": "库存充足，用于干扰工单的包装索赔链。"
+  },
+  {
+    "product_id": "PRD-QC-KIT-12",
+    "name": "质量控制校准包（QC-KIT-12）",
+    "category": "实验室耗材",
+    "quantity": 40,
+    "unit": "套",
+    "unit_cost": 720.0,
+    "location": "常温仓3-01",
+    "reorder_level": 30,
+    "supplier": "海棠医疗耗材",
+    "last_restock_date": "2026-04-09",
+    "notes": "数量正常；与冷链断供无直接对应。"
+  }
+]

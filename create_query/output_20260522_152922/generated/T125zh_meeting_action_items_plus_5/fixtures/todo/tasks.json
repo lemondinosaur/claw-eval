@@ -1,0 +1,144 @@
+[
+  {
+    "task_id": "TODO-8201",
+    "title": "采集夜间批处理性能基线",
+    "description": "完成夜间批处理性能基线采集（含采样与汇总结果），对齐后端性能组口径",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-05-10",
+    "assignee": "魏航",
+    "tags": [
+      "性能",
+      "夜间批处理"
+    ]
+  },
+  {
+    "task_id": "TODO-8202",
+    "title": "慢查询治理优先级方案（Top清单）",
+    "description": "识别慢查询Top清单并提出治理优先级方案；动作范围覆盖治理分组与后续落地计划",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-05-12",
+    "assignee": "林柯",
+    "tags": [
+      "性能",
+      "慢查询治理"
+    ]
+  },
+  {
+    "task_id": "TODO-8203",
+    "title": "指标口径对齐：压测指标说明",
+    "description": "完成压测脚本与指标口径对齐说明（含字段定义与阈值引用）",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-09",
+    "assignee": "陈澄",
+    "tags": [
+      "性能",
+      "口径"
+    ]
+  },
+  {
+    "task_id": "TODO-8204",
+    "title": "梳理慢查询治理前后指标口径",
+    "description": "慢查询治理前后指标对比口径梳理，用于数据分析看板与复盘",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-05-12",
+    "assignee": "周澜",
+    "tags": [
+      "数据",
+      "慢查询治理"
+    ]
+  },
+  {
+    "task_id": "TODO-8205",
+    "title": "夜间窗口报表字段映射与校验用例",
+    "description": "完成夜间窗口报表字段映射与校验用例，保证报表一致性",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-05-11",
+    "assignee": "顾宁",
+    "tags": [
+      "报表",
+      "口径"
+    ]
+  },
+  {
+    "task_id": "TODO-8206",
+    "title": "回滚预案演练（与升级节奏解耦）",
+    "description": "针对夜间切换制定回滚预案演练计划；不直接覆盖灰度触发策略细节",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-05-11",
+    "assignee": "韩屿",
+    "tags": [
+      "运营",
+      "预案"
+    ]
+  },
+  {
+    "task_id": "TODO-8207",
+    "title": "数据库索引回归测试",
+    "description": "执行数据库索引回归测试以验证变更稳定性（与本次行动项口径无关）",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-05-07",
+    "assignee": "沈默",
+    "tags": [
+      "测试"
+    ]
+  },
+  {
+    "task_id": "TODO-8208",
+    "title": "建立慢查询治理效果度量看板查询模板",
+    "description": "建立“慢查询治理效果”度量看板的查询模板与复用视图",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-05-13",
+    "assignee": "叶琛",
+    "tags": [
+      "看板",
+      "慢查询治理"
+    ]
+  },
+  {
+    "task_id": "TODO-8209",
+    "title": "运营侧沟通话术与值守SOP（草案）",
+    "description": "完成运营侧沟通话术与值守SOP草案，并同步到值守群",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-05-11",
+    "assignee": "韩屿",
+    "tags": [
+      "运营",
+      "SOP"
+    ]
+  },
+  {
+    "task_id": "TODO-8210",
+    "title": "夜间窗口切换策略（灰度与回滚）",
+    "description": "制定夜间窗口切换策略，含灰度策略与回滚触发条件（覆盖运营落地）",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-05-14",
+    "assignee": "王歆",
+    "tags": [
+      "运营",
+      "窗口策略"
+    ]
+  },
+  {
+    "task_id": "TODO-8211",
+    "title": "慢查询治理影响范围评估",
+    "description": "评估慢查询治理对核心业务报表的影响范围与变更风险点",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-05-12",
+    "assignee": "沈默",
+    "tags": [
+      "运营",
+      "报表影响"
+    ]
+  }
+]

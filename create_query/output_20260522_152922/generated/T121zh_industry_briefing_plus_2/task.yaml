@@ -1,0 +1,164 @@
+task_id: T121zh_industry_briefing_plus_2
+task_name: 企业AI采购预算情报 Brief
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/articles
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T121zh_industry_briefing_plus_2/fixtures/rss/feeds.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T121zh_industry_briefing_plus_2/fixtures/gmail/inbox.json
+prompt:
+  text: '采购经理让你整理一份“企业AI采购预算情报”用于周会（不发送，只保存邮件草稿）：
+
+
+    1）从RSS源筛选本周与“企业买AI/算力成本/推理计费/费用口径/国产化替代/供应商竞争/招标动态”相关的文章；
+
+    2）按以下三类分类整理：
+
+    - A. 预算与成本（算力与推理费用、成本结构、单位计费口径、预算测算口径）
+
+    - B. 采购策略（招标/合同条款、SLA、谈判要点、计费机制对齐、供应商竞争）
+
+    - C. 国产化与替代（国产芯片/国产模型/迁移与替代方案、性能-成本权衡、风险）
+
+    3）每类输出3个“会议可用要点”（共9条）。每条要点必须包含：
+
+    - 若文章含明确数字/报价口径：提炼数字并解释口径（例如：推理单价、吞吐/延迟指标、用量单位、成本结构如何计算）；
+
+    - 若文章缺数字：给出可操作的“向供应商索取哪些报价/计费字段，以及如何据此评估/测算/对比”的检查清单与计算思路。
+
+    4）生成邮件草稿：
+
+    - 标题以“预算情报”开头
+
+    - 正文包含三栏要点清单（A/B/C），并体现“可量化口径 + 可谈判要点”的周会用途。
+
+    - 只调用保存草稿接口，不要直接发送。'
+  language: zh
+tools:
+- name: rss_list_articles
+  description: 获取RSS文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_name:
+        type: string
+        description: 按RSS源筛选
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

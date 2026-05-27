@@ -1,0 +1,330 @@
+{
+  "task_id": "T137zh_restock_chain_check_plus_2",
+  "task_name": "多区域补货一致性检查",
+  "prompt_text": "自动补货系统在不同仓区的补货执行不一致。请你排查并输出：\n\n1）列出所有补货定时任务，并重点关注失败/被禁用任务及其region_tag标签（如EAST/SOUTH/OVERSEA）；\n2）对失败任务获取详情，归纳失败类型：失败/被禁用/任务执行报错；\n3）检查与这些任务关联的API集成配置：确认是否存在区域路由错误、集成状态异常或凭证问题；\n4）根据库存数据，找出在对应仓区维度下低于安全线（reorder_level）的产品；如果库存由多个仓区汇总，请在报告中明确你使用的判定口径（按仓区字段的quantity与安全线比较）；\n5）输出3条故障链：两条跨区域、一条单区域。要求：\n- 跨区域两条链的region_tag不同，但根因同一类（同一集成在不同区域错误率飙升/路由异常）；\n- 单区域链为SOUTH区域因错误绑定到inactive集成导致的问题。\n\n报告中每条链都要包含：任务ID与region_tag、失败原因摘要、根因定位（对齐到集成异常字段/路由字段）、以及至少2个受影响的低于安全线产品与对应仓区判定口径；最后给出可执行的修复建议（包含调整区域路由、恢复集成启用/修复绑定、以及补货任务的重试/启用策略）。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-EAST-091",
+        "name": "海量渠道路由聚合器-EAST",
+        "status": "active",
+        "endpoint": "https://api.route-aggregator-east.example.com/v3",
+        "api_key": "sk-east-agg-91-NEW",
+        "error_rate": 0.46,
+        "credentials_expired": false,
+        "notes": "EAST区域路由命中错误后错误率持续升高",
+        "service": "region_routing_proxy",
+        "last_verified": "2026-04-18T00:00:00Z",
+        "monthly_calls": 12034,
+        "region_scope": [
+          "EAST",
+          "OVERSEA"
+        ],
+        "misrouted_to_region": "WEST",
+        "routing_rule_version": "2026.04.02"
+      },
+      {
+        "integration_id": "INT-EAST-092",
+        "name": "海量渠道路由聚合器-OVERSEA",
+        "status": "active",
+        "endpoint": "https://api.route-aggregator-oversea.example.com/v3",
+        "api_key": "sk-over-agg-92-NEW",
+        "error_rate": 0.41,
+        "credentials_expired": false,
+        "notes": "OVERSEA区域同源集成发生路由错配，错误率飙升",
+        "service": "region_routing_proxy",
+        "last_verified": "2026-04-18T00:00:00Z",
+        "monthly_calls": 9820,
+        "region_scope": [
+          "OVERSEA",
+          "EAST"
+        ],
+        "misrouted_to_region": "WEST",
+        "routing_rule_version": "2026.04.02"
+      },
+      {
+        "integration_id": "INT-SOUTH-211",
+        "name": "南区补货供应商-B2B",
+        "status": "inactive",
+        "endpoint": "https://api.south-b2b-merchant.example.com/v1",
+        "api_key": "sk-south-b2b-211-OLD",
+        "error_rate": 0,
+        "credentials_expired": false,
+        "notes": "南区集成已被管理员停用（inactive），仍被部分任务绑定",
+        "service": "supplier_api",
+        "last_verified": "2026-03-30T00:00:00Z",
+        "monthly_calls": 410,
+        "region_scope": [
+          "SOUTH"
+        ]
+      },
+      {
+        "integration_id": "INT-NORTH-031",
+        "name": "北区常规供应商-NORTH",
+        "status": "active",
+        "endpoint": "https://api.north-regular.example.com/v2",
+        "api_key": "sk-north-regular-031-OK",
+        "error_rate": 0.03,
+        "credentials_expired": false,
+        "notes": "运行稳定",
+        "service": "supplier_api",
+        "last_verified": "2026-04-18T00:00:00Z",
+        "monthly_calls": 22011,
+        "region_scope": [
+          "NORTH"
+        ]
+      },
+      {
+        "integration_id": "INT-WEST-055",
+        "name": "西区兜底供应商-WEST",
+        "status": "active",
+        "endpoint": "https://api.west-fallback.example.com/v1",
+        "api_key": "sk-west-fallback-055-OK",
+        "error_rate": 0.08,
+        "credentials_expired": false,
+        "notes": "兜底链路，错误率偏低",
+        "service": "supplier_api",
+        "last_verified": "2026-04-18T00:00:00Z",
+        "monthly_calls": 6050,
+        "region_scope": [
+          "WEST"
+        ]
+      },
+      {
+        "integration_id": "INT-OVERSEA-077",
+        "name": "海外增补供应商-OVERSEA-SVC",
+        "status": "active",
+        "endpoint": "https://api.oversea-addon.example.com/v1",
+        "api_key": "sk-oversea-addon-077-OK",
+        "error_rate": 0.02,
+        "credentials_expired": false,
+        "notes": "海外增补正常",
+        "service": "supplier_api",
+        "last_verified": "2026-04-18T00:00:00Z",
+        "monthly_calls": 1430,
+        "region_scope": [
+          "OVERSEA"
+        ]
+      },
+      {
+        "integration_id": "INT-EAST-101",
+        "name": "东区备份供应商-EAST-BK",
+        "status": "active",
+        "endpoint": "https://api.east-backup.example.com/v2",
+        "api_key": "sk-east-backup-101-OK",
+        "error_rate": 0.06,
+        "credentials_expired": false,
+        "notes": "备份链路，整体健康",
+        "service": "supplier_api",
+        "last_verified": "2026-04-18T00:00:00Z",
+        "monthly_calls": 7810,
+        "region_scope": [
+          "EAST"
+        ]
+      },
+      {
+        "integration_id": "INT-CREDS-333",
+        "name": "认证风险供应商-EDGE",
+        "status": "active",
+        "endpoint": "https://api.edge-auth-risk.example.com/v1",
+        "api_key": "sk-edge-auth-333-EXPIRED",
+        "error_rate": 0.12,
+        "credentials_expired": true,
+        "notes": "API密钥过期，可能触发AuthenticationError（干扰用）",
+        "service": "supplier_api",
+        "last_verified": "2026-04-01T00:00:00Z",
+        "monthly_calls": 3200,
+        "region_scope": [
+          "EAST",
+          "SOUTH"
+        ]
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "INV-EA-501",
+        "name": "速干洗手液 500ml",
+        "category": "清洁用品",
+        "warehouse_region": "EAST",
+        "quantity": 8,
+        "unit": "瓶",
+        "reorder_level": 20,
+        "supplier_integration": "INT-EAST-091",
+        "last_restock": "2026-04-10"
+      },
+      {
+        "product_id": "INV-EA-502",
+        "name": "一次性洗漱巾 30片",
+        "category": "清洁用品",
+        "warehouse_region": "EAST",
+        "quantity": 14,
+        "unit": "盒",
+        "reorder_level": 25,
+        "supplier_integration": "INT-EAST-091",
+        "last_restock": "2026-04-09"
+      },
+      {
+        "product_id": "INV-EA-503",
+        "name": "厨房纸巾加厚 6卷装",
+        "category": "清洁用品",
+        "warehouse_region": "EAST",
+        "quantity": 19,
+        "unit": "提",
+        "reorder_level": 20,
+        "supplier_integration": "INT-EAST-091",
+        "last_restock": "2026-04-08"
+      },
+      {
+        "product_id": "INV-ES-601",
+        "name": "海运通用封箱胶带 48mm",
+        "category": "文具",
+        "warehouse_region": "OVERSEA",
+        "quantity": 12,
+        "unit": "卷",
+        "reorder_level": 30,
+        "supplier_integration": "INT-EAST-092",
+        "last_restock": "2026-04-11"
+      },
+      {
+        "product_id": "INV-ES-602",
+        "name": "耐磨记号笔 2支",
+        "category": "文具",
+        "warehouse_region": "OVERSEA",
+        "quantity": 6,
+        "unit": "组",
+        "reorder_level": 15,
+        "supplier_integration": "INT-EAST-092",
+        "last_restock": "2026-04-10"
+      },
+      {
+        "product_id": "INV-ES-603",
+        "name": "防水标签贴 100张",
+        "category": "文具",
+        "warehouse_region": "OVERSEA",
+        "quantity": 9,
+        "unit": "包",
+        "reorder_level": 18,
+        "supplier_integration": "INT-EAST-092",
+        "last_restock": "2026-04-07"
+      },
+      {
+        "product_id": "INV-SA-701",
+        "name": "南区一次性餐具套装A",
+        "category": "耗材",
+        "warehouse_region": "SOUTH",
+        "quantity": 3,
+        "unit": "套",
+        "reorder_level": 10,
+        "supplier_integration": "INT-SOUTH-211",
+        "last_restock": "2026-04-06"
+      },
+      {
+        "product_id": "INV-SA-702",
+        "name": "南区可降解垃圾袋 40L",
+        "category": "耗材",
+        "warehouse_region": "SOUTH",
+        "quantity": 7,
+        "unit": "卷",
+        "reorder_level": 18,
+        "supplier_integration": "INT-SOUTH-211",
+        "last_restock": "2026-04-05"
+      },
+      {
+        "product_id": "INV-SA-703",
+        "name": "南区医用酒精棉 50片",
+        "category": "耗材",
+        "warehouse_region": "SOUTH",
+        "quantity": 4,
+        "unit": "包",
+        "reorder_level": 9,
+        "supplier_integration": "INT-SOUTH-211",
+        "last_restock": "2026-04-04"
+      },
+      {
+        "product_id": "INV-NO-801",
+        "name": "北区办公文件夹 A4",
+        "category": "文具",
+        "warehouse_region": "NORTH",
+        "quantity": 100,
+        "unit": "个",
+        "reorder_level": 60,
+        "supplier_integration": "INT-NORTH-031",
+        "last_restock": "2026-04-12"
+      },
+      {
+        "product_id": "INV-WE-901",
+        "name": "西区通用擦拭布 20片",
+        "category": "清洁用品",
+        "warehouse_region": "WEST",
+        "quantity": 70,
+        "unit": "包",
+        "reorder_level": 60,
+        "supplier_integration": "INT-WEST-055",
+        "last_restock": "2026-04-12"
+      },
+      {
+        "product_id": "INV-OK-1001",
+        "name": "海外增补电商包装袋 50个",
+        "category": "耗材",
+        "warehouse_region": "OVERSEA",
+        "quantity": 40,
+        "unit": "包",
+        "reorder_level": 20,
+        "supplier_integration": "INT-OVERSEA-077",
+        "last_restock": "2026-04-13"
+      },
+      {
+        "product_id": "INV-EA-IM-1101",
+        "name": "东区备份保温桶 5L",
+        "category": "家具",
+        "warehouse_region": "EAST",
+        "quantity": 25,
+        "unit": "个",
+        "reorder_level": 10,
+        "supplier_integration": "INT-EAST-101",
+        "last_restock": "2026-04-13"
+      },
+      {
+        "product_id": "INV-EA-INTC-1201",
+        "name": "认证风险条码扫描纸 80卷",
+        "category": "文具",
+        "warehouse_region": "EAST",
+        "quantity": 9,
+        "unit": "卷",
+        "reorder_level": 50,
+        "supplier_integration": "INT-CREDS-333",
+        "last_restock": "2026-04-02"
+      },
+      {
+        "product_id": "INV-SA-INTC-1301",
+        "name": "认证风险订书针 1000枚",
+        "category": "文具",
+        "warehouse_region": "SOUTH",
+        "quantity": 55,
+        "unit": "盒",
+        "reorder_level": 40,
+        "supplier_integration": "INT-CREDS-333",
+        "last_restock": "2026-04-02"
+      },
+      {
+        "product_id": "INV-ES-INTC-1401",
+        "name": "海外认证风险备用标签 60张",
+        "category": "文具",
+        "warehouse_region": "OVERSEA",
+        "quantity": 18,
+        "unit": "包",
+        "reorder_level": 25,
+        "supplier_integration": "INT-CREDS-333",
+        "last_restock": "2026-04-02"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在补货链路检查中引入region_tag跨区域/单区域的一致性排查：两条跨区域链共享同类“区域路由错配”根因，且加入SOUTH绑定inactive集成的单区域故障链与仓区维度库存判定。",
+    "fixture_design_summary": [
+      "scheduler侧将准备至少7个任务，其中EAST与OVERSEA各1条失败链（失败类型来自路由错误引发的执行报错），另含SOUTH单区域链（IntegrationInactive/被禁用类表现）。",
+      "config/integrations.json包含两组目标集成（EAST/OVERSEA同类路由错配，misrouted_to_region指向错误区域），以及一个SOUTH inactive集成用于单区域链。",
+      "inventory/items.json按warehouse_region拆分并设置quantity < reorder_level，保证每条目标故障链在对应region至少2个低于安全线产品；同时加入非目标区域或“认证风险”集成的干扰产品，用于验证筛选口径。"
+    ]
+  }
+}

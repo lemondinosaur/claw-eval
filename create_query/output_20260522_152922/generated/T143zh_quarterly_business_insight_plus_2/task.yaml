@@ -1,0 +1,163 @@
+task_id: T143zh_quarterly_business_insight_plus_2
+task_name: 跨行业增长机会扫描（净新增）
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_2/fixtures/finance/transactions.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_2/fixtures/crm/customers.json
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T143zh_quarterly_business_insight_plus_2/fixtures/rss/feeds.json
+prompt:
+  text: '请为即将到来的Q2做一份“跨行业增长机会扫描（净新增）”：
+
+
+    1）从财务系统拉取Q1交易，按客户区分订阅（subscription）与一次性项目（project），按月汇总计算每类的月度变化（用1月-2月、2月-3月的变化作为证据），并为每个客户判断增长类型：
+
+    - 订阅扩张型：subscription持续上升或两次上升占主导
+
+    - 一次性项目驱动型：project在某一/某几个月出现显著爆发（至少一次环比显著高于前后期）
+
+    - 续费稳定型：两类整体维持平稳（订阅与项目都无明显大幅波动/环比波动小）
+
+
+    2）查看CRM客户等级（tier）、状态（status）与行业（industry），识别最有潜力的目标分层与行业方向，并给出“为什么这些分层更匹配对应增长类型”。
+
+
+    3）浏览RSS中与对应行业相关的文章，提炼与“景气度上行/需求恢复/政策利好”相关要点；将行业新闻要点与财务增长类型证据做对齐解释。
+
+
+    4）综合输出：
+
+    - Q2推荐的2个行业机会（每个行业机会包含：理由=RSS要点 + 财务类型证据 + 对应客户分层信号）
+
+    - Q2推荐的5个客户拓展名单（每个客户包含：增长类型、关键证据（引用Q1订阅/项目月度变化）、下一步动作）
+
+
+    5）反例处理：至少指出1个“行业新闻偏暖但财务增长不明显”的客户，并解释为什么不建议优先拓展（需基于财务月度变化与增长类型证据，而不仅是行业新闻）。
+
+
+    分析范围仅基于Q1交易与RSS/CRM数据；若发现某客户订阅与项目都未出现可持续的环比增量，应归入“非优先/次优先”并在反例中说明。'
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选
+      tier:
+        type: string
+        description: 客户等级筛选
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: rss_list_feeds
+  description: 列出RSS订阅源
+  input_schema:
+    type: object
+    properties: {}
+    required: []
+- name: rss_get_feed
+  description: 获取RSS源文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_id:
+        type: string
+        description: 订阅源ID
+    required:
+    - feed_id
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_get_feed
+  url: http://localhost:9109/rss/feeds/get
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

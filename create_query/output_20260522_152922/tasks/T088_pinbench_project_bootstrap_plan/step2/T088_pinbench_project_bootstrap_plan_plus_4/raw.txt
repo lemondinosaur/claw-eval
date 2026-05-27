@@ -1,0 +1,37 @@
+{
+  "task_id": "T088_pinbench_project_bootstrap_plan_plus_4",
+  "task_name": "Java Maven Library Plan",
+  "prompt_text": "Use the todo service to bootstrap a Java Maven library project plan for \"gridhopper\". Create actionable tasks for:\n1) creating the standard Maven directory layout and a starter class,\n2) adding JUnit test skeletons (include a clear behavior verification point for the boundary input of an empty string),\n3) writing pom.xml metadata with placeholders for groupId/artifactId/version plus dependency placeholder sections,\n4) writing a README that includes mvn build/test commands and a minimal example,\n5) adding tasks for a versioning workflow and a changelog entry template.\nMark tasks with priority levels (high/medium/low) to reflect dependency order (metadata & structure first; docs and release steps later). Then summarize the setup plan in a way that explains how the priorities map to the dependency sequence.\nAlso add exactly two noise todo tasks (one open, one done) whose titles do not mention \"gridhopper\".",
+  "files": {
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TD_NOISE_2026-05-22_A19",
+        "title": "Review sprint notes",
+        "description": "Open noise task: verify meeting notes formatting and attachments.",
+        "priority": "medium",
+        "status": "open",
+        "due_date": "2026-06-15",
+        "created_at": "2026-05-22T09:10:00Z"
+      },
+      {
+        "task_id": "TD_NOISE_2026-05-22_B77",
+        "title": "Archive unused configuration files",
+        "description": "Done noise task: move obsolete configs to archive and update folder index.",
+        "priority": "low",
+        "status": "done",
+        "due_date": "2026-06-01",
+        "created_at": "2026-05-18T16:45:00Z"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题 Python bootstrap 的项目计划替换为针对“gridhopper”的 Java Maven 库计划，并新增 pom.xml 占位、JUnit 骨架（包含空字符串边界验证点）、版本工作流与变更日志模板及优先级梯度。",
+    "fixture_design_summary": [
+      "fixtures/todo/tasks.json 预置 2 条噪声任务（1 open、1 done），且标题不包含“gridhopper”。",
+      "为新任务留出优先级梯度空间：结构/元数据任务用 high，测试与文档用 medium，发布/变更日志模板用 low。",
+      "测试边界点在任务描述中明确要求：对空字符串的输入行为进行验证（如应抛出 IllegalArgumentException 或返回约定结果，并给出断言思路）。",
+      "pom.xml 相关任务在描述中包含 groupId/artifactId/version 占位符与 dependency 占位结构要求。",
+      "README 任务要求包含 mvn build/test 命令与一个最小使用示例，版本工作流与 changelog 模板任务作为后置 low 优先级。"
+    ]
+  }
+}

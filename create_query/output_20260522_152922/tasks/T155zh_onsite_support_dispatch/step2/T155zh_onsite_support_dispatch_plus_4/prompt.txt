@@ -1,0 +1,697 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T155zh_onsite_support_dispatch_plus_4",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/calendar/events.json",
+  "fixtures/contacts/contacts.json",
+  "fixtures/crm/customers.json",
+  "fixtures/gmail/inbox.json",
+  "fixtures/helpdesk/tickets.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务 environment.mock_today = 2026-03-26，如新任务涉及日期，请让 fixture 中的绝对日期与该日期锚点兼容。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 4,
+  "new_task_id": "T155zh_onsite_support_dispatch_plus_4",
+  "new_task_name": "状态回退-已关闭工单不派遣",
+  "task_goal": "处理“表面上看起来紧急”的工单干扰：必须识别已经进入reopened/closed或不满足现场条件的记录，避免错误派遣；只对符合条件的工单进行工程师派遣决策并起草邮件草稿。",
+  "user_request": "请协助判断是否需要现场派遣，并在确有需要时完成工程师选择与邮件草稿保存。请核对工单状态、是否需要现场、SLA与客户VIP信息；检查工程师技能与日程后完成派遣决策。若没有满足条件的工单，应明确说明不派遣并给出原因。不要发送邮件，只保存草稿（如需）。",
+  "scenario": "mock_today=2026-04-15。收件箱包含客户连发两封邮件：第一封来自VIP客户“蓝桥通信”，催促现场支持；第二封来自客户经理表示“问题已通过应急远程处理解决，暂不需要现场”。helpdesk里存在三条相关记录：TK-3101（priority=critical，requires_onsite=true，但status=closed，且closed_at在今天早上）、TK-3102（priority=critical，requires_onsite=true，status=open，但SLA_deadline已过期10分钟且工单起因为“演练非真实故障”）、TK-3103（priority=medium，requires_onsite=false，status=open）。工程师团队：工程师A/B/C都当日有空，但如果识别错误将导致错误派遣。CRM notes中写明：仅对“真实故障且未超SLA”的open critical requires_onsite工单派遣，超期不补派。正确行为应是：判断不满足派遣条件，因此不进行派遣邮件草稿或仅生成“不派遣说明”的草稿给客户经理与技术总监（根据是否要求草稿）。",
+  "difference_from_source": "原题是始终对唯一open critical VIP工单派遣，本题引入状态回退/已关闭/超期SLA/演练干扰，要求模型决定“不派遣”并以邮件形式说明；从“必派遣”变为“条件不满足则拒绝派遣”。",
+  "service_and_tool_plan": "helpdesk_list_tickets先列出priority=critical与相关customer_id的工单；随后helpdesk_get_ticket核对每条的status、requires_onsite、sla_deadline与标签（演练/真实故障）。crm_get_customer确认VIP与派遣政策（是否超SLA不补派）。gmail_list_messages与gmail_get_message读取两封客户邮件，验证第二封“暂不需要现场”的状态更新。只有当存在满足“open+requires_onsite=true+未过期+真实故障”的工单时才使用contacts/calendar进行派遣选择；否则跳过选择环节，仅生成“不派遣说明”邮件草稿（仍需使用contacts_search定位客户经理与技术总监并用gmail_save_draft）。",
+  "fixture_generation_plan": "fixtures：helpdesk/tickets.json至少8条：包含三条关键干扰（closed/open/超期）+ 其他非相关工单。确保包含字段status=closed、closed_at、以及标签如“演练”。crm/customers.json至少3条，其中目标客户为vip并在notes写明“超SLA不补派”的规则。contacts/contacts.json至少包含客户经理与技术总监（工程师可保留但若不派遣不必依赖）。calendar/events.json可以简单放少量事件，不影响判断。gmail/inbox.json至少4封：两封来自蓝桥通信（催促与撤回），两封无关或内部干扰。关键是确保第二封邮件能明显推导“不需要现场”。",
+  "expected_behavior": "代理应：通过helpdesk_list_tickets与helpdesk_get_ticket识别三条相关记录，结合当前时间判断TK-3101已closed应忽略；判断TK-3102虽open但SLA已过期且为演练不符合政策；再结合gmail邮件确认客户已撤回需求。最终应“不派遣”，并根据任务要求（若需要）生成给客户经理与技术总监的不派遣说明邮件草稿：说明已核对状态/超期/客户已撤回，确认暂不现场。若政策要求“无草稿”，则输出应体现不调用gmail_save_draft（但grader可按任务要求检查）。不得发送。",
+  "grading_plan": "检查点：1) 是否正确判断“不派遣”而不是错误选工程师；2) 是否核对工单status（closed/open）、requires_onsite、SLA是否过期、标签“演练/真实故障”；3) 是否结合客户邮件确认撤回需求；4) 若生成邮件草稿，是否仅用gmail_save_draft且包含充分理由并抄送技术总监；5) gmail_send_message未被调用；若任务设定为“不需要草稿”，则需检查未调用gmail_save_draft。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T155zh_onsite_support_dispatch",
+  "task_name": "VIP客户紧急现场支持派遣",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "hard",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "gmail",
+    "calendar",
+    "contacts",
+    "crm",
+    "helpdesk"
+  ],
+  "tools": [
+    "gmail_list_messages",
+    "gmail_get_message",
+    "gmail_save_draft",
+    "gmail_send_message",
+    "calendar_list_events",
+    "calendar_get_event",
+    "calendar_get_user_events",
+    "contacts_search",
+    "contacts_get",
+    "crm_list_customers",
+    "crm_get_customer",
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "helpdesk_update_ticket"
+  ],
+  "fixture_paths": [
+    "fixtures/calendar/events.json",
+    "fixtures/contacts/contacts.json",
+    "fixtures/crm/customers.json",
+    "fixtures/gmail/inbox.json",
+    "fixtures/helpdesk/tickets.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T155zh_onsite_support_dispatch
+task_name: VIP客户紧急现场支持派遣
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T155zh_onsite_support_dispatch/fixtures/gmail/inbox.json
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: tasks/T155zh_onsite_support_dispatch/fixtures/calendar/events.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: tasks/T155zh_onsite_support_dispatch/fixtures/contacts/contacts.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: tasks/T155zh_onsite_support_dispatch/fixtures/crm/customers.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: tasks/T155zh_onsite_support_dispatch/fixtures/helpdesk/tickets.json
+prompt:
+  text: '有一个VIP客户的紧急工单需要安排现场支持。请帮我：
+
+    1. 查看紧急工单详情和客户CRM信息
+
+    2. 查看技术人员的技能和今天的日程安排
+
+    3. 选择最合适的工程师派遣
+
+    4. 起草通知邮件草稿（给工程师和客户经理）
+
+    '
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+      reply_to_message_id:
+        type: string
+        description: 回复的原邮件ID
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+- name: calendar_get_user_events
+  description: 获取指定用户的日历事件
+  input_schema:
+    type: object
+    properties:
+      user:
+        type: string
+        description: 用户姓名
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+    required:
+    - user
+    - date
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选
+      tier:
+        type: string
+        description: 客户等级筛选(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单（优先级、标签、分类）
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 工单分类
+      assigned_to:
+        type: string
+        description: 指派给
+    required:
+    - ticket_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+- tool_name: calendar_get_user_events
+  url: http://localhost:9101/calendar/user_events
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+environment:
+  mock_today: '2026-03-26'
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/calendar/events.json ---
+[
+  {
+    "event_id": "evt_1201",
+    "title": "技术部周例会",
+    "start_time": "2026-03-26T09:00:00+08:00",
+    "end_time": "2026-03-26T10:00:00+08:00",
+    "location": "会议室A",
+    "organizer": "王明",
+    "attendees": ["马强", "李华", "周明", "王明"],
+    "description": "技术部门每周例会，回顾上周工作和本周计划",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_1202",
+    "title": "系统架构评审",
+    "start_time": "2026-03-26T10:30:00+08:00",
+    "end_time": "2026-03-26T12:00:00+08:00",
+    "location": "会议室B",
+    "organizer": "李华",
+    "attendees": ["马强", "李华"],
+    "description": "新微服务架构方案评审，马强和李华参加",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_1203",
+    "title": "深圳客户现场实施",
+    "start_time": "2026-03-26T09:00:00+08:00",
+    "end_time": "2026-03-26T17:00:00+08:00",
+    "location": "深圳南山区-客户现场",
+    "organizer": "周明",
+    "attendees": ["周明"],
+    "description": "周明全天在深圳客户现场进行系统部署实施，无法远程调配",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_1204",
+    "title": "午餐",
+    "start_time": "2026-03-26T12:00:00+08:00",
+    "end_time": "2026-03-26T13:00:00+08:00",
+    "location": "",
+    "organizer": "",
+    "attendees": [],
+    "description": "午休时间",
+    "status": "confirmed"
+  }
+]
+
+--- END FILE: fixtures/calendar/events.json ---
+--- FILE: fixtures/contacts/contacts.json ---
+[
+  {
+    "contact_id": "CT-1201",
+    "name": "马强",
+    "department": "运维部",
+    "title": "高级运维工程师",
+    "email": "maqiang@company.com",
+    "phone": "13800121001",
+    "location": "上海总部",
+    "skills": ["系统故障排查", "数据库运维", "网络诊断", "服务器管理"],
+    "notes": "10年运维经验，擅长生产环境故障快速恢复，持有OCP和RHCE认证"
+  },
+  {
+    "contact_id": "CT-1202",
+    "name": "李华",
+    "department": "研发部",
+    "title": "高级架构师",
+    "email": "lihua@company.com",
+    "phone": "13800121002",
+    "location": "上海总部",
+    "skills": ["架构设计", "性能优化", "代码审查", "微服务"],
+    "notes": "8年开发经验，主导系统架构设计，擅长性能调优和代码重构"
+  },
+  {
+    "contact_id": "CT-1203",
+    "name": "周明",
+    "department": "研发部",
+    "title": "前端工程师",
+    "email": "zhouming@company.com",
+    "phone": "13800121003",
+    "location": "上海总部",
+    "skills": ["前端开发", "UI设计", "React", "Vue"],
+    "notes": "5年前端经验，负责客户端界面开发"
+  },
+  {
+    "contact_id": "CT-1204",
+    "name": "赵蕾",
+    "department": "客户成功部",
+    "title": "客户经理",
+    "email": "zhaolei@company.com",
+    "phone": "13800121004",
+    "location": "上海总部",
+    "skills": ["客户关系", "商务谈判", "SLA管理"],
+    "notes": "负责万通物流（CUS-1201）等VIP客户的日常对接和关系维护"
+  },
+  {
+    "contact_id": "CT-1205",
+    "name": "张伟",
+    "department": "客户成功部",
+    "title": "客户经理",
+    "email": "zhangwei@company.com",
+    "phone": "13800121005",
+    "location": "上海总部",
+    "skills": ["客户关系", "项目管理"],
+    "notes": "负责中小客户群的日常维护和续约管理"
+  },
+  {
+    "contact_id": "CT-1206",
+    "name": "王明",
+    "department": "技术部",
+    "title": "技术总监",
+    "email": "wangming@company.com",
+    "phone": "13800121006",
+    "location": "上海总部",
+    "skills": ["技术管理", "战略规划", "团队建设"],
+    "notes": "技术部负责人，VIP客户critical工单需升级通知，作为escalation contact"
+  }
+]
+
+--- END FILE: fixtures/contacts/contacts.json ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-1201",
+    "name": "万通物流",
+    "contact_person": "王总经理",
+    "email": "wangzong@wantong-logistics.com",
+    "phone": "13900121001",
+    "industry": "物流",
+    "tier": "vip",
+    "annual_revenue": 2400000,
+    "last_contact_date": "2026-03-20",
+    "status": "active",
+    "location": "上海浦东",
+    "sla_level": "platinum",
+    "sla_response": "4小时现场响应",
+    "notes": "核心VIP客户，年合同240万。SLA要求critical工单4小时内到达现场。对接客户经理：赵蕾。"
+  },
+  {
+    "customer_id": "CUS-1202",
+    "name": "瀚海电商",
+    "contact_person": "林经理",
+    "email": "linjl@hanhai-ec.com",
+    "phone": "13900121002",
+    "industry": "电商",
+    "tier": "standard",
+    "annual_revenue": 480000,
+    "last_contact_date": "2026-03-15",
+    "status": "active",
+    "location": "杭州西湖区",
+    "sla_level": "standard",
+    "sla_response": "次日远程响应",
+    "notes": "标准客户，年合同48万。SLA要求次日远程支持即可。"
+  },
+  {
+    "customer_id": "CUS-1203",
+    "name": "前锋科技",
+    "contact_person": "张主管",
+    "email": "zhangzg@qianfeng-tech.com",
+    "phone": "13900121003",
+    "industry": "科技",
+    "tier": "standard",
+    "annual_revenue": 240000,
+    "last_contact_date": "2026-03-10",
+    "status": "active",
+    "location": "北京海淀",
+    "sla_level": "standard",
+    "sla_response": "48小时远程响应",
+    "notes": "标准客户，年合同24万。常规远程支持。"
+  },
+  {
+    "customer_id": "CUS-1204",
+    "name": "阳光传媒",
+    "contact_person": "刘总监",
+    "email": "liuzj@sunlight-media.com",
+    "phone": "13900121004",
+    "industry": "传媒",
+    "tier": "vip",
+    "annual_revenue": 1200000,
+    "last_contact_date": "2026-03-18",
+    "status": "active",
+    "location": "上海徐汇",
+    "sla_level": "gold",
+    "sla_response": "8小时响应",
+    "notes": "VIP客户，年合同120万。SLA要求8小时响应，可远程或现场。"
+  }
+]
+
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_1201",
+    "from": "wangzong@wantong-logistics.com",
+    "to": "support@company.com",
+    "subject": "紧急！生产系统宕机已超2小时，严重影响业务",
+    "date": "2026-03-26T12:10:00+08:00",
+    "is_read": false,
+    "labels": ["inbox", "important", "urgent"],
+    "body": "你好，我是万通物流的王总经理。\n\n我们的生产系统从今天上午10点开始就完全无法使用了，到现在已经超过2个小时！全公司200多人的工作全部停滞，物流调度完全中断，每小时损失预估超过5万元。\n\n我们已经提交了工单TK-1201，但到现在还没有收到任何实质性的响应。我们的合同明确约定了4小时现场响应SLA，请立即安排技术人员到我们浦东的办公室进行现场支持！\n\n如果在下午2点前没有技术人员到达现场，我们将正式发起SLA违约投诉。\n\n请尽快回复确认派遣安排。\n\n王总经理\n万通物流\n地址：上海浦东新区张江高科技园区xxx路xxx号"
+  },
+  {
+    "message_id": "msg_1202",
+    "from": "newsletter@tech-weekly.com",
+    "to": "support@company.com",
+    "subject": "本周技术趋势：云原生架构演进与AI运维实践",
+    "date": "2026-03-26T08:00:00+08:00",
+    "is_read": true,
+    "labels": ["inbox"],
+    "body": "本周热点：1. Kubernetes 1.30新特性解读 2. AIOps在大规模系统中的应用 3. 数据库高可用方案对比..."
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-1201",
+    "title": "生产系统完全宕机",
+    "description": "万通物流（CUS-1201）紧急反馈：今天上午10:00开始，生产环境ERP系统完全无法访问，所有业务操作中断。已尝试重启服务但未恢复。系统日志显示数据库连接池耗尽，疑似数据库主节点故障。目前全公司200+员工无法正常工作，物流调度完全停滞。",
+    "customer_id": "CUS-1201",
+    "reporter": "王总经理",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-26T10:15:00+08:00",
+    "tags": ["系统宕机", "VIP", "紧急", "现场支持"],
+    "category": "系统故障",
+    "requires_onsite": true,
+    "sla_deadline": "2026-03-26T14:15:00+08:00"
+  },
+  {
+    "ticket_id": "TK-1202",
+    "title": "报表导出偶尔失败",
+    "description": "瀚海电商（CUS-1202）反馈：在导出月度销售报表时，大约30%的概率会出现超时错误。错误信息：ExportTimeout: query exceeded 30s limit。小范围数据可以正常导出。",
+    "customer_id": "CUS-1202",
+    "reporter": "林经理",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-25T16:00:00+08:00",
+    "tags": ["报表", "导出", "超时"],
+    "category": "功能故障",
+    "requires_onsite": false,
+    "sla_deadline": "2026-03-27T16:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-1203",
+    "title": "新功能培训需求",
+    "description": "前锋科技（CUS-1203）希望安排一次关于新版本数据分析模块的培训，约20人参加。希望在下周进行，线上或线下均可。",
+    "customer_id": "CUS-1203",
+    "reporter": "张主管",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-25T11:00:00+08:00",
+    "tags": ["培训", "新功能"],
+    "category": "服务请求",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-02T11:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-1204",
+    "title": "数据迁移咨询",
+    "description": "阳光传媒（CUS-1204）计划将历史数据从旧系统迁移到新平台，数据量约500GB，希望了解迁移方案和时间估算。",
+    "customer_id": "CUS-1204",
+    "reporter": "刘总监",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-25T14:30:00+08:00",
+    "tags": ["数据迁移", "咨询", "VIP"],
+    "category": "技术咨询",
+    "requires_onsite": false,
+    "sla_deadline": "2026-03-27T14:30:00+08:00"
+  }
+]
+
+--- END FILE: fixtures/helpdesk/tickets.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

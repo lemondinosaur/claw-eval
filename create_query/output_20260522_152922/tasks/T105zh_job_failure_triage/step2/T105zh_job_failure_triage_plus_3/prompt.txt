@@ -1,0 +1,394 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T105zh_job_failure_triage_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/helpdesk/tickets.json",
+  "fixtures/scheduler/jobs.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T105zh_job_failure_triage_plus_3",
+  "new_task_name": "文件同步失败与工单影响面分析",
+  "task_goal": "从调度系统识别所有失败的文件同步/内容分发类任务；从工单系统获取open工单详情；判断哪些工单由文件同步失败引起（依据失败错误类型、失败时段与工单描述中的数据缺失特征）；输出关联报告与处理优先级，说明影响的下游系统。",
+  "user_request": "近期多个部门反映资料库的文件没有及时同步或下载失败。请你：1）查看所有失败的定时任务及其错误信息；2）查看当前未解决的工单；3）分析哪些工单与文件同步/内容分发定时任务故障有关；4）输出关联分析报告，说明每个故障任务对应的工单、影响范围、以及建议处理优先级。",
+  "scenario": "调度平台存在：文件上传到CDN任务因“TLS证书已过期”失败；S3到中心仓任务因“权限拒绝(AccessDenied)”失败并持续重试；还有一个“清理过期索引”任务因“索引服务不可用”失败但不直接导致文件缺失。工单系统中：内容团队收到“下载404/文件不存在”、平台运维收到“同步任务失败报警”、以及索引查询团队收到“搜索结果缺少但可下载”。要求正确区分：下载404类工单应关联到证书过期与AccessDenied；索引缺少类工单应关联到索引服务失败或可解释为次要影响；并排除无关如“会议室预定失败”。",
+  "difference_from_source": "原任务是定时任务与工单关联的三组根因（ERP/SMTP/磁盘）；本任务强调多条同步链路、不同故障导致不同表现（下载404 vs 同步报警 vs 搜索缺少），并要求做“主要影响面 vs 次要影响面”的优先级与解释。",
+  "service_and_tool_plan": "scheduler_list_jobs 用于获取失败任务列表并结合tag如file_sync/cdn/index；scheduler_get_job用于提取TLS证书错误、AccessDenied错误与失败窗口；helpdesk_list_tickets获取open工单；helpdesk_get_ticket读取描述中的“404/不存在/无法下载/AccessDenied/索引空”等；如需要可用 helpdesk_update_ticket给出标签建议（但不调用close）。",
+  "fixture_generation_plan": "scheduler/jobs.json：约6-8条job，其中至少3条failed（两个与文件可用性直接相关、一个与索引相关），包含不同enabled状态（例如索引清理任务仍enabled但失败；证书任务enabled但已在后续重试失败）；helpdesk/tickets.json：约10条open工单，至少6条与文件/索引表现相关（下载404 2-3条，同步报警1-2条，搜索缺少1-2条），至少2-3条干扰（会议室/工资发放/门禁等）；确保工单created_at与对应失败run_at有清晰时间先后关系（例如下载404在TLS失败后10-20分钟集中出现）。",
+  "expected_behavior": "列出所有失败的文件相关定时任务及错误；获取所有open工单详情并归类症状；进行关联：TLS证书过期→CDN分发失败→下载404/文件不存在；AccessDenied→同步失败→同步报警与中心仓缺失导致下载失败；索引服务不可用→搜索结果缺少但下载可用（若工单描述出现“可下载但找不到”则归到索引任务）。输出报告：每个job下列出对应工单、归因要点、影响范围（例如“外部用户下载、内部内容索引、搜索体验”）、优先级与处理建议（先恢复同步与分发证书/权限，再处理索引）。不得在分析阶段关闭工单。",
+  "grading_plan": "grader.py检查：1）症状到故障类型映射是否正确（下载404 vs 同步缺失 vs 搜索缺少）；2）时间线一致性（每组关联至少1条明确的先后论证）；3）不把次要影响任务的工单过度归因到主要根因；4）优先级解释体现“用户可用性优先于搜索体验”；5）输出结构清晰可读。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T105zh_job_failure_triage",
+  "task_name": "定时任务故障与工单关联分析",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "scheduler",
+    "helpdesk"
+  ],
+  "tools": [
+    "scheduler_list_jobs",
+    "scheduler_get_job",
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "helpdesk_update_ticket",
+    "helpdesk_close_ticket"
+  ],
+  "fixture_paths": [
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T105zh_job_failure_triage
+task_name: 定时任务故障与工单关联分析
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: tasks/T105zh_job_failure_triage/fixtures/scheduler/jobs.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: tasks/T105zh_job_failure_triage/fixtures/helpdesk/tickets.json
+prompt:
+  text: '最近有几个用户报了工单说系统有问题，同时我们的定时任务也有一些失败记录。
+
+    请帮我：
+
+    1. 查看所有失败的定时任务及其错误信息
+
+    2. 查看当前未解决的工单
+
+    3. 分析哪些工单与定时任务故障有关联
+
+    4. 输出一份关联分析报告，说明每个故障任务对应了哪些工单、影响范围和建议处理优先级
+
+    '
+  language: zh
+tools:
+- name: scheduler_list_jobs
+  description: 列出定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(all/enabled/disabled)
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情（含执行历史）
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单（优先级、标签、分类）
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 工单分类
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+tool_endpoints:
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-401",
+    "title": "ERP系统无法访问",
+    "description": "从今天下午17:20左右开始，ERP系统完全无法登录和使用，财务部和仓储部多位同事反馈相同问题。页面显示503错误。",
+    "reporter": "财务部-刘芳",
+    "department": "财务部",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-25T17:35:00Z",
+    "tags": ["ERP", "系统故障", "紧急"],
+    "category": "系统故障"
+  },
+  {
+    "ticket_id": "TK-402",
+    "title": "每日报表邮件今天没收到",
+    "description": "往常每天早上9点会收到系统自动发送的日报邮件，今天没有收到。已检查垃圾箱也没有。",
+    "reporter": "销售部-张涛",
+    "department": "销售部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-25T10:15:00Z",
+    "tags": ["邮件", "日报", "自动化"],
+    "category": "服务请求"
+  },
+  {
+    "ticket_id": "TK-403",
+    "title": "ERP订单数据不更新",
+    "description": "今天下午的订单在ERP中看不到，系统显示的最后一条订单是17:00之前的。怀疑数据同步出了问题。",
+    "reporter": "仓储部-王强",
+    "department": "仓储部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-25T19:00:00Z",
+    "tags": ["ERP", "数据同步", "订单"],
+    "category": "数据问题"
+  },
+  {
+    "ticket_id": "TK-404",
+    "title": "打印机卡纸频繁",
+    "description": "3楼打印间的HP打印机频繁卡纸，已清理过几次仍然有问题。",
+    "reporter": "行政部-李娜",
+    "department": "行政部",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-25T11:00:00Z",
+    "tags": ["硬件", "打印机"],
+    "category": "硬件故障"
+  },
+  {
+    "ticket_id": "TK-405",
+    "title": "磁盘空间告警",
+    "description": "日志归档服务器收到磁盘空间不足告警，/data/archive分区使用率已达98%，需要尽快清理或扩容。",
+    "reporter": "运维组-陈伟",
+    "department": "技术部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-25T08:30:00Z",
+    "tags": ["磁盘", "告警", "日志", "归档"],
+    "category": "基础设施"
+  }
+]
+
+--- END FILE: fixtures/helpdesk/tickets.json ---
+--- FILE: fixtures/scheduler/jobs.json ---
+[
+  {
+    "job_id": "JOB-301",
+    "name": "数据库每日备份",
+    "cron_expression": "0 2 * * *",
+    "action": "backup_database",
+    "enabled": true,
+    "last_run": "2026-03-25T02:00:00Z",
+    "next_run": "2026-03-26T02:00:00Z",
+    "last_status": "success",
+    "created_by": "admin",
+    "tags": ["infrastructure", "backup", "database"],
+    "created_at": "2025-06-01T00:00:00Z",
+    "execution_history": [
+      {"run_at": "2026-03-25T02:00:00Z", "status": "success", "duration_s": 320},
+      {"run_at": "2026-03-24T02:00:00Z", "status": "success", "duration_s": 315}
+    ]
+  },
+  {
+    "job_id": "JOB-302",
+    "name": "订单同步到ERP",
+    "cron_expression": "*/30 * * * *",
+    "action": "sync_orders_erp",
+    "enabled": true,
+    "last_run": "2026-03-25T18:30:00Z",
+    "next_run": "2026-03-25T19:00:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": ["integration", "erp", "orders"],
+    "created_at": "2025-09-15T00:00:00Z",
+    "execution_history": [
+      {"run_at": "2026-03-25T18:30:00Z", "status": "failed", "duration_s": 5, "error": "ConnectionRefusedError: ERP endpoint unreachable"},
+      {"run_at": "2026-03-25T18:00:00Z", "status": "failed", "duration_s": 5, "error": "ConnectionRefusedError: ERP endpoint unreachable"},
+      {"run_at": "2026-03-25T17:30:00Z", "status": "failed", "duration_s": 5, "error": "ConnectionRefusedError: ERP endpoint unreachable"},
+      {"run_at": "2026-03-25T17:00:00Z", "status": "success", "duration_s": 45}
+    ]
+  },
+  {
+    "job_id": "JOB-303",
+    "name": "日报邮件发送",
+    "cron_expression": "0 9 * * 1-5",
+    "action": "send_daily_report",
+    "enabled": true,
+    "last_run": "2026-03-25T09:00:00Z",
+    "next_run": "2026-03-26T09:00:00Z",
+    "last_status": "failed",
+    "created_by": "admin",
+    "tags": ["notification", "report"],
+    "created_at": "2025-08-01T00:00:00Z",
+    "execution_history": [
+      {"run_at": "2026-03-25T09:00:00Z", "status": "failed", "duration_s": 12, "error": "SMTPAuthenticationError: SMTP credentials expired"},
+      {"run_at": "2026-03-24T09:00:00Z", "status": "success", "duration_s": 8}
+    ]
+  },
+  {
+    "job_id": "JOB-304",
+    "name": "库存水位检查",
+    "cron_expression": "0 8 * * *",
+    "action": "check_inventory_levels",
+    "enabled": true,
+    "last_run": "2026-03-25T08:00:00Z",
+    "next_run": "2026-03-26T08:00:00Z",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": ["inventory", "monitoring"],
+    "created_at": "2025-10-01T00:00:00Z",
+    "execution_history": [
+      {"run_at": "2026-03-25T08:00:00Z", "status": "success", "duration_s": 15}
+    ]
+  },
+  {
+    "job_id": "JOB-305",
+    "name": "用户行为日志归档",
+    "cron_expression": "0 3 * * *",
+    "action": "archive_user_logs",
+    "enabled": false,
+    "last_run": "2026-03-20T03:00:00Z",
+    "next_run": null,
+    "last_status": "failed",
+    "created_by": "admin",
+    "tags": ["infrastructure", "logs", "archive"],
+    "created_at": "2025-07-01T00:00:00Z",
+    "execution_history": [
+      {"run_at": "2026-03-20T03:00:00Z", "status": "failed", "duration_s": 600, "error": "TimeoutError: archive volume full, disk usage 98%"},
+      {"run_at": "2026-03-19T03:00:00Z", "status": "failed", "duration_s": 600, "error": "TimeoutError: archive volume full, disk usage 97%"}
+    ]
+  }
+]
+
+--- END FILE: fixtures/scheduler/jobs.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

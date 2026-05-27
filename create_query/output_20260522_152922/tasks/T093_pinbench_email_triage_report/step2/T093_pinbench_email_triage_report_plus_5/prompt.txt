@@ -1,0 +1,295 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T093_pinbench_email_triage_report_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/gmail/inbox.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T093_pinbench_email_triage_report_plus_5",
+  "new_task_name": "Release Gate & Supply Status",
+  "task_goal": "为一个处于发布前夜的团队进行收件箱分诊，输出按优先级排序的 triage report：P0-P4、Category、Recommended action，并给出顶部摘要与当天处理计划；必须识别“发布闸门/阻塞问题”和“供应商状态更新”的不同处理方式。",
+  "user_request": "请生成收件箱分诊报告：从 Gmail 读取所有邮件，标注 P0-P4 优先级、分类及推荐处理动作；顶部写简短摘要（指出最紧急的发布闸门相关问题），并给出今天的处理计划。不要发送任何邮件。",
+  "scenario": "团队即将发布：收件箱里有多封与发布闸门相关的邮件，包括：一个明确阻塞（测试环境无法部署导致发布时间可能延后）、一个状态类更新（构建通过但需要补充回归记录）、一个来自供应商的交付延迟通知（影响物料但与软件发布是否强依赖不清楚）；此外还有：产品经理的“客户反馈汇总”需要今天中午前整理、以及多封新闻通讯/促销。存在干扰：一封邮件标题含“blocker”但正文说明是“仅建议升级建议”，不是阻塞；还有一封关于教育培训报名的通知，容易被误认为与发布无关但其实是可忽略。",
+  "difference_from_source": "原题的紧急中心在生产数据库中断与告警关联；本任务紧急中心改为“发布闸门阻塞问题”与“供应商交付延迟”的区分，并引入“blocker 但不是真阻塞”的干扰项。分类维度从事故/告警扩展到发布流程与供应状态。",
+  "service_and_tool_plan": "先用 gmail_list_messages 获取所有邮件；对涉及“无法部署/阻塞/发布闸门/构建失败/环境不可用”的邮件调用 gmail_get_message 精读以确认是否真的 blocking；对供应商交付延迟与产品经理客户反馈汇总邮件也调用 gmail_get_message 以提取截止与依赖关系；其它订阅/促销仅用列表信息做低优先级建议。",
+  "fixture_generation_plan": "生成新的 fixtures/gmail/inbox.json（15-18 条）。优先级分布：1 条 P0（发布闸门真实阻塞：例如无法部署/构建失败/关键环境宕机）、1-2 条 P1（产品经理客户反馈汇总若为中午前提交、或构建通过但需要补回归且时间很近）、2-3 条 P2（供应商交付延迟若可能影响发布但需进一步确认依赖）、其余 P3/P4（新闻通讯、促销、培训报名、非阻塞的“blocker建议升级”、一般团队更新）。干扰设置：至少 1 封正文明确说明“blocker=建议/非阻塞”；至少 1 封供应商邮件只说“可能延迟”不含软件依赖结论，需建议进一步确认。",
+  "expected_behavior": "输出结构化分诊：将真正阻塞的发布闸门邮件列为 P0 并推荐“立即确认环境/回滚方案/协调发布经理与测试负责人”；对状态更新给出 P2/P3 并推荐“补充回归记录/更新发布计划”；对供应商延迟建议给出中等优先级并推荐“核对依赖关系与替代方案”；产品经理客户反馈汇总按截止提高优先级并推荐“整理并提交”。顶部摘要需点明 P0 原因与今天第一步行动。",
+  "grading_plan": "grader 应检查：1）P0 是否对应真实发布阻塞而非“blocker建议”；2）供应商延迟是否与阻塞区分并给出“需进一步确认依赖”的动作；3）产品经理截止是否被正确提升优先级；4）Category 与 Recommended action 是否与发布流程匹配（发布闸门/回归/计划更新/依赖核对等）；5）不调用发送类工具。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T093_pinbench_email_triage_report",
+  "task_name": "Pinbench Email Triage Report",
+  "task_type": "organization",
+  "category": "organization",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "en",
+  "services": [
+    "gmail"
+  ],
+  "tools": [
+    "gmail_list_messages",
+    "gmail_get_message"
+  ],
+  "fixture_paths": [
+    "fixtures/gmail/inbox.json"
+  ],
+  "sandbox_files": [
+    "fixtures/gmail/inbox.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "organization"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T093_pinbench_email_triage_report
+task_name: Pinbench Email Triage Report
+version: '1.0'
+category: organization
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T093_pinbench_email_triage_report/fixtures/gmail/inbox.json
+prompt:
+  text: 'Help triage an overflowing inbox using the Gmail service. Read the messages
+    and
+
+    produce a report sorted by priority. For each relevant email, assign:
+
+    - Priority: P0 to P4
+
+    - Category
+
+    - Recommended action
+
+    Include a short top summary highlighting the most urgent items and a suggested
+    plan
+
+    for the day.
+
+    '
+  language: en
+tools:
+- name: gmail_list_messages
+  description: List inbox messages
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        default: 30
+      max_results:
+        type: integer
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: Get one message
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+    required:
+    - message_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 18
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "pb17_001",
+    "from": "cto@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "URGENT: Production database outage - all hands needed",
+    "date": "2026-02-17T13:02:00+00:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "Primary production database cluster went down at 7:45am EST. Customer-facing services are returning 500 errors. Join the war room immediately. This is a P0 incident."
+  },
+  {
+    "message_id": "pb17_002",
+    "from": "sarah.marketing@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "Blog post review needed by EOD Wednesday",
+    "date": "2026-02-17T14:15:00+00:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "Please review a 1,200-word blog post for technical accuracy. End of day Wednesday is fine."
+  },
+  {
+    "message_id": "pb17_003",
+    "from": "noreply@github.com",
+    "to": "me@mycompany.com",
+    "subject": "[mycompany/api-gateway] Pull request #482: Dependency updates (Dependabot)",
+    "date": "2026-02-17T12:30:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "automated"],
+    "body": "Dependabot opened PR #482 with express, lodash, and @types/node updates. CI is passing."
+  },
+  {
+    "message_id": "pb17_004",
+    "from": "jenna.hr@mycompany.com",
+    "to": "all-staff@mycompany.com",
+    "subject": "Reminder: Benefits enrollment deadline is Feb 28",
+    "date": "2026-02-14T21:00:00+00:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "Benefits enrollment closes February 28. Please review health insurance, 401(k), FSA/HSA, and beneficiary updates."
+  },
+  {
+    "message_id": "pb17_005",
+    "from": "mike.chen@bigclient.com",
+    "to": "me@mycompany.com",
+    "subject": "Re: API integration timeline",
+    "date": "2026-02-17T13:45:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "client"],
+    "body": "Our board approved the integration project. We need to finalize the API contract and staging credentials ASAP. Tuesday or Thursday afternoon works for a call. This is a $2M annual contract."
+  },
+  {
+    "message_id": "pb17_006",
+    "from": "noreply@linkedin.com",
+    "to": "me@mycompany.com",
+    "subject": "You have 3 new connection requests",
+    "date": "2026-02-16T19:22:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "social"],
+    "body": "You have new connection requests from Alex Turner, Maria Santos, and Kevin Park."
+  },
+  {
+    "message_id": "pb17_007",
+    "from": "team-lead@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "Performance review self-assessment due Friday",
+    "date": "2026-02-17T14:30:00+00:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "Reminder: your annual performance review self-assessment is due Friday, Feb 21."
+  },
+  {
+    "message_id": "pb17_008",
+    "from": "security@mycompany.com",
+    "to": "engineering@mycompany.com",
+    "subject": "IMPORTANT: Mandatory password rotation by Feb 19",
+    "date": "2026-02-17T12:00:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "security"],
+    "body": "All engineering team members must rotate passwords and SSH keys by February 19 and confirm completion by replying."
+  },
+  {
+    "message_id": "pb17_009",
+    "from": "newsletter@techdigest.io",
+    "to": "me@mycompany.com",
+    "subject": "TechDigest Weekly: AI agents are reshaping software development",
+    "date": "2026-02-17T11:00:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "newsletter"],
+    "body": "This week in tech: AI coding agents, remote work productivity, Rust adoption, GPT-5, and Kubernetes updates."
+  },
+  {
+    "message_id": "pb17_010",
+    "from": "alice.wong@mycompany.com",
+    "to": "me@mycompany.com",
+    "subject": "Code review request - auth service refactor",
+    "date": "2026-02-17T14:50:00+00:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "Please review the auth service refactor for OAuth2 PKCE flow. It blocks the mobile app release and I'd like to merge by Thursday."
+  },
+  {
+    "message_id": "pb17_011",
+    "from": "deals@saastools.com",
+    "to": "me@mycompany.com",
+    "subject": "Flash Sale: 60% off all annual plans - 48 hours only!",
+    "date": "2026-02-15T15:00:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "promotional"],
+    "body": "Limited time offer on SaaSTools Pro. Flash sale ends Monday at midnight."
+  },
+  {
+    "message_id": "pb17_012",
+    "from": "cfo@mycompany.com",
+    "to": "engineering-leads@mycompany.com",
+    "subject": "Q1 budget reconciliation - action needed by Thursday",
+    "date": "2026-02-17T13:30:00+00:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "Finance needs each team to confirm Jan-Feb spending and March overruns by Thursday, Feb 20."
+  },
+  {
+    "message_id": "pb17_013",
+    "from": "automated-alerts@monitoring.mycompany.com",
+    "to": "oncall@mycompany.com",
+    "subject": "[ALERT] API latency exceeding threshold - p99 > 2000ms",
+    "date": "2026-02-17T12:48:00+00:00",
+    "is_read": false,
+    "labels": ["inbox", "alert"],
+    "body": "API gateway p99 latency is 3,247ms. This alert correlates with the ongoing database incident INC-20260217-001."
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

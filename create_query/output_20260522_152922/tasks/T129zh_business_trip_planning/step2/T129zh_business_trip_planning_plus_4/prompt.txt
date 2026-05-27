@@ -1,0 +1,423 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T129zh_business_trip_planning_plus_4",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/calendar/events.json",
+  "fixtures/contacts/contacts.json",
+  "fixtures/gmail/inbox.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务 environment.mock_today = 2026-03-25，如新任务涉及日期，请让 fixture 中的绝对日期与该日期锚点兼容。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 4,
+  "new_task_id": "T129zh_business_trip_planning_plus_4",
+  "new_task_name": "多站点补丁发布出行",
+  "task_goal": "处理带有“站点编号/地点列表”的邮件出差请求，解析需要去的多个站点城市，检查这些站点日期冲突，针对每个城市生成联系人列表，并给出多站点的最优顺序建议。",
+  "user_request": "我收到一封“多站点补丁发布与现场支持”的邮件，里面包含多个站点需要我出差支持；请你帮我规划：\n1）从邮件中解析出所有站点城市与对应日期/到达窗口；\n2）在日历中检查这些日期是否存在冲突（考虑上午/下午窗口）；\n3）为每个城市检索对接联系人；\n4）输出一个清晰的多站点出行计划：推荐顺序、哪些站点需要错峰或拆分到不同窗口、以及每站点的联系人清单。",
+  "scenario": "收件箱包含：1条关键邮件，内容为“补丁发布现场支持”，列出三个站点城市（例如东港、南湾、江城）及各自的到达窗口（每个站点的窗口不同：一个要求上午到达、一个要求下午到达、一个要求当天结束前到达）；另有两条干扰邮件：一条是“活动志愿者招募”但与日期相近，另一条是“差旅政策更新”不含站点。日历里：第一个站点日期上午有 confirmed 事件占用；第二个站点日期下午有 confirmed 事件；第三个站点日期当天早上是 free，但有一个短时 confirmed 的“供应商验收”只占用早晨一部分。需要通过窗口规则做“错峰/拆分”建议：例如把第一个站点改到下一天上午空窗或让当天的到达窗口调整为稍晚但仍满足“结束前到达”。",
+  "difference_from_source": "原题是以“单次出差邀请（通常单城）+本地冲突”为主；本任务改为“单封邮件内解析多站点城市+到达窗口约束”，并要求多站点路线排序与错峰拆分。",
+  "service_and_tool_plan": "使用 gmail_list_messages 先定位关键邮件，再用 gmail_get_message 解析站点城市列表与到达窗口；用 calendar_list_events 覆盖涉及日期范围并用 calendar_get_event 核实冲突事件的上午/下午占用情况；随后对每个解析出的城市调用 contacts_search，再用 contacts_get 获取联系人细节。整个过程只需一次解析与规划，不引入额外澄清。",
+  "fixture_generation_plan": "gmail 生成3~5条：1条关键“多站点补丁发布”邮件（含三个城市与到达窗口描述），2条干扰（志愿者招募、差旅政策更新），可加1条无关邮件。calendar 生成6~10条：至少3条 confirmed 覆盖不同站点日期的上午/下午冲突，至少1条短时 confirmed 覆盖第三站点的早晨一部分，至少1条 free 提供可用窗口。contacts 生成9~15条：每个站点城市至少3名联系人（含不同职能：现场负责人/对接工程/协调人员），外加其他城市2人干扰。避免与原任务同名实体、同样ID格式也可保持但不得复用具体值。",
+  "expected_behavior": "agent 必须：1）从关键邮件中准确解析三个站点城市及每个站点的到达窗口（上午/下午/结束前）；2）根据日历冲突计算哪些窗口被 confirmed 占用，并给出错峰或顺序调整建议；3）输出多站点计划（按日期逐条列出站点、建议到达时间落点、必要的错峰理由）；4）为每个城市列出联系人清单（至少2-3人/城），并保证城市归属正确。",
+  "grading_plan": "grader.py 应检查：站点解析完整无遗漏（3城都出现且与窗口类型匹配）；冲突窗口判断正确（上午/下午/结束前逻辑不错误）；路线顺序与调整建议必须与日历可用窗口一致；每站点城市联系人数量与归属正确，且不包含无关城市联系人。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T129zh_business_trip_planning",
+  "task_name": "出差规划",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "gmail",
+    "calendar",
+    "contacts"
+  ],
+  "tools": [
+    "gmail_list_messages",
+    "gmail_get_message",
+    "calendar_list_events",
+    "calendar_get_event",
+    "contacts_search",
+    "contacts_get"
+  ],
+  "fixture_paths": [
+    "fixtures/calendar/events.json",
+    "fixtures/contacts/contacts.json",
+    "fixtures/gmail/inbox.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T129zh_business_trip_planning
+task_name: 出差规划
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T129zh_business_trip_planning/fixtures/gmail/inbox.json
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: tasks/T129zh_business_trip_planning/fixtures/calendar/events.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: tasks/T129zh_business_trip_planning/fixtures/contacts/contacts.json
+prompt:
+  text: "收件箱有几封出差邀请邮件，请帮我规划：\n1. 查看所有出差相关邮件\n2. 检查日历中对应日期是否有冲突\n3. 查找出差目的地的当地同事联系方式\n\
+    4. 综合分析后给出出差建议方案：\n   - 哪些行程冲突需要取舍\n   - 推荐的行程安排\n   - 各地联系人清单\n"
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+environment:
+  mock_today: '2026-03-25'
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/calendar/events.json ---
+[
+  {
+    "event_id": "evt_401",
+    "title": "产品评审会",
+    "start_time": "2026-04-02T09:00:00+08:00",
+    "end_time": "2026-04-02T12:00:00+08:00",
+    "location": "本地-会议室A",
+    "organizer": "王明",
+    "attendees": ["我", "王明", "周明"],
+    "description": "Q2产品评审，讨论新功能优先级",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_402",
+    "title": "无安排",
+    "start_time": "2026-04-03T00:00:00+08:00",
+    "end_time": "2026-04-03T23:59:00+08:00",
+    "location": "",
+    "organizer": "",
+    "attendees": [],
+    "description": "空闲日",
+    "status": "free"
+  },
+  {
+    "event_id": "evt_403",
+    "title": "北京年度会议",
+    "start_time": "2026-04-05T09:00:00+08:00",
+    "end_time": "2026-04-05T18:00:00+08:00",
+    "location": "北京总部",
+    "organizer": "HR",
+    "attendees": ["全部负责人"],
+    "description": "已预订机票：4/4出发 4/6返回",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_404",
+    "title": "团建活动",
+    "start_time": "2026-04-07T14:00:00+08:00",
+    "end_time": "2026-04-07T18:00:00+08:00",
+    "location": "本地-公司楼下",
+    "organizer": "HR",
+    "attendees": ["全员"],
+    "description": "Q2团建",
+    "status": "confirmed"
+  }
+]
+
+--- END FILE: fixtures/calendar/events.json ---
+--- FILE: fixtures/contacts/contacts.json ---
+[
+  {
+    "contact_id": "CT-401",
+    "name": "陈经理",
+    "department": "上海办事处",
+    "title": "客户关系经理",
+    "email": "chen@company-sh.com",
+    "phone": "13800401001",
+    "location": "上海",
+    "notes": "负责上海地区VIP客户对接"
+  },
+  {
+    "contact_id": "CT-402",
+    "name": "吴总",
+    "department": "上海办事处",
+    "title": "上海办负责人",
+    "email": "wu@company-sh.com",
+    "phone": "13800401002",
+    "location": "上海",
+    "notes": "上海办公室负责人"
+  },
+  {
+    "contact_id": "CT-403",
+    "name": "李伟",
+    "department": "深圳分公司",
+    "title": "技术经理",
+    "email": "liwei@company-sz.com",
+    "phone": "13800401003",
+    "location": "深圳",
+    "notes": "深圳分公司技术负责人，负责微服务架构"
+  },
+  {
+    "contact_id": "CT-404",
+    "name": "黄工",
+    "department": "深圳分公司",
+    "title": "高级工程师",
+    "email": "huang@company-sz.com",
+    "phone": "13800401004",
+    "location": "深圳",
+    "notes": "深圳分公司资深工程师"
+  },
+  {
+    "contact_id": "CT-405",
+    "name": "张总",
+    "department": "北京总部",
+    "title": "副总裁",
+    "email": "zhang@company-bj.com",
+    "phone": "13800401005",
+    "location": "北京",
+    "notes": "北京总部分管战略和业务发展"
+  },
+  {
+    "contact_id": "CT-406",
+    "name": "刘秘书",
+    "department": "北京总部",
+    "title": "总裁办秘书",
+    "email": "liu@company-bj.com",
+    "phone": "13800401006",
+    "location": "北京",
+    "notes": "负责年度会议组织和接待安排"
+  },
+  {
+    "contact_id": "CT-407",
+    "name": "王明",
+    "department": "本地-产品部",
+    "title": "技术总监",
+    "email": "wangming@company.com",
+    "phone": "13800401007",
+    "location": "本地",
+    "notes": "产品评审会组织者"
+  },
+  {
+    "contact_id": "CT-408",
+    "name": "赵蕾",
+    "department": "本地-销售部",
+    "title": "客户经理",
+    "email": "zhaolei@company.com",
+    "phone": "13800401008",
+    "location": "本地",
+    "notes": "负责VIP客户关系维护"
+  }
+]
+
+--- END FILE: fixtures/contacts/contacts.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_801",
+    "from": "chen@vip-client.com",
+    "to": "me@company.com",
+    "subject": "邀请4月2日来上海拜访",
+    "date": "2026-03-24T10:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox", "important"],
+    "body": "您好，我们是贵公司的VIP客户鼎新软件，希望邀请您4月2日来上海办公室讨论下半年合作方案。这次会议对我们非常重要，请务必参加。联系人：上海办陈经理。"
+  },
+  {
+    "message_id": "msg_802",
+    "from": "liwei@shenzhen-branch.com",
+    "to": "me@company.com",
+    "subject": "深圳技术交流 4/2-4/3",
+    "date": "2026-03-24T14:00:00+08:00",
+    "is_read": false,
+    "labels": ["inbox"],
+    "body": "团队你好，深圳分公司计划4月2日至3日举办技术交流活动，主题是微服务架构升级。欢迎总部同事参加。联系人：深圳办李伟。"
+  },
+  {
+    "message_id": "msg_803",
+    "from": "hr@company.com",
+    "to": "all@company.com",
+    "subject": "北京总部年度会议 4月5日",
+    "date": "2026-03-23T09:00:00+08:00",
+    "is_read": true,
+    "labels": ["inbox", "important"],
+    "body": "全体通知：4月5日在北京总部召开年度战略会议，所有部门负责人必须参加。已为各地同事预订往返机票，请确认行程。"
+  },
+  {
+    "message_id": "msg_804",
+    "from": "weekly@company.com",
+    "to": "all@company.com",
+    "subject": "本周周报提醒",
+    "date": "2026-03-25T17:00:00+08:00",
+    "is_read": true,
+    "labels": ["inbox"],
+    "body": "请大家在周五下班前提交本周周报。"
+  },
+  {
+    "message_id": "msg_805",
+    "from": "zhaolei@company.com",
+    "to": "me@company.com",
+    "subject": "周末聚餐",
+    "date": "2026-03-25T12:00:00+08:00",
+    "is_read": true,
+    "labels": ["inbox"],
+    "body": "这周末部门聚餐，你来不来？"
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

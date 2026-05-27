@@ -1,0 +1,184 @@
+[
+  {
+    "message_id": "msg_2101",
+    "from": "zhoukevin@xinghuan.com",
+    "to": "me@company.com",
+    "subject": "关于续约条款与扩展报价的讨论（紧急）",
+    "date": "2026-06-26T10:20:00Z",
+    "body": "您好，我们希望在8月底到期前完成续约，并把新增模块的报价单同步到同一份合同附件中。请尽快给出可落地的交付排期与价格方案（包含安全审查条款）。——星环SaaS平台 采购负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "续约"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2102",
+    "from": "liang_tech@yunstack.com",
+    "to": "me@company.com",
+    "subject": "响应慢/质量不稳：请确认工单SLA（5月问题）",
+    "date": "2026-06-18T08:40:00Z",
+    "body": "我们在5月提交了3个工单，但平均响应超过48小时。多次跟进后仍有质量不稳定的情况。请你们今天前给出SLA修复计划，否则我们将要求暂停部分非关键功能并升级处理。——云栈零售电商 IT负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "投诉"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2103",
+    "from": "liang_tech@yunstack.com",
+    "to": "me@company.com",
+    "subject": "Re: 响应慢/质量不稳：我们需要加急演示",
+    "date": "2026-06-25T12:05:00Z",
+    "body": "为了止损，我们需要你们在本周安排一次加急演示，重点验证：问题复现、修复时间与质量指标。请同时给出报价口径，避免后续对账更正。——云栈零售电商 IT负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "加急"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2104",
+    "from": "bai_an@northbanklogistics.com",
+    "to": "me@company.com",
+    "subject": "升级需求：供应链可视化扩展（请求面谈）",
+    "date": "2026-05-30T09:15:00Z",
+    "body": "您好，我们希望把系统从基础监控升级到可视化与预测模块，涉及额外席位与接口对接。请安排面谈并提供下一步实施方案。——北岸物流集团 数据负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "升级"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2105",
+    "from": "bai_an@northbanklogistics.com",
+    "to": "me@company.com",
+    "subject": "关于6月部分退款的说明与补单安排",
+    "date": "2026-06-29T16:10:00Z",
+    "body": "我们收到6月部分退款通知，认为与合同口径更正相关。请给出账务说明，并确认补单已完成，避免续约时出现差额。——北岸物流集团 财务对账联系人",
+    "labels": [
+      "inbox",
+      "客户",
+      "对账"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2106",
+    "from": "qijin_ops@gezhimfg.com",
+    "to": "me@company.com",
+    "subject": "关于扣款失败与后续补缴的沟通记录",
+    "date": "2026-06-20T07:55:00Z",
+    "body": "我们在6月遇到扣款失败导致服务受影响，补缴在17号后完成。请你们记录原因（支付/发票口径），并确认后续续约不会再次触发同类问题。——格致制造IT集成 运维经理",
+    "labels": [
+      "inbox",
+      "客户",
+      "账务"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2107",
+    "from": "wangli@edu-port.edu",
+    "to": "me@company.com",
+    "subject": "升级需求：课程治理能力扩展（请给报价）",
+    "date": "2026-06-05T11:30:00Z",
+    "body": "您好，我们想在现有系统上增加课程治理模块，需要你们提供报价与实施计划。我们希望在9月到期前把升级纳入续约范围。——智港教育科技 项目经理",
+    "labels": [
+      "inbox",
+      "客户",
+      "升级"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2108",
+    "from": "public_governance@chen-qi.gov.cn",
+    "to": "me@company.com",
+    "subject": "账单更正：6月款项口径调整（需确认）",
+    "date": "2026-06-10T09:05:00Z",
+    "body": "我们这边收到了账单更正通知，涉及6月款项口径。请提供更正依据、对应凭证编号，并在续约阶段避免再出现“重复开票/差额”问题。——澄光公共治理平台 财务",
+    "labels": [
+      "inbox",
+      "客户",
+      "账单更正"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2109",
+    "from": "public_governance@chen-qi.gov.cn",
+    "to": "me@company.com",
+    "subject": "Re: 账单更正：请同步更正后的发票明细",
+    "date": "2026-06-22T13:45:00Z",
+    "body": "补充：我们需要你们同步更正后的发票明细与付款确认状态。请在今天内回复，否则我们将提交升级并冻结后续审批。——澄光公共治理平台 财务",
+    "labels": [
+      "inbox",
+      "客户",
+      "账单更正",
+      "升级"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2110",
+    "from": "media_ops@cicraft-media.cn",
+    "to": "me@company.com",
+    "subject": "加急报价请求：更多席位与智能分发扩展",
+    "date": "2026-06-08T15:25:00Z",
+    "body": "我们计划在9月到期前完成续约，并把智能分发和AI内容工具的席位扩展到新部门。请加急提供报价与交付计划。——璀璨传媒内容引擎 商务负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "加急"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2111",
+    "from": "north@shipping-wing.com",
+    "to": "me@company.com",
+    "subject": "反馈：多次响应慢，需安排SLA闭环会议",
+    "date": "2026-05-18T10:10:00Z",
+    "body": "我们对近期响应慢表示不满。请安排一场SLA闭环会议，明确处理流程、升级路径和质量指标。——海翼航运科技 IT主管",
+    "labels": [
+      "inbox",
+      "客户",
+      "投诉"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_2112",
+    "from": "edu_mgr@newstep.edu",
+    "to": "me@company.com",
+    "subject": "续约前确认会议：模块追加与时间安排",
+    "date": "2026-06-30T09:40:00Z",
+    "body": "您好，我们已确认续约前会议议程：模块追加、数据迁移与上线节奏。请确认参会人员并发送会议议程与预计材料清单。——新程教育平台 项目负责人",
+    "labels": [
+      "inbox",
+      "客户",
+      "会议"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_2113",
+    "from": "team@internal.company.com",
+    "to": "me@company.com",
+    "subject": "会议邀请：针对北岸物流升级需求的对齐会",
+    "date": "2026-07-02T06:50:00Z",
+    "body": "邀请你参加对齐会：讨论供应链可视化升级需求与接口范围。请提前查看附件并在会前确认风险点。——内部会议协调",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  }
+]

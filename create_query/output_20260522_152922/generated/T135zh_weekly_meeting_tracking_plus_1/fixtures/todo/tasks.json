@@ -1,0 +1,105 @@
+[
+  {
+    "task_id": "TODO-A-1",
+    "title": "A段用户旅程梳理",
+    "description": "完成A段用户旅程梳理（负责人确认）并提交对齐说明",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-04-06",
+    "assignee": "陈思",
+    "tags": [
+      "运营"
+    ]
+  },
+  {
+    "task_id": "TODO-A-2",
+    "title": "留存漏斗埋点校验",
+    "description": "推进留存漏斗埋点校验，输出差异清单与修复计划",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-09",
+    "assignee": "林哲",
+    "tags": [
+      "增长",
+      "埋点"
+    ]
+  },
+  {
+    "task_id": "TODO-A-3",
+    "title": "离线批处理根因分析",
+    "description": "输出离线批处理失败根因分析报告与临时缓解方案",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-04",
+    "assignee": "苏然",
+    "tags": [
+      "数据",
+      "运营"
+    ]
+  },
+  {
+    "task_id": "TODO-A-5",
+    "title": "客户分层策略v2文档",
+    "description": "更新客户分层策略v2文档并完成版本发布",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-11",
+    "assignee": "王澄",
+    "tags": [
+      "客户",
+      "文档"
+    ]
+  },
+  {
+    "task_id": "TODO-B-2",
+    "title": "A/B实验结论文档",
+    "description": "复盘A/B实验结果并形成结论文档（含下一步建议）",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-10",
+    "assignee": "林哲",
+    "tags": [
+      "产品",
+      "实验"
+    ]
+  },
+  {
+    "task_id": "TODO-B-3",
+    "title": "转化漏斗事件字典与映射表",
+    "description": "补齐转化漏斗事件字典与映射表，完成字段映射校验",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-04-16",
+    "assignee": "周航",
+    "tags": [
+      "数据",
+      "增长"
+    ]
+  },
+  {
+    "task_id": "TODO-B-5",
+    "title": "新渠道开户脚本回归清单",
+    "description": "准备新渠道开户脚本回归清单并提交执行记录",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-02",
+    "assignee": "陈思",
+    "tags": [
+      "回归",
+      "渠道"
+    ]
+  },
+  {
+    "task_id": "TODO-OUT-1",
+    "title": "会外：工单SLA核对",
+    "description": "核对当前工单SLA配置与历史偏差记录，补齐缺失字段",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-07",
+    "assignee": "叶乔",
+    "tags": [
+      "会外",
+      "运维"
+    ]
+  }
+]

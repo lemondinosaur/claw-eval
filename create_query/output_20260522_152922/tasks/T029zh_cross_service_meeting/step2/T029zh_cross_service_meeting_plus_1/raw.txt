@@ -1,0 +1,212 @@
+{
+  "task_id": "T029zh_cross_service_meeting_plus_1",
+  "task_name": "评审会时间匹配（跨天兜底）",
+  "prompt_text": "请你处理我邮箱里来自 Aurora Holdings 的“联合尽调会议”邀请：\n1）阅读邮件获取会议主题、时长、主选/备选日期与时段偏好；\n2）在通讯录中找到参与人员：我方的“周航”“赵敏”和合作方联系人“马经理”；\n3）查询周航、赵敏在主选日期的日程（以会议时段偏好为边界），若三方没有共同可用的连续2小时，则改查备选日期；\n4）选择共同空闲的最早连续2小时作为会议时间；\n5）在日历创建包含三位参会人的会议，并将确认信息回复给 Aurora Holdings（邮件主题用“Re:”前缀，正文包含会议日期、开始/结束时间、参会人）。\n会议地点固定为“线上会议（Zoom）”，并在邮件正文包含“请在发送前确认所有人可参会”。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_AH_501",
+        "title": "安全培训",
+        "organizer": "zhouhang@acme.com",
+        "attendees": [
+          "zhouhang@acme.com"
+        ],
+        "start_time": "2026-03-05T15:00:00+08:00",
+        "end_time": "2026-03-05T16:30:00+08:00",
+        "location": "培训室1",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_AH_502",
+        "title": "跨部门同步",
+        "organizer": "zhaomin@acme.com",
+        "attendees": [
+          "zhaomin@acme.com"
+        ],
+        "start_time": "2026-03-05T16:30:00+08:00",
+        "end_time": "2026-03-05T17:00:00+08:00",
+        "location": "会议室C",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_AH_503",
+        "title": "客户电话",
+        "organizer": "maming@aurora-holdings.com",
+        "attendees": [
+          "maming@aurora-holdings.com"
+        ],
+        "start_time": "2026-03-05T14:30:00+08:00",
+        "end_time": "2026-03-05T15:30:00+08:00",
+        "location": "电话",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_AH_504",
+        "title": "头脑风暴（占用）",
+        "organizer": "zhaomin@acme.com",
+        "attendees": [
+          "zhaomin@acme.com"
+        ],
+        "start_time": "2026-03-05T17:30:00+08:00",
+        "end_time": "2026-03-05T18:00:00+08:00",
+        "location": "",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_AH_505",
+        "title": "回顾会（占用）",
+        "organizer": "zhouhang@acme.com",
+        "attendees": [
+          "zhouhang@acme.com"
+        ],
+        "start_time": "2026-03-06T09:00:00+08:00",
+        "end_time": "2026-03-06T10:00:00+08:00",
+        "location": "会议室D",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_AH_506",
+        "title": "项目对齐（占用）",
+        "organizer": "maming@aurora-holdings.com",
+        "attendees": [
+          "maming@aurora-holdings.com"
+        ],
+        "start_time": "2026-03-06T10:00:00+08:00",
+        "end_time": "2026-03-06T11:00:00+08:00",
+        "location": "线上",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_AH_507",
+        "title": "数据评审（占用）",
+        "organizer": "zhaomin@acme.com",
+        "attendees": [
+          "zhaomin@acme.com"
+        ],
+        "start_time": "2026-03-06T11:00:00+08:00",
+        "end_time": "2026-03-06T11:30:00+08:00",
+        "location": "会议室E",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_AH_508",
+        "title": "客户走查（占用，避免更早时段）",
+        "organizer": "zhouhang@acme.com",
+        "attendees": [
+          "zhouhang@acme.com"
+        ],
+        "start_time": "2026-03-06T09:30:00+08:00",
+        "end_time": "2026-03-06T10:30:00+08:00",
+        "location": "",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_AH_509",
+        "title": "备选时段占用（只影响更晚窗）",
+        "organizer": "zhaomin@acme.com",
+        "attendees": [
+          "zhaomin@acme.com"
+        ],
+        "start_time": "2026-03-06T12:00:00+08:00",
+        "end_time": "2026-03-06T13:00:00+08:00",
+        "location": "会议室F",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-201",
+        "name": "周航",
+        "department": "交付部",
+        "title": "交付经理",
+        "email": "zhouhang@acme.com",
+        "phone": "13911112222",
+        "location": "上海"
+      },
+      {
+        "contact_id": "CT-202",
+        "name": "赵敏",
+        "department": "研发部",
+        "title": "研发负责人",
+        "email": "zhaomin@acme.com",
+        "phone": "13933334444",
+        "location": "杭州"
+      },
+      {
+        "contact_id": "CT-203",
+        "name": "马经理",
+        "department": "外部 — Aurora Holdings",
+        "title": "商务经理",
+        "email": "maming@aurora-holdings.com",
+        "phone": "13955556666",
+        "location": "北京"
+      },
+      {
+        "contact_id": "CT-204",
+        "name": "马晓然",
+        "department": "市场部",
+        "title": "市场专员",
+        "email": "maxiaoran@acme.com",
+        "phone": "13977778888",
+        "location": "上海"
+      },
+      {
+        "contact_id": "CT-205",
+        "name": "赵俊",
+        "department": "支持部",
+        "title": "支持工程师",
+        "email": "zhaojun@acme.com",
+        "phone": "13999990000",
+        "location": "广州"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_AH_601",
+        "from": "procurement@aurora-holdings.com",
+        "to": "me@acme.com",
+        "subject": "联合尽调会议邀请：Q1协同计划",
+        "date": "2026-02-26T10:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "你好，\n\n我们希望邀请你方参加一场“联合尽调会议”，用于对Q1协同计划进行对齐与确认。\n\n会议关键信息：\n- 会议主题：联合尽调会议（Q1协同计划）\n- 预计时长：2小时\n- 主选日期：2026-03-05（周四）下午\n- 时段偏好：14:00-18:00（会议开始时间落在此范围内）\n- 备选日期：2026-03-06（周五）上午\n- 备选时段偏好：09:00-12:00\n- 会议地点要求：线上会议（Zoom）\n- 参会人（以姓名为准）：周航、赵敏、马经理\n\n如果主选日期无法满足共同连续2小时，请直接切换到备选日期并安排最早可行时间。\n\n请在发送前确认所有人可参会。\n\n谢谢！\nAurora Holdings"
+      },
+      {
+        "message_id": "msg_AH_602",
+        "from": "newsletter@shipping-updates.example",
+        "to": "me@acme.com",
+        "subject": "物流状态更新（无需回复）",
+        "date": "2026-02-26T16:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "本邮件为自动通知：物流状态已更新。无需回复。"
+      },
+      {
+        "message_id": "msg_AH_603",
+        "from": "hr-automation@acme.com",
+        "to": "me@acme.com",
+        "subject": "通知：年度培训报名开启",
+        "date": "2026-02-27T09:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "年度培训报名已开启，请前往内网完成报名。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "主选日期（2026-03-05下午14:00-18:00）三人无法形成连续2小时共同可用时段，因此改为备选日期（2026-03-06上午09:00-12:00）安排最早可行2小时会议并创建线上Zoom事件，然后回复确认邮件。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 提供1封来自 Aurora Holdings 的“联合尽调会议”邀请，内含主选/备选日期、时段偏好、2小时时长、地点要求与三位参会人姓名列表；另含2封无关邮件作干扰。",
+      "contacts/contacts.json 为周航、赵敏、马经理提供唯一邮箱，并额外加入相近但不参与的干扰联系人。",
+      "calendar/events.json 在主选日期为三人分别设置交错占用，确保在14:00-18:00内不存在共同连续2小时；在备选日期为三人设置占用，使最早共同连续2小时落在 2026-03-06T11:00:00+08:00 至 2026-03-06T13:00:00+08:00 区间内可行（同时不与事件冲突）。",
+      "所有邮箱、联系人ID、事件ID、邮件ID均为全新值，且跨 fixtures 保持一致引用。"
+    ]
+  }
+}

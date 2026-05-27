@@ -1,0 +1,649 @@
+{
+  "task_id": "T033zh_ops_review_dashboard_plus_3",
+  "task_name": "零售运营周报：库存异常引发渠道封禁工单",
+  "prompt_text": "请帮我准备一份本周零售运营周报（只读审查）。请综合以下系统的数据，重点解释“库存导致的渠道履约失败”如何在跨系统中形成证据链，并在最后给出行动项。\n\n需要涵盖：\n1) 系统集成状态：重点核查与“库存/渠道同步”相关的集成（状态可能显示active，但需结合错误率与notes/告警线索判断矛盾）。\n2) 工单趋势与重点问题：筛出并聚簇分析“发货失败 / 渠道超时 / 库存不一致 / 渠道封禁或风控拦截”相关工单，给出关键工单的直接描述证据。\n3) 库存状况：定位触发异常的SKU，结合安全线/最小库存(min_stock)判断低库存或库存触底，并补充触发阈值与持续性线索。\n4) 定时任务状态：确认负责“库存快照同步到渠道”的任务是否被禁用或失败；若存在失败/跳过，请说明其如何造成渠道看到旧库存。\n5) CRM客户动态：从CRM识别VIP渠道客户的投诉/履约风险，解释其与库存同步滞后之间的业务关联（只做影响评估，不做任何修改）。\n6) 知识库过时检查：检索“安全库存/补货触发/补货SLA”类文章，指出last_updated超过半年带来的阈值策略过时风险，并给出建议更新方向。\n\n约束：不要修改任何数据、不要发送邮件、不要更新工单或创建任何内容。输出结构化周报（摘要->系统健康->工单->库存->调度->CRM->知识库->结论->行动项）。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-211",
+        "name": "channel_stock_api",
+        "display_name": "渠道库存API",
+        "status": "active",
+        "error_rate": 6.8,
+        "base_url": "https://channel-stock.example.com/api",
+        "call_volume_previous_week": 17600,
+        "service": "api",
+        "last_verified": "2026-03-14T23:00:00+08:00",
+        "notes": "监控标签仍为active；错误率偶发升高，notes显示“部分请求重试、部分超时后返回旧库存快照”。"
+      },
+      {
+        "integration_id": "INT-212",
+        "name": "inventory_to_channel_sync",
+        "display_name": "库存到渠道同步",
+        "status": "active",
+        "error_rate": 9.4,
+        "base_url": "https://sync.example.com/inventory-to-channel",
+        "service": "api",
+        "call_volume_previous_week": 4200,
+        "monthly_calls": 5100,
+        "last_verified": "2026-03-14T22:45:00+08:00",
+        "notes": "status标记active但历史上存在连续重试；部分渠道单号在同步窗口内未刷新库存。建议结合调度任务禁用/失败排查。"
+      },
+      {
+        "integration_id": "INT-213",
+        "name": "retail_order_webhook",
+        "display_name": "零售订单Webhook",
+        "status": "degraded",
+        "error_rate": 3.2,
+        "base_url": "https://orders.example.com/webhook",
+        "service": "webhook",
+        "call_volume_previous_week": 9800,
+        "monthly_calls": 10150,
+        "last_verified": "2026-03-14T23:05:00+08:00",
+        "notes": "连接抖动导致回调延迟，可能放大“发货延迟超时”工单聚簇。"
+      },
+      {
+        "integration_id": "INT-214",
+        "name": "fraud_risk_feed",
+        "display_name": "渠道风控风标推送",
+        "status": "active",
+        "error_rate": 0.6,
+        "base_url": "https://risk.example.com/feed",
+        "service": "stream",
+        "call_volume_previous_week": 3100,
+        "monthly_calls": 3300,
+        "last_verified": "2026-03-14T23:10:00+08:00",
+        "notes": "错误率低；notes主要与风控规则触发相关。"
+      },
+      {
+        "integration_id": "INT-215",
+        "name": "reporting_notifier",
+        "display_name": "运营报表通知器",
+        "status": "active",
+        "error_rate": 0.3,
+        "base_url": "https://notify.example.com/ops",
+        "service": "webhook",
+        "call_volume_previous_week": 620,
+        "monthly_calls": 700,
+        "last_verified": "2026-03-14T21:00:00+08:00"
+      },
+      {
+        "integration_id": "INT-216",
+        "name": "inventory_readonly_audit",
+        "display_name": "库存只读审计",
+        "status": "active",
+        "error_rate": 1.1,
+        "base_url": "https://audit.example.com/inventory",
+        "service": "api",
+        "call_volume_previous_week": 2400,
+        "monthly_calls": 2600,
+        "last_verified": "2026-03-14T23:25:00+08:00",
+        "notes": "最近一次审计发现：部分门店SKU在“安全线以下”时仍被请求出库；需要结合库存阈值策略核对。"
+      },
+      {
+        "integration_id": "INT-217",
+        "name": "channel_catalog_cache",
+        "display_name": "渠道商品缓存",
+        "status": "active",
+        "error_rate": 0.0,
+        "base_url": "https://catalog.example.com/cache",
+        "service": "api",
+        "call_volume_previous_week": 1500,
+        "monthly_calls": 80,
+        "last_verified": "2026-03-14T23:30:00+08:00",
+        "notes": "错误率为0但调用量显著下降；可能导致渠道侧缓存未刷新，间接影响库存一致性。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-401",
+        "name": "北辰零售连锁",
+        "tier": "vip",
+        "status": "active",
+        "annual_revenue": 16500000,
+        "contact_person": "周总",
+        "contact_email": "zhou@beichen-retail.com",
+        "contact_phone": "137-0101-4401",
+        "industry": "零售连锁",
+        "contract_end_date": "2026-12-15",
+        "recent_interactions": [
+          {
+            "date": "2026-03-12",
+            "type": "complaint",
+            "channel": "渠道经理电话",
+            "handled_by": "客服专员林",
+            "notes": "门店出现“订单无法发货/发货延迟超时”，VIP合同履约风险上升；我方看到的库存经常落后于系统，怀疑库存快照同步滞后导致。要求提供同步窗口与补货SLA说明。"
+          },
+          {
+            "date": "2026-03-05",
+            "type": "risk_notice",
+            "channel": "工单系统",
+            "notes": "风控提示：若连续出现库存不一致，将触发渠道封禁/提高审核系数。"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-402",
+        "name": "宏图商贸",
+        "tier": "standard",
+        "status": "active",
+        "annual_revenue": 5200000,
+        "contact_person": "陈经理",
+        "contact_email": "chen@hongtu-trade.cn",
+        "contact_phone": "136-0101-4402",
+        "industry": "商贸",
+        "contract_end_date": "2026-08-31",
+        "recent_interactions": [
+          {
+            "date": "2026-03-10",
+            "type": "complaint",
+            "channel": "邮件",
+            "notes": "请求核对XR-12门店SKU库存一致性，出现出库失败回执。"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-403",
+        "name": "澜海电商平台",
+        "tier": "vip",
+        "status": "active",
+        "annual_revenue": 9800000,
+        "contact_person": "孙总",
+        "contact_email": "sun@lanhai-ecom.com",
+        "contact_phone": "135-0101-4403",
+        "industry": "电商平台",
+        "contract_end_date": "2027-02-28",
+        "recent_interactions": [
+          {
+            "date": "2026-03-11",
+            "type": "complaint",
+            "channel": "视频会议",
+            "handled_by": "运营助理周",
+            "notes": "合同履约风险来自“渠道显示旧库存”导致的履约失败：我们平台侧订单被风控延迟放行，客户投诉增加。希望尽快恢复库存到渠道同步任务。"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-404",
+        "name": "云岭供应链",
+        "tier": "standard",
+        "status": "active",
+        "annual_revenue": 2600000,
+        "contact_person": "赵主管",
+        "contact_email": "zhao@yunling-scm.com",
+        "contact_phone": "134-0101-4404",
+        "industry": "供应链",
+        "contract_end_date": "2026-10-20",
+        "recent_interactions": [
+          {
+            "date": "2026-03-02",
+            "type": "inquiry",
+            "channel": "系统消息",
+            "notes": "询问安全库存触发规则是否更新，是否会影响门店出库策略。"
+          }
+        ]
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2401",
+        "title": "渠道封禁：库存不一致导致订单无法发货",
+        "description": "渠道侧回传：门店E5看到的SKU库存落后2-3小时，导致出库失败并触发风控封禁。同步日志提示“库存快照未刷新”，相关集成为inventory_to_channel_sync。",
+        "department": "渠道运营",
+        "priority": "high",
+        "status": "open",
+        "category": "channel_block",
+        "product": "北极星手环XR-12",
+        "created_at": "2026-03-09T09:20:00+08:00",
+        "assigned_to": "刘运营",
+        "updated_at": "2026-03-14T16:05:00+08:00",
+        "reporter": "北辰零售连锁对接人"
+      },
+      {
+        "ticket_id": "TK-2402",
+        "title": "发货延迟超时：库存快照同步延后",
+        "description": "订单超时撤单集中发生在同步窗口附近；库存服务显示低于安全线但渠道仍下发出库请求。helpdesk关联“库存到渠道同步任务近期被禁用/跳过”。",
+        "department": "履约保障",
+        "priority": "high",
+        "status": "open",
+        "category": "shipping_timeout",
+        "product": "晨雾耳机AE-7",
+        "created_at": "2026-03-10T11:30:00+08:00",
+        "assigned_to": "周保障",
+        "updated_at": "2026-03-14T11:40:00+08:00",
+        "reporter": "履约监控"
+      },
+      {
+        "ticket_id": "TK-2403",
+        "title": "渠道超时：库存接口偶发重试后返回旧数据",
+        "description": "库存接口状态监控仍为active，但错误率间歇升高；notes提示部分请求重试。渠道回传出库失败原因包含“库存不一致/请求库存快照过期”。",
+        "department": "运维中台",
+        "priority": "medium",
+        "status": "open",
+        "category": "inventory_sync_issue",
+        "product": "北极星手环XR-12",
+        "created_at": "2026-03-11T14:05:00+08:00",
+        "assigned_to": "程运维",
+        "updated_at": "2026-03-14T09:10:00+08:00",
+        "reporter": "监控告警"
+      },
+      {
+        "ticket_id": "TK-2404",
+        "title": "库存不一致：门店D2出库失败（安全线以下）",
+        "description": "库存服务显示某SKU current_stock 持续低于 min_stock，但渠道系统仍按旧阈值允许出库；导致“已扣减库存不足”并引发退货/换货工单增加。需核查安全库存与补货触发策略。",
+        "department": "渠道运营",
+        "priority": "high",
+        "status": "open",
+        "category": "stock_inconsistency",
+        "product": "晨雾耳机AE-7",
+        "created_at": "2026-03-08T10:15:00+08:00",
+        "assigned_to": "刘运营",
+        "updated_at": "2026-03-14T18:25:00+08:00",
+        "reporter": "门店D2系统"
+      },
+      {
+        "ticket_id": "TK-2405",
+        "title": "订单无法发货：库存快照同步任务被禁用",
+        "description": "排查发现“库存快照同步到渠道”相关任务处于enabled=false状态；最近运行历史显示大量跳过/失败。渠道看不到最新库存，造成发货失败聚簇。",
+        "department": "调度与可靠性",
+        "priority": "high",
+        "status": "open",
+        "category": "scheduler_disabled",
+        "created_at": "2026-03-12T08:40:00+08:00",
+        "assigned_to": "杨SRE",
+        "updated_at": "2026-03-14T13:55:00+08:00",
+        "reporter": "可靠性值班"
+      },
+      {
+        "ticket_id": "TK-2406",
+        "title": "渠道封禁二次出现：库存不一致连锁升级",
+        "description": "多张订单触发风控封禁；原因描述包含“库存不一致/库存快照未更新”。与TK-2401同类，集中门店为E5/E6。",
+        "department": "渠道运营",
+        "priority": "high",
+        "status": "open",
+        "category": "channel_block",
+        "product": "智能体重秤WT-3",
+        "created_at": "2026-03-13T09:10:00+08:00",
+        "assigned_to": "刘运营",
+        "updated_at": "2026-03-14T10:30:00+08:00",
+        "reporter": "渠道风控回执"
+      },
+      {
+        "ticket_id": "TK-2407",
+        "title": "发货失败：渠道系统缓存未刷新导致旧库存下发",
+        "description": "渠道侧显示库存与库存服务存在偏差；集成notes表明“商品缓存调用量下降/未刷新”。短期内恢复需要确认库存到渠道同步触发机制。",
+        "department": "运维中台",
+        "priority": "medium",
+        "status": "open",
+        "category": "cache_stale",
+        "product": "智能体重秤WT-3",
+        "created_at": "2026-03-12T17:20:00+08:00",
+        "assigned_to": "程运维",
+        "updated_at": "2026-03-14T08:50:00+08:00",
+        "reporter": "履约监控"
+      },
+      {
+        "ticket_id": "TK-2408",
+        "title": "订单超时撤单：出库失败后重试仍失败",
+        "description": "重试3次后仍失败；库存接口返回错误码与notes“部分请求重试”。工单聚簇与channel_stock_api错误率间歇升高相吻合。",
+        "department": "履约保障",
+        "priority": "medium",
+        "status": "open",
+        "category": "shipping_timeout",
+        "product": "北极星手环XR-12",
+        "created_at": "2026-03-07T15:10:00+08:00",
+        "assigned_to": "周保障",
+        "updated_at": "2026-03-14T12:10:00+08:00",
+        "reporter": "订单队列"
+      },
+      {
+        "ticket_id": "TK-2409",
+        "title": "安全库存阈值疑似过时：补货触发过晚",
+        "description": "工单反馈：同一SKU在安全线附近时仍允许出库直到库存继续下探；建议检查知识库中“安全库存与补货触发”阈值版本是否过时，并评估更新策略。",
+        "department": "运营策略",
+        "priority": "medium",
+        "status": "open",
+        "category": "strategy_outdated",
+        "product": "晨雾耳机AE-7",
+        "created_at": "2026-03-10T19:00:00+08:00",
+        "assigned_to": "王策略",
+        "updated_at": "2026-03-14T15:30:00+08:00",
+        "reporter": "运营复盘"
+      },
+      {
+        "ticket_id": "TK-2410",
+        "title": "渠道同步恢复验证（历史闭环对照）",
+        "description": "上周曾短暂出现库存不一致，完成同步任务恢复后，渠道库存偏差在6小时内归零。作为本周排查对照，关注本周任务是否再次被禁用。",
+        "department": "调度与可靠性",
+        "priority": "low",
+        "status": "closed",
+        "category": "inventory_sync_issue",
+        "created_at": "2026-03-01T10:00:00+08:00",
+        "assigned_to": "杨SRE",
+        "updated_at": "2026-03-02T09:30:00+08:00",
+        "resolution": "启用库存快照同步任务并等待渠道缓存刷新"
+      },
+      {
+        "ticket_id": "TK-2411",
+        "title": "通知摘要任务异常（仅监控干扰，不指向履约）",
+        "description": "运营报表通知器未及时推送本周数据，但不影响库存同步本身。当前用于排除“只读审查误判”的干扰项。",
+        "department": "运维中台",
+        "priority": "low",
+        "status": "open",
+        "category": "notification_issue",
+        "created_at": "2026-03-14T10:00:00+08:00",
+        "assigned_to": "林中台",
+        "updated_at": "2026-03-14T10:30:00+08:00",
+        "reporter": "值班运营"
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "PRD-301",
+        "name": "北极星手环XR-12",
+        "category": "可穿戴",
+        "current_stock": 18,
+        "min_stock": 60,
+        "status": "low_stock",
+        "return_rate": 3.6,
+        "return_count": 7,
+        "units_sold_this_month": 132,
+        "supplier": "极光制造",
+        "last_restock_date": "2026-02-18",
+        "notes": "current_stock连续触底：自3/6起多次低于min_stock。触发阈值后仍发生出库请求，推测库存到渠道同步滞后导致渠道看到旧库存。"
+      },
+      {
+        "product_id": "PRD-302",
+        "name": "晨雾耳机AE-7",
+        "category": "音频设备",
+        "current_stock": 41,
+        "min_stock": 70,
+        "status": "low_stock",
+        "return_rate": 2.2,
+        "return_count": 9,
+        "units_sold_this_month": 210,
+        "supplier": "云端声学",
+        "last_restock_date": "2026-03-01",
+        "notes": "库存低于安全线：触发补货触发阈值后未被及时传递给渠道出库决策。与工单“发货延迟超时/库存不一致”时间窗口一致。"
+      },
+      {
+        "product_id": "PRD-303",
+        "name": "智能体重秤WT-3",
+        "category": "健康设备",
+        "current_stock": 22,
+        "min_stock": 25,
+        "status": "low_stock",
+        "return_rate": 1.1,
+        "return_count": 2,
+        "units_sold_this_month": 95,
+        "supplier": "鼎衡科技",
+        "last_restock_date": "2026-02-27",
+        "notes": "刚性临界低库存：在同步窗口内易出现渠道出库失败，尤其在任务被禁用时更明显。"
+      },
+      {
+        "product_id": "PRD-304",
+        "name": "星港充电器CH-9",
+        "category": "配件",
+        "current_stock": 310,
+        "min_stock": 80,
+        "status": "normal",
+        "return_rate": 0.4,
+        "return_count": 1,
+        "units_sold_this_month": 480,
+        "supplier": "星港供应链",
+        "last_restock_date": "2026-03-10"
+      },
+      {
+        "product_id": "PRD-305",
+        "name": "北风路由适配器RA-2",
+        "category": "网络设备",
+        "current_stock": 12,
+        "min_stock": 20,
+        "status": "low_stock",
+        "return_rate": 0.9,
+        "return_count": 1,
+        "units_sold_this_month": 64,
+        "supplier": "北风通讯",
+        "last_restock_date": "2026-02-05",
+        "notes": "门店侧出库请求偶发失败；建议在本周内对“安全库存与补货触发”阈值做复核。"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-411",
+        "title": "安全库存与补货触发：阈值策略（旧版本）",
+        "category": "库存策略",
+        "tags": [
+          "安全库存",
+          "补货触发",
+          "阈值",
+          "SLA"
+        ],
+        "content": "## 安全库存与补货触发（建议执行）\n\n### 1) 安全库存计算\n- 安全库存 = 日均需求 * 交付周期 * 1.1\n- 当库存低于安全库存时，标记为“可补货”\n\n### 2) 补货触发\n- 若 current_stock 连续3次低于 min_stock，则触发补货单\n- 补货SLA：从触发到渠道可见库存刷新不超过 48 小时\n\n### 3) 渠道一致性要求\n- 渠道侧必须在同步窗口刷新，否则禁止放行出库请求\n\n**版本说明**：本策略默认需求波动稳定；当日均需求波动超过 20% 时需重新评估阈值系数（1.1）与SLA。\n",
+        "last_updated": "2025-09-20",
+        "author": "供应链规划部",
+        "status": "published",
+        "views": 1420
+      },
+      {
+        "article_id": "KB-412",
+        "title": "库存快照同步到渠道的运维检查清单",
+        "category": "运维",
+        "tags": [
+          "库存快照",
+          "渠道同步",
+          "调度任务",
+          "排查"
+        ],
+        "content": "## 库存快照同步到渠道的运维检查清单\n\n- 检查调度任务是否enabled=true\n- 复核最近N次运行历史：failed/跳过次数\n- 校验库存接口error_rate与重试notes是否匹配\n- 确认渠道缓存刷新完成后再放行出库\n",
+        "last_updated": "2026-02-03",
+        "author": "可靠性团队",
+        "status": "published",
+        "views": 610
+      },
+      {
+        "article_id": "KB-413",
+        "title": "补货SLA与风控封禁的关联说明",
+        "category": "风控与履约",
+        "tags": [
+          "风控",
+          "封禁",
+          "SLA",
+          "履约"
+        ],
+        "content": "## 补货SLA与风控封禁的关联说明\n\n- 当渠道库存刷新超过SLA时，风控可能提升审核系数\n- 若连续出现“库存不一致”，部分渠道会触发封禁或延迟放行\n- 建议在同步任务故障时执行临时放行策略（需审批）\n",
+        "last_updated": "2025-11-28",
+        "author": "渠道风控组",
+        "status": "published",
+        "views": 980
+      },
+      {
+        "article_id": "KB-414",
+        "title": "运营周报输出结构模板（用于只读复盘）",
+        "category": "运营",
+        "tags": [
+          "周报",
+          "只读",
+          "审查"
+        ],
+        "content": "## 运营周报结构模板\n- 摘要\n- 系统健康\n- 工单趋势与聚簇\n- 库存状况\n- 调度任务状态\n- CRM影响评估（VIP优先）\n- 知识库过时检查\n- 结论与行动项\n",
+        "last_updated": "2026-01-15",
+        "author": "运营管理部",
+        "status": "published",
+        "views": 430
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-221",
+        "name": "inventory_snapshot_to_channel",
+        "description": "将库存快照同步到渠道系统（用于渠道侧出库决策）",
+        "cron_expression": "0 */20 * * *",
+        "enabled": false,
+        "last_status": "failed",
+        "last_run": "2026-03-13T10:20:00+08:00",
+        "next_run": null,
+        "average_duration_seconds": 38,
+        "tags": [
+          "inventory",
+          "channel_sync",
+          "snapshot"
+        ],
+        "disabled_by": "ops_admin",
+        "disabled_date": "2026-03-13",
+        "disabled_reason": "疑似库存到渠道同步失败后产生旧快照风险（需复核）",
+        "execution_history": [
+          {
+            "run_at": "2026-03-13T10:20:00+08:00",
+            "status": "failed",
+            "error": "渠道侧返回旧库存快照（stale snapshot）",
+            "duration_seconds": 40
+          },
+          {
+            "run_at": "2026-03-13T09:40:00+08:00",
+            "status": "failed",
+            "error": "同步窗口超时，放弃写入（timeout）",
+            "duration_seconds": 37
+          },
+          {
+            "run_at": "2026-03-13T09:20:00+08:00",
+            "status": "skipped",
+            "error": "任务被禁用（enabled=false）",
+            "duration_seconds": 0
+          },
+          {
+            "run_at": "2026-03-13T08:40:00+08:00",
+            "status": "failed",
+            "error": "inventory_to_channel_sync重试后仍失败（partial retry）",
+            "duration_seconds": 36
+          }
+        ],
+        "notes": "该任务被禁用导致渠道库存刷新停止，形成“渠道看到旧库存”与发货失败/库存不一致工单聚簇。"
+      },
+      {
+        "job_id": "JOB-222",
+        "name": "channel_stock_refresh_guard",
+        "description": "渠道库存刷新守护：若同步未完成则阻止风险订单进入出库队列",
+        "cron_expression": "*/10 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-14T10:20:00+08:00",
+        "next_run": "2026-03-14T10:30:00+08:00",
+        "average_duration_seconds": 6,
+        "tags": [
+          "guard",
+          "risk"
+        ],
+        "notes": "守护任务运行正常，但当库存刷新停止后仍会出现部分订单风控延迟放行。"
+      },
+      {
+        "job_id": "JOB-223",
+        "name": "inventory_to_search_index_sync",
+        "description": "每30分钟同步库存到搜索索引",
+        "cron_expression": "*/30 * * * *",
+        "enabled": true,
+        "last_status": "failed",
+        "last_run": "2026-03-14T09:30:00+08:00",
+        "next_run": "2026-03-14T10:00:00+08:00",
+        "average_duration_seconds": 52,
+        "tags": [
+          "sync",
+          "inventory"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-03-14T09:30:00+08:00",
+            "status": "failed",
+            "error": "Connection timeout to inventory API after 30s",
+            "duration_seconds": 30
+          },
+          {
+            "run_at": "2026-03-14T09:00:00+08:00",
+            "status": "failed",
+            "error": "Connection timeout to inventory API after 30s",
+            "duration_seconds": 30
+          },
+          {
+            "run_at": "2026-03-14T08:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 41
+          }
+        ],
+        "notes": "为排除检索层影响：搜索索引同步也在失败，可能造成部分界面侧库存落后，但主因仍在渠道快照同步任务。"
+      },
+      {
+        "job_id": "JOB-224",
+        "name": "daily_ops_report_generation",
+        "description": "每日生成零售运营报表（只读）",
+        "cron_expression": "0 6 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-14T06:00:00+08:00",
+        "next_run": "2026-03-15T06:00:00+08:00",
+        "average_duration_seconds": 110,
+        "tags": [
+          "reporting",
+          "daily"
+        ]
+      },
+      {
+        "job_id": "JOB-225",
+        "name": "inventory_health_check",
+        "description": "库存与渠道同步健康检查（基线）",
+        "cron_expression": "*/5 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-14T10:25:00+08:00",
+        "next_run": "2026-03-14T10:30:00+08:00",
+        "average_duration_seconds": 7,
+        "tags": [
+          "monitoring",
+          "baseline"
+        ],
+        "notes": "健康检查通过，但无法替代具体同步任务是否enabled/是否写入渠道的验证。"
+      },
+      {
+        "job_id": "JOB-226",
+        "name": "weekly_inventory_policy_audit",
+        "description": "每周核对库存策略阈值版本是否更新",
+        "cron_expression": "0 7 * * 1",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-11T07:00:00+08:00",
+        "next_run": "2026-03-18T07:00:00+08:00",
+        "average_duration_seconds": 90,
+        "tags": [
+          "policy",
+          "audit"
+        ],
+        "notes": "本周审计成功，但知识库“安全库存与补货触发”文章仍为旧阈值版本，可能未触发更新提醒。"
+      },
+      {
+        "job_id": "JOB-227",
+        "name": "crm_vip_daily_export",
+        "description": "每日导出VIP客户履约互动数据（给分析使用）",
+        "cron_expression": "0 2 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-14T02:00:00+08:00",
+        "next_run": "2026-03-15T02:00:00+08:00",
+        "average_duration_seconds": 140,
+        "tags": [
+          "crm",
+          "vip"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "相较原题的“质量问题关联”，本新题主线改为“库存触发的渠道履约失败”，证据链集中在低库存/安全线、渠道同步集成活跃但错误率升高、调度任务禁用导致旧库存、以及知识库过时阈值策略。",
+    "fixture_design_summary": [
+      "integrations 中设置库存到渠道同步/渠道库存API status=active 但 error_rate 偶发升高且notes提示重试与旧快照。",
+      "inventory 中新增多款低于min_stock的SKU（含手环XR-12、耳机AE-7等）并在notes里强调出库请求与渠道旧库存的时间窗口关联。",
+      "helpdesk 工单新增11条，构造8条以上聚簇在发货失败/库存不一致/渠道封禁/超时类别，并让关键工单描述直接提到“库存快照同步任务被禁用”。",
+      "scheduler 中设置核心任务 inventory_snapshot_to_channel enabled=false 且执行历史显示failed与skipped，形成渠道无法刷新库存的因果证据。",
+      "crm 中加入至少1位VIP客户的投诉/履约风险说明，明确提到渠道看到旧库存与同步滞后导致的合同履约压力。",
+      "kb 中提供“安全库存与补货触发（旧版本）” last_updated 超过6个月，并补充运维检查与风控封禁关联文章用于行动项落地。"
+    ]
+  }
+}

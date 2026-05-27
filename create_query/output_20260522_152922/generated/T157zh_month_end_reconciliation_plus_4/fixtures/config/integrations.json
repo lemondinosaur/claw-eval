@@ -1,0 +1,57 @@
+[
+  {
+    "integration_id": "INT-2401",
+    "name": "data_masking_pipeline",
+    "display_name": "数据清洗/脱敏管道",
+    "service": "data_masking",
+    "status": "degraded",
+    "last_verified": "2026-04-28T02:10:00+08:00",
+    "monthly_calls": 9800,
+    "error_rate": 7.5,
+    "notes": "脱敏管道本月末发生一次字段裁剪/截断异常：CRM邮箱/电话字段被截断，导致下游映射表无法更新。"
+  },
+  {
+    "integration_id": "INT-2402",
+    "name": "field_mapping",
+    "display_name": "字段映射（customer_ref→customer_id）",
+    "service": "mapping",
+    "status": "error",
+    "last_verified": "2026-04-28T02:40:00+08:00",
+    "monthly_calls": 5400,
+    "error_rate": 38.0,
+    "notes": "customer_ref 解析失败：当 customer_id 为空时，本应回退 payer_ref，但当前配置把 payer_ref 映射到错误的目标字段，导致匹配失败。"
+  },
+  {
+    "integration_id": "INT-2403",
+    "name": "customer_ref_resolution",
+    "display_name": "客户替代键解析（payer_ref/billing_ref）",
+    "service": "resolution",
+    "status": "active",
+    "last_verified": "2026-04-27T09:30:00+08:00",
+    "monthly_calls": 11200,
+    "error_rate": 0.6,
+    "notes": "替代键策略正常：优先使用 payer_ref；若 payer_ref 缺失则使用 billing_ref。解析规则包含去除前缀'P-'与截断后4位校验。"
+  },
+  {
+    "integration_id": "INT-2404",
+    "name": "inventory_ref_resolution",
+    "display_name": "库存物料线索匹配（SKU短码/名称近似）",
+    "service": "inventory_resolution",
+    "status": "active",
+    "last_verified": "2026-04-26T16:45:00+08:00",
+    "monthly_calls": 6200,
+    "error_rate": 1.1,
+    "notes": "采购 related_item 缺失时：从 description 提取形如'SKU:KBD-4X'或名称短码(KBD/THR/PSU)；与 inventory.short_code 或 name 关键字做相似度匹配，阈值>=0.72 则给出匹配证据。"
+  },
+  {
+    "integration_id": "INT-2405",
+    "name": "reconciliation_mapping_refresh",
+    "display_name": "映射表刷新",
+    "service": "reconciliation",
+    "status": "degraded",
+    "last_verified": "2026-04-28T03:05:00+08:00",
+    "monthly_calls": 3200,
+    "error_rate": 12.4,
+    "notes": "映射表刷新在本月末失败一次：由于脱敏管道输出字段不完整，导致 customer_ref→customer_id 的映射未刷新。"
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "task_id": "T098_pinbench_openclaw_facts",
+    "task_name": "Pinbench OpenClaw Facts",
+    "difficulty": "easy",
+    "trials": [],
+    "error": "Service 'documents' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/.venv/bin/python3: can't open file '/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks_non_docker_non_web/non_docker_general/mock_services/documents/server.py': [Errno 2] No such file or directory\n",
+    "graded": true,
+    "avg_score": 0.0,
+    "pass_at_1": 0.0,
+    "pass_hat_k": 0.0,
+    "avg_passed": false
+  },
+  {
+    "task_id": "T097_pinbench_eli5_model_summary",
+    "task_name": "Pinbench ELI5 Model Summary",
+    "difficulty": "easy",
+    "trials": [],
+    "error": "Service 'documents' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/.venv/bin/python3: can't open file '/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks_non_docker_non_web/non_docker_general/mock_services/documents/server.py': [Errno 2] No such file or directory\n",
+    "graded": true,
+    "avg_score": 0.0,
+    "pass_at_1": 0.0,
+    "pass_hat_k": 0.0,
+    "avg_passed": false
+  },
+  {
+    "task_id": "T070zh_js_async_generator_trace",
+    "task_name": "JS异步生成器与微任务执行顺序追踪",
+    "difficulty": "easy",
+    "trials": [
+      {
+        "trace": "traces/non_docker_non_web_general_host_sandbox_tools/qwen3_vl_v30_trials=1_20260525_143359/qwen3_vl_v30_26-05-25-06-33/T070zh_js_async_generator_trace_1080f916.jsonl",
+        "graded": true,
+        "model_input_tokens": 148607,
+        "model_output_tokens": 2105,
+        "input_tokens": 148607,
+        "output_tokens": 2105,
+        "tokens": 150712,
+        "model_time_s": 74.47,
+        "tool_time_s": 0.0,
+        "other_time_s": 0.01,
+        "wall_time_s": 74.48,
+        "completion": 0.7,
+        "robustness": 1.0,
+        "communication": 0.0,
+        "safety": 1.0,
+        "task_score": 0.76,
+        "passed": true
+      }
+    ],
+    "error": null,
+    "graded": true,
+    "avg_score": 0.76,
+    "pass_at_1": 1.0,
+    "pass_hat_k": 1.0,
+    "avg_passed": true
+  }
+]

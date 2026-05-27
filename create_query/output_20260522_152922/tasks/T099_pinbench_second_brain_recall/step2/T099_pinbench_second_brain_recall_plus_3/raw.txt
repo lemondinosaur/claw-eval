@@ -1,0 +1,78 @@
+{
+  "task_id": "T099_pinbench_second_brain_recall_plus_3",
+  "task_name": "Second Brain: Startup Launch Capsule",
+  "prompt_text": "Treat the notes service as my persisted second brain. Locate the stored launch recap note (the one that contains a launch recap capsule) and answer the following:\n\n1) What product type am I working on?\n2) When was the first release? Use the exact time window format I wrote (e.g., “YYYY-MM” or “Qx YYYY”).\n3) Who is the owner and what company are they from?\n4) What is the product project called and what does it do?\n5) What is the release team’s private key phrase?\n\nReturn your answers as:\n1. ...\n2. ...\n3. ...\n4. ...\n5. ...",
+  "files": {
+    "fixtures/notes/memory.json": [
+      {
+        "note_id": "lc_2026_04_capsule_017",
+        "title": "launch recap capsule: AuroraSwitch",
+        "content": "Product type: AI-powered customer support chatbot\nFirst release window: 2026-04\nOwner: Maya Chen from LumenWare Labs\nProject: AuroraSwitch — intent routing and ticket triage automation\nPrivate key phrase: comet lantern orbiting code",
+        "created_at": "2026-03-18T10:14:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 6
+      },
+      {
+        "note_id": "prod_time_only_2026q1_024",
+        "title": "product draft: quiet timeline",
+        "content": "Product type: renewable energy microgrid controller\nFirst release window: Q1 2026\nProject: NimbusGrid — dashboard for asset monitoring",
+        "created_at": "2026-03-18T12:02:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 4
+      },
+      {
+        "note_id": "owner_company_only_2026_009",
+        "title": "owner context: stakeholder map",
+        "content": "Owner: Maya Chen from Orbitline Systems\n(Other fields intentionally missing)",
+        "created_at": "2026-03-18T14:41:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 3
+      },
+      {
+        "note_id": "project_only_2026_055",
+        "title": "project notes: label-only entry",
+        "content": "Project: AuroraSwitch\n(Functional description intentionally missing)",
+        "created_at": "2026-03-18T16:20:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 2
+      },
+      {
+        "note_id": "phrase_similar_missing_word_2026_031",
+        "title": "release team phrase draft",
+        "content": "Private key phrase: comet lantern orbiting code phrase\n(One extra trailing word makes this NOT an exact match)",
+        "created_at": "2026-03-18T18:05:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 2
+      },
+      {
+        "note_id": "time_and_phrase_extra_2026_062",
+        "title": "launch scratchpad: alternate version",
+        "content": "First release window: 2026-05\nPrivate key phrase: comet lantern orbiting code",
+        "created_at": "2026-03-18T20:33:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 3
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的编程语言与学习时间/导师/团队秘密短语，替换为产品类型、首次发布时段、负责人公司、项目功能描述以及发布团队私钥短语，并加入“相似短语缺词”的干扰。",
+    "fixture_design_summary": [
+      "构造 1 条目标笔记，content 精确包含 5 个字段，且首次发布时段使用原始格式“2026-04”，私钥短语逐词匹配。",
+      "其余笔记分别覆盖：仅产品与时间、仅 owner+company、仅项目名缺功能、短语相似但不完全相同（多/少一个词）。",
+      "为进一步干扰，另放 1 条同时包含“私钥短语但时间窗口不同”的笔记。",
+      "所有 created_at 均在同一天内且不同时间；participants 固定为 ['user']；note_id 与实体/短语均为全新值。"
+    ]
+  }
+}

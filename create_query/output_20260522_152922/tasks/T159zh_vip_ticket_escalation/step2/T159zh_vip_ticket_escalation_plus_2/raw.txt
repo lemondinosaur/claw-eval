@@ -1,0 +1,279 @@
+{
+  "task_id": "T159zh_vip_ticket_escalation_plus_2",
+  "task_name": "VIP鉴权异常强制升级",
+  "prompt_text": "VIP客户提交了critical级别的工单：需要你执行升级流程：\n1) 查看工单详情与其关联客户CRM信息，识别是否为VIP且读取SLA时间承诺。\n2) 在知识库中搜索与“鉴权/权限校验失败（401/403）/鉴权回滚止血”最相关的处置方案，并提炼关键处置顺序与回滚/临时放行策略。\n3) 读取收件箱中该VIP客户安全负责人的紧急邮件，提取其强制要求的要点（至少包含：证据摘要与止血措施、以及要求的时限与合规风险）。\n4) 通过通讯录检索找到：安全/架构技术负责人（执行人）、内部升级接收人（技术管理升级点）、以及VIP客户对接人（客户成功负责人）。\n5) 起草两封邮件草稿并保存到Gmail（不要发送）：\n   - 邮件A：发给VIP客户安全负责人（客户确认回复草稿），明确已启动止血措施、预计时间节点，并承诺在时限内提供“已定位原因的证据摘要”。邮件中需体现SLA时间承诺。\n   - 邮件B：发给内部升级接收人（内部升级通知草稿），需明确工单严重性、分配执行负责人、处置顺序（按KB提炼）与回滚/止血策略概要（包含“先止血/再定位/后回滚验证”的顺序）。\n6) 最终确保只保存草稿（不调用发送工具）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-2201",
+        "name": "陈屹",
+        "department": "平台安全部",
+        "title": "安全架构负责人",
+        "email": "chenyi.security@company.com",
+        "phone": "13900220101",
+        "location": "深圳",
+        "specialization": "鉴权/权限校验链路、安全策略、回滚与止血",
+        "notes": "负责鉴权服务/权限映射/策略回滚的技术决策；可作为P0/P1升级执行负责人。"
+      },
+      {
+        "contact_id": "CT-2202",
+        "name": "高远",
+        "department": "平台架构部",
+        "title": "平台鉴权技术负责人",
+        "email": "gaoyuan.arch@company.com",
+        "phone": "13900220102",
+        "location": "上海",
+        "specialization": "API网关鉴权、令牌校验、权限映射与灰度策略",
+        "notes": "负责权限链路与鉴权配置的校验、临时放行/降级方案设计。"
+      },
+      {
+        "contact_id": "CT-2203",
+        "name": "周航",
+        "department": "技术管理办公室",
+        "title": "技术升级接收人",
+        "email": "zhouhang.escalation@company.com",
+        "phone": "13900220103",
+        "location": "北京",
+        "specialization": "P0升级协调、跨团队止血流程、升级通知回执",
+        "notes": "所有critical工单的内部升级通知接收点（escalation point）。"
+      },
+      {
+        "contact_id": "CT-2204",
+        "name": "蒋晴",
+        "department": "客户成功部",
+        "title": "VIP客户对接人",
+        "email": "jiangqing.cs@company.com",
+        "phone": "13900220104",
+        "location": "上海",
+        "specialization": "VIP客户沟通、承诺SLA时间节点、跟进证据交付",
+        "notes": "对VIP客户安全负责人进行确认回复与节奏管理。"
+      },
+      {
+        "contact_id": "CT-2205",
+        "name": "郑浩",
+        "department": "运维与发布",
+        "title": "发布工程师",
+        "email": "zhenghao.release@company.com",
+        "phone": "13900220105",
+        "location": "杭州",
+        "specialization": "回滚、紧急发布、开关/feature flag操作与观测",
+        "notes": "负责紧急回滚、止血开关切换与监控验证。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2201",
+        "name": "星阙金融",
+        "contact_person": "沈安全负责人",
+        "email": "securitylead@xingque-finance.com",
+        "phone": "13900220001",
+        "industry": "金融",
+        "tier": "vip",
+        "annual_revenue": 2200000,
+        "sla": "1小时响应，3小时内给出临时止血并启动修复，6小时解决",
+        "last_contact_date": "2026-04-12",
+        "status": "active",
+        "contract_end_date": "2027-09-30",
+        "notes": "VIP金融客户，要求鉴权与权限变更零可用性中断；对证据摘要与止血措施有强合规要求。"
+      },
+      {
+        "customer_id": "CUS-2202",
+        "name": "北岸零售",
+        "contact_person": "赵采购",
+        "email": "buy@beian-retail.com",
+        "phone": "13900220002",
+        "industry": "零售",
+        "tier": "standard",
+        "annual_revenue": 310000,
+        "sla": "4小时响应，24小时解决",
+        "last_contact_date": "2026-04-10",
+        "status": "active",
+        "contract_end_date": "2026-12-31",
+        "notes": "标准客户，偶发报表性能类问题。"
+      },
+      {
+        "customer_id": "CUS-2203",
+        "name": "青藤教育",
+        "contact_person": "刘经理",
+        "email": "liumu@qingteng-edu.com",
+        "phone": "13900220003",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 180000,
+        "sla": "8小时响应，48小时解决",
+        "last_contact_date": "2026-04-07",
+        "status": "active",
+        "contract_end_date": "2026-11-30",
+        "notes": "标准客户，主要关注课程管理与登录稳定性。"
+      },
+      {
+        "customer_id": "CUS-2204",
+        "name": "流云物流",
+        "contact_person": "周主管",
+        "email": "zhu@liuyun-logistics.com",
+        "phone": "13900220004",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 420000,
+        "sla": "4小时响应，24小时解决",
+        "last_contact_date": "2026-04-09",
+        "status": "active",
+        "contract_end_date": "2027-01-31",
+        "notes": "标准客户，偶发接口超时告警。"
+      },
+      {
+        "customer_id": "CUS-2205",
+        "name": "翠峰电商",
+        "contact_person": "陈运营",
+        "email": "ops@cuifeng-ec.com",
+        "phone": "13900220005",
+        "industry": "电商",
+        "tier": "standard",
+        "annual_revenue": 520000,
+        "sla": "6小时响应，36小时解决",
+        "last_contact_date": "2026-04-08",
+        "status": "active",
+        "contract_end_date": "2027-02-28",
+        "notes": "标准客户，关注API限流与缓存命中率。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2201",
+        "from": "securitylead@xingque-finance.com",
+        "to": "support@company.com",
+        "subject": "紧急合规要求：鉴权失败证据摘要与止血措施必须在1小时内提交",
+        "date": "2026-04-12T10:20:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "urgent", "important"],
+        "body": "您好，我们是星阙金融的信息安全团队（VIP）。\n\n自你们发布后不久，我们的用户登录后权限校验失败，核心页面出现大量401/403，且告警仍在持续扩大。我们要求：\n\n1) 在1小时内向我们提交“已定位原因的证据摘要”（包含你们确认导致401/403的关键链路证据：鉴权配置/权限映射/令牌校验/日志片段等）。\n2) 同时在1小时内提交“临时可用的止血措施”（例如：临时放行/降级策略或可回滚的缓解方案），确保核心页面可用。\n3) 若无法在时限内提供上述材料，我们将暂停相关外部对接并启动法律合规流程。\n\n请在回复中明确：你们已启动的止血动作、预计的时间节点（与SLA一致），以及我们将如何接收证据摘要。\n\n——沈安全负责人\nsecuritylead@xingque-finance.com"
+      },
+      {
+        "message_id": "msg_2202",
+        "from": "no-reply@status-portal.com",
+        "to": "support@company.com",
+        "subject": "状态页通知：2026-04-12 发布窗口结束",
+        "date": "2026-04-12T08:10:00+08:00",
+        "is_read": true,
+        "labels": ["inbox"],
+        "body": "发布窗口结束。若有异常请联系值班团队。"
+      },
+      {
+        "message_id": "msg_2203",
+        "from": "it-ops@beian-retail.com",
+        "to": "support@company.com",
+        "subject": "关于报表导出超时的反馈（非鉴权问题）",
+        "date": "2026-04-12T09:05:00+08:00",
+        "is_read": true,
+        "labels": ["inbox"],
+        "body": "北岸零售报表导出偶发超时，希望协助排查。该问题似乎与鉴权无关。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2201",
+        "title": "用户登录后权限校验失败（401/403）导致核心页面不可用（VIP）",
+        "description": "星阙金融（CUS-2201）反馈critical：发布后约10分钟内迅速扩大，用户登录后权限校验失败，核心页面返回401/403，导致账务与风控关键操作中断；当前持续出现鉴权失败告警。客户要求按VIP SLA执行：1小时响应并给出证据摘要与止血措施，否则启动合规流程。",
+        "customer_id": "CUS-2201",
+        "reporter": "星阙金融 安全团队",
+        "department": "技术支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-12T10:05:00Z",
+        "tags": ["鉴权失败", "权限校验", "401", "403", "VIP", "P0"],
+        "category": "鉴权/权限异常"
+      },
+      {
+        "ticket_id": "TK-2202",
+        "title": "标准客户：商品搜索偶发超时",
+        "description": "北岸零售（CUS-2202）反馈搜索接口偶发超时，非鉴权链路问题。希望优化查询与缓存策略。",
+        "customer_id": "CUS-2202",
+        "reporter": "赵采购",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-12T09:40:00Z",
+        "tags": ["搜索", "超时", "缓存"],
+        "category": "性能问题"
+      },
+      {
+        "ticket_id": "TK-2203",
+        "title": "标准客户：登录页面样式显示异常",
+        "description": "青藤教育（CUS-2203）反馈登录页面样式偶尔错位，未涉及401/403或权限校验失败。",
+        "customer_id": "CUS-2203",
+        "reporter": "刘经理",
+        "department": "前端支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-12T08:55:00Z",
+        "tags": ["前端", "样式", "UI"],
+        "category": "功能/显示问题"
+      },
+      {
+        "ticket_id": "TK-2204",
+        "title": "标准客户：订单同步延迟告警",
+        "description": "流云物流（CUS-2204）反馈订单同步偶发延迟，可能与下游依赖响应时间有关。",
+        "customer_id": "CUS-2204",
+        "reporter": "周主管",
+        "department": "运维支持",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-12T09:15:00Z",
+        "tags": ["同步", "延迟", "告警"],
+        "category": "稳定性问题"
+      },
+      {
+        "ticket_id": "TK-2205",
+        "title": "标准客户：接口限流触发（非权限失败）",
+        "description": "翠峰电商（CUS-2205）反馈订单创建接口频繁触发限流（429），该问题与鉴权失败无直接关联。",
+        "customer_id": "CUS-2205",
+        "reporter": "陈运营",
+        "department": "API支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-12T10:00:00Z",
+        "tags": ["限流", "429", "API"],
+        "category": "稳定性问题"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-2201",
+        "title": "鉴权/权限校验失败（401/403）应急处置与回滚止血（含升级条件）",
+        "category": "安全处置手册",
+        "tags": ["鉴权", "权限", "401", "403", "回滚", "止血", "升级"],
+        "content": "## 鉴权/权限校验失败（401/403）应急处置与回滚止血\n\n### 适用症状\n- 登录后进入核心页面出现大量401/403\n- 权限映射/策略生效异常，导致拒绝访问\n- 告警持续扩大，且影响关键链路\n\n### 关键处置顺序（建议严格按序）\n1. **先止血**：启用临时放行/降级开关（feature flag），优先保证核心页面可用；并记录开启时间与影响范围。\n2. **定位证据**：核对鉴权配置与权限映射表版本，检查令牌校验策略（签名算法、issuer/audience、kid轮换）。\n3. **验证回滚点**：对比最近一次权限/鉴权相关发布差异，回退至上一可用配置版本（同时保持止血开关状态可控）。\n4. **回归验证**：抽样验证关键角色的访问路径，确认401/403比例回落；保留日志与证据片段供客户“证据摘要”使用。\n5. **后续修复**：若为配置漂移或策略变更冲突，修复并安排正式发布；止血开关在验证通过后逐步关闭。\n\n### 止血与回滚策略要点\n- 止血以“可用”为第一目标：允许临时放行或降低鉴权强度到安全阈值范围内（需记录原因）。\n- 回滚要“可验证”：回滚配置后必须进行401/403回归验证。\n- 证据收集：至少包含鉴权配置版本号、权限映射变更记录、令牌校验相关日志片段、以及回滚前后的请求比例对比。\n\n### 升级条件\n- VIP客户核心业务受影响 → 升级至P0，立即通知安全架构负责人与技术总监/升级接收点。\n- 若无法在1小时内交付“证据摘要+止血措施” → 启动合规风险通报流程（内部留痕）。",
+        "last_updated": "2026-04-01",
+        "views": 2310
+      },
+      {
+        "article_id": "KB-2202",
+        "title": "令牌校验与权限映射常见故障清单（401/403诊断）",
+        "category": "安全诊断指南",
+        "tags": ["令牌校验", "权限映射", "kid", "issuer", "audience", "诊断"],
+        "content": "## 令牌校验与权限映射常见故障清单\n\n### 常见根因\n- 签名算法/密钥版本（kid）轮换后未同步\n- issuer/audience不一致导致token被拒\n- 权限映射表版本漂移，角色与资源绑定错误\n- 策略引擎缓存未刷新，导致旧策略生效\n\n### 建议检查项（不替代应急处置顺序）\n- 检查鉴权网关对请求的解析结果：token是否解析成功\n- 抽样比较：同一用户在回滚前后的token校验结果差异\n- 核对权限映射表的版本号、发布时间与发布单\n\n### 证据输出模板\n- 配置版本号、变更单号、关键日志片段（含traceId）\n- 回滚前后401/403比例与关键路径访问结果",
+        "last_updated": "2026-03-18",
+        "views": 1244
+      },
+      {
+        "article_id": "KB-2203",
+        "title": "报表性能调优（与鉴权无关）",
+        "category": "技术文档",
+        "tags": ["报表", "性能", "索引", "SQL"],
+        "content": "## 报表性能调优\n\n### 常见原因\n- 数据量过大\n- 索引缺失或不合理\n- 聚合查询复杂导致执行慢\n\n### 建议\n- 创建/调整索引\n- 使用预计算与缓存\n- 分批加载与分页\n\n（本文章不覆盖401/403鉴权失败应急。）",
+        "last_updated": "2026-02-12",
+        "views": 901
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题围绕数据库连接池/DBA升级，本题改为VIP鉴权/权限校验链路（401/403）并强化证据摘要与止血/回滚邮件草稿。",
+    "fixture_design_summary": [
+      "helpdesk/tickets.json 新增1条critical open工单TK-2201，明确401/403、鉴权失败且关联VIP客户CUS-2201。",
+      "crm/customers.json 新增VIP客户CUS-2201，SLA为“1小时响应，3小时内给出止血并启动修复，6小时解决”。",
+      "gmail/inbox.json 新增来自VIP安全负责人的紧急邮件msg_2201，包含“1小时证据摘要+临时止血”与合规风险威胁。",
+      "kb/articles.json 新增与“鉴权/权限异常+回滚止血+升级条件”强匹配的KB-2201，并加入与鉴权无关的KB-2203作为干扰。",
+      "contacts/contacts.json 提供安全架构负责人(CT-2201)、平台鉴权负责人(CT-2202)、内部升级接收点(CT-2203)与VIP客户对接人(CT-2204)，确保可被contacts_search检索到并支撑两封草稿收件人选择。"
+    ]
+  }
+}

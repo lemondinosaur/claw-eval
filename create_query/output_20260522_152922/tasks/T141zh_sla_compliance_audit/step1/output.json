@@ -1,0 +1,108 @@
+{
+  "schema_version": "step1.task_descriptions.v2",
+  "generated_at": "2026-05-22 15:43:15",
+  "source_task_id": "T141zh_sla_compliance_audit",
+  "source_summary": {
+    "task_id": "T141zh_sla_compliance_audit",
+    "task_name": "SLA合规审查与自动化诊断",
+    "task_type": "跨 helpdesk / scheduler / config 的SLA合规审查：读取SLA规则、计算工单实际响应时长、定位自动化任务异常并给出改进建议",
+    "category": "ops",
+    "difficulty": "medium",
+    "tags": [
+      "general",
+      "multi_service"
+    ],
+    "language": "zh",
+    "services": [
+      "helpdesk",
+      "scheduler",
+      "config"
+    ],
+    "tools": [
+      "helpdesk_list_tickets",
+      "helpdesk_get_ticket",
+      "helpdesk_update_ticket",
+      "helpdesk_close_ticket",
+      "scheduler_list_jobs",
+      "scheduler_get_job",
+      "config_list_integrations",
+      "config_get_integration"
+    ],
+    "fixture_paths": [
+      "fixtures/config/integrations.json",
+      "fixtures/helpdesk/tickets.json",
+      "fixtures/scheduler/jobs.json"
+    ],
+    "sandbox_files": [],
+    "has_user_agent": false,
+    "has_grader": true,
+    "core_capability": "基于配置的SLA标准对工单响应时间进行达标/超标判定，并结合调度任务与集成状态做异常根因与影响链分析"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T141zh_sla_compliance_audit_plus_1",
+      "new_task_name": "SLA夜间告警漏发排查",
+      "task_goal": "完成一次SLA合规审查：读取SLA响应阈值，计算指定时间窗口内工单的首次响应是否达标；识别调度任务中与SLA告警相关的异常；输出达标/超标清单、可能的告警漏发影响范围与可执行改进建议。",
+      "user_request": "请帮我做一次SLA合规审查（重点排查夜间告警漏发）：\n1) 查看系统配置中的SLA响应时间规则\n2) 检查过去24小时内所有“客服外呼”工单的实际首次响应时间，按SLA标准判断达标/超标，并标出临界情况\n3) 检查与“超时告警”和“工单提醒”相关的自动化任务运行状态，找出异常并展开细节\n4) 输出SLA合规分析报告：包含达标/超标工单明细、异常任务影响分析（哪些告警可能未按时触达）、以及改进建议（包括通知冗余与阈值校准）。",
+      "scenario": "配置中启用“分级响应”SLA规则：critical/high/medium/low对应不同分钟阈值。helpdesk里存在多个处于open状态的工单，包含不同优先级与不同创建/首次响应时间；其中部分工单首次响应发生在夜间（假设本地时间22:00-02:00），并存在“告警应已触达但未触达”的间接证据（例如相关标签提示‘awaiting_alert’）。scheduler中至少有一个“夜间提醒/超时告警”任务在近几次运行失败，失败错误信息指向某个短信网关集成不可用。config中该短信网关集成处于error，且即时消息集成仍active，说明应可形成备用通道。另有一个“自动分派”任务保持success，排除分派链路问题。",
+      "difference_from_source": "原题以邮件OAuth过期导致JOB-902告警失败为主线；本题将异常改为“短信网关/夜间提醒”失败，并要求结合工单标签与运行时段推断夜间告警漏发的影响范围与补救路径（短信失败→IM备用）。同时不要求复现原始的JOB-902/INT-902名称或同一错误信息。",
+      "service_and_tool_plan": "继续使用helpdesk/config/scheduler三类服务完成同构审查：\n- config_list_integrations + config_get_integration：取出分级SLA阈值与通知集成当前健康状态。\n- helpdesk_list_tickets（按category或tag筛到“客服外呼”相关工单）+ helpdesk_get_ticket：逐单读取created_at与first_response_at计算响应时长并标注达标/超标。\n- scheduler_list_jobs + scheduler_get_job：定位与SLA超时告警/夜间提醒相关的任务，读取last_status、failure_count、first_failure、错误信息。\n原因：保持与原任务高度相近的schema与调用模式，同时更换异常链路与判断重点。",
+      "fixture_generation_plan": "新增一组fixtures（不复用原fixture实体名/编号/时间/阈值/错误原文）。建议生成：\n1) fixtures/config/integrations.json：至少4条集成记录\n- 1条SLA规则集成（ID形如INT-A01，status=active，包含critical/high/medium/low的response_time_minutes等字段；但数值与原题不同）。\n- 1条短信通知集成（ID形如INT-B01，status=error，包含token/鉴权或网关不可用错误_message）。\n- 1条即时消息集成（ID形如INT-C01，status=active，config含IM webhook或频道字段）。\n- 1条备份工单系统/其他通知集成可选（status=active或disabled，用于制造干扰信息）。\n2) fixtures/helpdesk/tickets.json：生成8条工单，status=open，包含不同priority分布：critical2条、high3条、medium2条、low1条；其中4条首次响应发生在夜间时段（22:00-02:00），并在description或tags中加入“awaiting_alert/晚间提醒依赖短信”等提示但不要用原文段落。\n关键字段：ticket_id唯一、created_at与first_response_at覆盖达标/超标/临界三类；至少1条first_response_at为null（表示未响应，不计入达标/超标但需标注风险）；至少1条internal=true工单（但它不要求满足SLA）。\n3) fixtures/scheduler/jobs.json：生成3条或4条任务\n- “夜间超时告警/短信触达”任务：status=enabled但last_status=failed，failure_count在2-6之间，first_failure在最近3-6天的某个夜间时段，error_message指向短信网关连接/鉴权失败。\n- “每日SLA报告”任务：success，制造对比。\n- “自动分派/队列路由”任务：success，排除。\n- 可选“IM备用通知”任务：status=enabled但最近运行success或disabled，用于干扰判断（例如它运行频率较低）。",
+      "expected_behavior": "代理应：\n1) 调用config_list_integrations定位SLA规则集成ID，再调用config_get_integration读取critical/high/medium/low的response_time_minutes阈值。\n2) 调用helpdesk_list_tickets筛选“客服外呼”相关工单（按category或tag实现），对每个非internal且first_response_at非空的工单：计算首次响应时长（first_response_at - created_at），与对应优先级阈值对比，输出达标/超标/临界（给出差值分钟级别）。\n3) 调用scheduler_list_jobs筛出与“超时告警/提醒/工单超时”相关任务，再对异常任务调用scheduler_get_job，解释失败原因（基于jobs.error_message）并关联到config中的短信集成error状态。\n4) 在报告中明确：夜间时段内哪些超时窗口可能因短信告警漏发而导致响应延迟；同时指出IM备用集成仍active，提出具体兜底方案（例如短信失败时自动切IM、调整夜间告警重试策略）。\n5) 最终输出必须包含：超标工单明细表（ticket_id、priority、计算出的响应时长、超出/剩余）、异常任务影响分析、改进建议清单。",
+      "grading_plan": "grader.py应检查：\n- SLA达标/超标/临界判定是否严格使用配置的分钟阈值，并且响应时长计算正确（单位与边界）。\n- 异常根因是否能从scheduler异常任务的error_message与config中短信集成status=error对应起来，且能给出因果链（短信失败→告警漏发→影响响应）。\n- 报告是否覆盖了：未响应（first_response_at为null）的风险提示、internal工单不计入SLA的说明、夜间漏发影响的范围推断是否有依据（使用工单的夜间时间与标签/描述提示）。\n- 建议是否可执行且与场景一致（短信失败切IM、重试/阈值校准、通知冗余）。\n- 全程不应调用helpdesk_close_ticket（审查阶段不得关闭工单）。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T141zh_sla_compliance_audit_plus_2",
+      "new_task_name": "多地区分表SLA偏差核验",
+      "task_goal": "对一个存在“地区路由差异”的工单系统进行SLA合规审查：读取SLA规则并验证是否按地区/渠道生效；计算各地区工单的首次响应达标情况；检查调度任务是否存在“地区分表同步失败”导致的SLA应用偏差；输出合规结论与修复建议。",
+      "user_request": "请帮我做一次SLA合规审查（核验地区分表导致的SLA偏差）：\n1) 查看系统配置中的SLA响应时间规则及其地区/渠道适用条件\n2) 检查近期工单中不同地区（东区/西区）与不同渠道（网页/APP）的首次响应时间，按各自适用的SLA标准判断达标/超标\n3) 检查与“地区路由SLA映射同步”相关的自动化任务运行状态，找出可能导致SLA未正确应用的异常\n4) 输出SLA合规分析报告：包括每个地区/渠道的达标率概览、疑似SLA未生效的工单列表、自动化偏差影响分析和改进建议。",
+      "scenario": "SLA配置不再只有单一阈值集合：同一优先级在不同地区/渠道适用不同response_time_minutes（例如东区更严格或更宽松），并且配置中包含适用条件字段（如region_policy/channel_policy）。helpdesk里包含来自两个地区与两个渠道的工单；其中一部分工单的“applied_policy_version”字段显示为旧版本。scheduler中存在“地区分表映射同步”任务最近多次失败，失败原因为“分表字段变更导致同步脚本报错”。另外一个“ES索引重建”任务success，制造干扰。config中地区SLA映射集成处于error或部分disabled，另有一个“配置缓存刷新”集成仍active。",
+      "difference_from_source": "原题的SLA规则为单套阈值且异常链路是通知集成OAuth过期；本题核心差异在于：SLA规则按地区/渠道条件生效，要求审查时正确选择适用阈值，并通过任务异常定位“SLA映射未同步导致旧版本策略被应用”的偏差，而不仅是简单告警漏发。",
+      "service_and_tool_plan": "使用同一服务与工具完成更复杂的阈值选择：\n- config_list_integrations + config_get_integration：获取SLA规则集成中地区/渠道策略字段，以及“映射同步/缓存刷新”相关集成状态。\n- helpdesk_list_tickets：拉取全部近期工单（status=open或all），再通过helpdesk_get_ticket逐单读取region/channel与applied_policy_version等字段，用于选择阈值。\n- scheduler_list_jobs + scheduler_get_job：定位“地区路由SLA映射同步”异常任务。\n原因：schema保持不变，但审查逻辑要求按条件适用阈值。",
+      "fixture_generation_plan": "生成新fixtures（避免复用原ID/姓名/时间/数值/错误文案）：\n1) fixtures/config/integrations.json：至少5条记录\n- SLA规则集成（INT-D01，active）：包含critical/high/medium/low的通用阈值，同时额外给出regionOverrides（东区/西区）与channelOverrides（网页/APP）的response_time_minutes调整；last_verified为较近日期。\n- 地区SLA映射同步集成（INT-D02，error或disabled）：error_message为字段同步脚本报错。\n- 配置缓存刷新集成（INT-D03，active）：status=active，说明可刷新但未触发。\n- 其他告警通知集成（短信/邮件/IM）可选，保持active用于干扰但不作为主因。\n2) fixtures/helpdesk/tickets.json：8-10条工单\n- priority分布混合（critical1-2条、high3条、medium3条、low1-2条）。\n- region：东区/西区各至少3条。\n- channel：网页/APP各至少3条。\n- 每个组合中至少1条出现“超标”且applied_policy_version为旧版本（例如policy_v1），另一条为新版本（policy_v2）以形成对比。\n- 至少1条internal=true或category=内部：要求不纳入SLA。\n- first_response_at设计为：部分明显达标、部分超出、部分接近阈值（临界差值小于等于5分钟）。\n3) fixtures/scheduler/jobs.json：3-4条任务\n- 异常任务：“地区路由SLA映射同步”JOB类似JOB-D11：last_status=failed，failure_count=3-7，first_failure在最近5天的某次同步窗口，error_message包含字段变更/脚本报错。\n- “配置缓存刷新”JOB-D12：last_status=success但last_run晚于同步失败或运行频率低（制造“同步失败→缓存仍旧”的合理性）。\n- “ES索引重建”JOB-D13：success（干扰）。\n- 可选“队列路由校验”JOB-D14：disabled或success但不相关。",
+      "expected_behavior": "代理应：\n1) 读取SLA规则集成，明确其地区/渠道覆盖逻辑：先按工单region/channel选择对应的阈值（或在报告中解释选择规则）。\n2) 获取工单详情并计算首次响应时长；对每条非internal且有first_response_at的工单，使用“工单适用阈值”判定达标/超标/临界。\n3) 同时识别疑似偏差：当applied_policy_version为旧版本且该工单与“新策略应更宽松/更严格”存在矛盾时，加入“疑似SLA未生效”列表。\n4) 从scheduler中定位“地区路由SLA映射同步”异常任务，并关联到config中映射同步集成error状态，形成因果链（同步失败→策略映射未更新→旧版本阈值被应用→出现异常达标/超标分布）。\n5) 输出：按地区/渠道的达标率概览（可用文字统计，不要求表格形式固定）、疑似未生效工单清单、影响分析与具体建议（例如触发缓存刷新、修复同步脚本、版本回滚与策略回溯）。\n6) 不调用helpdesk_close_ticket。",
+      "grading_plan": "grader.py应检查：\n- SLA阈值选择是否考虑region/channel覆盖条件，而不是只用通用阈值。\n- 工单的达标/超标/临界判定与计算时长是否一致。\n- 根因分析是否将“地区映射同步任务失败”与“映射集成error/旧版本策略”关联起来，并指出异常集中在某些region/channel组合的原因。\n- 建议是否可执行且针对映射同步链路（修复同步脚本、触发缓存刷新、补偿机制/策略回溯）。\n- 若存在first_response_at为null，应标注为未完成响应而非武断判定超标。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T141zh_sla_compliance_audit_plus_3",
+      "new_task_name": "静默工单堆积与补偿机制失效",
+      "task_goal": "识别并解释“补偿响应机制”失效导致的SLA风险：审查SLA规则、计算工单首次响应合规性；检查自动化任务是否出现停用/延迟；同时判断是否存在异常工单状态分布（例如long_pending堆积）；输出可操作的恢复与防复发建议。",
+      "user_request": "请帮我做一次SLA合规审查（静默工单堆积与补偿机制失效）：\n1) 查看系统配置中的SLA响应时间规则\n2) 列出并分析最近窗口内处于pending/assigned状态的工单，计算首次响应是否满足SLA；对未响应但已超时的工单给出优先级和超时幅度\n3) 检查与“补偿响应/超时升级/工单再提醒”相关的自动化任务，找出停用或反复失败的原因\n4) 输出SLA合规分析报告：包含超时工单明细、自动化机制失效影响分析、以及恢复步骤与长期优化建议。",
+      "scenario": "SLA阈值配置存在四级响应。helpdesk工单出现异常状态分布：多数工单处于assigned但first_response_at长期为空；其中critical/high更集中在某个队列（例如tag=queue-silent），但实际并没有触发通知升级。scheduler里有一个“超时升级”任务处于disabled或disabled后未重新启用，另一个“再提醒”任务last_status=failed且failure_count较高，error_message指向队列消费者超时或依赖服务不可达。config中对应的依赖集成（例如工单通知API）处于error；同时存在一个无关的健康任务success，用于干扰。还要覆盖边界条件：部分工单创建在阈值临界前后（例如差1-3分钟），需要标注为临界。",
+      "difference_from_source": "原题聚焦通知告警任务失败（邮件OAuth过期）并分析某次告警漏发；本题聚焦“补偿响应机制/超时升级”停用或失败带来的静默堆积，且要求基于工单状态分布与first_response_at缺失判断风险并给出恢复步骤（例如重新启用任务、补跑未告警队列）。",
+      "service_and_tool_plan": "仍使用三类服务：\n- config_list_integrations + config_get_integration：获得SLA阈值，并读取依赖通知/升级集成的状态。\n- helpdesk_list_tickets（status过滤到pending/assigned或all后再筛）+ helpdesk_get_ticket：对关键工单计算是否已超时（即便first_response_at为空也要用当前时间或提供的评估时刻判定风险；评估时刻来自fixtures中的当前_time字段或任务设定）。\n- scheduler_list_jobs + scheduler_get_job：确认哪些升级/补偿任务被disabled或反复失败。\n原因：保持工具复用，同时引入“停用/延迟导致静默”的分析逻辑。",
+      "fixture_generation_plan": "生成fixtures（不复用原fixture实体名/ID/数值）：\n1) fixtures/config/integrations.json：\n- SLA规则集成1条（INT-E01，active），critical/high/medium/low的response_time_minutes设置为全新数值。\n- 依赖升级通知API集成1条（INT-E02，error），包含error_message为依赖服务不可达/超时。\n- 另一个无关通知集成（INT-E03，active）用于干扰。\n2) fixtures/helpdesk/tickets.json：生成10-12条\n- status覆盖assigned/pending（至少各2-4条），open中first_response_at为空的占比要高（例如6-8条）。\n- priority分布：critical2-3条、high3-4条、medium2-3条、low1-2条。\n- created_at分布覆盖近1-3天；设置评估基准时刻（可在fixtures里用“current_at”字段或约定由grader读取；若必须走现有schema，可将某些工单的first_response_at留空并设置created_at使其一定超时或一定未超时）。\n- 至少2条设置为临界（created_at距当前时间在阈值±3分钟）。\n- 至少1条internal=true不纳入。\n3) fixtures/scheduler/jobs.json：生成4条\n- 补偿响应/超时升级任务2条：一个disabled、一个failed（failure_count=4-9，error_message为依赖不可达或消费者超时）。\n- 再提醒/清理任务1条：success但不相关。\n- 每日汇总任务1条：success，制造“系统仍在跑”的干扰。\n同时确保任务名称/description含“升级/补偿/再提醒”关键词以便模型定位。",
+      "expected_behavior": "代理应：\n1) 读取SLA阈值。\n2) 获取工单列表并聚焦assigned/pending；对first_response_at非空的工单按created_at与first_response_at计算是否达标/超标/临界。\n3) 对first_response_at为空的工单：使用评估时刻（由任务设定或从scheduler/job的last_run/系统时间字段推断）计算已耗时，判定“已超时风险/尚未超时”，并在输出中明确是“未响应但已超时/未超时”。\n4) 检查scheduler：找出disabled或failed的补偿/升级相关任务，读取error_message与failure_count；结合config中依赖集成error状态形成因果链（依赖不可达/任务停用→未触发再提醒与升级→形成静默堆积→SLA风险）。\n5) 报告建议必须包含恢复步骤（立即启用任务/修复依赖/补跑未告警工单）以及长期优化（监控停用、告警链路冗余、队列积压阈值）。\n6) 不调用helpdesk_close_ticket。",
+      "grading_plan": "grader.py应检查：\n- SLA判断对first_response_at为空的处理是否符合设定（用评估时刻判定风险），且不会错误地把空响应当作达标。\n- 是否能准确识别scheduler中的disabled/failed任务并与config依赖error关联。\n- 输出是否覆盖：超时/临界工单清单、静默堆积影响分析、包含可执行的恢复步骤与长期建议。\n- 没有在审查阶段关闭工单（tool_not_called约束仍应验证helpdesk_close_ticket未被调用）。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T141zh_sla_compliance_audit_plus_4",
+      "new_task_name": "SLA升级阈值误配置导致过早升级",
+      "task_goal": "进行SLA合规审查，重点验证“升级阈值”是否与“响应时间SLA”一致，并评估其对工单处理节奏的影响；识别因升级阈值误配置造成的异常：过早升级或错误告警；检查相关自动化任务运行情况与集成健康状态；输出改进建议。",
+      "user_request": "请帮我做一次SLA合规审查（验证升级阈值误配置）：\n1) 查看系统配置中的SLA响应时间规则，并重点核对升级触发阈值与对应SLA类型是否匹配\n2) 检查近期工单的首次响应时间与工单升级标签/时间戳（如存在）之间的关系，判断是否存在“过早升级但最终仍达标/或过晚升级导致超标”的问题\n3) 检查与“升级触发/超时告警/工单标签打标”相关的自动化任务运行状态，找出异常并解释可能原因\n4) 输出SLA合规分析报告：包含阈值一致性检查结果、异常工单明细、自动化与集成影响分析、以及修复建议。",
+      "scenario": "SLA规则集成包含critical/high/medium/low的response_time_minutes与escalation_after_minutes。由于误配置：某个优先级（例如medium）的escalation_after_minutes过小，导致任务在工单还未接近SLA时就打上“已升级”标签并触发告警/升级流程。helpdesk工单包含字段upgrade_at（或tags里包含升级时间戳）以及first_response_at；因此需要比较：升级发生时间是否明显早于应触发时间。scheduler里“升级触发”任务处于enabled但最近多次成功运行，然而因参数错误导致行为不符合预期；同时“邮件通知集成”仍active，排除通知失败。config中应能从SLA规则配置中发现字段不一致（例如medium response 480min但 escalation_after 30min，显著不合理）。另外加入干扰：还有一个“每日巡检”任务failed但不影响升级逻辑。",
+      "difference_from_source": "原题是通知链路失败导致超标未告警；本题核心是“升级阈值字段”配置错误引起过早升级/告警节奏异常，且多数工单仍可能达标；需要做配置一致性核验与时序关联分析，而不是仅计算是否超SLA。",
+      "service_and_tool_plan": "继续使用相同工具：\n- config_list_integrations + config_get_integration：读取SLA规则配置并核对escalation_after_minutes与response_time_minutes的合理对应（以及确认通知集成健康状态以排除链路失败）。\n- helpdesk_list_tickets + helpdesk_get_ticket：读取每个工单的created_at、first_response_at，以及是否存在upgrade_at/升级相关tags，用于时序判断。\n- scheduler_list_jobs + scheduler_get_job：检查“升级触发/标签打标”任务是否正常运行，以及其参数/最近运行记录是否与错误行为一致。\n原因：保持服务schema不变，但将“异常类型”从失败告警切换到“配置参数不合理”。",
+      "fixture_generation_plan": "生成fixtures：\n1) fixtures/config/integrations.json：4-5条\n- SLA规则集成1条（INT-F01，active）：critical/high/medium/low各自response_time_minutes正确设置（与原题不同），但故意让某一级（如medium）escalation_after_minutes显著偏小（制造过早升级）。\n- 邮件通知集成INT-F02：status=active（避免与原题相同“error”主线）。\n- 即时消息或备份通知集成INT-F03：active，用于干扰。\n- 可选：每日巡检集成INT-F04：error（用于制造干扰但不作为升级根因）。\n2) fixtures/helpdesk/tickets.json：生成9条\n- 覆盖critical/high/medium/low各至少1条（优先medium与high用于体现时序问题）。\n- 对medium工单：设置upgrade_at发生在距离created_at仅30-60分钟，同时first_response_at仍在480min阈值内达标（形成“过早升级但达标”的异常）。\n- 同时至少1条high工单设置upgrade_at接近其正确触发点，并达标以对照。\n- 至少1条low工单first_response_at为空或超时（用于混合场景）。\n- internal=true至少1条不纳入。\n3) fixtures/scheduler/jobs.json：4条\n- 升级触发/标签打标任务JOB-F11：last_status=success，failure_count=0或低，error_message为空但行为应与误配置一致。\n- 超时告警任务JOB-F12：success（避免混淆）。\n- 每日巡检任务JOB-F13：failed（干扰），error_message指向数据质量但与升级无关。\n- 队列路由任务JOB-F14：success。",
+      "expected_behavior": "代理应：\n1) 核对SLA规则配置：对每个优先级比较response_time_minutes与escalation_after_minutes；明确指出medium（或指定优先级）的升级阈值与响应SLA不匹配，并给出量化不合理之处（例如“升级应在距SLA阈值前30%触发但当前提前了X分钟”）。\n2) 读取工单时序：对升级早于应触发时机明显的工单，标注为“过早升级/告警节奏异常”；同时仍需对首次响应做达标/超标判断并给出结果（可能以达标为主）。\n3) 检查scheduler：确认升级触发任务运行本身没有失败（success），说明异常更可能来自配置参数而非任务故障；对干扰任务failed说明其不影响升级逻辑。\n4) 输出报告：阈值一致性结论、异常工单明细（含created_at/upgrade_at/first_response_at与差值）、影响分析（过早升级导致噪音/资源浪费、对团队节奏影响）、以及修复建议（修正escalation_after_minutes、增加配置校验规则、灰度发布与回放验证）。\n5) 不调用helpdesk_close_ticket。",
+      "grading_plan": "grader.py应检查：\n- 配置一致性核验是否准确（找出错误的优先级与字段，并给出量化解释）。\n- 时序关联是否基于每个工单的upgrade_at与created_at、first_response_at进行判断，而非只谈超标。\n- 根因分析是否区分“任务成功但参数错误”与“任务失败导致缺失告警”。\n- 建议是否包含具体改动点（修正字段+增加校验+灰度回放）。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T141zh_sla_compliance_audit_plus_5",
+      "new_task_name": "SLA回放校验：历史差异与时区边界",
+      "task_goal": "对历史工单做SLA合规回放校验，重点处理时区/时间格式边界；读取SLA响应时间规则并校验时间戳单位与时区偏移；计算回放窗口内的达标/超标；检查scheduler是否存在“回放任务延迟”影响分析；输出回放结论与改进建议。",
+      "user_request": "请帮我做一次SLA合规审查（历史回放校验，注意时区边界）：\n1) 查看系统配置中的SLA响应时间规则\n2) 检查回放窗口内工单的首次响应时间，计算是否达标；要求你考虑时间戳可能包含时区偏移（例如末尾Z或带+08:00），避免因为时区转换导致的判断错误\n3) 检查与“历史SLA回放/修正报表”相关的自动化任务运行状态，找出是否存在延迟或失败影响回放结果\n4) 输出SLA合规回放分析报告：包含达标/超标明细、哪些工单可能因时区转换存在边界风险、以及改进建议（统一时间标准/回放校验）。",
+      "scenario": "SLA规则为四级阈值（分钟）。helpdesk工单created_at与first_response_at混用两种格式：部分为UTC尾部Z，部分为带+08:00偏移。回放窗口跨越一个“日期边界”（例如从23:30到次日00:30），导致如果忽略时区会把响应时长算错几个小时。scheduler里有“历史SLA回放”任务最近运行failed或last_status=failed（但告警任务正常），error_message指向“回放数据缺失或时区解析错误”。config中存在一个“时间标准/时区解析集成”状态为error或disabled，提供线索。另有干扰任务success但无关。",
+      "difference_from_source": "原题假设时间计算简单一致；本题强调对多时区时间戳进行正确解析与边界核验，并把异常定位到“历史回放/时区解析任务”而非通知告警或升级阈值。",
+      "service_and_tool_plan": "仍使用同构工具：\n- config_list_integrations + config_get_integration：拿到SLA阈值，并检查时区解析/回放相关集成状态。\n- helpdesk_list_tickets + helpdesk_get_ticket：拉取回放窗口工单并逐单读取created_at/first_response_at字符串，代理应在计算时明确进行时区归一。\n- scheduler_list_jobs + scheduler_get_job：定位“历史SLA回放/修正报表”任务异常并解释可能导致误差的原因。\n原因：工具schema不变，但审查逻辑升级为时间解析严谨性与回放任务关联。",
+      "fixture_generation_plan": "生成fixtures（全新数据，不复用原ticket/jop/集成ID与时间段）：\n1) fixtures/config/integrations.json：\n- SLA规则集成1条（INT-G01，active）：critical/high/medium/low阈值为新数值（分钟），另可包含统一时间标准字段（如time_standard='UTC'）但故意与解析集成冲突。\n- 时区解析/回放数据源集成1条（INT-G02，error或disabled）：error_message指向“时区解析失败/字段缺失”。\n- 其他通知集成保持active用于干扰。\n2) fixtures/helpdesk/tickets.json：8-10条\n- 回放窗口选在跨日：设置created_at与first_response_at分别落在跨日边界附近。\n- 至少3-4条工单使用UTC格式（以Z结尾），至少3-4条使用带+08:00（或+00:00/+05:30等）偏移格式。\n- 构造3类结果：\n  a) 明显达标；\n  b) 明显超标；\n  c) 临界（差5分钟以内），并特别设计让“错误忽略时区”会翻转达标/超标判断。\n- internal=true至少1条。\n- first_response_at为null至少1条（标为待回放/风险）。\n3) fixtures/scheduler/jobs.json：\n- 历史SLA回放任务JOB-G11：last_status=failed，failure_count=1-4，error_message与时区解析问题相关，first_failure在回放窗口开始前后。\n- 另一任务（如每日报告）success用于干扰。\n- 与通知告警无关的任务success。",
+      "expected_behavior": "代理应：\n1) 读取SLA阈值并说明计量单位（分钟）。\n2) 在计算响应时长时正确处理时间戳时区：对所有created_at/first_response_at进行时区归一（例如转UTC后相减），并对临界工单强调“边界风险”来源（例如在跨日且时区差异下，错误解析会差X小时）。\n3) 对每条非internal且first_response_at非空工单计算响应时长并判定达标/超标/临界；对first_response_at为空的工单标注为“回放缺失/无法判定”。\n4) 检查scheduler：定位历史回放任务失败，结合config中时区解析集成error给出根因（回放任务延迟/时区解析错误导致部分计算可能不可信），并给出“如何复核/如何修正数据”的建议。\n5) 输出必须包含：达标/超标明细、至少2条“若忽略时区将导致判断翻转”的工单指出原因、以及改进建议（统一时间标准、解析库校验、回放任务幂等与补偿）。\n6) 不调用helpdesk_close_ticket。",
+      "grading_plan": "grader.py应检查：\n- 代理是否正确处理带Z与带偏移的时间戳，并且最终达标/超标判断与正确时区归一后的时长一致。\n- 是否能识别并点名“临界翻转风险”的工单，且解释与跨日/时区相关。\n- 根因分析是否将scheduler历史回放任务failure与config时区解析集成error关联起来。\n- 建议是否覆盖数据与流程改进（统一UTC、解析校验、回放失败补偿、回放一致性验证）。\n- 未在审查阶段关闭工单。"
+    }
+  ]
+}

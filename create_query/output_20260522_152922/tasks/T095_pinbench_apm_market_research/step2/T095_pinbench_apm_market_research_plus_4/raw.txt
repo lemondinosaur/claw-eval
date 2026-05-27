@@ -1,0 +1,71 @@
+{
+  "task_id": "T095_pinbench_apm_market_research_plus_4",
+  "task_name": "成本压测：消耗型定价与治理策略对比",
+  "prompt_text": "请基于知识库撰写一份“APM成本压测评估”竞争研究，场景发生在促销流量窗口前后：追踪与日志摄入可能短期放大，目标是评估成本在峰值期是否可被治理。要求：\n1）至少比较5家厂商；每家需说明三要素：①计费/定价模型的计费维度（仅做描述性归类，如按摄入/资源/席位/模块等，不要给出具体金额）；②导致成本上升的机制（例如摄入量激增、资源扩张、模块叠加、平台并行带来的重复成本等）；③成本治理或优化能力（从KB提取并概述）。\n2）总结至少4条与“消费型定价审查、摄入效率与数据治理、平台整合（减少多工具并行成本）”相关的市场趋势，趋势中需体现与上述语义要素接近的内容。\n3）输出：比较表、至少5点的“成本机制对照段落”（逐点对比不同厂商成本上升机制与治理差异，点数≥5），以及一段简短结论（落到如何在峰值期降低成本不确定性与治理建议）。\n注意：不得杜撰具体价格数字或未经KB支持的治理手段。",
+  "files": {
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "pb95_101",
+        "title": "Elastic APM pricing dimensions and ingest-driven cost dynamics",
+        "content": "Elastic APM is commonly discussed in terms of usage across compute and telemetry data volume. Buyers often encounter billing dimensions that relate to ingesting traces/logs and the underlying platform capacity required to store, search, and analyze those events. A typical cost increase mechanism is that high-cardinality traces and bursty telemetry ingestion during peak traffic raise both ingestion load and storage/search requirements, which in turn increases overall consumption. Cost optimization themes include tuning ingestion, controlling which fields/streams are kept, and using operational governance to reduce unnecessary data collection while keeping observability coverage.",
+        "category": "market_research",
+        "last_updated": "2026-03-10",
+        "views": 61,
+        "tags": ["Elastic", "APM", "pricing", "ingest", "governance"]
+      },
+      {
+        "article_id": "pb95_102",
+        "title": "AWS X-Ray and partner APM consumption: segments, tracing volume, and burst risk",
+        "content": "AWS X-Ray-style offerings are frequently described as consumption-based with pricing tied to tracing volume and supporting service usage. In a peak window, tracing and instrumentation can amplify the number of segments/documents created, leading to higher billable activity. An associated cost growth mechanism is that enabling broader tracing (more services, more sampling changes, or more detailed requests) increases generated telemetry, which also stresses downstream analysis capacity. Governance and optimization usually focus on instrumentation scope management, sampling and retention policies, and workflow practices that prevent runaway tracing during traffic spikes.",
+        "category": "market_research",
+        "last_updated": "2026-03-11",
+        "views": 54,
+        "tags": ["AWS", "X-Ray", "pricing", "consumption-based", "sampling", "governance"]
+      },
+      {
+        "article_id": "pb95_103",
+        "title": "Google Cloud Operations (formerly Stackdriver) telemetry cost review",
+        "content": "Google Cloud Operations is often framed around logs/metrics/traces ingestion and retention configurations, with pricing dimensions that depend on how much telemetry is sent and how long it is retained. When teams broaden coverage or keep more detailed events for longer, costs can rise due to increased ingest volume and extended storage/processing needs. For cost governance, the KB highlights controlling ingestion filters, selecting appropriate retention windows, and using consistent tagging to support data governance across teams. During bursts, the emphasis is on being able to review consumption quickly and apply policy changes without breaking observability goals.",
+        "category": "market_research",
+        "last_updated": "2026-03-12",
+        "views": 48,
+        "tags": ["Google Cloud", "Operations", "pricing", "ingest efficiency", "retention", "governance"]
+      },
+      {
+        "article_id": "pb95_104",
+        "title": "Microsoft Azure Monitor/APM billing: seats vs ingestion, and cost governance tooling",
+        "content": "Azure Monitor discussions frequently differentiate cost dimensions between user/workspace entitlements (e.g., seats or resource permissions) and telemetry ingestion/processing. Cost can increase when organizations expand monitoring coverage across many services and generate more logs and traces than planned, especially when diagnostic settings are too permissive. A governance angle is that Azure Monitor teams can apply diagnostic settings centrally, enforce standardized configurations, and use monitoring/workbooks/alerts to track spend drivers. Cost optimization commonly includes right-sizing workspaces, filtering noisy telemetry, and aligning retention/aggregation to business requirements.",
+        "category": "market_research",
+        "last_updated": "2026-03-13",
+        "views": 66,
+        "tags": ["Azure Monitor", "APM", "pricing", "ingestion", "governance", "workbooks"]
+      },
+      {
+        "article_id": "pb95_105",
+        "title": "New vendor 'TraceSpring' marketplace-style APM modules and add-on cost layering",
+        "content": "TraceSpring is positioned as modular APM with a pricing approach that can combine base access, optional analysis modules, and consumption for ingesting trace events and related metadata. The KB describes a cost escalation mechanism where teams adopt additional modules over time (e.g., enriched analytics, advanced alerting, or extra processing pipelines), which stacks with ingestion volume. During promotional windows, if the organization enables multiple pipelines in parallel (for example, separate alerting and analytics streams), the platform can effectively duplicate processing work and increase consumption. Cost governance is described as limiting enabled modules to what is needed, consolidating pipelines, and applying controls on event enrichment to keep ingestion efficient.",
+        "category": "market_research",
+        "last_updated": "2026-03-14",
+        "views": 40,
+        "tags": ["TraceSpring", "APM", "pricing", "modules", "cost sprawl", "governance"]
+      },
+      {
+        "article_id": "pb95_106",
+        "title": "Platform consolidation vs cost sprawl: APM, logs, and data governance trends",
+        "content": "Market trends emphasize that platform consolidation across logs, metrics, and traces helps reduce parallel pipelines and duplicated ingestion, which can otherwise create cost sprawl under consumption-based pricing. Another trend is tighter scrutiny of consumption-based pricing: buyers want to verify how pricing dimensions map to operational drivers (e.g., ingest volume, cardinality, retention). Governance capabilities are increasingly centered on ingest efficiency (filters, sampling, aggregation), clear ownership of telemetry collection policies, and workflow automation to reduce repeated manual investigations. Teams also seek long-term predictability by introducing repeatable review processes for pricing drivers before high-traffic events.",
+        "category": "market_research",
+        "last_updated": "2026-03-15",
+        "views": 122,
+        "tags": ["market trends", "consumption-based pricing", "ingest efficiency", "data governance", "platform integration"]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原“至少五家厂商+泛趋势”的基础上，新增对“消耗型/计费维度—成本上升机制—治理能力”的可对照框架，并要求输出≥5点成本机制对照段落与至少4条聚焦消费型审查、摄入效率与平台整合的趋势。",
+    "fixture_design_summary": [
+      "为≥5家厂商/平台提供与APM成本相关的KB内容：计费维度（摄入/资源/席位/模块/处理维度）、成本上升机制（高峰摄入、保留与处理、模块叠加、并行管道重复）、治理/优化能力（过滤、采样、保留策略、集中诊断设置、模块收敛、管道整合）。",
+      "提供≥1篇趋势类文章，覆盖“consumption-based pricing/ingest efficiency/cost governance/platform consolidation”语义要素，便于鲁棒关键词映射抽取≥4条趋势。",
+      "保持跨fixture实体一致性：仅使用产品/平台名称作为非结构化实体，避免引入需要对表的ID（除article_id外）。"
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+[
+  {
+    "message_id": "msg_2201",
+    "from": "zhou@beichen-fin.com",
+    "to": "support@company.com",
+    "subject": "关于风控网段不可用的紧急截止确认（含时区口径）",
+    "date": "2026-04-05T09:40:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "important",
+      "urgent"
+    ],
+    "body": "团队你好，\n\n关于“跨境专线BGP异常导致风控网段不可用”的紧急支持，请务必在我们的真正截止前到达。\n\n客户口径说明（请注意时区换算）：\n- 我们这里本地时间（CET/UTC+1）写作：今天 17:00 必须现场完成初始排障。\n- 但系统工单里可能以北京时间展示；请你们统一换算后以同一口径判断。\n\n为避免误判，请在邮件中确认：你们将17:00（本地时区）换算到北京时间后的“真正截止时间”，以及预计工程师到达时间是否在截止前。\n\n站点：青岛市区。\n\n北辰金融 周总"
+  },
+  {
+    "message_id": "msg_2202",
+    "from": "automation@beichen-fin.com",
+    "to": "support@company.com",
+    "subject": "自动告警：风控网段探测失败（非工单）",
+    "date": "2026-04-05T08:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox",
+      "alert"
+    ],
+    "body": "探测结果：风控网段 10.66.0.0/16 连续失败，可能与跨境专线路由异常或策略阻断有关。\n\n建议：先检查BGP会话与策略路由，再进行安全加固验证。"
+  },
+  {
+    "message_id": "msg_2203",
+    "from": "noreply@service-provider.com",
+    "to": "support@company.com",
+    "subject": "工单状态更新提醒",
+    "date": "2026-04-04T18:30:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，您关注的工单状态已更新。请登录系统查看详情。"
+  },
+  {
+    "message_id": "msg_2204",
+    "from": "ops@beichen-fin.com",
+    "to": "support@company.com",
+    "subject": "排障材料补充：BGP日志片段与策略摘要",
+    "date": "2026-04-05T10:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "补充材料：\n1) BGP session flaps detected\n2) 可能存在风控网段策略变更或ACL阻断\n3) 建议进行跨境专线切换验证与安全加固回归测试\n\n如需更多信息请联系客户经理。"
+  }
+]

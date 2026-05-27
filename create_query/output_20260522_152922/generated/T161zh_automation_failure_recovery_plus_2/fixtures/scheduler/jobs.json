@@ -1,0 +1,243 @@
+[
+  {
+    "job_id": "JOB-23001",
+    "name": "促销规则拉取（PR）",
+    "cron_expression": "*/10 * * * *",
+    "action": "pull_promotion_rules",
+    "enabled": true,
+    "last_run": "2026-05-20T15:20:00Z",
+    "next_run": "2026-05-20T15:30:00Z",
+    "last_status": "success",
+    "created_by": "promo_ops",
+    "tags": [
+      "promotion",
+      "rules",
+      "fetch"
+    ],
+    "created_at": "2026-04-01T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T15:20:00Z",
+        "status": "success",
+        "duration_s": 18,
+        "details": "成功拉取规则集 PRSET-4A7C（注意：该规则集在写回链路被标记deprecated）。"
+      },
+      {
+        "run_at": "2026-05-20T15:10:00Z",
+        "status": "success",
+        "duration_s": 17,
+        "details": "成功拉取规则集 PRSET-4A7C"
+      },
+      {
+        "run_at": "2026-05-20T14:50:00Z",
+        "status": "success",
+        "duration_s": 19,
+        "details": "成功拉取规则集 PRSET-4A7C"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-23002",
+    "name": "本地价格写回（回滚失败链路）",
+    "cron_expression": "*/15 * * * *",
+    "action": "writeback_local_prices",
+    "enabled": true,
+    "last_run": "2026-05-20T15:18:00Z",
+    "next_run": "2026-05-20T15:33:00Z",
+    "last_status": "failed",
+    "created_by": "promo_ops",
+    "tags": [
+      "promotion",
+      "price",
+      "writeback"
+    ],
+    "created_at": "2026-04-05T00:00:00Z",
+    "depends_on": [
+      "JOB-23001"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T15:18:00Z",
+        "status": "failed",
+        "duration_s": 6,
+        "error": "HTTP 422 Unprocessable Entity: 定价规则集 PRSET-4A7C 已标记deprecated，拒绝写回更新（integration=INT-2301）。"
+      },
+      {
+        "run_at": "2026-05-20T15:03:00Z",
+        "status": "failed",
+        "duration_s": 7,
+        "error": "HTTP 422 Unprocessable Entity: 定价规则集 PRSET-4A7C 已标记deprecated，拒绝写回更新（integration=INT-2301）。"
+      },
+      {
+        "run_at": "2026-05-20T14:48:00Z",
+        "status": "failed",
+        "duration_s": 7,
+        "error": "HTTP 422 Unprocessable Entity: 定价规则集 PRSET-4A7C 已标记deprecated，拒绝写回更新（integration=INT-2301）。"
+      },
+      {
+        "run_at": "2026-05-20T14:33:00Z",
+        "status": "failed",
+        "duration_s": 8,
+        "error": "HTTP 422 Unprocessable Entity: 定价规则集 PRSET-4A7C 已标记deprecated，拒绝写回更新（integration=INT-2301）。"
+      },
+      {
+        "run_at": "2026-05-20T14:18:00Z",
+        "status": "success",
+        "duration_s": 9,
+        "details": "成功写回并推进版本（规则集版本当时为可用集合）。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-23003",
+    "name": "促销价格应用（版本推进失败拒绝执行）",
+    "cron_expression": "*/15 * * * *",
+    "action": "apply_promotion_prices",
+    "enabled": true,
+    "last_run": "2026-05-20T15:19:00Z",
+    "next_run": "2026-05-20T15:34:00Z",
+    "last_status": "failed",
+    "created_by": "promo_ops",
+    "tags": [
+      "promotion",
+      "apply",
+      "last_applied"
+    ],
+    "created_at": "2026-04-05T00:00:00Z",
+    "depends_on": [
+      "JOB-23002"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T15:19:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "VersionGuard拒绝执行：price version not advanced / last_applied mismatch。last_applied未更新，推测写回未成功（依赖：JOB-23002 last_status=failed）。"
+      },
+      {
+        "run_at": "2026-05-20T15:04:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "VersionGuard拒绝执行：price version not advanced / last_applied mismatch。last_applied未更新，推测写回未成功（依赖：JOB-23002 last_status=failed）。"
+      },
+      {
+        "run_at": "2026-05-20T14:49:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "VersionGuard拒绝执行：price version not advanced / last_applied mismatch。last_applied未更新。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-23004",
+    "name": "库存价格字段同步（非真实来源/用于展示风险）",
+    "cron_expression": "*/20 * * * *",
+    "action": "sync_inventory_price_fields",
+    "enabled": true,
+    "last_run": "2026-05-20T15:20:00Z",
+    "next_run": "2026-05-20T15:40:00Z",
+    "last_status": "success",
+    "created_by": "data_ops",
+    "tags": [
+      "inventory",
+      "price-fields"
+    ],
+    "created_at": "2026-04-10T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T15:20:00Z",
+        "status": "success",
+        "duration_s": 12,
+        "details": "库存数量字段正常更新；price_sync_status/last_price_sync按展示规则回填，发现last_price_sync未随写回版本推进（与促销链路耦合）。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-23005",
+    "name": "退款处理（噪声链路）",
+    "cron_expression": "*/30 * * * *",
+    "action": "process_refund_rollback",
+    "enabled": true,
+    "last_run": "2026-05-20T15:00:00Z",
+    "next_run": "2026-05-20T15:30:00Z",
+    "last_status": "failed",
+    "created_by": "finance_ops",
+    "tags": [
+      "refund",
+      "noise"
+    ],
+    "created_at": "2026-04-08T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T15:00:00Z",
+        "status": "failed",
+        "duration_s": 9,
+        "error": "RefundError：订单状态校验失败，无法执行退款回滚（integration=INT-2304）。"
+      },
+      {
+        "run_at": "2026-05-20T14:30:00Z",
+        "status": "success",
+        "duration_s": 10,
+        "details": "部分退款成功"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-23006",
+    "name": "打印出库单任务（噪声链路）",
+    "cron_expression": "0 */2 * * *",
+    "action": "print_outbound_docs",
+    "enabled": true,
+    "last_run": "2026-05-20T14:00:00Z",
+    "next_run": "2026-05-20T16:00:00Z",
+    "last_status": "failed",
+    "created_by": "warehouse_ops",
+    "tags": [
+      "printing",
+      "noise"
+    ],
+    "created_at": "2026-04-09T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T14:00:00Z",
+        "status": "failed",
+        "duration_s": 4,
+        "error": "PrintError：打印机离线/卡纸，无法提交任务到队列（printer=PRN-DOCK-12）。"
+      },
+      {
+        "run_at": "2026-05-20T12:00:00Z",
+        "status": "success",
+        "duration_s": 5,
+        "details": "打印成功"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-23007",
+    "name": "健康检查与告警聚合（不构成根因）",
+    "cron_expression": "*/5 * * * *",
+    "action": "aggregate_job_health",
+    "enabled": true,
+    "last_run": "2026-05-20T15:21:00Z",
+    "next_run": "2026-05-20T15:26:00Z",
+    "last_status": "success",
+    "created_by": "admin",
+    "tags": [
+      "monitoring"
+    ],
+    "created_at": "2026-03-20T00:00:00Z",
+    "depends_on": [],
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T15:21:00Z",
+        "status": "success",
+        "duration_s": 3,
+        "details": "汇总到促销链路JOB-23002/JOB-23003失败；库存字段同步JOB-23004正常。"
+      }
+    ]
+  }
+]

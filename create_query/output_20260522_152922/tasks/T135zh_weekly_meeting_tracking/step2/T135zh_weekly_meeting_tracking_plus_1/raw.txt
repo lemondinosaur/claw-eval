@@ -1,0 +1,244 @@
+{
+  "task_id": "T135zh_weekly_meeting_tracking_plus_1",
+  "task_name": "周会复盘与缺口追踪",
+  "prompt_text": "请生成“本周”（mock_today=2026-04-09，周范围为2026-04-03到2026-04-09，包含边界）的会议行动项复盘追踪报告：\n1）查询该周日历会议；\n2）只处理纪要关联的会议（事件标题/描述中带有“关联纪要: …”等关键标识）；\n3）对每个纪要，抽取其中的行动项列表；\n4）在待办中匹配每个行动项对应的任务状态（pending/in_progress/completed）与 due_date；\n5）输出两类问题：\n   A. 纪要中有但待办中没有的行动项（缺失行动项）；\n   B. 待办中有但纪要里没有的条目（会外遗留，需单独标注其原因）；\n6）按会议分组输出：每项包含状态、逾期/即将到期/正常标记（只根据 due_date 与今天=2026-04-09 的相对关系判断；due_date=今天或未来7天内均视为“即将到期”，其余按“逾期/正常”），并给出该会议完成率=completed/该会议行动项总数。\n最后补充：总体完成率（仅对所有纪要行动项的 completed/总数）与问题清单（A缺失、B会外遗留）。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_772",
+        "title": "客户运营周会（关键字）",
+        "start_time": "2026-04-03T09:30:00+08:00",
+        "end_time": "2026-04-03T10:30:00+08:00",
+        "location": "1号会议室",
+        "organizer": "陈思",
+        "attendees": [
+          "陈思",
+          "林哲",
+          "苏然"
+        ],
+        "description": "本周客户运营对齐，关联纪要: NOTE-A1",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_773",
+        "title": "产品增长周会（关键字）",
+        "start_time": "2026-04-09T15:00:00+08:00",
+        "end_time": "2026-04-09T16:00:00+08:00",
+        "location": "线上会议",
+        "organizer": "林哲",
+        "attendees": [
+          "林哲",
+          "周航",
+          "陈思"
+        ],
+        "description": "增长实验复盘，关联纪要: NOTE-B1",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_774",
+        "title": "晨会质量检查",
+        "start_time": "2026-04-04T09:00:00+08:00",
+        "end_time": "2026-04-04T09:20:00+08:00",
+        "location": "走廊白板区",
+        "organizer": "项目助理",
+        "attendees": [
+          "项目助理",
+          "王澄"
+        ],
+        "description": "质量例行检查，无纪要关联",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_775",
+        "title": "安全培训（必修）",
+        "start_time": "2026-04-06T13:30:00+08:00",
+        "end_time": "2026-04-06T14:30:00+08:00",
+        "location": "培训室B",
+        "organizer": "安全团队",
+        "attendees": [
+          "安全团队",
+          "叶乔"
+        ],
+        "description": "公司安全培训，无纪要关联",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_776",
+        "title": "跨部门对齐会",
+        "start_time": "2026-04-07T10:00:00+08:00",
+        "end_time": "2026-04-07T11:00:00+08:00",
+        "location": "3号会议室",
+        "organizer": "张晟",
+        "attendees": [
+          "张晟",
+          "赵珂"
+        ],
+        "description": "跨团队业务对齐，无纪要关联",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_777",
+        "title": "周报收尾同步",
+        "start_time": "2026-04-08T16:20:00+08:00",
+        "end_time": "2026-04-08T16:50:00+08:00",
+        "location": "研发区",
+        "organizer": "赵珂",
+        "attendees": [
+          "赵珂",
+          "叶乔"
+        ],
+        "description": "周报收尾，无纪要关联",
+        "status": "confirmed"
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "NOTE-A1",
+        "title": "客户运营周会纪要 4/03",
+        "content": "## 客户运营周会\n\n### 行动项\n1. 【陈思】完成A段用户旅程梳理（负责人确认），截止2026-04-06\n2. 【林哲】推进留存漏斗埋点校验，截止2026-04-09\n3. 【苏然】输出离线批处理失败根因分析报告，截止2026-04-04\n4. 【王澄】更新客户分层策略v2文档，截止2026-04-11",
+        "participants": [
+          "陈思",
+          "林哲",
+          "苏然",
+          "王澄"
+        ],
+        "tags": [
+          "运营",
+          "客户"
+        ],
+        "created_at": "2026-04-03T01:10:00Z",
+        "duration_minutes": 60
+      },
+      {
+        "note_id": "NOTE-B1",
+        "title": "产品增长周会纪要 4/09",
+        "content": "## 产品增长周会\n\n### 行动项\n1. 【林哲】复盘A/B实验结果并形成结论文档，截止2026-04-10\n2. 【周航】补齐转化漏斗事件字典与映射表，截止2026-04-16\n3. 【陈思】准备新渠道开户脚本回归清单，截止2026-04-02",
+        "participants": [
+          "林哲",
+          "周航",
+          "陈思"
+        ],
+        "tags": [
+          "增长",
+          "产品"
+        ],
+        "created_at": "2026-04-09T06:40:00Z",
+        "duration_minutes": 60
+      }
+    ],
+    "fixtures/todo/tasks.json": [
+      {
+        "task_id": "TODO-A-1",
+        "title": "A段用户旅程梳理",
+        "description": "完成A段用户旅程梳理（负责人确认）并提交对齐说明",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-04-06",
+        "assignee": "陈思",
+        "tags": [
+          "运营"
+        ]
+      },
+      {
+        "task_id": "TODO-A-2",
+        "title": "留存漏斗埋点校验",
+        "description": "推进留存漏斗埋点校验，输出差异清单与修复计划",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-04-09",
+        "assignee": "林哲",
+        "tags": [
+          "增长",
+          "埋点"
+        ]
+      },
+      {
+        "task_id": "TODO-A-3",
+        "title": "离线批处理根因分析",
+        "description": "输出离线批处理失败根因分析报告与临时缓解方案",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-04-04",
+        "assignee": "苏然",
+        "tags": [
+          "数据",
+          "运营"
+        ]
+      },
+      {
+        "task_id": "TODO-A-5",
+        "title": "客户分层策略v2文档",
+        "description": "更新客户分层策略v2文档并完成版本发布",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-04-11",
+        "assignee": "王澄",
+        "tags": [
+          "客户",
+          "文档"
+        ]
+      },
+      {
+        "task_id": "TODO-B-2",
+        "title": "A/B实验结论文档",
+        "description": "复盘A/B实验结果并形成结论文档（含下一步建议）",
+        "status": "pending",
+        "priority": "high",
+        "due_date": "2026-04-10",
+        "assignee": "林哲",
+        "tags": [
+          "产品",
+          "实验"
+        ]
+      },
+      {
+        "task_id": "TODO-B-3",
+        "title": "转化漏斗事件字典与映射表",
+        "description": "补齐转化漏斗事件字典与映射表，完成字段映射校验",
+        "status": "completed",
+        "priority": "high",
+        "due_date": "2026-04-16",
+        "assignee": "周航",
+        "tags": [
+          "数据",
+          "增长"
+        ]
+      },
+      {
+        "task_id": "TODO-B-5",
+        "title": "新渠道开户脚本回归清单",
+        "description": "准备新渠道开户脚本回归清单并提交执行记录",
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "2026-04-02",
+        "assignee": "陈思",
+        "tags": [
+          "回归",
+          "渠道"
+        ]
+      },
+      {
+        "task_id": "TODO-OUT-1",
+        "title": "会外：工单SLA核对",
+        "description": "核对当前工单SLA配置与历史偏差记录，补齐缺失字段",
+        "status": "pending",
+        "priority": "medium",
+        "due_date": "2026-04-07",
+        "assignee": "叶乔",
+        "tags": [
+          "会外",
+          "运维"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在识别纪要存在但待办缺失之外，新增反向对比输出“会外遗留”（待办存在但纪要未提及），并补充基于 due_date 的即将到期（含 due_date=今天）标注与边界覆盖。",
+    "fixture_design_summary": [
+      "calendar/events.json：6个事件，其中2个通过description包含“关联纪要: NOTE-A1/B1”作为纪要会议标识，其余4个不含该关键标识。",
+      "notes/meetings.json：两份纪要各自包含4/3条行动项；覆盖due_date=今天(2026-04-09)、未来7天内、已逾期(早于今天)等边界情况。",
+      "todo/tasks.json：共6条可匹配到两份纪要行动项(刻意缺失1条对应NOTE-A1的第4条“更新客户分层策略v2文档”)，并额外加入1条“会外遗留”待办TODO-OUT-1用于反向对比。",
+      "跨fixture实体对齐：行动项匹配使用“负责人+行动项短标题/关键短语”口径，且会议与纪要的关联通过NOTE-A1/B1与事件description中的关联纪要字段建立。"
+    ]
+  }
+}

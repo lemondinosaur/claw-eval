@@ -1,0 +1,362 @@
+[
+  {
+    "transaction_id": "TXN-A210",
+    "customer_id": "CUS-A110",
+    "amount": 78000,
+    "type": "subscription",
+    "date": "2026-01-14",
+    "status": "completed",
+    "description": "1月订阅费-基础版"
+  },
+  {
+    "transaction_id": "TXN-A211",
+    "customer_id": "CUS-A110",
+    "amount": 86000,
+    "type": "subscription",
+    "date": "2026-02-14",
+    "status": "completed",
+    "description": "2月订阅费-席位扩张"
+  },
+  {
+    "transaction_id": "TXN-A212",
+    "customer_id": "CUS-A110",
+    "amount": 98000,
+    "type": "subscription",
+    "date": "2026-03-14",
+    "status": "completed",
+    "description": "3月订阅费-增值模块续购"
+  },
+  {
+    "transaction_id": "TXN-A213",
+    "customer_id": "CUS-A111",
+    "amount": 32000,
+    "type": "subscription",
+    "date": "2026-01-09",
+    "status": "completed",
+    "description": "1月订阅费-运营看板"
+  },
+  {
+    "transaction_id": "TXN-A214",
+    "customer_id": "CUS-A111",
+    "amount": 33000,
+    "type": "subscription",
+    "date": "2026-02-09",
+    "status": "completed",
+    "description": "2月订阅费-小幅续购"
+  },
+  {
+    "transaction_id": "TXN-A215",
+    "customer_id": "CUS-A111",
+    "amount": 35500,
+    "type": "subscription",
+    "date": "2026-03-09",
+    "status": "completed",
+    "description": "3月订阅费-新增报表"
+  },
+  {
+    "transaction_id": "TXN-A216",
+    "customer_id": "CUS-A111",
+    "amount": 22000,
+    "type": "project",
+    "date": "2026-03-26",
+    "status": "completed",
+    "description": "3月一次性项目-营销归因"
+  },
+  {
+    "transaction_id": "TXN-A217",
+    "customer_id": "CUS-A112",
+    "amount": 91000,
+    "type": "subscription",
+    "date": "2026-01-20",
+    "status": "completed",
+    "description": "1月订阅费-物流中台"
+  },
+  {
+    "transaction_id": "TXN-A218",
+    "customer_id": "CUS-A112",
+    "amount": 91000,
+    "type": "subscription",
+    "date": "2026-02-20",
+    "status": "completed",
+    "description": "2月订阅费-保持稳定"
+  },
+  {
+    "transaction_id": "TXN-A219",
+    "customer_id": "CUS-A112",
+    "amount": 94000,
+    "type": "subscription",
+    "date": "2026-03-20",
+    "status": "completed",
+    "description": "3月订阅费-小幅续费"
+  },
+  {
+    "transaction_id": "TXN-A220",
+    "customer_id": "CUS-A112",
+    "amount": 0,
+    "type": "project",
+    "date": "2026-01-30",
+    "status": "completed",
+    "description": "1月无项目发票"
+  },
+  {
+    "transaction_id": "TXN-A221",
+    "customer_id": "CUS-A112",
+    "amount": 25000,
+    "type": "project",
+    "date": "2026-02-25",
+    "status": "completed",
+    "description": "2月一次性项目-线路优化"
+  },
+  {
+    "transaction_id": "TXN-A222",
+    "customer_id": "CUS-A112",
+    "amount": 125000,
+    "type": "project",
+    "date": "2026-03-25",
+    "status": "completed",
+    "description": "3月一次性项目-仓网数字化(集中释放)"
+  },
+  {
+    "transaction_id": "TXN-A223",
+    "customer_id": "CUS-A113",
+    "amount": 76000,
+    "type": "subscription",
+    "date": "2026-01-11",
+    "status": "completed",
+    "description": "1月订阅费-设备管理"
+  },
+  {
+    "transaction_id": "TXN-A224",
+    "customer_id": "CUS-A113",
+    "amount": 73500,
+    "type": "subscription",
+    "date": "2026-02-11",
+    "status": "completed",
+    "description": "2月订阅费-审批延后导致小幅回落"
+  },
+  {
+    "transaction_id": "TXN-A225",
+    "customer_id": "CUS-A113",
+    "amount": 73000,
+    "type": "subscription",
+    "date": "2026-03-11",
+    "status": "completed",
+    "description": "3月订阅费-基本持平"
+  },
+  {
+    "transaction_id": "TXN-A226",
+    "customer_id": "CUS-A113",
+    "amount": 14000,
+    "type": "project",
+    "date": "2026-02-18",
+    "status": "completed",
+    "description": "2月一次性项目-试点实施"
+  },
+  {
+    "transaction_id": "TXN-A227",
+    "customer_id": "CUS-A113",
+    "amount": 15000,
+    "type": "project",
+    "date": "2026-03-18",
+    "status": "completed",
+    "description": "3月一次性项目-追加小范围"
+  },
+  {
+    "transaction_id": "TXN-A228",
+    "customer_id": "CUS-A114",
+    "amount": 21000,
+    "type": "subscription",
+    "date": "2026-01-18",
+    "status": "completed",
+    "description": "1月订阅费-课程分析"
+  },
+  {
+    "transaction_id": "TXN-A229",
+    "customer_id": "CUS-A114",
+    "amount": 21300,
+    "type": "subscription",
+    "date": "2026-02-18",
+    "status": "completed",
+    "description": "2月订阅费-平稳续费"
+  },
+  {
+    "transaction_id": "TXN-A230",
+    "customer_id": "CUS-A114",
+    "amount": 21700,
+    "type": "subscription",
+    "date": "2026-03-18",
+    "status": "completed",
+    "description": "3月订阅费-微增"
+  },
+  {
+    "transaction_id": "TXN-A231",
+    "customer_id": "CUS-A114",
+    "amount": 8000,
+    "type": "project",
+    "date": "2026-01-28",
+    "status": "completed",
+    "description": "1月一次性项目-内容结构优化"
+  },
+  {
+    "transaction_id": "TXN-A232",
+    "customer_id": "CUS-A114",
+    "amount": 8200,
+    "type": "project",
+    "date": "2026-02-28",
+    "status": "completed",
+    "description": "2月一次性项目-轻量迭代"
+  },
+  {
+    "transaction_id": "TXN-A233",
+    "customer_id": "CUS-A114",
+    "amount": 8300,
+    "type": "project",
+    "date": "2026-03-28",
+    "status": "completed",
+    "description": "3月一次性项目-小幅扩展"
+  },
+  {
+    "transaction_id": "TXN-A234",
+    "customer_id": "CUS-A115",
+    "amount": 54000,
+    "type": "subscription",
+    "date": "2026-01-22",
+    "status": "completed",
+    "description": "1月订阅费-投放中台"
+  },
+  {
+    "transaction_id": "TXN-A235",
+    "customer_id": "CUS-A115",
+    "amount": 56500,
+    "type": "subscription",
+    "date": "2026-02-22",
+    "status": "completed",
+    "description": "2月订阅费-轻量升级"
+  },
+  {
+    "transaction_id": "TXN-A236",
+    "customer_id": "CUS-A115",
+    "amount": 59000,
+    "type": "subscription",
+    "date": "2026-03-22",
+    "status": "completed",
+    "description": "3月订阅费-续费保持"
+  },
+  {
+    "transaction_id": "TXN-A237",
+    "customer_id": "CUS-A115",
+    "amount": 30000,
+    "type": "project",
+    "date": "2026-01-30",
+    "status": "completed",
+    "description": "1月一次性项目-素材智能化"
+  },
+  {
+    "transaction_id": "TXN-A238",
+    "customer_id": "CUS-A115",
+    "amount": 98000,
+    "type": "project",
+    "date": "2026-02-30",
+    "status": "completed",
+    "description": "2月一次性项目-联动投放系统(集中)"
+  },
+  {
+    "transaction_id": "TXN-A239",
+    "customer_id": "CUS-A115",
+    "amount": 104000,
+    "type": "project",
+    "date": "2026-03-30",
+    "status": "completed",
+    "description": "3月一次性项目-多渠道归因升级(延续)"
+  },
+  {
+    "transaction_id": "TXN-A240",
+    "customer_id": "CUS-A116",
+    "amount": 26000,
+    "type": "subscription",
+    "date": "2026-01-16",
+    "status": "completed",
+    "description": "1月订阅费-政务服务门户"
+  },
+  {
+    "transaction_id": "TXN-A241",
+    "customer_id": "CUS-A116",
+    "amount": 25800,
+    "type": "subscription",
+    "date": "2026-02-16",
+    "status": "completed",
+    "description": "2月订阅费-基本持平"
+  },
+  {
+    "transaction_id": "TXN-A242",
+    "customer_id": "CUS-A116",
+    "amount": 25600,
+    "type": "subscription",
+    "date": "2026-03-16",
+    "status": "completed",
+    "description": "3月订阅费-微降"
+  },
+  {
+    "transaction_id": "TXN-A243",
+    "customer_id": "CUS-A116",
+    "amount": 6000,
+    "type": "project",
+    "date": "2026-03-12",
+    "status": "completed",
+    "description": "3月一次性项目-接口适配"
+  },
+  {
+    "transaction_id": "TXN-A244",
+    "customer_id": "CUS-A117",
+    "amount": 89000,
+    "type": "subscription",
+    "date": "2026-01-27",
+    "status": "completed",
+    "description": "1月订阅费-运维平台"
+  },
+  {
+    "transaction_id": "TXN-A245",
+    "customer_id": "CUS-A117",
+    "amount": 91000,
+    "type": "subscription",
+    "date": "2026-02-27",
+    "status": "completed",
+    "description": "2月订阅费-小幅增购"
+  },
+  {
+    "transaction_id": "TXN-A246",
+    "customer_id": "CUS-A117",
+    "amount": 90500,
+    "type": "subscription",
+    "date": "2026-03-27",
+    "status": "completed",
+    "description": "3月订阅费-小幅回落"
+  },
+  {
+    "transaction_id": "TXN-A247",
+    "customer_id": "CUS-A117",
+    "amount": 18000,
+    "type": "project",
+    "date": "2026-01-24",
+    "status": "completed",
+    "description": "1月一次性项目-巡检规则优化"
+  },
+  {
+    "transaction_id": "TXN-A248",
+    "customer_id": "CUS-A117",
+    "amount": 18000,
+    "type": "project",
+    "date": "2026-02-24",
+    "status": "completed",
+    "description": "2月一次性项目-保持"
+  },
+  {
+    "transaction_id": "TXN-A249",
+    "customer_id": "CUS-A117",
+    "amount": 18100,
+    "type": "project",
+    "date": "2026-03-24",
+    "status": "completed",
+    "description": "3月一次性项目-微增"
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "event_id": "evt_901",
+    "title": "北区-故障复盘会",
+    "start_time": "2026-03-31T09:15:00+08:00",
+    "end_time": "2026-03-31T11:45:00+08:00",
+    "location": "北区-会议室1",
+    "organizer": "技术支持组",
+    "attendees": [
+      "我",
+      "support_owner"
+    ],
+    "description": "内部故障复盘（上午占用到中午前，影响到达边界）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_902",
+    "title": "北区-供应商评审",
+    "start_time": "2026-03-31T14:00:00+08:00",
+    "end_time": "2026-03-31T16:30:00+08:00",
+    "location": "北区-会议室2",
+    "organizer": "采购部",
+    "attendees": [
+      "我",
+      "buyer_mgr"
+    ],
+    "description": "已确认的供应商评审（下午占用）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_903",
+    "title": "西区-跨天维护窗口",
+    "start_time": "2026-03-30T20:30:00+08:00",
+    "end_time": "2026-03-31T10:30:00+08:00",
+    "location": "西区机房",
+    "organizer": "运维值班",
+    "attendees": [
+      "我",
+      "ops_oncall"
+    ],
+    "description": "跨天维护（从晚间持续到次日上午，占用到中午前的边界要点）",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_904",
+    "title": "西区-白天缓冲（全天空闲）",
+    "start_time": "2026-03-30T00:00:00+08:00",
+    "end_time": "2026-03-30T23:59:00+08:00",
+    "location": "",
+    "organizer": "",
+    "attendees": [],
+    "description": "可用于安排到达/离开缓冲",
+    "status": "free"
+  },
+  {
+    "event_id": "evt_905",
+    "title": "区域同步例会（干扰）",
+    "start_time": "2026-04-01T15:00:00+08:00",
+    "end_time": "2026-04-01T16:00:00+08:00",
+    "location": "本地-远程",
+    "organizer": "PMO",
+    "attendees": [
+      "我",
+      "pmo_mgr"
+    ],
+    "description": "状态为 busy 的例会（非到访邀请日期核心冲突，用于干扰）",
+    "status": "busy"
+  },
+  {
+    "event_id": "evt_906",
+    "title": "北区-晚间回访准备（不冲突）",
+    "start_time": "2026-04-01T19:00:00+08:00",
+    "end_time": "2026-04-01T20:30:00+08:00",
+    "location": "本地-办公室",
+    "organizer": "售后支持",
+    "attendees": [
+      "我"
+    ],
+    "description": "用于准备次日材料，不影响到中午前到达判断",
+    "status": "confirmed"
+  }
+]

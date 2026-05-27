@@ -1,0 +1,40 @@
+[
+  {
+    "message_id": "msg_2201",
+    "from": "securitylead@xingque-finance.com",
+    "to": "support@company.com",
+    "subject": "紧急合规要求：鉴权失败证据摘要与止血措施必须在1小时内提交",
+    "date": "2026-04-12T10:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox",
+      "urgent",
+      "important"
+    ],
+    "body": "您好，我们是星阙金融的信息安全团队（VIP）。\n\n自你们发布后不久，我们的用户登录后权限校验失败，核心页面出现大量401/403，且告警仍在持续扩大。我们要求：\n\n1) 在1小时内向我们提交“已定位原因的证据摘要”（包含你们确认导致401/403的关键链路证据：鉴权配置/权限映射/令牌校验/日志片段等）。\n2) 同时在1小时内提交“临时可用的止血措施”（例如：临时放行/降级策略或可回滚的缓解方案），确保核心页面可用。\n3) 若无法在时限内提供上述材料，我们将暂停相关外部对接并启动法律合规流程。\n\n请在回复中明确：你们已启动的止血动作、预计的时间节点（与SLA一致），以及我们将如何接收证据摘要。\n\n——沈安全负责人\nsecuritylead@xingque-finance.com"
+  },
+  {
+    "message_id": "msg_2202",
+    "from": "no-reply@status-portal.com",
+    "to": "support@company.com",
+    "subject": "状态页通知：2026-04-12 发布窗口结束",
+    "date": "2026-04-12T08:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "发布窗口结束。若有异常请联系值班团队。"
+  },
+  {
+    "message_id": "msg_2203",
+    "from": "it-ops@beian-retail.com",
+    "to": "support@company.com",
+    "subject": "关于报表导出超时的反馈（非鉴权问题）",
+    "date": "2026-04-12T09:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "北岸零售报表导出偶发超时，希望协助排查。该问题似乎与鉴权无关。"
+  }
+]

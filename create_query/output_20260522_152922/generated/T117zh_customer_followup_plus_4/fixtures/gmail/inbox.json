@@ -1,0 +1,194 @@
+[
+  {
+    "message_id": "m_813_1",
+    "from": "lixiaolin@beichen-industry.cn",
+    "to": "coordinator@company.com",
+    "subject": "推进里程碑节奏需要确认",
+    "date": "2026-02-14T09:20:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "你好，我们这边对下个里程碑的时间点有些担心：现场资源需要提前协调。能否尽快给到一个更新后的交付节奏，并确认我们需要配合的事项？——李晓琳"
+  },
+  {
+    "message_id": "m_813_2",
+    "from": "chyu@beichen-industry.cn",
+    "to": "coordinator@company.com",
+    "subject": "技术集成与接口稳定性问题",
+    "date": "2026-02-16T16:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们重点关注接口稳定性和异常回滚机制。若后续集成节奏有调整，请同步风险清单与闭环路径，避免影响上线时间。——陈宇航"
+  },
+  {
+    "message_id": "m_814_1",
+    "from": "zhou_tong@starmed.com",
+    "to": "coordinator@company.com",
+    "subject": "里程碑推进与沟通节奏",
+    "date": "2026-02-02T11:30:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，项目目前推进到关键阶段，但跨部门沟通需要更顺畅。我们希望你方给出下一轮同步的时间窗口，并确认各方责任边界。——周彤"
+  },
+  {
+    "message_id": "m_814_2",
+    "from": "xu_ke@starmed.com",
+    "to": "coordinator@company.com",
+    "subject": "合同条款与付款节点确认",
+    "date": "2026-02-06T15:45:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "请协助确认合同中付款节点的细则，以及我们需要补充的合规材料。也希望对成本项做一次书面确认。谢谢。——徐可"
+  },
+  {
+    "message_id": "m_815_1",
+    "from": "gongxw@feiyue-retail.com",
+    "to": "coordinator@company.com",
+    "subject": "运营看板更新与节奏",
+    "date": "2026-02-12T08:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们这边需要把数据看板更新频率对齐到日常运营节奏。请确认你方什么时候能提供最新的统计口径和展示方式。——龚晓雯"
+  },
+  {
+    "message_id": "m_815_2",
+    "from": "denghang@feiyue-retail.com",
+    "to": "coordinator@company.com",
+    "subject": "对接稳定性与异常处理",
+    "date": "2026-02-13T14:40:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "系统对接方面我们希望明确稳定性目标和异常处理流程。若后续遇到数据异常，如何触发告警与回滚策略？——邓航"
+  },
+  {
+    "message_id": "m_816_1",
+    "from": "jiangzh@yunqiao-logistics.com",
+    "to": "coordinator@company.com",
+    "subject": "现场排期与交付进度",
+    "date": "2026-01-05T10:25:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们希望确认下一阶段现场排期与交付进度。能否给到一个简要的里程碑表，并说明我们需要提前准备的资源？——蒋子航"
+  },
+  {
+    "message_id": "m_816_2",
+    "from": "other.manager@yunqiao-logistics.com",
+    "to": "coordinator@company.com",
+    "subject": "关于合规材料的泛化问题咨询",
+    "date": "2026-01-07T17:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们内部在整理合规材料，想了解一般需要哪些类型的文件。——(非刘婉宁)"
+  },
+  {
+    "message_id": "m_816_3",
+    "from": "random.security@external-partner.com",
+    "to": "coordinator@company.com",
+    "subject": "安全评审时间窗口",
+    "date": "2026-01-08T09:00:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们那边的安全评审通常需要提前两周确认时间窗口，供参考。——安全团队"
+  },
+  {
+    "message_id": "m_noise_1",
+    "from": "dev@thirdparty-logistics.com",
+    "to": "coordinator@company.com",
+    "subject": "技术合作建议（不相关）",
+    "date": "2026-02-20T12:12:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "给你们一个技术建议：可以从数据校验环节先行优化。"
+  },
+  {
+    "message_id": "m_noise_2",
+    "from": "procurement@other-retail.com",
+    "to": "coordinator@company.com",
+    "subject": "采购流程咨询（不相关）",
+    "date": "2026-02-18T18:18:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "关于你们的采购流程我们想了解一下。"
+  },
+  {
+    "message_id": "m_noise_3",
+    "from": "marketing@beichen-partners.cn",
+    "to": "coordinator@company.com",
+    "subject": "市场活动邀请（不相关）",
+    "date": "2026-02-21T09:45:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "邀请你们参加我们的线下活动。"
+  },
+  {
+    "message_id": "m_noise_4",
+    "from": "support@starmed.com",
+    "to": "coordinator@company.com",
+    "subject": "售后问题反馈（不相关）",
+    "date": "2026-02-10T13:13:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "关于售后工单的反馈说明。"
+  },
+  {
+    "message_id": "m_noise_5",
+    "from": "finance@feiyue-retail.com",
+    "to": "coordinator@company.com",
+    "subject": "费用报销流程（不相关）",
+    "date": "2026-02-08T10:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "费用报销需要哪些材料？"
+  },
+  {
+    "message_id": "m_813_noise_3",
+    "from": "someone_else@beichen-industry.cn",
+    "to": "coordinator@company.com",
+    "subject": "内部汇总与安排（非目标联系人）",
+    "date": "2026-02-15T08:30:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我们内部对安排做了一个汇总，供参考。"
+  },
+  {
+    "message_id": "m_815_noise_2",
+    "from": "operations@feiyue-retail.com",
+    "to": "coordinator@company.com",
+    "subject": "运营事项转达（不匹配邮箱）",
+    "date": "2026-02-12T12:00:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "关于一些运营事项的转达（该发件非龚晓雯）。"
+  }
+]

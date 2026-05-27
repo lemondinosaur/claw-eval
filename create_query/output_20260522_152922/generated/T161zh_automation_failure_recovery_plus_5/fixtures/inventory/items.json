@@ -1,0 +1,110 @@
+[
+  {
+    "product_id": "ITEM-2101",
+    "name": "人体工学椅靠垫",
+    "category": "家具配件",
+    "quantity": 12,
+    "unit": "个",
+    "reorder_level": 20,
+    "supplier_integration": "INT-2101",
+    "last_sync": "2026-03-18T10:05:00Z",
+    "sync_status": "stale",
+    "notes": "主数据解析缺少关键字段导致写入失败；sync_status=stale 表示未完成更新。"
+  },
+  {
+    "product_id": "ITEM-2102",
+    "name": "无线充电器 15W",
+    "category": "移动配件",
+    "quantity": 7,
+    "unit": "个",
+    "reorder_level": 10,
+    "supplier_integration": "INT-2101",
+    "last_sync": "2026-03-18T10:05:00Z",
+    "sync_status": "stale",
+    "notes": "上游契约变更后，映射仍引用旧字段名；本商品未成功更新。"
+  },
+  {
+    "product_id": "ITEM-2103",
+    "name": "笔记本支架",
+    "category": "办公硬件",
+    "quantity": 3,
+    "unit": "个",
+    "reorder_level": 6,
+    "supplier_integration": "INT-2101",
+    "last_sync": "2026-03-18T10:05:00Z",
+    "sync_status": "stale",
+    "notes": "sync_status=stale；按安全线应触发补货但由于上游缺字段导致补货链路跳过。"
+  },
+  {
+    "product_id": "ITEM-2104",
+    "name": "机械键盘轴体套装",
+    "category": "IT外设",
+    "quantity": 55,
+    "unit": "套",
+    "reorder_level": 25,
+    "supplier_integration": "INT-2101",
+    "last_sync": "2026-03-26T06:20:00Z",
+    "sync_status": "partial",
+    "notes": "数量看似已刷新，但 last_sync 异常频繁；疑似发生部分写入，价格/标题字段可能仍不一致。"
+  },
+  {
+    "product_id": "ITEM-2105",
+    "name": "USB-C 8合1扩展坞",
+    "category": "IT外设",
+    "quantity": 22,
+    "unit": "个",
+    "reorder_level": 18,
+    "supplier_integration": "INT-2101",
+    "last_sync": "2026-03-26T06:21:00Z",
+    "sync_status": "partial",
+    "notes": "last_sync 已变化但 sync_status=partial；提示可能仅更新了部分字段。"
+  },
+  {
+    "product_id": "ITEM-2106",
+    "name": "27英寸显示器支架",
+    "category": "办公硬件",
+    "quantity": 9,
+    "unit": "个",
+    "reorder_level": 8,
+    "supplier_integration": "INT-2101",
+    "last_sync": "2026-03-26T08:10:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  },
+  {
+    "product_id": "ITEM-2107",
+    "name": "蓝牙鼠标(静音)",
+    "category": "IT外设",
+    "quantity": 44,
+    "unit": "个",
+    "reorder_level": 15,
+    "supplier_integration": "INT-2101",
+    "last_sync": "2026-03-26T08:10:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  },
+  {
+    "product_id": "ITEM-2108",
+    "name": "网线 Cat6 305米",
+    "category": "网络耗材",
+    "quantity": 26,
+    "unit": "卷",
+    "reorder_level": 20,
+    "supplier_integration": "INT-2101",
+    "last_sync": "2026-03-26T08:10:00Z",
+    "sync_status": "ok",
+    "notes": ""
+  },
+  {
+    "product_id": "ITEM-2109",
+    "name": "桌面收纳盒",
+    "category": "家具",
+    "quantity": 0,
+    "unit": "个",
+    "reorder_level": 5,
+    "supplier_integration": "INT-2101",
+    "last_sync": "2026-03-26T08:12:00Z",
+    "sync_status": "ok",
+    "notes": "实际可能已更新为0以外的数量；需结合同步完成度与关键字段核对后再决定是否回滚。"
+  }
+]

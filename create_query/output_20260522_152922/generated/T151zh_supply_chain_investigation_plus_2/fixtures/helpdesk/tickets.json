@@ -1,0 +1,135 @@
+[
+  {
+    "ticket_id": "TK-21001",
+    "title": "园区配电到货延期：EL-771（批次未到）",
+    "description": "星澜置业（CUS-2101）陈工反馈：项目#EL-771低压配电柜CDQ-20B×2计划5/12前到货，但施工窗口前仍未到；需明确交付节点。当前现场按替代方案预排，但需要确认主料到货承诺。",
+    "customer_id": "CUS-2101",
+    "reporter": "陈工",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-12T08:20:00Z",
+    "tags": [
+      "到货延期",
+      "交付节点",
+      "CDQ-20B"
+    ],
+    "category": "到货延期"
+  },
+  {
+    "ticket_id": "TK-21002",
+    "title": "到货延期工单：EL-884母线模块MB-40分批延后",
+    "description": "宏盛工程（CUS-2102）刘经理报修：项目#EL-884母线模块MB-40×6原定5/12到现场，现供应端只确认首批，第二批排期后移；要求给出分批到货时间表，并说明如何保证安装连续性。",
+    "customer_id": "CUS-2102",
+    "reporter": "刘经理",
+    "department": "项目交付",
+    "priority": "high",
+    "status": "in_progress",
+    "created_at": "2026-05-13T12:05:00Z",
+    "tags": [
+      "到货延期",
+      "分批发货",
+      "MB-40"
+    ],
+    "category": "到货延期"
+  },
+  {
+    "ticket_id": "TK-21003",
+    "title": "交付节点变更：EL-905配电测控MC-2未按合同批次到货",
+    "description": "启航机电（CUS-2103）赵主任：项目#EL-905配电测控MC-2×2未按合同批次到货。系统显示仍在补货中，但现场必须在6/01前完成调试，要求供应链提供可执行的排产沟通要点与确认邮件。",
+    "customer_id": "CUS-2103",
+    "reporter": "赵主任",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-05-14T02:35:00Z",
+    "tags": [
+      "到货延期",
+      "合同批次",
+      "MC-2"
+    ],
+    "category": "到货延期"
+  },
+  {
+    "ticket_id": "TK-21004",
+    "title": "工程现场催交：EL-930低压配电柜CDQ-20B到货顺延",
+    "description": "银桥建设（CUS-2104）孙工：项目#EL-930低压配电柜CDQ-20B×1到货顺延，施工方要求明确新节点（能否先装备用模块再做切换）。请给出承诺更新时间和现场替代料启用条件。",
+    "customer_id": "CUS-2104",
+    "reporter": "孙工",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-10T15:40:00Z",
+    "tags": [
+      "到货延期",
+      "CDQ-20B",
+      "替代料"
+    ],
+    "category": "到货延期"
+  },
+  {
+    "ticket_id": "TK-21005",
+    "title": "现场安装故障（干扰）：箱体接地测试未通过",
+    "description": "启航机电（CUS-2103）提交技术问题：EL-905现场安装故障，箱体接地测试未通过。更换线缆后仍需复测。此工单不涉及供货批次延后，仅为现场技术原因。",
+    "customer_id": "CUS-2103",
+    "reporter": "值班工程师",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-13T18:10:00Z",
+    "tags": [
+      "现场安装故障",
+      "干扰"
+    ],
+    "category": "技术问题"
+  },
+  {
+    "ticket_id": "TK-21006",
+    "title": "价格差异咨询（干扰）：配电柜替代方案报价核对",
+    "description": "星澜置业（CUS-2101）财务部咨询：对替代模块AM-5的报价与合同附件不一致，要求重新核对价格。与到货批次延期无直接关联。",
+    "customer_id": "CUS-2101",
+    "reporter": "财务部",
+    "department": "售前咨询",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-15T09:50:00Z",
+    "tags": [
+      "价格差异",
+      "干扰"
+    ],
+    "category": "价格咨询"
+  },
+  {
+    "ticket_id": "TK-21007",
+    "title": "到货延期补充说明：部分备件可先行但主料断点",
+    "description": "宏盛工程（CUS-2102）刘经理补充：现场目前已能开始安装导轨辅料，但关键主料CDQ-20B和MB-40存在低量断点导致无法完成整体验收；要求内部形成统一对外说法。",
+    "customer_id": "CUS-2102",
+    "reporter": "刘经理",
+    "department": "项目交付",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-16T10:20:00Z",
+    "tags": [
+      "到货延期",
+      "断点",
+      "验收"
+    ],
+    "category": "到货延期"
+  },
+  {
+    "ticket_id": "TK-21008",
+    "title": "到货延期：EL-771母线模块MB-40到货节点需更新",
+    "description": "星澜置业（CUS-2101）陈工：项目#EL-771除CDQ-20B外，母线模块MB-40×2预计交付节点也顺延。施工方要求“明确日期+分批说明”，否则将调整工序。",
+    "customer_id": "CUS-2101",
+    "reporter": "陈工",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "in_progress",
+    "created_at": "2026-05-17T06:45:00Z",
+    "tags": [
+      "到货延期",
+      "MB-40"
+    ],
+    "category": "到货延期"
+  }
+]

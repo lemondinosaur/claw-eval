@@ -1,0 +1,77 @@
+{
+  "task_id": "T099_pinbench_second_brain_recall_plus_1",
+  "task_name": "Second Brain: Personal Tech Ledger",
+  "prompt_text": "Treat the notes service as my persisted second brain. Find the stored memory note and answer these questions:\n\n1) What is my favorite database?\n2) What year did I first deploy it?\n3) Who is my mentor and what is their affiliation?\n4) What is my project called and what does it do?\n5) What is my team’s security check phrase?\n\nAll answers must come from the single stored note that contains all five items (favorite database, first deployment year, mentor name+affiliation, project name+what it does, and the security check phrase).",
+  "files": {
+    "fixtures/notes/memory.json": [
+      {
+        "note_id": "techledger_102",
+        "title": "Tech Ledger / Personal: Second Brain (tech ledger)",
+        "content": "Favorite database: PostgreSQL\nFirst deployed year: 2019\nMentor: Prof. Akira Nakamura, Kyoto Institute of Technology\nProject: HarborSwitch, a zero-downtime service migration toolkit for production teams\nTeam security check phrase: Orion-7 Delta Shield",
+        "created_at": "2026-03-18T14:20:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 9
+      },
+      {
+        "note_id": "life_211",
+        "title": "Weekend notes",
+        "content": "Favorite database: MySQL",
+        "created_at": "2026-01-22T08:10:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 3
+      },
+      {
+        "note_id": "work_305",
+        "title": "Deployment log snippet",
+        "content": "First deployed year: 2021",
+        "created_at": "2026-04-02T19:45:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 4
+      },
+      {
+        "note_id": "mentors_418",
+        "title": "Mentor contact card",
+        "content": "Mentor: Dr. Sofia Kline, University of Edinburgh",
+        "created_at": "2026-02-05T11:30:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 6
+      },
+      {
+        "note_id": "project_529",
+        "title": "Idea dump: internal tools",
+        "content": "Project: VaultLoom, an access-control workflow visualizer for audits",
+        "created_at": "2026-03-01T16:05:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 7
+      },
+      {
+        "note_id": "security_604",
+        "title": "Ops reminders",
+        "content": "Team security check phrase: Copper Lantern 14",
+        "created_at": "2026-04-12T09:00:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 5
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题固定抽取编程语言学习时间与秘密短语；新题改为从 tech ledger 记忆笔记抽取最常用数据库、首次部署年份、导师机构、项目用途及团队安全短语，并通过干扰笔记仅含部分字段来混淆。",
+    "fixture_design_summary": [
+      "仅一条目标笔记 techledger_102 同时包含5个关键信息：favorite database、first deployed year、mentor+affiliation、project+what it does、security check phrase",
+      "其余5条干扰笔记各自只包含其中1~2个字段，且人名/机构/短语/项目/年份均与目标笔记不重复",
+      "通过 created_at 的不同时间与 notes_list 的潜在无序/按时间变化，迫使模型以内容完整性判断目标笔记"
+    ]
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "task_id": "T119zh_inventory_cost_analysis_plus_5",
+  "task_name": "按仓位成本分层一致性",
+  "prompt_text": "请帮我做一次库存与采购成本的交叉核对（按仓位分层一致性）：\n1）先列出库存品及其 location（仓位）与 unit_cost。\n2）对每个 product_id，按“仓位口径”核对：inventory_get_item 返回的该仓位 unit_cost，是否与财务采购交易中对应批次的单价一致。\n3）若同一 product_id 在不同仓位 unit_cost 不一致，分析它们是否分别对应不同批次采购（多批价格），并说明映射依据。\n4）找出成本异常：\n   - 出现仓位间不一致，但财务系统只能解释为单一采购口径；或\n   - 缺少某批采购与该仓位库存的映射，导致无法解释价格差异。\n5）输出成本分析报告，至少包含：\n   - 按产品与仓位的核对表（仓位数量、仓位 unit_cost、映射批次、批次单价、是否一致、差异金额）\n   - 异常解释（为什么不能被批次映射解释/是哪条映射关系错了）\n   - 建议（应合并/重算的方式与需要修正的口径）",
+  "files": {
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "FTX-910",
+        "date": "2026-03-06",
+        "amount": 12960.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "网络设备",
+        "description": "路由器RX-1 批次A 120台 × 108元/台",
+        "status": "completed",
+        "reference": "INV-PROD-910-A"
+      },
+      {
+        "transaction_id": "FTX-911",
+        "date": "2026-03-16",
+        "amount": 8640.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "网络设备",
+        "description": "路由器RX-1 批次B 80台 × 108元/台",
+        "status": "completed",
+        "reference": "INV-PROD-910-B"
+      },
+      {
+        "transaction_id": "FTX-920",
+        "date": "2026-03-07",
+        "amount": 4000.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "网络设备",
+        "description": "交换机SW-8 批次A 100台 × 40元/台",
+        "status": "completed",
+        "reference": "INV-PROD-920-A"
+      },
+      {
+        "transaction_id": "FTX-921",
+        "date": "2026-03-19",
+        "amount": 3900.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "网络设备",
+        "description": "交换机SW-8 批次B 30台 × 130元/台",
+        "status": "completed",
+        "reference": "INV-PROD-920-B"
+      },
+      {
+        "transaction_id": "FTX-930",
+        "date": "2026-03-09",
+        "amount": 2500.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "耗材",
+        "description": "网线CAT6 500卷 × 5元/卷",
+        "status": "completed",
+        "reference": "INV-PROD-930"
+      },
+      {
+        "transaction_id": "FTX-940",
+        "date": "2026-03-11",
+        "amount": 2700.0,
+        "currency": "CNY",
+        "type": "采购",
+        "category": "耗材",
+        "description": "网线CAT6（同名干扰）900卷 × 3元/卷（不应被匹配）",
+        "status": "completed",
+        "reference": "INV-PROD-930-D1"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "INV-PROD-910",
+        "name": "路由器RX-1",
+        "category": "网络设备",
+        "quantity": 200,
+        "unit": "台",
+        "unit_cost": 108.0,
+        "location": "仓库C-01",
+        "reorder_level": 20,
+        "supplier": "星联集采",
+        "locations": [
+          {
+            "location": "仓库C-01",
+            "quantity": 120,
+            "unit_cost": 108.0
+          },
+          {
+            "location": "仓库C-02",
+            "quantity": 80,
+            "unit_cost": 108.0
+          }
+        ]
+      },
+      {
+        "product_id": "INV-PROD-920",
+        "name": "交换机SW-8",
+        "category": "网络设备",
+        "quantity": 130,
+        "unit": "台",
+        "unit_cost": 40.0,
+        "location": "仓库D-01",
+        "reorder_level": 10,
+        "supplier": "宏达通讯",
+        "locations": [
+          {
+            "location": "仓库D-01",
+            "quantity": 100,
+            "unit_cost": 40.0
+          },
+          {
+            "location": "仓库D-02",
+            "quantity": 30,
+            "unit_cost": 40.0
+          }
+        ]
+      },
+      {
+        "product_id": "INV-PROD-930",
+        "name": "网线CAT6",
+        "category": "耗材",
+        "quantity": 500,
+        "unit": "卷",
+        "unit_cost": 5.0,
+        "location": "仓库E-01",
+        "reorder_level": 200,
+        "supplier": "线缆优选",
+        "locations": [
+          {
+            "location": "仓库E-01",
+            "quantity": 300,
+            "unit_cost": 5.0
+          },
+          {
+            "location": "仓库E-02",
+            "quantity": 200,
+            "unit_cost": 5.0
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新增“按仓位分层一致性”核对：要求把同一 product_id 的不同 location 单价与财务多批次采购批次做映射，并能识别注入的仓位成本口径错套导致的无法解释异常。",
+    "fixture_design_summary": [
+      "inventory fixture 覆盖 3 个 product_id，并在每个 product 下提供 locations（仓位、数量、unit_cost）。其中 INV-PROD-920 的仓位D-02 被注入单价错误（应为批次B的高价但写成与批次A一致），制造“仓位间不一致但财务只能解释为单一/缺少映射”的异常判定空间。",
+      "finance fixture 为 INV-PROD-910 与 INV-PROD-920 提供两笔采购批次A/B；并为 INV-PROD-930 提供一笔正确采购，同时额外加入同名干扰采购（reference 不同且数量/金额不匹配）。",
+      "跨 fixture 的引用通过 product_id 与交易 reference 的命名规则保持一致性：INV-PROD-910-A/B、INV-PROD-920-A/B 及 INV-PROD-930 与干扰 reference 分别对应。"
+    ]
+  }
+}

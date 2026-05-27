@@ -1,0 +1,54 @@
+[
+  {
+    "customer_id": "SUP-101",
+    "name": "启航云科供应链",
+    "contact_person": "周工",
+    "email": "zhou@qihangcloud.com",
+    "phone": "13610010011",
+    "industry": "IT集成",
+    "tier": "vip",
+    "annual_revenue": 12000000,
+    "last_contact_date": "2026-03-02",
+    "status": "active",
+    "notes": "active仍在持续供货，但上季度出现被暂停供应记录：需补交质保材料与整改报告；客服已恢复受理，近期提交的质保补件通过初审。"
+  },
+  {
+    "customer_id": "SUP-102",
+    "name": "星河数通分销",
+    "contact_person": "赵经理",
+    "email": "zhao@xinghesale.com",
+    "phone": "13610020022",
+    "industry": "IT分销",
+    "tier": "standard",
+    "annual_revenue": 6500000,
+    "last_contact_date": "2026-02-10",
+    "status": "active",
+    "notes": "曾因支持能力不足被拒单（相关支持SLA无法满足关键项目），近期组织调整后恢复承接；需要关注交付排期与售后响应时长是否达标。"
+  },
+  {
+    "customer_id": "SUP-103",
+    "name": "宏图数据科技",
+    "contact_person": "孙总",
+    "email": "sun@hongtudata.cn",
+    "phone": "13610030033",
+    "industry": "IT服务",
+    "tier": "standard",
+    "annual_revenue": 4200000,
+    "last_contact_date": "2026-01-28",
+    "status": "inactive",
+    "notes": "曾在质保争议中出现多起售后争执，且因履约不足被列为整改对象；目前处于暂停合作状态。"
+  },
+  {
+    "customer_id": "SUP-104",
+    "name": "北辰硬件集成商",
+    "contact_person": "钱主管",
+    "email": "qian@beichenhw.com",
+    "phone": "13610040044",
+    "industry": "硬件集成",
+    "tier": "standard",
+    "annual_revenue": 9000000,
+    "last_contact_date": "2026-03-15",
+    "status": "active",
+    "notes": "稳定合作，历史交付准时率高；但近期渠道政策变更导致部分型号需要替换为同代产品，建议采购前做兼容性确认。"
+  }
+]

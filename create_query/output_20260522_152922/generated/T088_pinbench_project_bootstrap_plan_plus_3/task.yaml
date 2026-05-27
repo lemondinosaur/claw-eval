@@ -1,0 +1,88 @@
+task_id: T088_pinbench_project_bootstrap_plan_plus_3
+task_name: CLI App Bootstrapping (Go)
+version: '1.0'
+category: file_ops
+difficulty: easy
+tags:
+- general
+services:
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T088_pinbench_project_bootstrap_plan_plus_3/fixtures/todo/tasks.json
+prompt:
+  text: 'Instead of creating files directly, use the todo service to bootstrap a Go
+    CLI application plan for "logforge". Create actionable tasks for:
+
+
+    1) creating the Go project structure with a main entry point (e.g., cmd/logforge/main.go
+    or equivalent) and a clear folder layout,
+
+
+    2) adding a command/flag parsing placeholder that supports subcommands (record
+    requirements for help/usage text and consistent error messages),
+
+
+    3) adding integration tests that run the CLI with a sample invocation; the plan
+    must explicitly include an acceptance check for: when the user provides an invalid
+    subcommand, the CLI must exit with a non-zero exit code and print a readable error
+    to stderr (describe the expected exit-code and error-output format as part of
+    the test task),
+
+
+    4) writing module metadata (go.mod requirements placeholder) and a build/test
+    script note (e.g., makefile or shell script guidance) appropriate for Go,
+
+
+    5) writing a README including usage examples and a section for common failure
+    modes (including the invalid subcommand behavior).
+
+
+    Also note (but do not implement) that log level may be specified by either a flag
+    or an environment variable; at this stage, only record the requirement in placeholder
+    tasks.
+
+
+    Finally, summarize the setup plan in dependency order.'
+  language: en
+tools:
+- name: todo_create_task
+  description: Create a new todo task
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      priority:
+        type: string
+      due_date:
+        type: string
+    required:
+    - title
+- name: todo_list_tasks
+  description: List todo tasks
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+    required: []
+tool_endpoints:
+- tool_name: todo_create_task
+  url: http://localhost:9102/todo/tasks/create
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+sandbox_files:
+- fixtures/todo/tasks.json
+environment:
+  timeout_seconds: 180
+  max_turns: 10

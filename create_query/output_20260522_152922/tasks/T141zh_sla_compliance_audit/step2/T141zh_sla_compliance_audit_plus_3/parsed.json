@@ -1,0 +1,404 @@
+{
+  "task_id": "T141zh_sla_compliance_audit_plus_3",
+  "task_name": "静默工单堆积与补偿机制失效",
+  "prompt_text": "请帮我做一次SLA合规审查（静默工单堆积与补偿机制失效）：\n\n1) 查看系统配置中的SLA响应时间规则（critical/high/medium/low）。\n2) 列出最近窗口内处于 pending/assigned 状态的工单，计算“首次响应合规性”：\n   - 若 first_response_at 非空：按SLA阈值判断达标/超标/临界（临界=首次响应时间差值落在阈值±3分钟范围内）。\n   - 若 first_response_at 为空：使用当前评估时刻（由数据中的 current_at 字段提供）估算已等待时长并判定“未响应但已超时/未超时”，给出优先级与超时幅度。\n3) 检查与“补偿响应/超时升级/工单再提醒”相关的自动化任务：找出 disabled 或反复失败的原因（结合任务 last_status、failure_count、error_message）。\n4) 输出SLA合规分析报告：\n   - 超时/临界工单明细（含工单ID、优先级、等待时长、SLA阈值、判定原因、超时幅度/临界标注）。\n   - 静默堆积风险与影响分析（为何会“未触发通知升级/再提醒”）。\n   - 可操作的恢复步骤（立即启用/修复依赖/补跑未告警队列）与长期防复发建议（监控、冗余链路、堆积阈值）。\n\n注意：审查阶段不要关闭工单。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-E01",
+        "name": "四级SLA响应规则-新",
+        "status": "active",
+        "config": {
+          "critical": {
+            "response_time_minutes": 45,
+            "resolution_time_hours": 6,
+            "escalation_after_minutes": 20
+          },
+          "high": {
+            "response_time_minutes": 180,
+            "resolution_time_hours": 18,
+            "escalation_after_minutes": 90
+          },
+          "medium": {
+            "response_time_minutes": 360,
+            "resolution_time_hours": 36,
+            "escalation_after_minutes": 180
+          },
+          "low": {
+            "response_time_minutes": 1440,
+            "resolution_time_hours": 96,
+            "escalation_after_minutes": 720
+          }
+        },
+        "service": "sla_policy_v2",
+        "last_verified": "2026-04-10",
+        "monthly_calls": 0,
+        "error_rate": 0.0
+      },
+      {
+        "integration_id": "INT-E02",
+        "name": "补偿通知API-依赖异常",
+        "status": "error",
+        "config": {
+          "base_url": "https://api-notify.example.internal/v1",
+          "timeout_ms": 8000,
+          "auth": "mTLS"
+        },
+        "error_message": "依赖服务不可达：连接超时（upstream notify-gateway timeout）",
+        "service": "ticket_notification_api",
+        "last_verified": "2026-05-18",
+        "monthly_calls": 0,
+        "error_rate": 0.32
+      },
+      {
+        "integration_id": "INT-E03",
+        "name": "干扰健康通知集成",
+        "status": "active",
+        "config": {
+          "endpoint": "https://health.example.internal/webhook/heartbeat",
+          "channel": "ops-heartbeat"
+        },
+        "service": "webhook_health",
+        "last_verified": "2026-05-20",
+        "monthly_calls": 0,
+        "error_rate": 0.0
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-SL-801",
+        "title": "队列 silent：告警链路未触发",
+        "subject": "队列 silent：告警链路未触发",
+        "customer_id": "CUS-218",
+        "priority": "critical",
+        "status": "assigned",
+        "created_at": "2026-05-18T10:30:00",
+        "first_response_at": null,
+        "assigned_to": "值班-A（队列silent）",
+        "category": "平台",
+        "description": "工单进入 assigned 后未触发首次响应通知升级，疑似补偿链路停用。",
+        "reporter": "运维自动脚本",
+        "department": "SRE",
+        "tags": [
+          "queue-silent",
+          "sla-compensation"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      },
+      {
+        "ticket_id": "TK-SL-802",
+        "title": "支付回调超时导致重试堆积",
+        "subject": "支付回调超时导致重试堆积",
+        "customer_id": "CUS-219",
+        "priority": "critical",
+        "status": "pending",
+        "created_at": "2026-05-21T14:10:00",
+        "first_response_at": null,
+        "assigned_to": "值班-B",
+        "category": "业务",
+        "description": "回调超时后重试但无首次响应，疑似静默积压。",
+        "reporter": "商户-对账系统",
+        "department": "支付",
+        "tags": [
+          "queue-silent"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      },
+      {
+        "ticket_id": "TK-SL-803",
+        "title": "权限服务慢导致接口卡顿",
+        "subject": "权限服务慢导致接口卡顿",
+        "customer_id": "CUS-220",
+        "priority": "high",
+        "status": "assigned",
+        "created_at": "2026-05-20T09:20:00",
+        "first_response_at": "2026-05-20T11:33:00",
+        "assigned_to": "权限组",
+        "category": "平台",
+        "description": "已在阈值附近首次响应，需标注临界。",
+        "reporter": "监控告警",
+        "department": "平台",
+        "tags": [
+          "queue-silent"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      },
+      {
+        "ticket_id": "TK-SL-804",
+        "title": "数据同步延迟：消费者等待过久",
+        "subject": "数据同步延迟：消费者等待过久",
+        "customer_id": "CUS-221",
+        "priority": "high",
+        "status": "pending",
+        "created_at": "2026-05-22T07:55:00",
+        "first_response_at": null,
+        "assigned_to": "数据组-C",
+        "category": "数据",
+        "description": "同步消费者持续等待，首次响应仍为空，疑似补偿未执行。",
+        "reporter": "数据监控",
+        "department": "数据",
+        "tags": [
+          "queue-silent"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      },
+      {
+        "ticket_id": "TK-SL-805",
+        "title": "登录失败率升高（边界样本）",
+        "subject": "登录失败率升高（边界样本）",
+        "customer_id": "CUS-222",
+        "priority": "medium",
+        "status": "assigned",
+        "created_at": "2026-05-22T09:35:00",
+        "first_response_at": "2026-05-22T15:33:00",
+        "assigned_to": "IAM组",
+        "category": "安全",
+        "description": "首次响应差值接近SLA阈值边界，需标注临界。",
+        "reporter": "风控告警",
+        "department": "安全",
+        "tags": [
+          "queue-silent"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      },
+      {
+        "ticket_id": "TK-SL-806",
+        "title": "搜索服务返回超时",
+        "subject": "搜索服务返回超时",
+        "customer_id": "CUS-223",
+        "priority": "medium",
+        "status": "pending",
+        "created_at": "2026-05-20T12:10:00",
+        "first_response_at": null,
+        "assigned_to": "搜索组",
+        "category": "检索",
+        "description": "等待超过SLA阈值但未收到首次响应，需计算风险。",
+        "reporter": "用户反馈",
+        "department": "检索",
+        "tags": [
+          "queue-silent"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      },
+      {
+        "ticket_id": "TK-SL-807",
+        "title": "工单系统UI显示延迟",
+        "subject": "工单系统UI显示延迟",
+        "customer_id": "CUS-224",
+        "priority": "low",
+        "status": "assigned",
+        "created_at": "2026-05-21T16:40:00",
+        "first_response_at": "2026-05-22T02:05:00",
+        "assigned_to": "前端组",
+        "category": "UI",
+        "description": "低优先级示例，用于对比未超时情况。",
+        "reporter": "QA测试",
+        "department": "前端",
+        "tags": [
+          "ui-delay"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      },
+      {
+        "ticket_id": "TK-SL-808",
+        "title": "集成同步失败（非队列 silent）",
+        "subject": "集成同步失败（非队列 silent）",
+        "customer_id": "CUS-225",
+        "priority": "high",
+        "status": "assigned",
+        "created_at": "2026-05-21T18:30:00",
+        "first_response_at": "2026-05-21T21:05:00",
+        "assigned_to": "集成组",
+        "category": "集成",
+        "description": "虽同样较久，但已完成首次响应，用于对照。",
+        "reporter": "集成任务",
+        "department": "集成",
+        "tags": [
+          "integration"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      },
+      {
+        "ticket_id": "TK-SL-809",
+        "title": "内部压测资源配额耗尽",
+        "subject": "内部压测资源配额耗尽",
+        "customer_id": "internal-qa",
+        "priority": "low",
+        "status": "assigned",
+        "created_at": "2026-05-22T05:00:00",
+        "first_response_at": null,
+        "assigned_to": "平台-工具链",
+        "category": "内部",
+        "description": "内部工单：不纳入外部SLA评估（internal=true）。",
+        "reporter": "压测平台",
+        "department": "工具链",
+        "internal": true,
+        "tags": [
+          "loadtest"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      },
+      {
+        "ticket_id": "TK-SL-810",
+        "title": "消息队列消费者超时堆积（进一步验证）",
+        "subject": "消息队列消费者超时堆积（进一步验证）",
+        "customer_id": "CUS-226",
+        "priority": "critical",
+        "status": "pending",
+        "created_at": "2026-05-22T00:00:00",
+        "first_response_at": null,
+        "assigned_to": "SRE-值班-C",
+        "category": "中间件",
+        "description": "消费者超时后多工单进入 silent 队列，首次响应长期为空。",
+        "reporter": "MQ监控",
+        "department": "SRE",
+        "tags": [
+          "queue-silent",
+          "mq-timeout"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      },
+      {
+        "ticket_id": "TK-SL-811",
+        "title": "配置中心拉取失败导致配置不同步",
+        "subject": "配置中心拉取失败导致配置不同步",
+        "customer_id": "CUS-227",
+        "priority": "medium",
+        "status": "assigned",
+        "created_at": "2026-05-20T20:55:00",
+        "first_response_at": "2026-05-21T03:38:00",
+        "assigned_to": "平台配置组",
+        "category": "运维",
+        "description": "首次响应落在阈值附近，作为临界样本对照。",
+        "reporter": "服务自检",
+        "department": "平台",
+        "tags": [
+          "config"
+        ],
+        "current_at": "2026-05-22T12:00:00"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-CMP-1001",
+        "name": "补偿响应-超时升级通知（queue-silent）",
+        "schedule": "*/10 * * * *",
+        "status": "disabled",
+        "last_run": "2026-05-19T09:40:00Z",
+        "last_status": "disabled",
+        "error_message": null,
+        "description": "定时为超时且未响应的工单触发补偿通知与升级链路（本次已停用）。",
+        "tags": [
+          "sla",
+          "compensation",
+          "escalation"
+        ],
+        "failure_count": 0,
+        "enabled": false,
+        "action": "查询未响应超时工单并调用通知API进行补偿升级",
+        "next_run": null,
+        "created_at": "2026-04-01T00:00:00Z",
+        "created_by": "sre-automation",
+        "execution_history": [
+          {
+            "run_at": "2026-05-19T09:40:00Z",
+            "status": "disabled",
+            "duration_s": 0
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-CMP-1002",
+        "name": "超时升级-再提醒（通知API依赖）",
+        "schedule": "*/15 * * * *",
+        "status": "failed",
+        "last_run": "2026-05-22T11:45:00Z",
+        "last_status": "failed",
+        "error_message": "依赖通知API调用失败：upstream timeout；可能导致工单再提醒未投递",
+        "description": "对已超时但仍未首次响应的工单执行再提醒，并推动升级到对应队列消费者。",
+        "tags": [
+          "sla",
+          "reminder",
+          "escalation"
+        ],
+        "failure_count": 7,
+        "first_failure": "2026-05-21T08:15:00Z",
+        "enabled": true,
+        "action": "生成再提醒事件并通过通知API投递",
+        "next_run": null,
+        "created_at": "2026-04-15T00:00:00Z",
+        "created_by": "sre-automation",
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T11:45:00Z",
+            "status": "failed",
+            "duration_s": 12
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-REM-1003",
+        "name": "工单再提醒-清理滞留状态（干扰任务）",
+        "schedule": "0 */2 * * *",
+        "status": "enabled",
+        "last_run": "2026-05-22T10:00:00Z",
+        "last_status": "success",
+        "error_message": null,
+        "description": "对无关队列的滞留状态做清理与汇总（不直接影响补偿链路）。",
+        "tags": [
+          "maintenance",
+          "reminder"
+        ],
+        "failure_count": 0,
+        "enabled": true,
+        "action": "清理滞留状态并记录审计日志",
+        "next_run": null,
+        "created_at": "2026-04-20T00:00:00Z",
+        "created_by": "ops-bot",
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T10:00:00Z",
+            "status": "success",
+            "duration_s": 35
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-SUM-1004",
+        "name": "每日SLA静默堆积汇总（干扰健康）",
+        "schedule": "30 8 * * *",
+        "status": "enabled",
+        "last_run": "2026-05-22T08:30:00Z",
+        "last_status": "success",
+        "error_message": null,
+        "description": "生成每日汇总报表，用于监控系统仍在运行（不代表告警链路正常）。",
+        "tags": [
+          "sla",
+          "report",
+          "health"
+        ],
+        "failure_count": 0,
+        "enabled": true,
+        "action": "汇总上一日SLA指标并写入报表库",
+        "next_run": null,
+        "created_at": "2026-03-10T00:00:00Z",
+        "created_by": "sre-automation",
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T08:30:00Z",
+            "status": "success",
+            "duration_s": 58
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题聚焦通知告警任务失败与漏发，本题通过SLA阈值+大量first_response_at为空的assigned/pending工单来揭示补偿/超时升级链路停用或反复失败导致的静默堆积风险，并要求给出恢复与防复发建议。",
+    "fixture_design_summary": [
+      "config/integrations.json：新增四级SLA阈值（INT-E01）与“补偿通知API”依赖错误（INT-E02），同时提供一个成功的干扰集成（INT-E03）。",
+      "helpdesk/tickets.json：构造11条工单覆盖assigned/pending与多优先级分布；大多数关键/高/中等工单first_response_at长期为空以触发“未响应但已超时/临界”判定；包含1条internal=true用于排除；并在记录中提供current_at用于一致的评估时刻。",
+      "scheduler/jobs.json：提供两个与补偿/超时升级/再提醒相关的任务（一个disabled，一个failed且failure_count较高并指向通知API超时），再叠加两个success干扰任务（再提醒清理、每日汇总）。"
+    ]
+  }
+}

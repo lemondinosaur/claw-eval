@@ -1,0 +1,254 @@
+[
+  {
+    "job_id": "JOB-410",
+    "name": "生产：监听健康检查失败后触发回滚（release-guard）",
+    "cron_expression": "*/5 * * * *",
+    "action": "trigger_rollback_on_health_fail",
+    "enabled": true,
+    "last_run": "2026-05-21T19:10:00Z",
+    "next_run": "2026-05-21T19:15:00Z",
+    "last_status": "failed",
+    "created_by": "release-platform",
+    "tags": [
+      "release",
+      "rollback_trigger",
+      "env:prod"
+    ],
+    "created_at": "2026-03-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T19:10:00Z",
+        "status": "failed",
+        "duration_s": 6,
+        "env": "prod",
+        "trigger_condition": "变更健康检查失败",
+        "expected_trigger": "调用回滚API执行回滚",
+        "error": "RollbackAPIError: 回滚API返回500 Internal Server Error",
+        "request_id": "req-prod-5f3a21"
+      },
+      {
+        "run_at": "2026-05-21T19:05:00Z",
+        "status": "failed",
+        "duration_s": 6,
+        "env": "prod",
+        "trigger_condition": "变更健康检查失败",
+        "expected_trigger": "调用回滚API执行回滚",
+        "error": "RollbackAPIError: 回滚API返回500 Internal Server Error",
+        "request_id": "req-prod-7c9bd0"
+      },
+      {
+        "run_at": "2026-05-21T18:55:00Z",
+        "status": "success",
+        "duration_s": 4,
+        "env": "prod",
+        "trigger_condition": "健康检查通过",
+        "note": "未触发回滚"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-411",
+    "name": "预发：变更回滚触发（health-to-rollback）参数校验链路",
+    "cron_expression": "*/7 * * * *",
+    "action": "trigger_rollback_on_health_fail",
+    "enabled": true,
+    "last_run": "2026-05-21T18:42:00Z",
+    "next_run": "2026-05-21T18:49:00Z",
+    "last_status": "failed",
+    "created_by": "release-platform",
+    "tags": [
+      "release",
+      "rollback_trigger",
+      "env:stage"
+    ],
+    "created_at": "2026-03-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T18:42:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "env": "stage",
+        "trigger_condition": "变更健康检查失败（应触发回滚）",
+        "expected_trigger": "调用回滚API执行回滚",
+        "error": "ValidationError: 任务参数校验失败（字段缺失：rollback_target_env）",
+        "request_id": "req-stage-13aa7f"
+      },
+      {
+        "run_at": "2026-05-21T18:35:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "env": "stage",
+        "trigger_condition": "变更健康检查失败（应触发回滚）",
+        "expected_trigger": "调用回滚API执行回滚",
+        "error": "ValidationError: 任务参数校验失败（字段缺失：rollback_target_env）",
+        "request_id": "req-stage-0b41c2"
+      },
+      {
+        "run_at": "2026-05-21T18:28:00Z",
+        "status": "success",
+        "duration_s": 3,
+        "env": "stage",
+        "trigger_condition": "健康检查通过",
+        "note": "未触发回滚"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-412",
+    "name": "预发：观测平台告警通知转发",
+    "cron_expression": "*/10 * * * *",
+    "action": "forward_observability_alerts",
+    "enabled": true,
+    "last_run": "2026-05-21T19:20:00Z",
+    "next_run": "2026-05-21T19:30:00Z",
+    "last_status": "success",
+    "created_by": "noc-automation",
+    "tags": [
+      "notification",
+      "observability",
+      "env:stage"
+    ],
+    "created_at": "2026-02-10T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T19:20:00Z",
+        "status": "success",
+        "duration_s": 8,
+        "env": "stage",
+        "note": "转发完成"
+      },
+      {
+        "run_at": "2026-05-21T19:10:00Z",
+        "status": "success",
+        "duration_s": 7,
+        "env": "stage",
+        "note": "转发完成"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-413",
+    "name": "生产：变更流水线状态收集",
+    "cron_expression": "0 */15 * * *",
+    "action": "collect_release_pipeline_status",
+    "enabled": true,
+    "last_run": "2026-05-21T19:15:00Z",
+    "next_run": "2026-05-21T19:30:00Z",
+    "last_status": "success",
+    "created_by": "release-platform",
+    "tags": [
+      "release",
+      "pipeline-status",
+      "env:prod"
+    ],
+    "created_at": "2026-02-10T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T19:15:00Z",
+        "status": "success",
+        "duration_s": 9,
+        "env": "prod",
+        "note": "已汇总状态"
+      },
+      {
+        "run_at": "2026-05-21T19:00:00Z",
+        "status": "success",
+        "duration_s": 9,
+        "env": "prod",
+        "note": "已汇总状态"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-414",
+    "name": "生产：回滚API健康探测（仅健康监控）",
+    "cron_expression": "*/6 * * * *",
+    "action": "probe_rollback_api_health",
+    "enabled": true,
+    "last_run": "2026-05-21T19:16:00Z",
+    "next_run": "2026-05-21T19:22:00Z",
+    "last_status": "success",
+    "created_by": "sre-automation",
+    "tags": [
+      "health",
+      "env:prod",
+      "rollback-api"
+    ],
+    "created_at": "2026-02-20T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T19:16:00Z",
+        "status": "success",
+        "duration_s": 2,
+        "env": "prod",
+        "note": "探测HTTP 200"
+      },
+      {
+        "run_at": "2026-05-21T19:10:00Z",
+        "status": "success",
+        "duration_s": 2,
+        "env": "prod",
+        "note": "探测HTTP 200"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-415",
+    "name": "预发：变更健康检查结果归档",
+    "cron_expression": "0 */30 * * *",
+    "action": "archive_change_health_results",
+    "enabled": true,
+    "last_run": "2026-05-21T18:30:00Z",
+    "next_run": "2026-05-21T19:00:00Z",
+    "last_status": "success",
+    "created_by": "qa-ops",
+    "tags": [
+      "archive",
+      "env:stage",
+      "health-check"
+    ],
+    "created_at": "2026-01-20T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T18:30:00Z",
+        "status": "success",
+        "duration_s": 10,
+        "env": "stage",
+        "note": "归档完成"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-416",
+    "name": "生产：发布告警聚合与分发",
+    "cron_expression": "*/12 * * * *",
+    "action": "aggregate_and_distribute_release_alerts",
+    "enabled": true,
+    "last_run": "2026-05-21T19:24:00Z",
+    "next_run": "2026-05-21T19:36:00Z",
+    "last_status": "success",
+    "created_by": "release-alerts",
+    "tags": [
+      "notification",
+      "env:prod",
+      "release"
+    ],
+    "created_at": "2026-01-25T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-21T19:24:00Z",
+        "status": "success",
+        "duration_s": 11,
+        "env": "prod",
+        "note": "聚合完成并分发"
+      },
+      {
+        "run_at": "2026-05-21T19:12:00Z",
+        "status": "success",
+        "duration_s": 12,
+        "env": "prod",
+        "note": "聚合完成并分发"
+      }
+    ]
+  }
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "customer_id": "SUP-A-108",
+    "name": "环宇云联科技",
+    "contact_person": "赵经理",
+    "email": "zhaoming@huanyuyunlian.cn",
+    "phone": "13911001101",
+    "industry": "云计算集成",
+    "tier": "vip",
+    "annual_revenue": 12500000,
+    "last_contact_date": "2026-03-02",
+    "status": "active",
+    "notes": "近一年合作稳定；但上一份合同因“交付争议”备注需整改（含到货验收延期）。目前支持团队人员变动频繁，建议将关键批次绑定验收与质保条款。"
+  },
+  {
+    "customer_id": "SUP-B-209",
+    "name": "北辰智采商贸",
+    "contact_person": "孙总",
+    "email": "sun.yao@beichenzc.com",
+    "phone": "13811002202",
+    "industry": "IT分销",
+    "tier": "standard",
+    "annual_revenue": 7200000,
+    "last_contact_date": "2026-02-10",
+    "status": "active",
+    "notes": "报价通常较低，曾因“售后资源不足”拒绝过大批量导入请求。近期出现支持扩编公告，但实际现场响应曾被客户反馈延迟。"
+  },
+  {
+    "customer_id": "SUP-C-317",
+    "name": "华腾电子科技",
+    "contact_person": "周女士",
+    "email": "zhouyue@htronic.com",
+    "phone": "13711003303",
+    "industry": "硬件制造代理",
+    "tier": "standard",
+    "annual_revenue": 4100000,
+    "last_contact_date": "2026-01-26",
+    "status": "inactive",
+    "notes": "曾长期合作但在去年发生过一次质量抽检不通过导致整改期；目前仅维持常规供货，需评估当前质量体系是否已恢复。"
+  },
+  {
+    "customer_id": "SUP-D-411",
+    "name": "星港维保与集成",
+    "contact_person": "钱工",
+    "email": "qian.gong@xinggangmaint.cn",
+    "phone": "13611004404",
+    "industry": "运维服务",
+    "tier": "vip",
+    "annual_revenue": 9800000,
+    "last_contact_date": "2026-03-15",
+    "status": "active",
+    "notes": "售后团队曾扩编并承诺更快响应；但近两次回访中发现现场响应仍受区域排班影响，存在“承诺快但实际慢”的波动。支持资源集中度高，建议纳入SLAs与抽检条款。"
+  }
+]

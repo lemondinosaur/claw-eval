@@ -1,0 +1,112 @@
+task_id: T005zh_email_reply_draft_plus_5
+task_name: 活动供应商报价异议与再谈判草稿
+version: '1.0'
+category: communication
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T005zh_email_reply_draft_plus_5/fixtures/gmail/inbox.json
+prompt:
+  text: '请查看收件箱中与“活动供应商报价/异议/再谈判/更新报价单/会议时间”相关的邮件：筛出两封关键邮件并分别起草回复，保存为草稿即可，不要发送。
+
+
+    需要你起草两封不同业务链的回复草稿：
+
+    1）对客户经理：先解释我们对其“报价偏高”的疑问与报价构成（引用对方邮件里提到的构成维度），再说明哪些部分我们愿意调整/优化（方向性承诺即可，不要编造具体价格），最后从对方提供的两个电话时间偏好里选一个建议，并提出后续再谈判会议后的行动与交付截止。
+
+    2）对供应商：确认我们将提供哪些“必须满足的规格与排除项”来支持其修改报价，并复述其要求的更新报价单提交截止时间；强调我们希望其在截止前提交更新版报价单。
+
+
+    只要保存草稿，不调用发送功能。'
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 将邮件保存为草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+      reply_to_message_id:
+        type: string
+        description: 如果是回复邮件，原邮件ID
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 25

@@ -1,0 +1,57 @@
+[
+  {
+    "product_id": "P-3101",
+    "name": "云存储硬盘",
+    "category": "云存储硬盘",
+    "quantity": 70,
+    "unit": "块",
+    "unit_cost": 155.0,
+    "location": "仓库C-01",
+    "reorder_level": 25,
+    "supplier": "天翼存储"
+  },
+  {
+    "product_id": "P-3102",
+    "name": "办公椅",
+    "category": "办公椅",
+    "quantity": 4,
+    "unit": "把",
+    "unit_cost": 150.0,
+    "location": "仓库C-02",
+    "reorder_level": 10,
+    "supplier": "座安家具"
+  },
+  {
+    "product_id": "P-3103",
+    "name": "路由器 R1",
+    "category": "路由器",
+    "quantity": 10,
+    "unit": "台",
+    "unit_cost": 173.0,
+    "location": "机房D-01",
+    "reorder_level": 5,
+    "supplier": "网联数通"
+  },
+  {
+    "product_id": "P-3104",
+    "name": "投影仪",
+    "category": "投影仪",
+    "quantity": 3,
+    "unit": "台",
+    "unit_cost": 3000.0,
+    "location": "仓库E-01",
+    "reorder_level": 2,
+    "supplier": "视界科技"
+  },
+  {
+    "product_id": "P-3105",
+    "name": "鼠标键盘套装",
+    "category": "鼠标键盘套装",
+    "quantity": 15,
+    "unit": "套",
+    "unit_cost": 50.0,
+    "location": "仓库C-03",
+    "reorder_level": 20,
+    "supplier": "万得办公"
+  }
+]

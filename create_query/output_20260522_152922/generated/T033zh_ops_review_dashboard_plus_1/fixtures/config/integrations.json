@@ -1,0 +1,89 @@
+[
+  {
+    "integration_id": "INT-201",
+    "name": "payment_gateway",
+    "display_name": "支付网关",
+    "status": "active",
+    "error_rate": 0.6,
+    "base_url": "https://gw-pay.example.org",
+    "call_volume_previous_week": 180000,
+    "service": "api",
+    "last_verified": "2026-04-28T23:10:00+08:00",
+    "monthly_calls": 193000
+  },
+  {
+    "integration_id": "INT-202",
+    "name": "payment_callback_receiver",
+    "display_name": "支付回调接收",
+    "status": "active",
+    "error_rate": 0.9,
+    "base_url": "https://cb.example.org/webhook",
+    "call_volume_previous_week": 142000,
+    "service": "webhook",
+    "last_verified": "2026-04-28T23:20:00+08:00",
+    "monthly_calls": 151000,
+    "notes": "监控面板显示active且错误率<1%，但本周回调实际到达量较上周骤降约47%；疑似回调链路存在丢包/重试策略不匹配，导致体验侧异常但指标表面正常"
+  },
+  {
+    "integration_id": "INT-203",
+    "name": "reconciliation_writer",
+    "display_name": "对账写回(支付结果回写)",
+    "status": "degraded",
+    "error_rate": 6.8,
+    "base_url": "https://recon-write.example.org/api",
+    "call_volume_previous_week": 980,
+    "service": "api",
+    "last_verified": "2026-04-28T22:50:00+08:00",
+    "monthly_calls": 1040,
+    "notes": "状态degraded但错误率主要集中在夜间对账高峰；当写回失败时，订单状态/退款状态可能滞后"
+  },
+  {
+    "integration_id": "INT-204",
+    "name": "ledger_read_api",
+    "display_name": "账本读取",
+    "status": "active",
+    "error_rate": 1.1,
+    "base_url": "https://ledger-r.example.org/v1",
+    "call_volume_previous_week": 12000,
+    "service": "api",
+    "last_verified": "2026-04-28T23:00:00+08:00",
+    "monthly_calls": 12600
+  },
+  {
+    "integration_id": "INT-205",
+    "name": "refund_status_sync",
+    "display_name": "退款状态同步",
+    "status": "active",
+    "error_rate": 0.4,
+    "base_url": "https://refund-sync.example.org/api",
+    "call_volume_previous_week": 21000,
+    "service": "api",
+    "last_verified": "2026-04-28T23:30:00+08:00",
+    "monthly_calls": 22400
+  },
+  {
+    "integration_id": "INT-206",
+    "name": "orders_updater",
+    "display_name": "订单状态更新",
+    "status": "degraded",
+    "error_rate": 3.2,
+    "base_url": "https://order-update.example.org/api",
+    "call_volume_previous_week": 76000,
+    "service": "api",
+    "last_verified": "2026-04-28T23:05:00+08:00",
+    "monthly_calls": 80200,
+    "notes": "写回成功率在对账失败时出现连带下降，表现为部分支付确认状态长时间不推进"
+  },
+  {
+    "integration_id": "INT-207",
+    "name": "analytics_pipeline",
+    "display_name": "运营统计管道",
+    "status": "degraded",
+    "error_rate": 4.9,
+    "service": "batch",
+    "call_volume_previous_week": 260,
+    "last_verified": "2026-04-28T21:10:00+08:00",
+    "monthly_calls": 310,
+    "notes": "数据聚合延迟会影响周报统计口径，但不应成为支付异常的根因"
+  }
+]

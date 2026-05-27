@@ -1,0 +1,231 @@
+{
+  "task_id": "T093_pinbench_email_triage_report_plus_2",
+  "task_name": "Billing & MFA Sweep",
+  "prompt_text": "请帮我按优先级整理收件箱：读取所有邮件，给出每封邮件的 Priority(P0-P4)、Category 和 Recommended action。报告顶部先写一段简短摘要，明确指出“最紧急”的事项（重点是计费中断/强制策略相关），并说明为何；最后给出今天的行动清单（按优先级从高到低）。\n\n要求：只做分诊与行动建议，不发送任何邮件。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "bm02_001",
+        "from": "billing-ops@paynetworks.com",
+        "to": "me@mycompany.com",
+        "subject": "结算失败（Settlement failed）告警：impact: paying users",
+        "date": "2026-03-03T08:12:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "billing",
+          "alert"
+        ],
+        "body": "我们检测到你的结算通道多次失败。当前影响：正在付费的用户（impact: paying users）可能出现扣款失败或账单未能入账。请尽快确认：是否需要切换到备用结算路由并通知计费 oncall。此邮件附带监控摘要。"
+      },
+      {
+        "message_id": "bm02_002",
+        "from": "automated-alerts@status-gateway.mycompany.com",
+        "to": "oncall@mycompany.com",
+        "subject": "[MONITOR] 计费回调失败率上升（Billing callback failures）",
+        "date": "2026-03-03T09:05:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "alert"
+        ],
+        "body": "指标：billing_callback_failure_rate 已连续 12 个周期升高，当前为 18.4%。关联服务：/v2/invoices/callback。可能与结算失败相同原因链。请在 60 分钟内完成初步排查并更新状态页。"
+      },
+      {
+        "message_id": "bm02_003",
+        "from": "partner-integrations@northbridge.io",
+        "to": "me@mycompany.com",
+        "subject": "紧急评审：迁移方案（Migration plan）需在明天上午确认",
+        "date": "2026-03-03T07:45:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "partner"
+        ],
+        "body": "NorthBridge 要求你们尽快评审一份渠道迁移方案。请在“明天上午（AM）”前确认是否接受：1) 端点切换时间窗；2) 回滚策略；3) 兼容性假设。我们希望确认后即可冻结变更。"
+      },
+      {
+        "message_id": "bm02_004",
+        "from": "security@mycompany.com",
+        "to": "admins@mycompany.com",
+        "subject": "强制启用 MFA 截止时间：2026-03-04 15:00（适用管理员）",
+        "date": "2026-03-02T18:20:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "security"
+        ],
+        "body": "安全团队通知：为满足合规要求，必须在截止时间前完成 MFA 强制策略启用与验证。\n适用范围：仅对管理员（administrators）生效。\n截止时间：2026-03-04 15:00（本地时区）。请检查启用进度、确认所有管理员账户已处于 MFA enforced 状态；如有例外需走表单流程。"
+      },
+      {
+        "message_id": "bm02_005",
+        "from": "security@mycompany.com",
+        "to": "it@mycompany.com",
+        "subject": "MFA 变更后兼容性提示（Administrator accounts only）",
+        "date": "2026-03-03T06:10:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "security",
+          "ops"
+        ],
+        "body": "补充说明：MFA enforced 将只影响管理员账户的登录策略。对非管理员用户无强制更改。请在今天内评估：是否需要调整 SSO 例外、以及监控 MFA 验证失败的告警阈值。"
+      },
+      {
+        "message_id": "bm02_006",
+        "from": "security@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "产品安全白皮书更新（不包含强制截止）",
+        "date": "2026-03-03T05:55:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "security-news"
+        ],
+        "body": "新的产品安全白皮书已发布，包含风险分类与改进建议。本邮件为信息更新性质：不涉及任何强制变更、也没有截止时间或需回复的合规动作。"
+      },
+      {
+        "message_id": "bm02_007",
+        "from": "talent@hiringboard.com",
+        "to": "me@mycompany.com",
+        "subject": "欢迎加入：我们已收到你的申请（自动通知）",
+        "date": "2026-03-02T11:30:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "automated"
+        ],
+        "body": "这是自动邮件，表示你在 HiringBoard 提交的申请已收到。后续我们会在评估完成后联系你。无需回复。"
+      },
+      {
+        "message_id": "bm02_008",
+        "from": "product-updates@mycompany.com",
+        "to": "customers@mycompany.com",
+        "subject": "产品公告：新仪表盘上线（请查看功能说明）",
+        "date": "2026-03-02T09:12:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "announcement"
+        ],
+        "body": "我们上线新的仪表盘页面，包含汇总卡片与筛选增强。此为产品公告，非紧急行动邮件。"
+      },
+      {
+        "message_id": "bm02_009",
+        "from": "weekly@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "本周周报：团队迭代与里程碑",
+        "date": "2026-03-02T15:40:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "newsletter"
+        ],
+        "body": "包含本周迭代摘要、回顾与下周计划。请按常规阅读，不需要立即回复。"
+      },
+      {
+        "message_id": "bm02_010",
+        "from": "release-notices@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "发布通知：v3.7.1 已完成上线（无需操作）",
+        "date": "2026-03-03T02:25:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "release"
+        ],
+        "body": "v3.7.1 已完成上线。该通知不需要操作；如遇异常请通过工单系统提交。"
+      },
+      {
+        "message_id": "bm02_011",
+        "from": "customer-care@contoso.example",
+        "to": "support@mycompany.com",
+        "subject": "客户反馈：响应慢（未提供证据）— 需要关注吗？",
+        "date": "2026-03-03T10:20:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "customer"
+        ],
+        "body": "客户表示近期“响应慢”，但未提供请求 ID、时间范围或错误信息。请告知是否需要立即升级，还是先等待更多细节。"
+      },
+      {
+        "message_id": "bm02_012",
+        "from": "news@tradewire.com",
+        "to": "me@mycompany.com",
+        "subject": "行业快讯：支付与风控趋势更新（周更）",
+        "date": "2026-03-01T12:05:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "newsletter"
+        ],
+        "body": "本周行业快讯摘要：支付基础设施、风控模型与监管动态。阅读为主，无需操作。"
+      },
+      {
+        "message_id": "bm02_013",
+        "from": "promo@cloudcart.com",
+        "to": "me@mycompany.com",
+        "subject": "限时优惠：年付计划折扣（今天截止）",
+        "date": "2026-03-03T07:10:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "promotional"
+        ],
+        "body": "今天有年付折扣活动，可能在午夜结束。建议如果要采购再查看详情；不涉及账户安全或合规。"
+      },
+      {
+        "message_id": "bm02_014",
+        "from": "ops-automation@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "自动化任务完成：账单导入批次（Batch #BI-7742）",
+        "date": "2026-03-03T09:40:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "automation"
+        ],
+        "body": "账单导入批次已完成。批次号 BI-7742：导入成功 98%，失败 2%。失败明细在附件（略）。该邮件为自动报告。"
+      },
+      {
+        "message_id": "bm02_015",
+        "from": "security@mycompany.com",
+        "to": "admins@mycompany.com",
+        "subject": "MFA 启用验证结果汇总（截止前检查）",
+        "date": "2026-03-03T11:02:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "security",
+          "reminder"
+        ],
+        "body": "用于提醒：请在今日内完成对管理员账户 MFA enforce 状态的核验。\n你们负责的租户中仍有少量管理员待确认。请优先排查并准备必要的例外流程材料。"
+      },
+      {
+        "message_id": "bm02_016",
+        "from": "dev-notifications@mycompany.com",
+        "to": "me@mycompany.com",
+        "subject": "PR 评审请求：billing-service 重试策略优化（#918）",
+        "date": "2026-03-03T09:58:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "engineering"
+        ],
+        "body": "请求评审：billing-service 增加对部分 5xx 的幂等重试与熔断逻辑。与当前结算失败可能相关。请在今天内给出建议以便尽快合并。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题围绕数据库故障与生产告警关联；本题改为以计费结算中断+告警、管理员强制 MFA 合规与渠道迁移方案评审为核心，并加入安全白皮书更新与缺证据的响应慢投诉等干扰项进行降优先级判断。",
+    "fixture_design_summary": [
+      "共 16 封新邮件，包含计费结算失败与监控告警（P0/P0）",
+      "包含渠道伙伴迁移方案评审需求（P1）与明确“明天上午”截止",
+      "包含强制 MFA（仅管理员生效、含截止时间）相关邮件（P2）并安排验证/例外动作",
+      "包含“产品安全白皮书更新”外观像安全但无强制截止的干扰项（避免误判高优先级）",
+      "包含“响应慢”且缺证据的客户反馈（降到 P3/P4 级别并建议先索取信息）",
+      "包含周报/新闻通讯/促销/招聘自动邮件/产品公告等营销与订阅类内容（建议归档或低优先级）"
+    ]
+  }
+}

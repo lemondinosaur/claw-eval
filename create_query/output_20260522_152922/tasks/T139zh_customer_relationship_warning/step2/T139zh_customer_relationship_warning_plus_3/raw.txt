@@ -1,0 +1,274 @@
+{
+  "task_id": "T139zh_customer_relationship_warning_plus_3",
+  "task_name": "合同已逾期但仍在宽限期的续约跟进",
+  "prompt_text": "请帮我检查所有活跃客户的合同到期情况，找出：合同到期日已过去但仍在宽限期内（宽限期为15天）的客户（以2026-06-10为当前日期）。\n\n对每个客户：\n1）在CRM中查看客户详情：VIP/standard、客户状态（如“宽限期中/已联系”）、是否存在账单/付款备注与服务相关备注。\n2）查找销售负责人联系方式（从通讯录匹配销售负责人姓名/联系人记录，获取其邮箱）。\n3）在Gmail收件箱中查找该客户是否主动提出沟通（如：延迟付款、担心服务中断、希望继续使用）。\n4）根据VIP等级与逾期紧急程度生成“宽限期续约预警报告”，并为预警报告中的VIP客户起草邮件草稿。\n\n边界处理：对所有“合同到期日更早（已逾期超过15天）但仍为active”的客户，在报告中标注“超宽限期需升级处理”，不纳入VIP邮件草稿范围。\n\n输出：\n- 最终预警报告（包含每个客户的逾期天数、VIP等级、沟通证据摘要、紧急度与建议的跟进动作清单）\n- VIP客户邮件草稿的保存结果（只需保存草稿，不发送）",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-201",
+        "name": "周潇",
+        "email": "zhouxiao@aurora-sales.com",
+        "phone": "13700137001",
+        "department": "客户销售部",
+        "title": "大客户经理",
+        "responsibilities": [
+          "VIP续约跟进",
+          "合同到期预警"
+        ]
+      },
+      {
+        "contact_id": "CON-202",
+        "name": "徐澄",
+        "email": "xucheng@aurora-sales.com",
+        "phone": "13700137002",
+        "department": "客户销售部",
+        "title": "资深客户经理",
+        "responsibilities": [
+          "标准客户续约",
+          "付款沟通支持"
+        ]
+      },
+      {
+        "contact_id": "CON-203",
+        "name": "邱岚",
+        "email": "qiulan@aurora-legal.com",
+        "phone": "13700137003",
+        "department": "法务部",
+        "title": "法务助理",
+        "responsibilities": [
+          "催办与条款说明"
+        ]
+      },
+      {
+        "contact_id": "CON-204",
+        "name": "曹宁",
+        "email": "caoning@aurora-sales.com",
+        "phone": "13700137004",
+        "department": "客户销售部",
+        "title": "客户运营支持",
+        "responsibilities": [
+          "备用对接联系人"
+        ]
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-201",
+        "name": "星桥金融科技",
+        "tier": "vip",
+        "status": "active",
+        "contract_end": "2026-05-26",
+        "annual_revenue": 1280000,
+        "industry": "金融科技",
+        "sales_rep": "周潇",
+        "notes": "宽限期中。客户表示正在走内部付款审批，担心系统在款项未到时中断。需要确认宽限期续约与服务不中断安排。"
+      },
+      {
+        "customer_id": "CUS-202",
+        "name": "云栈零售云",
+        "tier": "vip",
+        "status": "active",
+        "contract_end": "2026-06-02",
+        "annual_revenue": 740000,
+        "industry": "零售",
+        "sales_rep": "周潇",
+        "notes": "宽限期中。账单/付款备注：计划在宽限期内分两次付款；客户关切发票与付款时间不确定对服务连续性的影响。"
+      },
+      {
+        "customer_id": "CUS-203",
+        "name": "极光教育平台",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-06-05",
+        "annual_revenue": 210000,
+        "industry": "教育",
+        "sales_rep": "徐澄",
+        "notes": "标准客户。已联系记录：对续约条款表示理解，希望继续使用并按约启动下一周期。无明确付款疑虑。"
+      },
+      {
+        "customer_id": "CUS-204",
+        "name": "北域能源集团",
+        "tier": "vip",
+        "status": "active",
+        "contract_end": "2026-04-22",
+        "annual_revenue": 1560000,
+        "industry": "能源",
+        "sales_rep": "周潇",
+        "notes": "超宽限期需升级处理。当前仍为active但逾期超过15天，建议走升级通道与法务/风控联动。"
+      },
+      {
+        "customer_id": "CUS-205",
+        "name": "禾风制造",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-04-30",
+        "annual_revenue": 320000,
+        "industry": "制造",
+        "sales_rep": "徐澄",
+        "notes": "超宽限期需升级处理。已逾期超过15天，需评估暂停风险与付款条件后再决定续约节奏。"
+      },
+      {
+        "customer_id": "CUS-206",
+        "name": "金陵物流云",
+        "tier": "standard",
+        "status": "active",
+        "contract_end": "2026-07-18",
+        "annual_revenue": 185000,
+        "industry": "物流",
+        "sales_rep": "徐澄",
+        "notes": "未到期客户，暂不触发宽限期续约预警。"
+      },
+      {
+        "customer_id": "CUS-207",
+        "name": "珊瑚医疗信息",
+        "tier": "vip",
+        "status": "inactive",
+        "contract_end": "2026-05-29",
+        "annual_revenue": 510000,
+        "industry": "医疗",
+        "sales_rep": "周潇",
+        "notes": "非活跃客户，不参与本次宽限期筛选。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_301",
+        "from": "support@starbridge-fintech.com",
+        "to": "me@company.com",
+        "subject": "关于续约宽限期与服务不中断的担忧",
+        "date": "2026-06-03T10:20:00Z",
+        "body": "您好，我们这边付款审批还在推进中，担心如果到期后款项未能及时到账，服务会被中断。我们希望能确认在宽限期内续约并保证服务不中断，同时约定付款安排（预计在宽限期内完成）。谢谢——星桥金融科技",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_302",
+        "from": "billing@yunstack-retailcloud.com",
+        "to": "me@company.com",
+        "subject": "发票与付款时间不确定，能否继续使用？",
+        "date": "2026-06-06T07:45:00Z",
+        "body": "团队你好，我们这边发票流程比较慢，付款时间可能不完全按单次到账。请问在宽限期内是否可以先确认续约？我们希望服务继续可用，并且能按计划在宽限期内分两次付款。——云栈零售云",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_303",
+        "from": "admin@aurora-learning.cn",
+        "to": "me@company.com",
+        "subject": "续约同意：希望继续使用并按新周期执行",
+        "date": "2026-06-07T12:10:00Z",
+        "body": "您好，我们已经评估过续约条款，想继续使用贵司服务。请告知下一周期的安排，我们会在到期后按流程启动。——极光教育平台",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_304",
+        "from": "qiulan@aurora-legal.com",
+        "to": "me@company.com",
+        "subject": "内部催办：到期合同条款核对（非客户回复）",
+        "date": "2026-05-28T09:05:00Z",
+        "body": "提醒：请核对几份到期合同的条款版本，涉及宽限/付款条款的表述一致性。该邮件为内部处理，不对应任何客户来信。",
+        "labels": [
+          "inbox",
+          "内部"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_305",
+        "from": "qiulan@aurora-legal.com",
+        "to": "me@company.com",
+        "subject": "关于逾期合同升级处理建议（法务/催办）",
+        "date": "2026-06-01T16:30:00Z",
+        "body": "对已逾期超过15天但仍active的合同，建议走升级流程。无需给客户发邮件草稿，待风控确认后再推进。",
+        "labels": [
+          "inbox",
+          "内部"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_306",
+        "from": "admin@northenergy-group.com",
+        "to": "me@company.com",
+        "subject": "合同续约咨询（已超宽限）",
+        "date": "2026-05-20T11:25:00Z",
+        "body": "我们近期想了解合同续约情况，但付款进度比预期慢很多，可能需要升级处理。请先告知后续流程。",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_307",
+        "from": "finance@hefeng-manufacturing.com",
+        "to": "me@company.com",
+        "subject": "付款时间调整通知（不涉及宽限期邮件范围）",
+        "date": "2026-05-30T08:00:00Z",
+        "body": "我们申请调整付款节奏，后续会按约推进。由于涉及到期时间较早，请不要误触发暂停风险。",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_308",
+        "from": "ops@jinling-logisticscloud.com",
+        "to": "me@company.com",
+        "subject": "关于下一阶段使用安排的确认",
+        "date": "2026-06-09T15:12:00Z",
+        "body": "当前还未到期，我们想确认下一阶段使用安排是否可按计划继续。",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_309",
+        "from": "team@citrus-support.cn",
+        "to": "me@company.com",
+        "subject": "系统公告：维护时间安排",
+        "date": "2026-06-08T03:20:00Z",
+        "body": "尊敬的用户：本周系统维护安排如下……（与续约/付款无关）",
+        "labels": [
+          "inbox",
+          "通知"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_310",
+        "from": "contact@coralhealth-it.com",
+        "to": "me@company.com",
+        "subject": "续约意向确认（非active客户）",
+        "date": "2026-06-05T18:40:00Z",
+        "body": "我们希望重新评估续约，但目前账户状态不确定（可能为非活跃）。",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将筛选条件从“未来60天内到期”改为“已逾期但在15天宽限期内”，并增加对超宽限期active客户的标注边界，同时仅对VIP宽限期客户生成包含付款与服务不中断承诺的邮件草稿。",
+    "fixture_design_summary": [
+      "CRM共7个active/非active客户：其中3个为active且contract_end早于2026-06-10但未超过15天（2个VIP+1个standard），另外2个active客户为超宽限期（>15天）用于边界标注，其余用于排除。",
+      "contacts.json提供两位销售负责人（周潇、徐澄）邮箱用于匹配；另包含法务联系人邱岚与一个备用销售联系人用于干扰/兼容。",
+      "inbox.json包含与两位VIP客户对应的主动沟通证据：一封“担心系统停用/付款审批”、一封“发票与付款时间不确定但希望继续使用并分两次付款”；并加入法务内部催办邮件作为干扰。"
+    ]
+  }
+}

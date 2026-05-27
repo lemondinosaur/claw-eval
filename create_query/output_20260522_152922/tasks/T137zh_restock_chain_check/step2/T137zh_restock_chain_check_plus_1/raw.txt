@@ -1,0 +1,356 @@
+{
+  "task_id": "T137zh_restock_chain_check_plus_1",
+  "task_name": "夜间补货链路排障",
+  "prompt_text": "自动补货系统在“月初促销前夜”的夜间运行时出现异常。请完成补货链路排查并输出恰好3条“故障链”报告（任务→集成→受影响库存），每条链都要求满足：关联失败的补货定时任务，其原因能对应到集成异常类型；并且在库存中至少定位2个“quantity < reorder_level”的受影响产品。\n\n排查步骤：\n1）列出所有补货定时任务，筛查出 last_status=failed 或 enabled=false 的任务；\n2）对每个失败/被禁用任务，读取失败原因（error/last_status）并归纳失败类型；\n3）检查该失败任务关联的API集成配置：是否存在高 error_rate、status 为 inactive、credentials_expired/access token 过期等信号；\n4）从库存中定位哪些品类/产品已低于安全线（quantity < reorder_level），并把它们与对应集成关联起来；\n5）最终输出恰好3条故障链：\n   - 每条链必须包含：任务ID与失败原因（从任务详情归纳）、集成ID与异常类型、至少2个受影响库存产品及其数量/安全线对比、根因分析、可执行修复建议（含优先级）。\n\n注意：数据中包含“低库存但集成正常”的噪声品类。不要把这类噪声品类纳入3条故障链的受影响库存；如确实低于安全线，请在报告中说明其为“非本链路根因/不纳入该链”。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-910",
+        "name": "冷链物流补货API",
+        "status": "active",
+        "endpoint": "https://api.coldchain-fulfillment.example.com/v3",
+        "api_key": "sk-coldchain-910-xxxx-REDACTED",
+        "error_rate": 0.22,
+        "credentials_expired": false,
+        "notes": "夜间接口响应变慢，偶发超时/5xx上升",
+        "service": "logistics_api",
+        "last_verified": "2026-05-20T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-911",
+        "name": "电商包装耗材API",
+        "status": "inactive",
+        "endpoint": "https://api.ecom-packaging.example.com/v1",
+        "api_key": "sk-packaging-911-xxxx-REDACTED",
+        "error_rate": 0,
+        "credentials_expired": false,
+        "notes": "集成被标记inactive（运维临时停用）",
+        "service": "packaging_api",
+        "last_verified": "2026-05-18T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-912",
+        "name": "实验室耗材认证API",
+        "status": "active",
+        "endpoint": "https://api.lab-consumables.example.com/auth/v2",
+        "api_key": "sk-lab-912-xxxx-REDACTED",
+        "error_rate": 0.06,
+        "credentials_expired": true,
+        "notes": "access token过期/认证失败，需刷新令牌",
+        "service": "lab_auth_api",
+        "last_verified": "2026-05-01T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-913",
+        "name": "常规仓储库存API",
+        "status": "active",
+        "endpoint": "https://api.warehouse-stock.example.com/v2",
+        "api_key": "sk-warehouse-913-xxxx-REDACTED",
+        "error_rate": 0.01,
+        "credentials_expired": false,
+        "notes": "稳定，无需关注",
+        "service": "warehouse_api",
+        "last_verified": "2026-05-20T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-914",
+        "name": "办公设备补货API",
+        "status": "active",
+        "endpoint": "https://api.office-devices.example.com/v4",
+        "api_key": "sk-devices-914-xxxx-REDACTED",
+        "error_rate": 0.03,
+        "credentials_expired": false,
+        "notes": "按计划稳定回补",
+        "service": "device_api",
+        "last_verified": "2026-05-19T00:00:00Z",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-915",
+        "name": "噪声品类供应商API（稳定）",
+        "status": "active",
+        "endpoint": "https://api.noise-supplier.example.com/v1",
+        "api_key": "sk-noise-915-xxxx-REDACTED",
+        "error_rate": 0.02,
+        "credentials_expired": false,
+        "notes": "保持低错误率，用于干扰判断",
+        "service": "noise_supplier_api",
+        "last_verified": "2026-05-20T00:00:00Z",
+        "monthly_calls": 0
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "INV-9101",
+        "name": "冷链保冷袋 25L",
+        "category": "冷链物流",
+        "quantity": 7,
+        "unit": "个",
+        "reorder_level": 20,
+        "supplier_integration": "INT-910",
+        "last_restock": "2026-05-10"
+      },
+      {
+        "product_id": "INV-9102",
+        "name": "冷藏冰袋 500g",
+        "category": "冷链物流",
+        "quantity": 12,
+        "unit": "袋",
+        "reorder_level": 30,
+        "supplier_integration": "INT-910",
+        "last_restock": "2026-05-08"
+      },
+      {
+        "product_id": "INV-9111",
+        "name": "EVA 缓冲垫（电商）",
+        "category": "电商包装材料",
+        "quantity": 9,
+        "unit": "卷",
+        "reorder_level": 25,
+        "supplier_integration": "INT-911",
+        "last_restock": "2026-05-02"
+      },
+      {
+        "product_id": "INV-9112",
+        "name": "纸箱 3层加固（中号）",
+        "category": "电商包装材料",
+        "quantity": 14,
+        "unit": "个",
+        "reorder_level": 40,
+        "supplier_integration": "INT-911",
+        "last_restock": "2026-05-01"
+      },
+      {
+        "product_id": "INV-9121",
+        "name": "一次性移液枪头（盒装）",
+        "category": "实验室耗材",
+        "quantity": 3,
+        "unit": "盒",
+        "reorder_level": 15,
+        "supplier_integration": "INT-912",
+        "last_restock": "2026-04-25"
+      },
+      {
+        "product_id": "INV-9122",
+        "name": "无菌离心管 15ml",
+        "category": "实验室耗材",
+        "quantity": 18,
+        "unit": "盒",
+        "reorder_level": 50,
+        "supplier_integration": "INT-912",
+        "last_restock": "2026-04-28"
+      },
+      {
+        "product_id": "INV-9131",
+        "name": "仓库标签贴纸",
+        "category": "仓储辅助",
+        "quantity": 4,
+        "unit": "卷",
+        "reorder_level": 10,
+        "supplier_integration": "INT-913",
+        "last_restock": "2026-05-20"
+      },
+      {
+        "product_id": "INV-9141",
+        "name": "办公鼠标（无线）",
+        "category": "办公设备",
+        "quantity": 6,
+        "unit": "个",
+        "reorder_level": 5,
+        "supplier_integration": "INT-914",
+        "last_restock": "2026-05-17"
+      },
+      {
+        "product_id": "INV-9142",
+        "name": "办公键盘（静音）",
+        "category": "办公设备",
+        "quantity": 9,
+        "unit": "个",
+        "reorder_level": 12,
+        "supplier_integration": "INT-914",
+        "last_restock": "2026-05-12"
+      },
+      {
+        "product_id": "INV-9151",
+        "name": "噪声类纸杯 250ml",
+        "category": "餐饮耗材（噪声）",
+        "quantity": 2,
+        "unit": "包",
+        "reorder_level": 8,
+        "supplier_integration": "INT-915",
+        "last_restock": "2026-05-19"
+      },
+      {
+        "product_id": "INV-9152",
+        "name": "噪声类一次性搅拌棒",
+        "category": "餐饮耗材（噪声）",
+        "quantity": 6,
+        "unit": "盒",
+        "reorder_level": 12,
+        "supplier_integration": "INT-915",
+        "last_restock": "2026-05-19"
+      },
+      {
+        "product_id": "INV-9132",
+        "name": "仓库打包胶带 48mm",
+        "category": "仓储辅助",
+        "quantity": 11,
+        "unit": "卷",
+        "reorder_level": 25,
+        "supplier_integration": "INT-913",
+        "last_restock": "2026-05-20"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-91001",
+        "name": "夜间冷链保冷袋补货",
+        "cron_expression": "0 2 * * *",
+        "action": "restock_coldchain_bags",
+        "enabled": true,
+        "last_run": "2026-05-22T02:00:00Z",
+        "next_run": "2026-05-23T02:00:00Z",
+        "last_status": "failed",
+        "created_by": "夜班自动化",
+        "tags": [
+          "补货",
+          "冷链"
+        ],
+        "created_at": "2026-04-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T02:00:00Z",
+            "status": "failed",
+            "duration_s": 120,
+            "error": "APITimeoutError: logistics_api coldchain_910 timed out after 120s"
+          },
+          {
+            "run_at": "2026-05-21T02:00:00Z",
+            "status": "failed",
+            "duration_s": 118,
+            "error": "APITimeoutError: logistics_api coldchain_910 timed out after 118s"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91002",
+        "name": "夜间电商包装材料补货",
+        "cron_expression": "15 2 * * *",
+        "action": "restock_ecom_packaging",
+        "enabled": true,
+        "last_run": "2026-05-22T02:15:00Z",
+        "next_run": "2026-05-23T02:15:00Z",
+        "last_status": "failed",
+        "created_by": "夜班自动化",
+        "tags": [
+          "补货",
+          "电商包装"
+        ],
+        "created_at": "2026-04-05T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T02:15:00Z",
+            "status": "failed",
+            "duration_s": 6,
+            "error": "IntegrationInactiveError: packaging_api integration INT-911 is inactive"
+          },
+          {
+            "run_at": "2026-05-21T02:15:00Z",
+            "status": "failed",
+            "duration_s": 7,
+            "error": "IntegrationInactiveError: packaging_api integration INT-911 is inactive"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91003",
+        "name": "夜间实验室耗材补货",
+        "cron_expression": "30 2 * * *",
+        "action": "restock_lab_consumables",
+        "enabled": true,
+        "last_run": "2026-05-22T02:30:00Z",
+        "next_run": "2026-05-23T02:30:00Z",
+        "last_status": "failed",
+        "created_by": "夜班自动化",
+        "tags": [
+          "补货",
+          "实验室耗材"
+        ],
+        "created_at": "2026-04-08T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T02:30:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "AuthenticationError: access token expired for lab_auth_api INT-912"
+          },
+          {
+            "run_at": "2026-05-21T02:30:00Z",
+            "status": "failed",
+            "duration_s": 10,
+            "error": "AuthenticationError: access token expired for lab_auth_api INT-912"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91004",
+        "name": "夜间餐饮耗材补货（噪声）",
+        "cron_expression": "45 2 * * *",
+        "action": "restock_noise_food_supplies",
+        "enabled": true,
+        "last_run": "2026-05-22T02:45:00Z",
+        "next_run": "2026-05-23T02:45:00Z",
+        "last_status": "success",
+        "created_by": "夜班自动化",
+        "tags": [
+          "补货",
+          "噪声"
+        ],
+        "created_at": "2026-04-10T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T02:45:00Z",
+            "status": "success",
+            "duration_s": 12
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-91005",
+        "name": "夜间仓储辅助物料补货",
+        "cron_expression": "0 3 * * *",
+        "action": "restock_warehouse_labels",
+        "enabled": false,
+        "last_run": "2026-05-10T03:00:00Z",
+        "next_run": null,
+        "last_status": "failed",
+        "created_by": "运维临时禁用",
+        "tags": [
+          "补货",
+          "仓储辅助"
+        ],
+        "created_at": "2026-04-12T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-10T03:00:00Z",
+            "status": "failed",
+            "duration_s": 4,
+            "error": "DisabledJobError: job is disabled; skipping pull"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题故障链侧重IT设备超时、清洁集成停用、耗材凭证过期；本题改为夜间促销前夜，故障组合换成冷链接口超时、高error_rate、包装集成inactive、实验室token过期，并加入低库存但集成正常的噪声品类，要求输出恰好3条链。",
+    "fixture_design_summary": [
+      "scheduler jobs.json：3个关键夜间补货任务 last_status=failed，错误分别为冷链超时、集成inactive、访问令牌过期；另加入1个success噪声任务与1个enabled=false的禁用诱饵任务。",
+      "config integrations.json：分别为3条失败链提供对应的集成异常类型（INT-910高error_rate、INT-911 inactive、INT-912 credentials_expired/access token过期），其余集成保持稳定用于干扰排除。",
+      "inventory items.json：每条故障链至少命中2个 quantity < reorder_level 的产品，并确保噪声类低库存产品对应集成INT-915为active且不纳入三条故障链。"
+    ]
+  }
+}

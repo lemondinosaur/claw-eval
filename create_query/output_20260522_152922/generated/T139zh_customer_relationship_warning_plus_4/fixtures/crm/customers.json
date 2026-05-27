@@ -1,0 +1,110 @@
+[
+  {
+    "customer_id": "CUS-201",
+    "name": "星桥科技",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-02-05",
+    "annual_revenue": 1500000,
+    "industry": "硬件与IoT",
+    "sales_rep": "周澄",
+    "notes": "续约前需要法务介入：条款争议（责任边界）待澄清；隐私合规材料需补充。",
+    "contact_person": "周澄"
+  },
+  {
+    "customer_id": "CUS-202",
+    "name": "澄海金融",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-02-18",
+    "annual_revenue": 2300000,
+    "industry": "金融",
+    "sales_rep": "郑航",
+    "notes": "数据合规要求升级：数据处理条款待补充；价格调整需在附件中体现。",
+    "contact_person": "郑航"
+  },
+  {
+    "customer_id": "CUS-203",
+    "name": "北斗教育",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-02-12",
+    "annual_revenue": 320000,
+    "industry": "教育",
+    "sales_rep": "孙敏",
+    "notes": "价格调整讨论中：需核对计费条款与续约折扣逻辑。",
+    "contact_person": "孙敏"
+  },
+  {
+    "customer_id": "CUS-204",
+    "name": "绿洲医疗",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-02-25",
+    "annual_revenue": 410000,
+    "industry": "医疗健康",
+    "sales_rep": "孙敏",
+    "notes": "数据处理条款待补充（字段范围/保存期限/授权机制）",
+    "contact_person": "孙敏"
+  },
+  {
+    "customer_id": "CUS-205",
+    "name": "长帆物流",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-04-10",
+    "annual_revenue": 260000,
+    "industry": "物流",
+    "sales_rep": "孙敏",
+    "notes": "合同将于下一季度续约，目前仅做资料收集。",
+    "contact_person": "孙敏"
+  },
+  {
+    "customer_id": "CUS-206",
+    "name": "云端广告",
+    "tier": "standard",
+    "status": "inactive",
+    "contract_end": "2025-12-20",
+    "annual_revenue": 120000,
+    "industry": "广告",
+    "sales_rep": "孙敏",
+    "notes": "已到期，暂无续约计划。",
+    "contact_person": "孙敏"
+  },
+  {
+    "customer_id": "CUS-207",
+    "name": "天穹制造",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-03-30",
+    "annual_revenue": 900000,
+    "industry": "制造",
+    "sales_rep": "周澄",
+    "notes": "未发现明显合规争议，关注交付节奏。",
+    "contact_person": "周澄"
+  },
+  {
+    "customer_id": "CUS-208",
+    "name": "景和传媒",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-05-08",
+    "annual_revenue": 180000,
+    "industry": "传媒",
+    "sales_rep": "孙敏",
+    "notes": "续约窗口外，待评估续约意向。",
+    "contact_person": "孙敏"
+  },
+  {
+    "customer_id": "CUS-209",
+    "name": "恒跃能源",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-06-15",
+    "annual_revenue": 540000,
+    "industry": "能源",
+    "sales_rep": "孙敏",
+    "notes": "未来到期，正在评估合同优化条款。",
+    "contact_person": "孙敏"
+  }
+]

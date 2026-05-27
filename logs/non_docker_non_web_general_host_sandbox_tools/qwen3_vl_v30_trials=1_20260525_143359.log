@@ -1,0 +1,151 @@
+Running 3 tasks with 4 parallel workers, 1 trial(s) each
+Traces → traces/non_docker_non_web_general_host_sandbox_tools/qwen3_vl_v30_trials=1_20260525_143359/qwen3_vl_v30_26-05-25-06-33
+
+[start] task=T070zh_js_async_generator_trace model=qwen3_vl_v30 trace=T070zh_js_async_generator_trace_1080f916.jsonl
+[config] max_turns=30 timeout=600s sandbox_tools=True
+[turn 1/30] calling model ...
+[turn 1] assistant: 0 text, 1 tool_use | tokens: +4375in +425out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 2/30] calling model ...
+[turn 2] assistant: 0 text, 1 tool_use | tokens: +4414in +27out
+  -> tool: Write({"file_path": "/workspace/logs.txt", "content": ""})
+  <- Write: OK (0ms)
+[turn 3/30] calling model ...
+[turn 3] assistant: 0 text, 1 tool_use | tokens: +4467in +426out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 4/30] calling model ...
+[turn 4] assistant: 0 text, 1 tool_use | tokens: +4506in +426out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 5/30] calling model ...
+[turn 5] assistant: 0 text, 1 tool_use | tokens: +4545in +426out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 6/30] calling model ...
+[turn 6] assistant: 0 text, 1 tool_use | tokens: +4584in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 7/30] calling model ...
+[turn 7] assistant: 0 text, 1 tool_use | tokens: +4623in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 8/30] calling model ...
+[turn 8] assistant: 0 text, 1 tool_use | tokens: +4662in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 9/30] calling model ...
+[turn 9] assistant: 0 text, 1 tool_use | tokens: +4701in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 10/30] calling model ...
+[turn 10] assistant: 0 text, 1 tool_use | tokens: +4740in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 11/30] calling model ...
+[turn 11] assistant: 0 text, 1 tool_use | tokens: +4779in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 12/30] calling model ...
+[turn 12] assistant: 0 text, 1 tool_use | tokens: +4818in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 13/30] calling model ...
+[turn 13] assistant: 0 text, 1 tool_use | tokens: +4857in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 14/30] calling model ...
+[turn 14] assistant: 0 text, 1 tool_use | tokens: +4896in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 15/30] calling model ...
+[turn 15] assistant: 0 text, 1 tool_use | tokens: +4935in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 16/30] calling model ...
+[turn 16] assistant: 0 text, 1 tool_use | tokens: +4974in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 17/30] calling model ...
+[turn 17] assistant: 0 text, 1 tool_use | tokens: +5013in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 18/30] calling model ...
+[turn 18] assistant: 0 text, 1 tool_use | tokens: +5052in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 19/30] calling model ...
+[turn 19] assistant: 0 text, 1 tool_use | tokens: +5091in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 20/30] calling model ...
+[turn 20] assistant: 0 text, 1 tool_use | tokens: +5130in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 21/30] calling model ...
+[turn 21] assistant: 0 text, 1 tool_use | tokens: +5169in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 22/30] calling model ...
+[turn 22] assistant: 0 text, 1 tool_use | tokens: +5208in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 23/30] calling model ...
+[turn 23] assistant: 0 text, 1 tool_use | tokens: +5247in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 24/30] calling model ...
+[turn 24] assistant: 0 text, 1 tool_use | tokens: +5286in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 25/30] calling model ...
+[turn 25] assistant: 0 text, 1 tool_use | tokens: +5325in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 26/30] calling model ...
+[turn 26] assistant: 0 text, 1 tool_use | tokens: +5364in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 27/30] calling model ...
+[turn 27] assistant: 0 text, 1 tool_use | tokens: +5403in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 28/30] calling model ...
+[turn 28] assistant: 0 text, 1 tool_use | tokens: +5442in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 29/30] calling model ...
+[turn 29] assistant: 0 text, 1 tool_use | tokens: +5481in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[turn 30/30] calling model ...
+[turn 30] assistant: 0 text, 1 tool_use | tokens: +5520in +15out
+  -> tool: Write({})
+  <- Write: OK (0ms)
+[end] turns=30 tokens=150712 (148607in/2105out) time=model 74.5s tool 0.0s wall 74.5s
+  [1/3] T098_pinbench_openclaw_facts: ERROR — Service 'documents' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 1/3 done (33%) | avg 0.00 pass^1 0/1 pass@1 0/1 | elapsed 1s | ETA ~3s
+  [2/3] T097_pinbench_eli5_model_summary: ERROR — Service 'documents' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 2/3 done (66%) | avg 0.00 pass^1 0/2 pass@1 0/2 | elapsed 1s | ETA ~0s
+  [3/3] T070zh_js_async_generator_trace: 0.76 PASS | tok=150712 (148607 in/2105 out) | time=wall 74.48s model 74.47s tool 0.00s
+  [Progress] 3/3 done (100%) | avg 0.25 pass^1 1/3 pass@1 1/3 | elapsed 1m18s
+
+============================================================
+BATCH COMPLETE — 3 tasks, 4 workers
+============================================================
+
+  Avg score: 0.253
+  pass^1: 1/3
+  pass@1: 1/3
+  Errored: 2/3
+  Total model tokens: 150712 (148607 in / 2105 out)
+  Total time: wall=74.48s model=74.47s tool=0.00s other=0.01s
+
+────────────────────────────────────────────────────────────
+  T070zh_js_async_generator_trace           0.76  PASS  C=0.70 R=1.00 M=0.00 S=1 TOK=150712 (148607in/2105out) TIME=wall 74.48s model 74.47s tool 0.00s
+  T097_pinbench_eli5_model_summary          ERROR: Service 'documents' exited immediately (rc=2): /yt
+  T098_pinbench_openclaw_facts              ERROR: Service 'documents' exited immediately (rc=2): /yt
+
+  Results saved to traces/non_docker_non_web_general_host_sandbox_tools/qwen3_vl_v30_trials=1_20260525_143359/qwen3_vl_v30_26-05-25-06-33/batch_results.json
+  Summary saved to traces/non_docker_non_web_general_host_sandbox_tools/qwen3_vl_v30_trials=1_20260525_143359/qwen3_vl_v30_26-05-25-06-33/batch_summary.json

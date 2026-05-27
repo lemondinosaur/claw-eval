@@ -1,0 +1,184 @@
+[
+  {
+    "task_id": "TODO-R1-01",
+    "title": "主数据字段规范草案（m1）",
+    "description": "行动项：完成主数据字段规范草案；里程碑阶段：m1；目标：m1；对应会议：NOTE-R1",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-06-27",
+    "assignee": "陈澄",
+    "tags": [
+      "数据治理",
+      "m1"
+    ]
+  },
+  {
+    "task_id": "TODO-R1-02",
+    "title": "血缘关系梳理与可视化方案（m2）",
+    "description": "行动项：完成血缘关系梳理与可视化方案；里程碑阶段：m2；目标：m2；对应会议：NOTE-R1",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-06-29",
+    "assignee": "周岚",
+    "tags": [
+      "数据治理",
+      "m2"
+    ]
+  },
+  {
+    "task_id": "TODO-R1-02b",
+    "title": "血缘关系梳理与可视化方案（m1）",
+    "description": "行动项：完成血缘关系梳理与可视化方案；里程碑阶段：m1；目标：m2；对应会议：NOTE-R1",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-06-27",
+    "assignee": "周岚",
+    "tags": [
+      "数据治理",
+      "m1"
+    ]
+  },
+  {
+    "task_id": "TODO-R1-03",
+    "title": "数据质量规则集v1提交评审（final）",
+    "description": "行动项：落实数据质量规则集v1并提交评审；里程碑阶段：final；目标：final；对应会议：NOTE-R1",
+    "status": "completed",
+    "priority": "high",
+    "due_date": "2026-06-30",
+    "assignee": "赵越",
+    "tags": [
+      "数据质量",
+      "final"
+    ]
+  },
+  {
+    "task_id": "TODO-R1-03b",
+    "title": "数据质量规则集v1初稿（m2）",
+    "description": "行动项：落实数据质量规则集v1并提交评审；里程碑阶段：m2；目标：final；对应会议：NOTE-R1",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-06-29",
+    "assignee": "赵越",
+    "tags": [
+      "数据质量",
+      "m2"
+    ]
+  },
+  {
+    "task_id": "TODO-R1-04",
+    "title": "数据共享申请流程图（m2）",
+    "description": "行动项：输出数据共享申请流程图；里程碑阶段：m2；目标：final；对应会议：NOTE-R1",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-06-30",
+    "assignee": "陈澄",
+    "tags": [
+      "合规",
+      "m2"
+    ]
+  },
+  {
+    "task_id": "TODO-R1-04b",
+    "title": "数据共享申请流程图（m1）",
+    "description": "行动项：输出数据共享申请流程图；里程碑阶段：m1；目标：final；对应会议：NOTE-R1",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-06-28",
+    "assignee": "陈澄",
+    "tags": [
+      "合规",
+      "m1"
+    ]
+  },
+  {
+    "task_id": "TODO-R2-01",
+    "title": "登录体验重构评估（m1）",
+    "description": "行动项：完成登录体验重构评估；里程碑阶段：m1；目标：m1；对应会议：NOTE-R2",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-06-30",
+    "assignee": "林远",
+    "tags": [
+      "体验",
+      "m1"
+    ]
+  },
+  {
+    "task_id": "TODO-R2-02",
+    "title": "终端适配兼容清单（m1）",
+    "description": "行动项：推进终端适配兼容清单；里程碑阶段：m1；目标：m2；对应会议：NOTE-R2",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-06-27",
+    "assignee": "王茜",
+    "tags": [
+      "适配",
+      "m1"
+    ]
+  },
+  {
+    "task_id": "TODO-R2-02b",
+    "title": "终端适配兼容清单（m2）",
+    "description": "行动项：推进终端适配兼容清单；里程碑阶段：m2；目标：m2；对应会议：NOTE-R2",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-07-01",
+    "assignee": "王茜",
+    "tags": [
+      "适配",
+      "m2"
+    ]
+  },
+  {
+    "task_id": "TODO-R2-03",
+    "title": "跨团队迭代风险与应对（m2）",
+    "description": "行动项：汇总跨团队迭代风险与应对；里程碑阶段：m2；目标：final；对应会议：NOTE-R2",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-07-02",
+    "assignee": "周岚",
+    "tags": [
+      "风险",
+      "m2"
+    ]
+  },
+  {
+    "task_id": "TODO-R2-03b",
+    "title": "跨团队迭代风险与应对（final）",
+    "description": "行动项：汇总跨团队迭代风险与应对；里程碑阶段：final；目标：final；对应会议：NOTE-R2",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-07-03",
+    "assignee": "周岚",
+    "tags": [
+      "风险",
+      "final"
+    ]
+  },
+  {
+    "task_id": "TODO-RX-99",
+    "title": "干扰任务：异常支付规则排查（m2）",
+    "description": "干扰里程碑任务；非来自纪要行动项；里程碑阶段：m2；目标：n/a",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-06-30",
+    "assignee": "王茜",
+    "tags": [
+      "干扰",
+      "m2"
+    ]
+  },
+  {
+    "task_id": "TODO-OTHER-77",
+    "title": "跨部门审计报告汇总（final）",
+    "description": "与任何纳入纪要行动项无匹配（不影响统计）；里程碑阶段：final",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-07-04",
+    "assignee": "林远",
+    "tags": [
+      "其他",
+      "final"
+    ]
+  }
+]

@@ -1,0 +1,212 @@
+[
+  {
+    "job_id": "ALJ-901",
+    "name": "值班台告警转发（Kafka->值班台）",
+    "cron_expression": "*/5 * * * *",
+    "action": "forward_alerts_via_kafka",
+    "enabled": true,
+    "last_run": "2026-05-22T02:29:00Z",
+    "next_run": "2026-05-22T02:34:00Z",
+    "last_status": "failed",
+    "created_by": "scheduler_admin",
+    "tags": [
+      "告警",
+      "转发",
+      "Kafka"
+    ],
+    "created_at": "2026-04-01T09:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T02:29:00Z",
+        "status": "failed",
+        "duration_s": 7,
+        "error": "KafkaBrokerUnreachableError: broker 不可达，连接超时"
+      },
+      {
+        "run_at": "2026-05-22T02:24:00Z",
+        "status": "failed",
+        "duration_s": 6,
+        "error": "KafkaBrokerUnreachableError: broker 不可达，重试耗尽"
+      },
+      {
+        "run_at": "2026-05-22T02:19:00Z",
+        "status": "failed",
+        "duration_s": 6,
+        "error": "KafkaBrokerUnreachableError: 网络连接被拒绝"
+      },
+      {
+        "run_at": "2026-05-22T02:14:00Z",
+        "status": "success",
+        "duration_s": 9
+      }
+    ]
+  },
+  {
+    "job_id": "ALJ-902",
+    "name": "值班台告警转发（Webhook验签回调）",
+    "cron_expression": "*/6 * * * *",
+    "action": "forward_alerts_via_webhook",
+    "enabled": true,
+    "last_run": "2026-05-22T03:12:00Z",
+    "next_run": "2026-05-22T03:18:00Z",
+    "last_status": "failed",
+    "created_by": "integrations_admin",
+    "tags": [
+      "告警",
+      "转发",
+      "Webhook"
+    ],
+    "created_at": "2026-04-10T11:30:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T03:12:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "error": "WebhookSignatureVerificationError: 签名过期或密钥未同步（401）"
+      },
+      {
+        "run_at": "2026-05-22T03:06:00Z",
+        "status": "failed",
+        "duration_s": 3,
+        "error": "WebhookSignatureVerificationError: 验签失败（HMAC 不匹配）"
+      },
+      {
+        "run_at": "2026-05-22T03:00:00Z",
+        "status": "failed",
+        "duration_s": 4,
+        "error": "WebhookSignatureVerificationError: 密钥轮换后回调验签失败"
+      },
+      {
+        "run_at": "2026-05-22T02:54:00Z",
+        "status": "success",
+        "duration_s": 4
+      }
+    ]
+  },
+  {
+    "job_id": "ALJ-903",
+    "name": "告警去重与汇总（告警看板源）",
+    "cron_expression": "*/10 * * * *",
+    "action": "dedupe_and_summarize_alerts",
+    "enabled": true,
+    "last_run": "2026-05-22T02:40:00Z",
+    "next_run": "2026-05-22T02:50:00Z",
+    "last_status": "failed",
+    "created_by": "scheduler_admin",
+    "tags": [
+      "告警",
+      "看板",
+      "转发"
+    ],
+    "created_at": "2026-03-15T08:20:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T02:40:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "QueueBackpressureError: 上游转发积压，汇总数据为空"
+      },
+      {
+        "run_at": "2026-05-22T02:30:00Z",
+        "status": "failed",
+        "duration_s": 2,
+        "error": "QueueBackpressureError: 无法拉取告警明细（超时）"
+      },
+      {
+        "run_at": "2026-05-22T02:20:00Z",
+        "status": "success",
+        "duration_s": 2
+      }
+    ]
+  },
+  {
+    "job_id": "NTL-910",
+    "name": "网络打印队列健康检查",
+    "cron_expression": "0 */15 * * *",
+    "action": "check_printer_queue_health",
+    "enabled": true,
+    "last_run": "2026-05-22T02:15:00Z",
+    "next_run": "2026-05-22T02:30:00Z",
+    "last_status": "failed",
+    "created_by": "ops_admin",
+    "tags": [
+      "打印",
+      "队列",
+      "健康检查"
+    ],
+    "created_at": "2026-02-01T12:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T02:15:00Z",
+        "status": "failed",
+        "duration_s": 1,
+        "error": "PrinterQueueTimeoutError: 打印队列响应超时"
+      },
+      {
+        "run_at": "2026-05-22T02:00:00Z",
+        "status": "success",
+        "duration_s": 1
+      }
+    ]
+  },
+  {
+    "job_id": "IAM-520",
+    "name": "用户登录延迟采样任务",
+    "cron_expression": "*/20 * * * *",
+    "action": "sample_login_latency",
+    "enabled": true,
+    "last_run": "2026-05-22T01:58:00Z",
+    "next_run": "2026-05-22T02:18:00Z",
+    "last_status": "failed",
+    "created_by": "iam_admin",
+    "tags": [
+      "IAM",
+      "登录",
+      "采样"
+    ],
+    "created_at": "2026-01-20T10:10:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T01:58:00Z",
+        "status": "failed",
+        "duration_s": 1,
+        "error": "UpstreamAuthRateLimitError: 上游认证限流"
+      },
+      {
+        "run_at": "2026-05-22T01:38:00Z",
+        "status": "failed",
+        "duration_s": 1,
+        "error": "UpstreamAuthRateLimitError: 上游认证限流"
+      },
+      {
+        "run_at": "2026-05-22T01:18:00Z",
+        "status": "success",
+        "duration_s": 1
+      }
+    ]
+  },
+  {
+    "job_id": "INF-701",
+    "name": "日志归档容量监控",
+    "cron_expression": "0 1 * * *",
+    "action": "archive_capacity_check",
+    "enabled": true,
+    "last_run": "2026-05-22T01:00:00Z",
+    "next_run": "2026-05-23T01:00:00Z",
+    "last_status": "success",
+    "created_by": "ops_admin",
+    "tags": [
+      "基础设施",
+      "监控",
+      "归档"
+    ],
+    "created_at": "2026-03-01T09:15:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-05-22T01:00:00Z",
+        "status": "success",
+        "duration_s": 10
+      }
+    ]
+  }
+]

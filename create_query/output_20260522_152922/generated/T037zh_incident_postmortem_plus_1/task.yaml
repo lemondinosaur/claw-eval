@@ -1,0 +1,302 @@
+task_id: T037zh_incident_postmortem_plus_1
+task_name: API超时+缓存风暴复盘
+version: '1.0'
+category: ops
+difficulty: hard
+tags:
+- general
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_1/fixtures/helpdesk/tickets.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_1/fixtures/config/integrations.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_1/fixtures/gmail/inbox.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_1/fixtures/kb/articles.json
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_1/fixtures/notes/meetings.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_1/fixtures/scheduler/jobs.json
+prompt:
+  text: '昨晚（给定日期）生产环境出现严重故障。请你像运维事后复盘一样写一份只读分析报告（不得修改、关闭、通知或更新任何内容）：
+
+
+    1）用工单构建事件时间线（按时间顺序，至少覆盖故障开始、关键升级/发现、缓解/恢复、收尾）
+
+    2）检查第三方集成的当前恢复状态与异常字段（包含error_rate与notes线索）
+
+    3）从邮件中提取关键技术线索与处置动作（特别是“缓存版本号/失效重建/预热触发”的证据链）
+
+    4）检索知识库是否存在类似事故与结论要点（需要指出与本次最相关的历史文章及其TODO/未完成建议）
+
+    5）结合会议记录判断哪些变更/评审流程存在缺口（例如跳过关键验证、回滚保护缺失等）
+
+    6）检查定时任务的触发与执行历史，找出触发链条（任务A如何导致“全站缓存预热/失效重建”、以及缓存穿透式回源从而引发API超时与回调延迟）
+
+
+    输出要求：
+
+    - 明确写出根因结论（必须指向定时任务配置错误导致缓存风暴，而不是泛化为“流量突增/网络抖动”）
+
+    - 给出跨系统证据对应关系：工单 + 集成 + 邮件 + 知识库 + 会议 + 调度
+
+    - 输出影响评估（API网关超时、CDN回源/命中率、客服下单确认慢、支付回调链路延迟）
+
+    - 给出可执行改进建议（包含增量预热/版本号回滚保护/幂等与验证/限流熔断等关键词）'
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选：open, resolved, done, investigating
+      priority:
+        type: string
+        description: 按优先级筛选：low, medium, high, critical
+      date_from:
+        type: string
+        description: 起始日期 (ISO 8601)
+      date_to:
+        type: string
+        description: 截止日期 (ISO 8601)
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取单个工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: config_list_integrations
+  description: 获取所有第三方集成的列表（概览信息）
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选：active, degraded, expired
+    required: []
+- name: config_get_integration
+  description: 获取单个集成的完整配置信息
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: notes_list
+  description: 获取笔记/会议记录列表
+  input_schema:
+    type: object
+    properties:
+      date_from:
+        type: string
+        description: 起始日期
+      date_to:
+        type: string
+        description: 截止日期
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取笔记/会议记录详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 笔记ID
+    required:
+    - note_id
+- name: scheduler_list_jobs
+  description: 列出所有定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按最近运行状态筛选 (success/failed/stopped)
+      enabled:
+        type: boolean
+        description: 按启用状态筛选
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_job_history
+  description: 查看定时任务执行历史
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      limit:
+        type: integer
+        description: 返回条数
+        default: 10
+    required:
+    - job_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: scheduler_job_history
+  url: http://localhost:9112/scheduler/jobs/history
+  method: POST
+sandbox_files:
+- fixtures/helpdesk/tickets.json
+- fixtures/config/integrations.json
+- fixtures/gmail/inbox.json
+- fixtures/kb/articles.json
+- fixtures/notes/meetings.json
+- fixtures/scheduler/jobs.json
+environment:
+  timeout_seconds: 900
+  max_turns: 40

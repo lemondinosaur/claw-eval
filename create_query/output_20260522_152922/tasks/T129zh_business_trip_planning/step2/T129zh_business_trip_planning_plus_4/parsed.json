@@ -1,0 +1,257 @@
+{
+  "task_id": "T129zh_business_trip_planning_plus_4",
+  "task_name": "多站点补丁发布出行",
+  "prompt_text": "收件箱中有一封“多站点补丁发布与现场支持”的关键邮件，要求你为多个站点城市安排出差到达窗口并完成现场支持。请你：\n1）查看并定位该关键邮件及所有相关干扰邮件；\n2）从关键邮件中解析出所有站点城市及每个站点对应的到达窗口规则（上午到达/下午到达/当天结束前到达）；\n3）在日历中检查这些日期是否存在冲突（需考虑上午/下午窗口的占用情况，以及“结束前到达”的约束）；\n4）为每个城市检索并整理对接联系人（现场负责人/对接工程/协调人员等职能，确保城市归属正确）；\n5）输出一个清晰的多站点出行计划：推荐的访问顺序，以及对冲突站点的错峰或拆分到可用窗口的具体建议，并在每个站点给出联系人清单。\n\n要求：不需要额外追问，直接完成解析、冲突判断、排序建议与联系人汇总。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_501",
+        "title": "研发同步（东港）",
+        "start_time": "2026-03-30T09:00:00+08:00",
+        "end_time": "2026-03-30T11:30:00+08:00",
+        "location": "东港-会议室1",
+        "organizer": "沈工",
+        "attendees": [
+          "我",
+          "沈工"
+        ],
+        "description": "补丁发布前同步会（占用东港3/30上午窗口）",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_502",
+        "title": "客户现场评审（南湾）",
+        "start_time": "2026-03-31T14:00:00+08:00",
+        "end_time": "2026-03-31T17:00:00+08:00",
+        "location": "南湾-客户楼",
+        "organizer": "周主任",
+        "attendees": [
+          "我",
+          "周主任"
+        ],
+        "description": "南湾3/31下午评审（占用南湾下午窗口）",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_503",
+        "title": "供应商验收（江城-短时）",
+        "start_time": "2026-04-01T09:15:00+08:00",
+        "end_time": "2026-04-01T10:30:00+08:00",
+        "location": "江城-仓库A",
+        "organizer": "张主管",
+        "attendees": [
+          "我",
+          "张主管"
+        ],
+        "description": "只占用江城4/1早晨一部分（后续上午仍可调整）",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_504",
+        "title": "自由窗口（系统维护待确认）",
+        "start_time": "2026-03-29T00:00:00+08:00",
+        "end_time": "2026-03-29T23:59:00+08:00",
+        "location": "",
+        "organizer": "",
+        "attendees": [],
+        "description": "空闲日：可用于调整顺序",
+        "status": "free"
+      },
+      {
+        "event_id": "evt_505",
+        "title": "运维例会（本地）",
+        "start_time": "2026-03-30T15:00:00+08:00",
+        "end_time": "2026-03-30T16:30:00+08:00",
+        "location": "本地-工位",
+        "organizer": "运维",
+        "attendees": [
+          "我"
+        ],
+        "description": "不影响东港3/30上午窗口的主要冲突判断",
+        "status": "confirmed"
+      },
+      {
+        "event_id": "evt_506",
+        "title": "自由窗口（缓冲日）",
+        "start_time": "2026-04-02T00:00:00+08:00",
+        "end_time": "2026-04-02T23:59:00+08:00",
+        "location": "",
+        "organizer": "",
+        "attendees": [],
+        "description": "空闲日：支持错峰拆分",
+        "status": "free"
+      }
+    ],
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-511",
+        "name": "赵岚",
+        "department": "东港站点办",
+        "title": "现场支持负责人",
+        "email": "zhaolan@company-dg.com",
+        "phone": "13901001111",
+        "location": "东港",
+        "notes": "负责东港站点补丁发布现场协调与签收"
+      },
+      {
+        "contact_id": "CT-512",
+        "name": "周凯",
+        "department": "东港站点办",
+        "title": "对接工程师",
+        "email": "zhoukai@company-dg.com",
+        "phone": "13901002222",
+        "location": "东港",
+        "notes": "补丁发布技术对接，负责回滚与日志核验"
+      },
+      {
+        "contact_id": "CT-513",
+        "name": "孙静",
+        "department": "东港站点办",
+        "title": "协调与物资",
+        "email": "sunjing@company-dg.com",
+        "phone": "13901003333",
+        "location": "东港",
+        "notes": "负责到达接机、现场物资与工位安排"
+      },
+      {
+        "contact_id": "CT-521",
+        "name": "钱澜",
+        "department": "南湾站点办",
+        "title": "现场支持负责人",
+        "email": "qianlan@company-nw.com",
+        "phone": "13902001111",
+        "location": "南湾",
+        "notes": "负责南湾下午窗口确认与现场流程"
+      },
+      {
+        "contact_id": "CT-522",
+        "name": "李沐",
+        "department": "南湾站点办",
+        "title": "对接工程师",
+        "email": "limu@company-nw.com",
+        "phone": "13902002222",
+        "location": "南湾",
+        "notes": "负责补丁安装计划与验收材料准备"
+      },
+      {
+        "contact_id": "CT-523",
+        "name": "陈昊",
+        "department": "南湾站点办",
+        "title": "协调人员",
+        "email": "chenhao@company-nw.com",
+        "phone": "13902003333",
+        "location": "南湾",
+        "notes": "协调工位与网络接入，协助现场测试"
+      },
+      {
+        "contact_id": "CT-531",
+        "name": "吴薇",
+        "department": "江城站点办",
+        "title": "现场支持负责人",
+        "email": "wuwei@company-jc.com",
+        "phone": "13903001111",
+        "location": "江城",
+        "notes": "负责江城当天结束前的现场支持调度"
+      },
+      {
+        "contact_id": "CT-532",
+        "name": "郑杰",
+        "department": "江城站点办",
+        "title": "对接工程师",
+        "email": "zhengjie@company-jc.com",
+        "phone": "13903002222",
+        "location": "江城",
+        "notes": "负责补丁部署与现场问题定位"
+      },
+      {
+        "contact_id": "CT-533",
+        "name": "马晴",
+        "department": "江城站点办",
+        "title": "协调与安全",
+        "email": "maqing@company-jc.com",
+        "phone": "13903003333",
+        "location": "江城",
+        "notes": "负责现场安全检查与到达后流程对接"
+      },
+      {
+        "contact_id": "CT-541",
+        "name": "林敏",
+        "department": "其他城市办",
+        "title": "区域协调",
+        "email": "linmin@company-other.com",
+        "phone": "13904001111",
+        "location": "外地",
+        "notes": "干扰联系人：非本次站点城市"
+      },
+      {
+        "contact_id": "CT-542",
+        "name": "李辰",
+        "department": "其他城市办",
+        "title": "技术支持",
+        "email": "licheng@company-other.com",
+        "phone": "13904002222",
+        "location": "外地",
+        "notes": "干扰联系人：非本次站点城市"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_911",
+        "from": "patch-support@company.com",
+        "to": "me@company.com",
+        "subject": "多站点补丁发布与现场支持安排（东港/南湾/江城）",
+        "date": "2026-03-23T11:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "你好，我部计划在以下站点进行补丁发布现场支持，请你协助出差规划：\n\n1）东港站点：预计 2026/03/30 到达，要求到达窗口为“上午到达”（请在上午窗口内完成报到与现场对接）。\n2）南湾站点：预计 2026/03/31 到达，要求到达窗口为“下午到达”（请在下午窗口内完成报到与安装前检查）。\n3）江城站点：预计 2026/04/01 到达，要求“当天结束前到达”（当天结束前完成现场支持任务并完成交接）。\n\n请根据日历冲突，若某站点窗口被 confirmed 占用，给出错峰或窗口调整建议，并给出推荐访问顺序。\n谢谢！"
+      },
+      {
+        "message_id": "msg_912",
+        "from": "volunteer@community.org",
+        "to": "me@company.com",
+        "subject": "活动志愿者招募（3/30 同期）",
+        "date": "2026-03-24T09:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们将在 3/30 上午开展社区活动招募与培训，若你有空可参加志愿者培训。"
+      },
+      {
+        "message_id": "msg_913",
+        "from": "travel-policy@company.com",
+        "to": "all@company.com",
+        "subject": "差旅政策更新：餐补与交通报销说明",
+        "date": "2026-03-22T18:40:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位同事：本月差旅报销标准更新，详见附件（本邮件不涉及站点与到达窗口）。"
+      },
+      {
+        "message_id": "msg_914",
+        "from": "it-news@company.com",
+        "to": "me@company.com",
+        "subject": "IT公告：系统健康检查已完成",
+        "date": "2026-03-25T08:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "系统健康检查已在夜间完成，未发现高风险告警。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题为单站点出差邀请并做本地冲突检查；新题要求从一封邮件解析多站点城市与到达窗口，结合日历上午/下午/结束前约束给出多站点最优顺序与错峰拆分建议。",
+    "fixture_design_summary": [
+      "Gmail：提供1封关键“多站点补丁发布与现场支持”邮件，包含3个站点（东港/南湾/江城）及对应到达窗口规则；并加入2条干扰邮件外加1条无关公告。",
+      "Calendar：为东港站点日期（3/30上午）放入confirmed事件占用；为南湾站点日期（3/31下午）放入confirmed事件占用；为江城站点日期（4/1早晨）放入短时confirmed事件，其余关键天提供free以便生成错峰/拆分建议。",
+      "Contacts：为每个站点城市提供至少3名联系人（现场支持负责人/对接工程/协调人员），并加入2名非本次城市的干扰联系人以验证城市归属筛选。"
+    ]
+  }
+}

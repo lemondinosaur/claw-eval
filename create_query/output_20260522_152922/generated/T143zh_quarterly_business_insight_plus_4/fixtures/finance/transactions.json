@@ -1,0 +1,245 @@
+[
+  {
+    "transaction_id": "TXN-2041",
+    "customer_id": "CUS-204",
+    "amount": 52000,
+    "type": "subscription",
+    "date": "2026-01-18",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2042",
+    "customer_id": "CUS-204",
+    "amount": 53000,
+    "type": "subscription",
+    "date": "2026-02-18",
+    "status": "completed",
+    "description": "2月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2043",
+    "customer_id": "CUS-204",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-03-18",
+    "status": "completed",
+    "description": "3月合同执行中断（费用计为0）"
+  },
+  {
+    "transaction_id": "TXN-2044",
+    "customer_id": "CUS-204",
+    "amount": 61000,
+    "type": "subscription",
+    "date": "2026-04-17",
+    "status": "completed",
+    "description": "4月恢复订阅（复购）"
+  },
+  {
+    "transaction_id": "TXN-2045",
+    "customer_id": "CUS-204",
+    "amount": 63500,
+    "type": "subscription",
+    "date": "2026-05-17",
+    "status": "completed",
+    "description": "5月持续恢复订阅"
+  },
+  {
+    "transaction_id": "TXN-2051",
+    "customer_id": "CUS-205",
+    "amount": 76000,
+    "type": "subscription",
+    "date": "2026-01-09",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2052",
+    "customer_id": "CUS-205",
+    "amount": 77000,
+    "type": "subscription",
+    "date": "2026-02-09",
+    "status": "completed",
+    "description": "2月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2053",
+    "customer_id": "CUS-205",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-03-09",
+    "status": "completed",
+    "description": "3月物流项目暂停（费用计为0）"
+  },
+  {
+    "transaction_id": "TXN-2054",
+    "customer_id": "CUS-205",
+    "amount": 82000,
+    "type": "subscription",
+    "date": "2026-04-09",
+    "status": "completed",
+    "description": "4月恢复订阅（复购）"
+  },
+  {
+    "transaction_id": "TXN-2055",
+    "customer_id": "CUS-205",
+    "amount": 83500,
+    "type": "subscription",
+    "date": "2026-05-09",
+    "status": "completed",
+    "description": "5月稳定恢复订阅"
+  },
+  {
+    "transaction_id": "TXN-2061",
+    "customer_id": "CUS-206",
+    "amount": 98000,
+    "type": "subscription",
+    "date": "2026-01-14",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2062",
+    "customer_id": "CUS-206",
+    "amount": 99000,
+    "type": "subscription",
+    "date": "2026-02-14",
+    "status": "completed",
+    "description": "2月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2063",
+    "customer_id": "CUS-206",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-03-14",
+    "status": "completed",
+    "description": "3月预算冻结导致暂停（费用计为0）"
+  },
+  {
+    "transaction_id": "TXN-2064",
+    "customer_id": "CUS-206",
+    "amount": 101000,
+    "type": "subscription",
+    "date": "2026-04-12",
+    "status": "completed",
+    "description": "4月恢复订阅（复购）"
+  },
+  {
+    "transaction_id": "TXN-2065",
+    "customer_id": "CUS-206",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-05-12",
+    "status": "completed",
+    "description": "5月未能连续（费用计为0，疑似短暂停在重启阶段）"
+  },
+  {
+    "transaction_id": "TXN-2071",
+    "customer_id": "CUS-207",
+    "amount": 36000,
+    "type": "subscription",
+    "date": "2026-01-22",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2072",
+    "customer_id": "CUS-207",
+    "amount": 37000,
+    "type": "subscription",
+    "date": "2026-02-22",
+    "status": "completed",
+    "description": "2月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2073",
+    "customer_id": "CUS-207",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-03-22",
+    "status": "completed",
+    "description": "3月试用期后暂停（费用计为0）"
+  },
+  {
+    "transaction_id": "TXN-2074",
+    "customer_id": "CUS-207",
+    "amount": 39000,
+    "type": "subscription",
+    "date": "2026-04-21",
+    "status": "completed",
+    "description": "4月恢复订阅（续购意向转化）"
+  },
+  {
+    "transaction_id": "TXN-2075",
+    "customer_id": "CUS-207",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-05-21",
+    "status": "completed",
+    "description": "5月暂未连续（费用计为0）"
+  },
+  {
+    "transaction_id": "TXN-2081",
+    "customer_id": "CUS-208",
+    "amount": 61000,
+    "type": "subscription",
+    "date": "2026-01-11",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2082",
+    "customer_id": "CUS-208",
+    "amount": 62000,
+    "type": "subscription",
+    "date": "2026-02-11",
+    "status": "completed",
+    "description": "2月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2083",
+    "customer_id": "CUS-208",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-03-11",
+    "status": "completed",
+    "description": "3月投放预算收紧（费用计为0）"
+  },
+  {
+    "transaction_id": "TXN-2084",
+    "customer_id": "CUS-208",
+    "amount": 67000,
+    "type": "subscription",
+    "date": "2026-04-30",
+    "status": "completed",
+    "description": "4月恢复订阅（复购，集中在Q1末后）"
+  },
+  {
+    "transaction_id": "TXN-2091",
+    "customer_id": "CUS-209",
+    "amount": 88000,
+    "type": "subscription",
+    "date": "2026-01-16",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2092",
+    "customer_id": "CUS-209",
+    "amount": 87000,
+    "type": "subscription",
+    "date": "2026-02-16",
+    "status": "completed",
+    "description": "2月订阅费"
+  },
+  {
+    "transaction_id": "TXN-2093",
+    "customer_id": "CUS-209",
+    "amount": 0,
+    "type": "subscription",
+    "date": "2026-03-16",
+    "status": "completed",
+    "description": "3月预算削减导致暂停（费用计为0）"
+  }
+]

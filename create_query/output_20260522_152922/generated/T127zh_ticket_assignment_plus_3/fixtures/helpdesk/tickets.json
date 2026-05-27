@@ -1,0 +1,62 @@
+[
+  {
+    "ticket_id": "TK-1101",
+    "title": "核心门户接口超时导致下单失败",
+    "description": "核心门户API在今天 10:05 起出现间歇性超时，请求在网关侧累计排队。影响范围：仅影响移动端下单链路，部分用户重试后仍失败。已触发告警，预计将超出SLA。",
+    "reporter": "电商部孙经理",
+    "department": "电商部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-02T10:08:00Z",
+    "tags": [
+      "接口超时",
+      "下单",
+      "网关告警"
+    ],
+    "category": "系统故障",
+    "sla": "响应2小时内"
+  },
+  {
+    "ticket_id": "TK-1102",
+    "title": "已超SLA 2小时：日志采集延迟（ELK）",
+    "description": "从今天 09:20 起，日志采集任务持续延迟；目前告警显示“已超SLA 2小时”。影响范围：仅影响ELK索引写入，检索页面可用但数据落后。系统名称：LogIngest-ELK。",
+    "reporter": "运维部蔡工程师",
+    "department": "运维部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-02T11:15:00Z",
+    "tags": [
+      "日志采集",
+      "ELK",
+      "延迟"
+    ],
+    "category": "数据平台故障",
+    "sla": "响应1小时内"
+  },
+  {
+    "ticket_id": "TK-1103",
+    "title": "权限变更申请：项目组成员新增与合规校验",
+    "description": "申请为项目Alpha新增5名成员的系统访问权限。包含变更记录与审批号：APR-7741。需要核验最小权限原则与审计策略后完成配置。",
+    "reporter": "研发部李主管",
+    "department": "研发部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-02T12:30:00Z",
+    "tags": [],
+    "category": "",
+    "sla": "响应4小时内"
+  },
+  {
+    "ticket_id": "TK-1104",
+    "title": "VPN连接间歇失败（缺失tags）",
+    "description": "故障时段：今天 13:10-13:40 之间出现VPN连接间歇失败；影响范围：影响北京与上海两地远程员工；系统名称：VPN-Gateway。当前无明确tags与分类字段。",
+    "reporter": "人事部王助理",
+    "department": "人事部",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-02T13:42:00Z",
+    "tags": null,
+    "category": null,
+    "sla": "响应12小时内"
+  }
+]

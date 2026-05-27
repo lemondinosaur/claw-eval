@@ -1,0 +1,47 @@
+[
+  {
+    "customer_id": "CUS-2101",
+    "name": "星河零售科技",
+    "contact_person": "沈总监",
+    "email": "shen@xinghe-retail.com",
+    "phone": "13900212001",
+    "industry": "零售科技",
+    "tier": "vip",
+    "annual_revenue": 2200000,
+    "sla": "1小时响应，4小时解决（数据同步）",
+    "last_contact_date": "2026-04-12",
+    "status": "active",
+    "contract_end_date": "2027-11-30",
+    "notes": "VIP客户，履约系统强依赖订单状态同步与消息一致性；历史多次因同步延迟产生追偿风险"
+  },
+  {
+    "customer_id": "CUS-2102",
+    "name": "北境制造",
+    "contact_person": "韩经理",
+    "email": "han@beijing-manufacture.cn",
+    "phone": "13900212002",
+    "industry": "制造",
+    "tier": "standard",
+    "annual_revenue": 480000,
+    "sla": "4小时响应，24小时解决",
+    "last_contact_date": "2026-04-09",
+    "status": "active",
+    "contract_end_date": "2026-10-31",
+    "notes": "标准客户，偶发同步延迟可常规处理"
+  },
+  {
+    "customer_id": "CUS-2103",
+    "name": "云栖教育平台",
+    "contact_person": "刘主管",
+    "email": "liu@yunqi-edu.com",
+    "phone": "13900212003",
+    "industry": "教育科技",
+    "tier": "standard",
+    "annual_revenue": 310000,
+    "sla": "8小时响应，48小时解决",
+    "last_contact_date": "2026-04-05",
+    "status": "active",
+    "contract_end_date": "2026-12-15",
+    "notes": "标准客户，主要诉求为报表与数据展示延迟"
+  }
+]

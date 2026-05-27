@@ -1,0 +1,433 @@
+{
+  "task_id": "T105zh_job_failure_triage_plus_4",
+  "task_name": "多环境回滚触发失败与工单匹配",
+  "prompt_text": "近期我们在多环境进行发布与回滚操作时发现：回滚触发未按预期执行，导致相关环境处于不稳定状态。请你完成以下工作：\n\n1）查看所有失败的定时任务及其错误信息，重点识别“回滚触发类”任务（其执行历史中应包含 env=prod/stage 等环境字段及触发条件/错误原因）。\n2）查看当前未解决的工单（open），并解析每张工单描述中的环境标识与变更/回滚相关描述。\n3）分析哪些工单与“特定环境的回滚触发失败”有关：\n   - 将生产（prod）与预发（stage）分别分组\n   - 说明关联依据（故障任务的触发条件、错误信息、执行时间线 vs 工单描述中的变更类型/现象/时间线）\n   - 排除干扰工单（例如仅通知延迟、审计日志缺失等与回滚触发链路无直接关系的）。\n4）输出关联分析报告，并给出处理优先级建议：生产影响优先，其次预发；同时说明每个故障任务对应哪些工单、影响范围与建议优先级。\n\n最终报告请按“任务 → 环境 → 关联工单 → 触发链路证据 → 优先级建议”组织，并区分生产与非生产影响。",
+  "files": {
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "HD-1187",
+        "title": "生产环境：回滚按钮不可用/回滚未执行",
+        "description": "【环境：prod】发布后应自动回滚，但回滚按钮无法使用，回滚未能执行。现象发生在 2026-05-21 19:10 左右；变更类型：release 健康检查。自动回滚触发链路报错：回滚API返回 500。",
+        "reporter": "值班SRE-周岚",
+        "department": "SRE",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-21T19:26:00Z",
+        "tags": [
+          "prod",
+          "回滚",
+          "health-check",
+          "release",
+          "button-unavailable"
+        ],
+        "category": "变更失败"
+      },
+      {
+        "ticket_id": "HD-1188",
+        "title": "生产环境：变更健康检查失败后应触发回滚但未触发",
+        "description": "【环境：prod】变更健康检查失败触发器未调用回滚API，导致生产处于不稳定状态。时间线：2026-05-21T19:05Z 健康检查判定失败，随后回滚触发任务报错 500；影响范围：核心服务A、支付路由。",
+        "reporter": "平台运维-赵磊",
+        "department": "运维平台",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-21T19:40:00Z",
+        "tags": [
+          "prod",
+          "rollback-trigger",
+          "500",
+          "unstable"
+        ],
+        "category": "故障联动"
+      },
+      {
+        "ticket_id": "HD-1189",
+        "title": "生产环境：观测告警飙升疑与回滚未执行相关",
+        "description": "【环境：prod】2026-05-21T19:12Z 起观测告警持续上升。发布健康检查失败后应回滚，但回滚未执行。变更类型：release 灰度扩大，回滚触发链路疑似失败；请求建议：先确认回滚API是否返回500并恢复自动回滚。",
+        "reporter": "监控值班-郑薇",
+        "department": "SRE",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T19:55:00Z",
+        "tags": [
+          "prod",
+          "monitoring",
+          "rollback",
+          "release"
+        ],
+        "category": "观测与告警"
+      },
+      {
+        "ticket_id": "HD-1190",
+        "title": "预发环境：变更回滚未触发但健康检查显示正常",
+        "description": "【环境：stage】某次变更发布后，按流程应触发回滚，但回滚未触发。健康检查报告显示正常（与实际发布链路不一致）。回滚触发任务失败原因：任务参数校验失败（字段缺失），导致触发链路中止。时间线：2026-05-21T18:40Z。",
+        "reporter": "测试运维-陈凯",
+        "department": "测试平台",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T18:58:00Z",
+        "tags": [
+          "stage",
+          "rollback-trigger",
+          "param-validation",
+          "field-missing"
+        ],
+        "category": "变更失败"
+      },
+      {
+        "ticket_id": "HD-1191",
+        "title": "预发环境：回滚触发任务未运行/触发条件不完整",
+        "description": "【环境：stage】回滚触发链路未执行，怀疑由于任务参数缺失导致触发失败。变更类型：release（发布健康检查链路参数缺失）。预计应在 2026-05-21T18:42Z 调用回滚API，但未发生。",
+        "reporter": "平台QA-邓敏",
+        "department": "测试平台",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T19:05:00Z",
+        "tags": [
+          "stage",
+          "rollback",
+          "trigger-not-fired",
+          "missing-parameter"
+        ],
+        "category": "故障联动"
+      },
+      {
+        "ticket_id": "HD-1192",
+        "title": "预发环境：观测平台通知延迟",
+        "description": "【环境：stage】观测平台告警通知延迟约 15 分钟，未发现回滚触发链路直接异常。该问题可能造成现象先后顺序错觉，但与回滚API调用失败无明确关联。",
+        "reporter": "值班NOC-王昊",
+        "department": "NOC",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-21T19:20:00Z",
+        "tags": [
+          "stage",
+          "notification-delay"
+        ],
+        "category": "通知异常"
+      },
+      {
+        "ticket_id": "HD-1193",
+        "title": "生产环境：审计日志缺失影响排查",
+        "description": "【环境：prod】2026-05-21T19:00Z-19:20Z 审计日志缺失，导致回滚相关请求难以追踪。暂未确认回滚触发是否成功，但该工单本身不包含明确的回滚触发失败原因。",
+        "reporter": "安全审计-孙悦",
+        "department": "安全",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-21T19:33:00Z",
+        "tags": [
+          "prod",
+          "audit-log-missing"
+        ],
+        "category": "审计与合规"
+      },
+      {
+        "ticket_id": "HD-1194",
+        "title": "生产环境：权限变更导致部分操作失败",
+        "description": "【环境：prod】2026-05-21T18:55Z 进行权限策略调整，导致部分管理操作权限受限。该工单未直接指向回滚触发任务错误，但可能间接影响回滚按钮行为。",
+        "reporter": "权限管理员-蒋晨",
+        "department": "IAM",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-21T19:10:00Z",
+        "tags": [
+          "prod",
+          "permission-change"
+        ],
+        "category": "权限变更"
+      },
+      {
+        "ticket_id": "HD-1195",
+        "title": "预发环境：镜像拉取偶发超时（疑似无关）",
+        "description": "【环境：stage】部分实例在 2026-05-21T18:30Z-18:50Z 拉取镜像偶发超时。未显示回滚触发链路错误；建议作为并行排查项排除。",
+        "reporter": "运维值班-姚锦",
+        "department": "测试平台",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-21T18:52:00Z",
+        "tags": [
+          "stage",
+          "image-pull-timeout"
+        ],
+        "category": "基础设施"
+      },
+      {
+        "ticket_id": "HD-1196",
+        "title": "生产环境：发布流水线重试导致时间线交叉",
+        "description": "【环境：prod】发布流水线出现重试，导致不同环节时间线交叉。该工单不直接提供回滚API调用错误，但可能与“回滚未执行”时间点重叠。",
+        "reporter": "发布负责人-许捷",
+        "department": "发布工程",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-21T20:02:00Z",
+        "tags": [
+          "prod",
+          "pipeline-retry"
+        ],
+        "category": "发布流程"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-410",
+        "name": "生产：监听健康检查失败后触发回滚（release-guard）",
+        "cron_expression": "*/5 * * * *",
+        "action": "trigger_rollback_on_health_fail",
+        "enabled": true,
+        "last_run": "2026-05-21T19:10:00Z",
+        "next_run": "2026-05-21T19:15:00Z",
+        "last_status": "failed",
+        "created_by": "release-platform",
+        "tags": [
+          "release",
+          "rollback_trigger",
+          "env:prod"
+        ],
+        "created_at": "2026-03-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T19:10:00Z",
+            "status": "failed",
+            "duration_s": 6,
+            "env": "prod",
+            "trigger_condition": "变更健康检查失败",
+            "expected_trigger": "调用回滚API执行回滚",
+            "error": "RollbackAPIError: 回滚API返回500 Internal Server Error",
+            "request_id": "req-prod-5f3a21"
+          },
+          {
+            "run_at": "2026-05-21T19:05:00Z",
+            "status": "failed",
+            "duration_s": 6,
+            "env": "prod",
+            "trigger_condition": "变更健康检查失败",
+            "expected_trigger": "调用回滚API执行回滚",
+            "error": "RollbackAPIError: 回滚API返回500 Internal Server Error",
+            "request_id": "req-prod-7c9bd0"
+          },
+          {
+            "run_at": "2026-05-21T18:55:00Z",
+            "status": "success",
+            "duration_s": 4,
+            "env": "prod",
+            "trigger_condition": "健康检查通过",
+            "note": "未触发回滚"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-411",
+        "name": "预发：变更回滚触发（health-to-rollback）参数校验链路",
+        "cron_expression": "*/7 * * * *",
+        "action": "trigger_rollback_on_health_fail",
+        "enabled": true,
+        "last_run": "2026-05-21T18:42:00Z",
+        "next_run": "2026-05-21T18:49:00Z",
+        "last_status": "failed",
+        "created_by": "release-platform",
+        "tags": [
+          "release",
+          "rollback_trigger",
+          "env:stage"
+        ],
+        "created_at": "2026-03-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T18:42:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "env": "stage",
+            "trigger_condition": "变更健康检查失败（应触发回滚）",
+            "expected_trigger": "调用回滚API执行回滚",
+            "error": "ValidationError: 任务参数校验失败（字段缺失：rollback_target_env）",
+            "request_id": "req-stage-13aa7f"
+          },
+          {
+            "run_at": "2026-05-21T18:35:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "env": "stage",
+            "trigger_condition": "变更健康检查失败（应触发回滚）",
+            "expected_trigger": "调用回滚API执行回滚",
+            "error": "ValidationError: 任务参数校验失败（字段缺失：rollback_target_env）",
+            "request_id": "req-stage-0b41c2"
+          },
+          {
+            "run_at": "2026-05-21T18:28:00Z",
+            "status": "success",
+            "duration_s": 3,
+            "env": "stage",
+            "trigger_condition": "健康检查通过",
+            "note": "未触发回滚"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-412",
+        "name": "预发：观测平台告警通知转发",
+        "cron_expression": "*/10 * * * *",
+        "action": "forward_observability_alerts",
+        "enabled": true,
+        "last_run": "2026-05-21T19:20:00Z",
+        "next_run": "2026-05-21T19:30:00Z",
+        "last_status": "success",
+        "created_by": "noc-automation",
+        "tags": [
+          "notification",
+          "observability",
+          "env:stage"
+        ],
+        "created_at": "2026-02-10T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T19:20:00Z",
+            "status": "success",
+            "duration_s": 8,
+            "env": "stage",
+            "note": "转发完成"
+          },
+          {
+            "run_at": "2026-05-21T19:10:00Z",
+            "status": "success",
+            "duration_s": 7,
+            "env": "stage",
+            "note": "转发完成"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-413",
+        "name": "生产：变更流水线状态收集",
+        "cron_expression": "0 */15 * * *",
+        "action": "collect_release_pipeline_status",
+        "enabled": true,
+        "last_run": "2026-05-21T19:15:00Z",
+        "next_run": "2026-05-21T19:30:00Z",
+        "last_status": "success",
+        "created_by": "release-platform",
+        "tags": [
+          "release",
+          "pipeline-status",
+          "env:prod"
+        ],
+        "created_at": "2026-02-10T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T19:15:00Z",
+            "status": "success",
+            "duration_s": 9,
+            "env": "prod",
+            "note": "已汇总状态"
+          },
+          {
+            "run_at": "2026-05-21T19:00:00Z",
+            "status": "success",
+            "duration_s": 9,
+            "env": "prod",
+            "note": "已汇总状态"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-414",
+        "name": "生产：回滚API健康探测（仅健康监控）",
+        "cron_expression": "*/6 * * * *",
+        "action": "probe_rollback_api_health",
+        "enabled": true,
+        "last_run": "2026-05-21T19:16:00Z",
+        "next_run": "2026-05-21T19:22:00Z",
+        "last_status": "success",
+        "created_by": "sre-automation",
+        "tags": [
+          "health",
+          "env:prod",
+          "rollback-api"
+        ],
+        "created_at": "2026-02-20T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T19:16:00Z",
+            "status": "success",
+            "duration_s": 2,
+            "env": "prod",
+            "note": "探测HTTP 200"
+          },
+          {
+            "run_at": "2026-05-21T19:10:00Z",
+            "status": "success",
+            "duration_s": 2,
+            "env": "prod",
+            "note": "探测HTTP 200"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-415",
+        "name": "预发：变更健康检查结果归档",
+        "cron_expression": "0 */30 * * *",
+        "action": "archive_change_health_results",
+        "enabled": true,
+        "last_run": "2026-05-21T18:30:00Z",
+        "next_run": "2026-05-21T19:00:00Z",
+        "last_status": "success",
+        "created_by": "qa-ops",
+        "tags": [
+          "archive",
+          "env:stage",
+          "health-check"
+        ],
+        "created_at": "2026-01-20T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T18:30:00Z",
+            "status": "success",
+            "duration_s": 10,
+            "env": "stage",
+            "note": "归档完成"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-416",
+        "name": "生产：发布告警聚合与分发",
+        "cron_expression": "*/12 * * * *",
+        "action": "aggregate_and_distribute_release_alerts",
+        "enabled": true,
+        "last_run": "2026-05-21T19:24:00Z",
+        "next_run": "2026-05-21T19:36:00Z",
+        "last_status": "success",
+        "created_by": "release-alerts",
+        "tags": [
+          "notification",
+          "env:prod",
+          "release"
+        ],
+        "created_at": "2026-01-25T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T19:24:00Z",
+            "status": "success",
+            "duration_s": 11,
+            "env": "prod",
+            "note": "聚合完成并分发"
+          },
+          {
+            "run_at": "2026-05-21T19:12:00Z",
+            "status": "success",
+            "duration_s": 12,
+            "env": "prod",
+            "note": "聚合完成并分发"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题强调从调度平台“回滚触发类”失败记录提取触发条件与错误，并用工单描述的prod/stage环境与变更类型建立关联，按生产/预发分层给出优先级；原题不含该语义要求。",
+    "fixture_design_summary": [
+      "scheduler/jobs.json 提供2条失败且分别带 env:prod/env:stage 的回滚触发任务：prod错误为回滚API 500，stage错误为参数校验字段缺失。",
+      "helpdesk/tickets.json 中分别构造至少2条生产与至少2条预发 open工单，description 均包含【环境：prod/stage】与回滚/健康检查/变更类型关键词以支持关联。",
+      "额外加入通知延迟、审计日志缺失、权限变更、流水线重试等干扰工单，description 明确不提供回滚触发链路直接错误，便于排除。",
+      "跨文件实体一致性通过环境标识（prod/stage）与时间线描述来保证任务-工单可对应。"
+    ]
+  }
+}

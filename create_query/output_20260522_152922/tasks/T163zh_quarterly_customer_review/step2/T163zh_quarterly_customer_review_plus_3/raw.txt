@@ -1,0 +1,540 @@
+{
+  "task_id": "T163zh_quarterly_customer_review_plus_3",
+  "task_name": "风险工单驱动的季度专项回顾（投诉升级）",
+  "prompt_text": "请为5个“近期触发风险”的客户做Q2专项回顾（时间窗口：2026-04-01至2026-05-31；聚焦投诉升级与整改）：\n1）从Gmail收件箱中抽取每个客户至少两段“投诉/升级时间线”（按邮件日期排序、注明事件与要点）；\n2）结合CRM中客户满意度与合同到期时间，评估对续费/降级的影响与风险权重；\n3）核对财务端交易证据：是否出现降级/延迟/中断（subscription/addon终止、交易描述含降级/延迟/中止、或交易status非completed）；\n4）给出整改优先级与跟进计划（未来2周内两步动作，需具体到负责人角色与执行事项）；\n5）最后汇总“最需要立即介入”的Top2客户，并解释依据（邮件升级强度+合同节点+财务中断/降级证据）。\n\n提示：候选客户来自“邮件触发器”：在窗口内Gmail中存在至少3个客户邮件，其labels包含“升级”或“投诉”；其余客户即使邮件偏中性，也要能从财务端对齐到“降级描述/收入下滑addon终止”的迹象。行业RSS只能作为背景，不得替代对客户邮件与财务事实的落点。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-2101",
+        "name": "周晴",
+        "email": "zhouqing@company.com",
+        "phone": "13900100211",
+        "department": "客户成功部",
+        "title": "客户成功经理",
+        "responsibilities": [
+          "续费保全与风险预警",
+          "客户满意度跟踪",
+          "整改跟进与SLA拉通",
+          "CUS-2101青岚科技",
+          "CUS-2103北海制造"
+        ]
+      },
+      {
+        "contact_id": "CON-2102",
+        "name": "孙凯",
+        "email": "sunkai@company.com",
+        "phone": "13900100212",
+        "department": "销售部",
+        "title": "高级客户经理",
+        "responsibilities": [
+          "合同谈判与续约推进",
+          "商务方案与报价",
+          "CUS-2102华桥物流",
+          "CUS-2104橙海零售"
+        ]
+      },
+      {
+        "contact_id": "CON-2103",
+        "name": "陈熙",
+        "email": "chenxi@company.com",
+        "phone": "13900100213",
+        "department": "技术部",
+        "title": "交付与技术支持负责人",
+        "responsibilities": [
+          "故障处置与根因分析",
+          "上线验收与性能调优",
+          "SLA整改技术支持",
+          "CUS-2102华桥物流",
+          "CUS-2105星辰教育"
+        ]
+      },
+      {
+        "contact_id": "CON-2104",
+        "name": "徐岚",
+        "email": "xulan@company.com",
+        "phone": "13900100214",
+        "department": "运营部",
+        "title": "续约运营专员",
+        "responsibilities": [
+          "续费流程节点管理",
+          "工单与整改状态汇总",
+          "合同到期提醒",
+          "跨部门跟进协同"
+        ]
+      },
+      {
+        "contact_id": "CON-2105",
+        "name": "钱程",
+        "email": "qiancheng@company.com",
+        "phone": "13900100215",
+        "department": "财务部",
+        "title": "应收与合同审核",
+        "responsibilities": [
+          "应收对账与交易核查",
+          "合同条款一致性审核",
+          "识别订阅异常与addon终止影响"
+        ]
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2101",
+        "name": "青岚科技",
+        "tier": "vip",
+        "status": "active",
+        "industry": "软件与数据",
+        "satisfaction": 2.8,
+        "contract_end": "2026-06-18",
+        "sales_owner": "周晴",
+        "notes": "近期开启降级谈判；连续两次服务整改未达预期；当前工单待确认（需关注SLA与性能）",
+        "contact_person": "周晴",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2102",
+        "name": "华桥物流",
+        "tier": "standard",
+        "status": "active",
+        "industry": "物流运输",
+        "satisfaction": 3.1,
+        "contract_end": "2026-07-29",
+        "sales_owner": "孙凯",
+        "notes": "满意度波动：对账争议与响应慢；待确认的整改工单（功能无法落地）",
+        "contact_person": "孙凯",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2103",
+        "name": "北海制造",
+        "tier": "vip",
+        "status": "active",
+        "industry": "装备制造",
+        "satisfaction": 2.2,
+        "contract_end": "2026-08-05",
+        "sales_owner": "周晴",
+        "notes": "整改中：上线后关键报表延迟；用户反馈“超过48小时仍未恢复”；续费条件尚待谈判",
+        "contact_person": "周晴",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2104",
+        "name": "橙海零售",
+        "tier": "standard",
+        "status": "active",
+        "industry": "零售与消费",
+        "satisfaction": 3.9,
+        "contract_end": "2026-06-30",
+        "sales_owner": "孙凯",
+        "notes": "合同到期临近；满意度中等但存在投诉升级（对账差异）；财务端疑似addon调整",
+        "contact_person": "孙凯",
+        "annual_revenue": 0
+      },
+      {
+        "customer_id": "CUS-2105",
+        "name": "星辰教育",
+        "tier": "standard",
+        "status": "active",
+        "industry": "教育科技",
+        "satisfaction": 4.1,
+        "contract_end": "2026-07-15",
+        "sales_owner": "周晴",
+        "notes": "邮件整体偏中性但存在潜在降级迹象；待跟进：确认技术交付与续费边界",
+        "contact_person": "周晴",
+        "annual_revenue": 0
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-21001",
+        "customer_id": "CUS-2101",
+        "amount": 62000,
+        "type": "subscription",
+        "date": "2026-04-01",
+        "status": "completed",
+        "description": "4月订阅费（基础版）"
+      },
+      {
+        "transaction_id": "TXN-21002",
+        "customer_id": "CUS-2101",
+        "amount": 42000,
+        "type": "addon",
+        "date": "2026-04-18",
+        "status": "completed",
+        "description": "AI分析加购（本月续费；用户要求降级谈判后调整配额）"
+      },
+      {
+        "transaction_id": "TXN-21003",
+        "customer_id": "CUS-2101",
+        "amount": -42000,
+        "type": "addon",
+        "date": "2026-05-22",
+        "status": "completed",
+        "description": "addon终止/降级：AI分析加购于5月中止，导致续费延后审批"
+      },
+      {
+        "transaction_id": "TXN-21004",
+        "customer_id": "CUS-2102",
+        "amount": 51000,
+        "type": "subscription",
+        "date": "2026-04-09",
+        "status": "completed",
+        "description": "订阅费（含部分高级接口包）"
+      },
+      {
+        "transaction_id": "TXN-21005",
+        "customer_id": "CUS-2102",
+        "amount": 25000,
+        "type": "addon",
+        "date": "2026-04-27",
+        "status": "completed",
+        "description": "线路优化addon（已开票）"
+      },
+      {
+        "transaction_id": "TXN-21006",
+        "customer_id": "CUS-2102",
+        "amount": -25000,
+        "type": "addon",
+        "date": "2026-05-14",
+        "status": "completed",
+        "description": "addon终止：对账争议导致线路优化服务下线，收入下降"
+      },
+      {
+        "transaction_id": "TXN-21007",
+        "customer_id": "CUS-2103",
+        "amount": 74000,
+        "type": "subscription",
+        "date": "2026-04-12",
+        "status": "completed",
+        "description": "4月订阅费"
+      },
+      {
+        "transaction_id": "TXN-21008",
+        "customer_id": "CUS-2103",
+        "amount": 30000,
+        "type": "addon",
+        "date": "2026-04-28",
+        "status": "completed",
+        "description": "报表增强addon（按计划开通）"
+      },
+      {
+        "transaction_id": "TXN-21009",
+        "customer_id": "CUS-2103",
+        "amount": 30000,
+        "type": "addon",
+        "date": "2026-05-30",
+        "status": "pending",
+        "description": "addon续费延迟：报表异常未修复，财务等待确认后放行"
+      },
+      {
+        "transaction_id": "TXN-21010",
+        "customer_id": "CUS-2104",
+        "amount": 39000,
+        "type": "subscription",
+        "date": "2026-04-22",
+        "status": "completed",
+        "description": "订阅费（基础）"
+      },
+      {
+        "transaction_id": "TXN-21011",
+        "customer_id": "CUS-2104",
+        "amount": 16000,
+        "type": "addon",
+        "date": "2026-05-02",
+        "status": "completed",
+        "description": "营销自动化addon（已计提；但客户要求调整账单）"
+      },
+      {
+        "transaction_id": "TXN-21012",
+        "customer_id": "CUS-2104",
+        "amount": -16000,
+        "type": "addon",
+        "date": "2026-05-26",
+        "status": "completed",
+        "description": "addon调整/中断：因对账差异于5月下旬停止扣费"
+      },
+      {
+        "transaction_id": "TXN-21013",
+        "customer_id": "CUS-2105",
+        "amount": 28000,
+        "type": "subscription",
+        "date": "2026-04-05",
+        "status": "completed",
+        "description": "订阅费（标准）"
+      },
+      {
+        "transaction_id": "TXN-21014",
+        "customer_id": "CUS-2105",
+        "amount": -12000,
+        "type": "addon",
+        "date": "2026-05-11",
+        "status": "completed",
+        "description": "降级证据：学习数据addon于5月起终止，整体收入下降"
+      },
+      {
+        "transaction_id": "TXN-21015",
+        "customer_id": "CUS-2105",
+        "amount": 16000,
+        "type": "subscription",
+        "date": "2026-05-25",
+        "status": "completed",
+        "description": "5月续费（基础化）"
+      },
+      {
+        "transaction_id": "TXN-21016",
+        "customer_id": "CUS-2102",
+        "amount": 17000,
+        "type": "subscription",
+        "date": "2026-05-30",
+        "status": "completed",
+        "description": "5月订阅补差：因功能无法落地进行服务抵扣"
+      },
+      {
+        "transaction_id": "TXN-21017",
+        "customer_id": "CUS-2101",
+        "amount": 58000,
+        "type": "subscription",
+        "date": "2026-05-05",
+        "status": "completed",
+        "description": "5月订阅费（续费批注：等待整改闭环）"
+      },
+      {
+        "transaction_id": "TXN-21018",
+        "customer_id": "CUS-2103",
+        "amount": 74000,
+        "type": "subscription",
+        "date": "2026-05-12",
+        "status": "completed",
+        "description": "5月订阅费（含服务补偿）"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_21001",
+        "from": "lana@qltech.cn",
+        "to": "me@company.com",
+        "subject": "关于SLA连续超时的升级通知",
+        "date": "2026-04-09T03:12:00Z",
+        "body": "您好，青岚科技这里必须升级：自4月1日起，我们的两类工单平均48小时后才有初步响应，且升级到二线仍在24小时内未给出明确处理方案。\n请求：请在48小时内给出根因分析与修复路径，否则我们将评估降级方案并冻结部分加购。\n——李娜，青岚科技IT负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "升级"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_21002",
+        "from": "support@qltech.cn",
+        "to": "me@company.com",
+        "subject": "后续跟进：性能未改善，整改工单仍待确认",
+        "date": "2026-04-26T07:40:00Z",
+        "body": "跟进上次问题。4月中旬的性能优化承诺截至目前仍未稳定：报表刷新延迟明显，夜间批处理经常卡住。\n另外，我们收到贵方尚未关闭的整改项，状态显示“待确认”。\n请安排技术复盘会，并给出可执行的整改清单与时间点。\n——研发运维，青岚科技",
+        "labels": [
+          "inbox",
+          "客户",
+          "投诉"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_21003",
+        "from": "billing@qltech.cn",
+        "to": "me@company.com",
+        "subject": "关于addon降级谈判的财务口径",
+        "date": "2026-05-23T08:10:00Z",
+        "body": "我们正在和采购同事讨论续费方案：由于AI分析addon在5月中旬被暂停，我们希望把降级与整改闭环绑定。\n请提供：1）暂停期间的影响说明；2）恢复/降级的审批路径；3）如果无法按期恢复，将如何处理续费延迟。\n——财务BP，青岚科技",
+        "labels": [
+          "inbox",
+          "客户",
+          "升级"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_21004",
+        "from": "zhangwei@bridge-logistics.com",
+        "to": "me@company.com",
+        "subject": "投诉：对账差异导致线路优化服务中断",
+        "date": "2026-04-17T02:20:00Z",
+        "body": "华桥物流需要投诉升级：我们发现线路优化相关addon的计费与实际使用存在差异，导致系统在4月底开始无法正常扣费并中断服务。\n希望你们在5个工作日内给出对账明细与修正方案，否则将不再续购高级接口包。\n——张伟，华桥物流财务系统负责人",
+        "labels": [
+          "inbox",
+          "客户",
+          "投诉"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_21005",
+        "from": "ops@bridge-logistics.com",
+        "to": "me@company.com",
+        "subject": "升级：响应慢且功能无法落地",
+        "date": "2026-05-10T06:55:00Z",
+        "body": "后续升级反馈：本月我们仍多次提工单，但平均响应超过48小时。\n此外，线路优化接口虽然部署完成，但在我们实际运输场景中无法落地，影响调度效率。\n请安排一次商务+技术联合评估，并给出替代方案或服务调整建议。\n——运维负责人，华桥物流",
+        "labels": [
+          "inbox",
+          "客户",
+          "升级"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_21006",
+        "from": "user@northsea-mfg.cn",
+        "to": "me@company.com",
+        "subject": "投诉：关键报表延迟超过48小时仍未恢复",
+        "date": "2026-04-23T01:25:00Z",
+        "body": "北海制造投诉：关键经营报表刷新延迟经常超过48小时。\n我们已连续两周提交工单，但仍未给出明确恢复时间。\n请在48小时内安排根因排查与升级方案，否则我们会启动续费条件重新评估。\n——信息化负责人，北海制造",
+        "labels": [
+          "inbox",
+          "客户",
+          "投诉"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_21007",
+        "from": "it@northsea-mfg.cn",
+        "to": "me@company.com",
+        "subject": "跟进：整改中但仍待验证，报表口径不一致",
+        "date": "2026-05-18T04:30:00Z",
+        "body": "跟进上次整改：目前系统虽恢复到可用状态，但报表口径仍与内部数据口径不一致，导致我们无法按期汇总。\n请提供整改闭环材料，并给出下一步的验证计划。\n——IT主管，北海制造",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_21008",
+        "from": "mgr@orangesea-retail.cn",
+        "to": "me@company.com",
+        "subject": "关于对账差异的投诉升级",
+        "date": "2026-05-05T03:50:00Z",
+        "body": "橙海零售投诉升级：营销自动化addon的账单与实际活动结算不一致。\n我们需要你们提供差异原因说明并在10个工作日内完成修正，否则后续续费将按基础配置执行。\n——运营经理，橙海零售",
+        "labels": [
+          "inbox",
+          "客户",
+          "投诉"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_21009",
+        "from": "it@orangesea-retail.cn",
+        "to": "me@company.com",
+        "subject": "中性沟通：希望在合同到期前确认下一步",
+        "date": "2026-04-28T09:05:00Z",
+        "body": "您好，我们目前使用情况总体可接受。临近6月底合同到期，想请你们在下次会议前整理续费选项（基础/调整后档位）以及需要我们配合的材料。\n——IT负责人，橙海零售",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_21010",
+        "from": "head@starclass.edu",
+        "to": "me@company.com",
+        "subject": "季度中性更新：确认配额与课程数据使用边界",
+        "date": "2026-05-08T06:20:00Z",
+        "body": "星辰教育这里想做一次中性确认：我们最近调整了课程数据的使用范围，希望你们帮忙确认学习数据addon在当前档位下的配额与后续续费边界。\n如有需要，我们愿意提供使用报告。\n——教研负责人，星辰教育",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_21011",
+        "from": "finance@starclass.edu",
+        "to": "me@company.com",
+        "subject": "关于addon终止影响的确认（财务侧）",
+        "date": "2026-05-27T11:10:00Z",
+        "body": "财务确认：学习数据addon从5月开始终止使用，我们希望你们从账单侧确认收入变化，并给出下一步建议（是否降级为基础订阅）。\n——财务BP，星辰教育",
+        "labels": [
+          "inbox",
+          "客户"
+        ],
+        "is_read": false
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-2101",
+        "title": "SaaS服务质量争议上升：成本压力下的整改与降级更频繁",
+        "summary": "多行业在成本压力下更关注SLA与交付兑现；当服务响应被认为不达标时，客户更倾向通过降级或冻结部分加购来控制风险。",
+        "tags": [
+          "SaaS",
+          "服务质量",
+          "成本压力"
+        ],
+        "url": "https://industry-watch.example.com/2101",
+        "content": "多行业在成本压力下更关注SLA与交付兑现；当服务响应被认为不达标时，客户更倾向通过降级或冻结部分加购来控制风险。",
+        "category": "SaaS, 服务质量, 成本压力",
+        "source": "行业观察",
+        "published_at": "2026-05-12T00:00:00Z",
+        "word_count": 63
+      },
+      {
+        "article_id": "RSS-2102",
+        "title": "物流与制造客户的续费决策：对账准确性与验证周期成关键",
+        "summary": "在供应链波动背景下，物流与制造客户在续费前更关注对账一致性与功能验证周期；一旦出现口径不一致或交付延迟，续费会转为条件式推进。",
+        "tags": [
+          "物流",
+          "制造",
+          "对账",
+          "交付"
+        ],
+        "url": "https://biz-trends.example.com/2102",
+        "content": "在供应链波动背景下，物流与制造客户在续费前更关注对账一致性与功能验证周期；一旦出现口径不一致或交付延迟，续费会转为条件式推进。",
+        "category": "物流, 制造, 对账, 交付",
+        "source": "商业趋势周报",
+        "published_at": "2026-05-20T00:00:00Z",
+        "word_count": 58
+      },
+      {
+        "article_id": "RSS-2103",
+        "title": "教育科技续约更保守：配额调整与降级预期上升",
+        "summary": "教育科技客户在新学期前通常进行预算再分配；若新增功能落地节奏慢，常见做法是先调整配额、再考虑降级订阅以控制支出。",
+        "tags": [
+          "教育科技",
+          "预算",
+          "降级"
+        ],
+        "url": "https://edtech-daily.example.com/2103",
+        "content": "教育科技客户在新学期前通常进行预算再分配；若新增功能落地节奏慢，常见做法是先调整配额、再考虑降级订阅以控制支出。",
+        "category": "教育科技, 预算, 降级",
+        "source": "EdTech Daily",
+        "published_at": "2026-04-30T00:00:00Z",
+        "word_count": 49
+      },
+      {
+        "article_id": "RSS-2104",
+        "title": "零售行业对营销加购更谨慎：结算差异会放大续费风险",
+        "summary": "零售企业在季末更敏感于营销加购结算口径；若账单与活动效果存在差异，客户往往将续费档位下调并要求对账闭环。",
+        "tags": [
+          "零售",
+          "营销自动化",
+          "结算差异"
+        ],
+        "url": "https://retail-metrics.example.com/2104",
+        "content": "零售企业在季末更敏感于营销加购结算口径；若账单与活动效果存在差异，客户往往将续费档位下调并要求对账闭环。",
+        "category": "零售, 营销自动化, 结算差异",
+        "source": "零售指标观察",
+        "published_at": "2026-05-25T00:00:00Z",
+        "word_count": 55
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的“综合季度回顾”改为“投诉升级驱动”的Q2专项回顾，重点要求从邮件提取升级时间线、并用财务addon终止/降级与续费延迟证据对齐给出2周整改计划与Top2紧急介入客户。",
+    "fixture_design_summary": [
+      "CRM新增5个全新客户（CUS-2101~CUS-2105），含合同到期覆盖6月中旬及7月底，并在notes中加入降级谈判/整改中/待确认工单等关键字；至少两位满意度<=3.0（青岚科技、北海制造）。",
+      "财务新增约16笔交易，覆盖2026-04-01至2026-05-31；其中多笔包含addon终止或description提到降级/中断/延迟，且含status=pending用于“续费延迟”证据。",
+      "Gmail新增窗口内邮件约11封，至少3个客户（青岚科技、华桥物流、北海制造、橙海零售）包含labels含“升级/投诉”，并对每个至少给出两封可形成时间线的邮件（青岚科技、华桥物流、北海制造）。",
+      "其余客户（星辰教育、橙海零售至少一封中性邮件）用于“邮件中性但财务对齐降级迹象”的情形：星辰教育通过addon终止交易描述对齐。",
+      "contacts新增5位全新联系人，并通过sales_owner/职责指向客户成功/销售/技术支持/财务审核角色，便于生成2周内的两步跟进责任分工与Top2依据。"
+    ]
+  }
+}

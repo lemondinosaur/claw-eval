@@ -1,0 +1,378 @@
+{
+  "task_id": "T037zh_incident_postmortem_plus_3",
+  "task_name": "消息投递失败+SMTP退避复盘",
+  "prompt_text": "昨晚生产环境发生一次通知与告警邮件大量延迟/未送达事故。请根据给定数据源撰写事故复盘报告（只做只读分析与根因推断，不要修改、关闭、通知或更新任何内容）：\n\n1）用工单形成按时间排序的故障时间线（至少覆盖：队列积压出现、SMTP降级被发现、任务重入/异常耗时、恢复后仍有少量乱序）；\n2）检查相关第三方集成的健康状态与异常提示，重点定位“mail_relay_smtp degraded”及其notes描述；\n3）阅读邮件以提取故障期间的技术分析与排查结论，尤其是退避策略/重试风暴/乱序相关描述；\n4）在知识库查找历史类似事故与经验，至少对照包含TODO的历史文章；\n5）查看会议记录确认近期变更与评审过程是否跳过关键的投递策略回归；\n6）检查定时任务notification_dispatch的触发与历史执行情况，判断是否发生enabled状态切换、连续失败后成功、短时间多次重入等异常，并推断是否与错误投递策略配置相关。\n\n最后输出：时间线、根因推断、影响评估、流程缺口、改进建议（需体现不可重入/互斥锁/幂等投递/回归校验/退避参数保护等至少3个概念）。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-451",
+        "name": "mail_relay_smtp",
+        "display_name": "邮件中继SMTP",
+        "status": "degraded",
+        "error_rate": 100,
+        "notes": "观察到退避窗口配置与重试间隔冲突：退避策略被误配置为固定退避，退避上限=0；在失败后触发重试风暴，导致同一告警的多次投递出现乱序与重复。故障窗口已观察到恢复但仍有少量乱序包。",
+        "service": "messaging",
+        "last_verified": "2026-03-01T09:10:00+08:00",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-452",
+        "name": "slack_webhook",
+        "display_name": "Slack告警Webhook",
+        "status": "active",
+        "error_rate": 0.2,
+        "notes": "故障期间偶发429已自动恢复；未发现与退避策略相关的配置异常。",
+        "service": "messaging",
+        "last_verified": "2026-03-01T09:10:00+08:00",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-453",
+        "name": "ticket_notification_provider",
+        "display_name": "工单通知聚合器",
+        "status": "degraded",
+        "error_rate": 38,
+        "notes": "队列积压导致告警摘要生成延迟，但不直接参与SMTP重试；与投递风暴并行，可能放大告警到达延迟。",
+        "service": "helpdesk",
+        "last_verified": "2026-03-01T09:10:00+08:00",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-454",
+        "name": "event_bus_dispatch",
+        "display_name": "事件总线投递",
+        "status": "active",
+        "error_rate": 0.4,
+        "notes": "事件发布正常；故障主要发生在下游SMTP投递阶段。仍存在部分消息因重试风暴而被重复派发。",
+        "service": "messaging",
+        "last_verified": "2026-03-01T09:10:00+08:00",
+        "monthly_calls": 0
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "gm_7701",
+        "from": "alert-router@company.com",
+        "to": "ops-lead@company.com",
+        "subject": "告警延迟：投递重试风暴已持续 9 分钟（退避参数异常）",
+        "body": "团队好，\n\n在 01:12-01:21（昨晚）期间，多条关键告警已进入“失败重试”链路，但队列处理并未线性增长，而是出现同一告警ID的多次重入导致乱序。\n\n关键配置命中：\n- 退避策略从“指数退避”被错误切换为“固定退避”\n- 退避上限=0（导致重试几乎不退避）\n- 重试间隔与退避窗口重叠，触发短时间内的重试风暴\n\n排查结论：\n1) SMTP中继返回失败并触发重试；\n2) notification_dispatch在上一轮未完成时再次启动（疑似互斥缺失/不可重入缺陷）；\n3) 因快速重试，同一告警被重复发送并导致乱序到达。\n\n建议：发布后执行“退避参数回归校验”（模拟发送并验证退避上限>0与退避窗口一致）。",
+        "date": "2026-03-01T01:22:30+08:00",
+        "labels": [
+          "INBOX",
+          "URGENT",
+          "ALERTS"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "gm_7702",
+        "from": "change-mgmt@company.com",
+        "to": "ops-lead@company.com",
+        "subject": "Re: 投递策略回归提醒（昨晚回滚后部分检查跳过）",
+        "body": "收到。我们确认：\n- 变更发布后未执行“投递策略回归脚本”（用于模拟发送并确认退避参数）。\n- 另外一次配置回滚仅恢复了前端开关，但默认参数未重置，导致退避上限仍为0。\n\n当前看：SMTP中继已从degraded恢复，但由于故障窗口存在重复/乱序投递，仍需要观察消息去重与到达顺序。\n\n—— 变更管理员",
+        "date": "2026-03-01T02:05:10+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": true
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-5171",
+        "title": "关键通知缺失：生产故障期间部分用户未收到告警邮件",
+        "reporter": "值班运维",
+        "created_at": "2026-03-01T00:55:00+08:00",
+        "priority": "critical",
+        "status": "investigating",
+        "description": "告警系统触发后，多名值班成员收到“关键通知缺失”的反馈。邮件投递延迟明显，部分告警在队列中停留超过10分钟。",
+        "tags": [
+          "notification",
+          "missing",
+          "smtp"
+        ],
+        "assignee": "值班SRE",
+        "department": "SRE"
+      },
+      {
+        "ticket_id": "TK-5172",
+        "title": "邮件队列积压：投递任务处理速率下降",
+        "reporter": "消息平台",
+        "created_at": "2026-03-01T01:03:20+08:00",
+        "priority": "high",
+        "status": "investigating",
+        "description": "notification_dispatch处理开始出现波动：队列积压从2万增长到超过7万，且处理耗时显著增加。疑似下游SMTP中继在故障窗口degraded导致失败回滚。",
+        "tags": [
+          "queue",
+          "delay",
+          "dispatch"
+        ],
+        "assignee": "消息平台工程师",
+        "department": "Messaging"
+      },
+      {
+        "ticket_id": "TK-5173",
+        "title": "重复发送：同一告警ID在短时间内被多次邮件触达",
+        "reporter": "安全监控",
+        "created_at": "2026-03-01T01:08:05+08:00",
+        "priority": "critical",
+        "status": "resolved",
+        "description": "发现同一告警（ALRM-88421）对应的通知被重复发送多次；日志显示同一消息在失败后重试时被再次入队，出现短时间内的重复投递。",
+        "tags": [
+          "duplicate",
+          "retries",
+          "out-of-order"
+        ],
+        "assignee": "消息平台工程师",
+        "department": "Security"
+      },
+      {
+        "ticket_id": "TK-5174",
+        "title": "乱序到达：先失败后成功导致到达顺序颠倒",
+        "reporter": "值班运维",
+        "created_at": "2026-03-01T01:12:45+08:00",
+        "priority": "high",
+        "status": "resolved",
+        "description": "观察到部分告警邮件“先失败后成功”的乱序：同一告警的不同重试版本到达顺序颠倒，造成用户误判故障已恢复。\n目前已定位到失败重试风暴阶段，后续逐步稳定。",
+        "tags": [
+          "out-of-order",
+          "recovery",
+          "smtp"
+        ],
+        "assignee": "值班SRE",
+        "department": "SRE"
+      },
+      {
+        "ticket_id": "TK-5175",
+        "title": "SMTP中继降级确认：退避配置疑似异常",
+        "reporter": "集成负责人",
+        "created_at": "2026-03-01T01:18:10+08:00",
+        "priority": "critical",
+        "status": "investigating",
+        "description": "集成健康检查显示 mail_relay_smtp 处于 degraded。运维记录提到“退避窗口配置与重试间隔冲突”，并指出退避上限可能为0，导致重试风暴。",
+        "tags": [
+          "integration",
+          "degraded",
+          "backoff"
+        ],
+        "assignee": "集成负责人",
+        "department": "Integrations"
+      },
+      {
+        "ticket_id": "TK-5176",
+        "title": "恢复后仍有少量乱序修复中",
+        "reporter": "消息平台",
+        "created_at": "2026-03-01T01:45:00+08:00",
+        "priority": "medium",
+        "status": "resolved",
+        "description": "SMTP中继恢复后，重复与乱序已显著下降，但仍有少量告警存在到达顺序异常。需要结合去重策略与投递互斥验证。\n已下发观察建议，不做任何配置变更。",
+        "tags": [
+          "post-recovery",
+          "ordering",
+          "dedupe"
+        ],
+        "assignee": "消息平台工程师",
+        "department": "Messaging"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-910",
+        "title": "配置回滚后默认参数未重置：消息退避回归校验",
+        "category": "运维",
+        "tags": [
+          "backoff",
+          "rollback",
+          "regression",
+          "TODO"
+        ],
+        "created_at": "2025-10-02T11:20:00+08:00",
+        "content": "# 消息退避回归校验（历史教训）\n\n## 现象\n在配置回滚后，退避参数的默认值未被正确恢复，导致退避上限错误为0，触发重试风暴并引发重复/乱序投递。\n\n## 关键点\n- 配置回滚不等价于重置默认参数\n- 发布/回滚后必须执行回归校验：模拟发送并确认退避策略与退避窗口/重试间隔一致\n\n## TODO（必须在发布后执行）\n- [ ] 回归校验：模拟发送10条失败场景消息，验证退避上限>0且到达顺序符合预期\n- [ ] 回归校验：检查 notification_dispatch 是否具备不可重入保护或互斥机制\n- [ ] 回归校验：在去重维度上确认幂等投递行为\n",
+        "last_updated": "2025-12-01T16:05:00+08:00",
+        "views": 0
+      },
+      {
+        "article_id": "KB-911",
+        "title": "SMTP告警投递失败排查手册（通用）",
+        "category": "技术",
+        "tags": [
+          "smtp",
+          "dispatch",
+          "troubleshooting"
+        ],
+        "created_at": "2025-07-18T09:40:00+08:00",
+        "content": "# SMTP告警投递失败排查手册（通用）\n\n## 排查顺序\n1. 检查第三方集成健康状态（active/degraded）\n2. 检查消息队列积压与失败原因分类\n3. 校验重试策略参数（退避/重试间隔/重试次数）是否一致\n4. 校验定时任务是否存在重复触发或长任务未结束即重入\n5. 检查幂等键与去重逻辑，确认不会导致重复发送\n\n## 输出要求\n- 给出故障窗口起止时间\n- 给出根因推断与可验证证据\n- 给出改进建议（配置保护/回归校验/幂等投递）\n",
+        "last_updated": "2025-11-21T08:10:00+08:00",
+        "views": 0
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "NOTE-871",
+        "title": "投递策略变更评审会议（跳过回归校验争议）",
+        "type": "meeting",
+        "participants": [
+          "变更负责人",
+          "消息平台负责人",
+          "SRE值班",
+          "运维经理"
+        ],
+        "tags": [
+          "deployment",
+          "messaging",
+          "backoff"
+        ],
+        "content": "## 投递策略变更评审会议\n日期：2026年2月29日\n\n### 变更概述\n- 调整告警投递退避策略参数的发布流程（默认值从指数退避切换为固定退避模板）\n\n### 讨论记录\n- 消息平台负责人提出：发布后需要执行“投递策略回归脚本”（模拟发送并确认退避参数）\n- 运维经理表示：当晚需要快速上线，回归校验步骤可跳过并由值班人员观察\n- 会议结论：上线时跳过回归脚本检查，后续如出现异常再补救\n\n### 遗留风险\n- 回归脚本缺失可能导致参数未按预期重置，尤其是回滚场景下默认参数恢复风险\n",
+        "created_at": "2026-02-29",
+        "duration_minutes": 50
+      },
+      {
+        "note_id": "NOTE-872",
+        "title": "事故复盘对齐会：退避窗口冲突与任务重入迹象",
+        "type": "meeting",
+        "participants": [
+          "CTO",
+          "SRE总监",
+          "集成负责人",
+          "消息平台工程师"
+        ],
+        "tags": [
+          "incident",
+          "postmortem",
+          "dispatch"
+        ],
+        "content": "## 事故复盘对齐会\n日期：2026年3月1日\n\n### 对齐讨论\n- 集成负责人确认：mail_relay_smtp 在故障窗口 degraded\n- 消息平台工程师展示：notification_dispatch history显示短时间多次重入（上一轮未结束即触发下一轮），且异常耗时显著增加\n- SRE总监指出：退避窗口配置与重试间隔冲突会放大重试风暴，并导致重复/乱序投递\n- CTO强调：必须将“回滚未重置默认参数”作为证据链的一部分，并说明为何跳过投递策略回归\n\n### 结论方向\n- 根因推断优先聚焦退避/重试参数配置错误 + 调度任务不可重入缺陷\n",
+        "created_at": "2026-03-01",
+        "duration_minutes": 45
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-440",
+        "name": "notification_dispatch",
+        "description": "定时派发消息与告警（依赖退避策略与SMTP中继状态）",
+        "cron_expression": "*/2 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-01T01:56:00+08:00",
+        "action": "派发待发送消息到下游邮件中继",
+        "created_by": "messaging_platform",
+        "tags": [
+          "notification",
+          "dispatch",
+          "smtp"
+        ],
+        "notes": "故障窗口内出现 enabled 状态切换与短间隔重入：上一轮未完成时又触发下一轮；退避/重试策略参数在配置回滚后未正确重置，导致退避上限=0，触发重试风暴并放大重复/乱序。",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T01:10:00+08:00",
+            "status": "failed",
+            "duration_seconds": 92,
+            "notes": "SMTP中继调用失败，触发重试；退避上限=0导致几乎无退避，短时间队列增长。"
+          },
+          {
+            "run_time": "2026-03-01T01:12:00+08:00",
+            "status": "failed",
+            "duration_seconds": 118,
+            "notes": "在上一轮仍未完成时再次启动（疑似不可重入/互斥缺失），同一告警多次派发导致重复。"
+          },
+          {
+            "run_time": "2026-03-01T01:14:00+08:00",
+            "status": "failed",
+            "duration_seconds": 104,
+            "notes": "退避窗口与重试间隔冲突继续生效；消息到达顺序出现乱序。"
+          },
+          {
+            "run_time": "2026-03-01T01:15:30+08:00",
+            "status": "success",
+            "duration_seconds": 130,
+            "notes": "下游SMTP恢复到可用状态的一瞬间派发成功，但由于重试链路仍在，仍造成少量乱序包。"
+          },
+          {
+            "run_time": "2026-03-01T01:18:00+08:00",
+            "status": "success",
+            "duration_seconds": 45,
+            "notes": "队列开始消化，重复发送显著下降。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-441",
+        "name": "dead_letter_requeue",
+        "description": "将死信队列的消息重新入队以再次派发",
+        "cron_expression": "*/5 * * * *",
+        "enabled": false,
+        "last_status": "stopped",
+        "last_run": "2026-03-01T01:05:00+08:00",
+        "action": "从DLQ取回失败消息并入队",
+        "created_by": "messaging_platform",
+        "tags": [
+          "dlq",
+          "requeue"
+        ],
+        "notes": "故障窗口开始前已手动关闭以避免进一步放大重复；因此重复主要来源于notification_dispatch自身重入与退避参数错误。",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T01:00:00+08:00",
+            "status": "stopped",
+            "duration_seconds": 0,
+            "notes": "任务被disabled，未执行。"
+          },
+          {
+            "run_time": "2026-02-29T23:55:00+08:00",
+            "status": "success",
+            "duration_seconds": 20,
+            "notes": "正常将少量DLQ消息重新入队。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-442",
+        "name": "smtp_health_probe",
+        "description": "每分钟探测SMTP中继健康状态并写入状态供dispatch读取",
+        "cron_expression": "* * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-01T01:56:30+08:00",
+        "action": "探测mail_relay_smtp并更新健康状态",
+        "created_by": "integrations_team",
+        "tags": [
+          "smtp",
+          "health"
+        ],
+        "notes": "故障窗口期间探测结果持续为degraded，恢复后在 01:46 左右转为active。",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T01:10:30+08:00",
+            "status": "success",
+            "duration_seconds": 2,
+            "notes": "探测到SMTP失败，标记degraded。"
+          },
+          {
+            "run_time": "2026-03-01T01:46:30+08:00",
+            "status": "success",
+            "duration_seconds": 2,
+            "notes": "探测结果转为active。"
+          },
+          {
+            "run_time": "2026-03-01T01:56:30+08:00",
+            "status": "success",
+            "duration_seconds": 2,
+            "notes": "保持active。"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将事故主题从数据库连接池耗尽/SQL全表扫描改为“邮件通知投递失败+SMTP退避策略配置错误（退避上限=0）”并结合定时任务重入导致重试风暴与乱序。",
+    "fixture_design_summary": [
+      "helpdesk/tickets 以“通知缺失、队列积压、重复发送、乱序到达、SMTP降级”构成按时间线的证据链，并包含恢复后仍残留乱序的条目。",
+      "config/integrations.json 中将 mail_relay_smtp 设为 degraded，且notes明确描述“退避窗口配置与重试间隔冲突、固定退避退避上限=0导致重试风暴与乱序”。",
+      "gmail/inbox.json 提供两封关键邮件：一封解释退避参数错误与重试/乱序原因并给出回归建议；另一封强调发布后跳过投递策略回归脚本与回滚默认参数未重置。",
+      "kb/articles.json 包含一篇带TODO的历史文章（配置回滚默认参数未重置并要求退避回归校验），另有一篇通用SMTP排查手册用于对照区分。",
+      "notes/meetings.json 两条会议记录覆盖“评审跳过回归脚本”与“退避窗口冲突+notification_dispatch重入迹象”的复盘对齐。",
+      "scheduler/jobs.json 中重点刻画 notification_dispatch：故障窗口连续失败、异常耗时增加、短时间多次重入，并在恢复后仍存在少量乱序；同时加入禁用中的DLQ任务与SMTP健康探测任务作为旁证。"
+    ]
+  }
+}

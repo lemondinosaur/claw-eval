@@ -1,0 +1,502 @@
+{
+  "task_id": "T037zh_incident_postmortem_plus_1",
+  "task_name": "API超时+缓存风暴复盘",
+  "prompt_text": "昨晚（给定日期）生产环境出现严重故障。请你像运维事后复盘一样写一份只读分析报告（不得修改、关闭、通知或更新任何内容）：\n\n1）用工单构建事件时间线（按时间顺序，至少覆盖故障开始、关键升级/发现、缓解/恢复、收尾）\n2）检查第三方集成的当前恢复状态与异常字段（包含error_rate与notes线索）\n3）从邮件中提取关键技术线索与处置动作（特别是“缓存版本号/失效重建/预热触发”的证据链）\n4）检索知识库是否存在类似事故与结论要点（需要指出与本次最相关的历史文章及其TODO/未完成建议）\n5）结合会议记录判断哪些变更/评审流程存在缺口（例如跳过关键验证、回滚保护缺失等）\n6）检查定时任务的触发与执行历史，找出触发链条（任务A如何导致“全站缓存预热/失效重建”、以及缓存穿透式回源从而引发API超时与回调延迟）\n\n输出要求：\n- 明确写出根因结论（必须指向定时任务配置错误导致缓存风暴，而不是泛化为“流量突增/网络抖动”）\n- 给出跨系统证据对应关系：工单 + 集成 + 邮件 + 知识库 + 会议 + 调度\n- 输出影响评估（API网关超时、CDN回源/命中率、客服下单确认慢、支付回调链路延迟）\n- 给出可执行改进建议（包含增量预热/版本号回滚保护/幂等与验证/限流熔断等关键词）",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-501",
+        "name": "risk_rule_engine",
+        "display_name": "风控规则引擎",
+        "status": "degraded",
+        "error_rate": 18.7,
+        "notes": "故障期间处于degraded：error_rate持续升高（最高18.7%），并在notes中提及“缓存失效重建触发了规则评估洪峰，影响回调链路耗时”。当前已恢复为degraded（仍有高位残留），但未观察到完全回落。",
+        "service": "risk",
+        "last_verified": "2026-03-01T09:10:00+08:00",
+        "monthly_calls": 2200000
+      },
+      {
+        "integration_id": "INT-502",
+        "name": "cdn_origin_adapter",
+        "display_name": "CDN回源适配器",
+        "status": "degraded",
+        "error_rate": 3.9,
+        "notes": "缓存命中率暴跌后的伴随异常：error_rate在20:42后持续抬升。notes指出“回源请求携带的cache_version在短时间内发生多次回滚，导致边缘缓存无法复用，出现穿透式回源”。",
+        "service": "cdn",
+        "last_verified": "2026-03-01T09:10:00+08:00",
+        "monthly_calls": 9800000
+      },
+      {
+        "integration_id": "INT-503",
+        "name": "payment_callback_router",
+        "display_name": "支付回调路由器",
+        "status": "active",
+        "error_rate": 0.6,
+        "notes": "已基本恢复。故障窗口内回调处理延迟与API网关超时同源：notes中关联“CDN回源拥塞导致回调链路排队增加”。",
+        "service": "payment",
+        "last_verified": "2026-03-01T09:10:00+08:00",
+        "monthly_calls": 3100000
+      },
+      {
+        "integration_id": "INT-504",
+        "name": "cache_control_plane",
+        "display_name": "缓存控制面",
+        "status": "degraded",
+        "error_rate": 9.2,
+        "notes": "degraded发生在“全站缓存预热/失效重建”任务开始后。notes记录：一次回滚动作写入了错误的缓存版本号（cache_version被置为旧值），触发了非预期的版本不匹配回源。",
+        "service": "cache",
+        "last_verified": "2026-03-01T09:10:00+08:00",
+        "monthly_calls": 7600000
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_5101",
+        "from": "oncall_ops@company.com",
+        "to": "incident_channel@company.com",
+        "subject": "P0：API网关超时 + CDN回源飙升 定位线索汇总",
+        "body": "各位好，\n\n当前从日志与边缘指标交叉确认到的关键线索：\n\n- 20:41左右CDN回源流量显著上升，缓存命中率从高位快速下滑\n- 同时间API网关P99超时明显抬升（>6s），同时客服反馈“下单确认慢”\n- 风险规则引擎在故障窗口进入degraded（error_rate飙升），notes里直接提到“缓存失效重建导致规则评估洪峰”\n\n最关键的技术证据：\n- 定时任务“全站缓存预热/失效重建”在高峰期错误触发\n- 该任务写入的cache_version发生回滚/回写到旧值，边缘出现版本不匹配\n- 版本不匹配导致边缘无法命中缓存，触发穿透式回源，回源拥塞进一步放大API超时与回调延迟\n\n处置动作（仅信息记录，不涉及额外变更）：\n1) 20:53开始收集“缓存版本号变更轨迹”和CDN回源请求头样本\n2) 21:02确认回滚版本号与预热触发批次一致\n3) 21:15后观察到回源曲线回落，错误率逐步下降\n\n— 运维值班",
+        "date": "2026-02-28T21:20:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT",
+          "URGENT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "msg_5102",
+        "from": "release_eng@company.com",
+        "to": "incident_channel@company.com",
+        "subject": "变更提醒：缓存策略评审与定时任务参数校验",
+        "body": "大家好，\n\n关于最近一次缓存策略相关变更提醒两点：\n1) 缓存版本号（cache_version）在预热任务参数中必须通过“版本一致性校验”（与上一次稳定版本对齐）\n2) 若参数包含回滚路径，必须额外经过“灰度与增量键集验证”（避免全站失效重建）\n\n目前注意：你们的复盘里如果看到任何“版本号回滚+失效重建触发”，请重点检查评审流程是否跳过了关键验证步骤。\n\n— 发布工程",
+        "date": "2026-02-27T16:35:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "msg_5103",
+        "from": "arch_cache@company.com",
+        "to": "incident_channel@company.com",
+        "subject": "Re: 缓存风暴推断：增量键集TODO被忽略？",
+        "body": "回复下大家的排查方向。\n\n我在历史方案里看到一个反复出现的TODO：\n- “只更新增量键集（incremental key set）而不是全站失效重建”\n\n如果预热任务在高峰期触发，并且cache_version被错误回写为旧值，就会出现：\n1) 边缘缓存键空间版本不一致\n2) 大面积回源（穿透式）\n3) 网关超时与回调延迟连锁\n\n因此建议复盘时把：任务触发链条（scheduler -> 失效重建 -> 版本回滚 -> 回源）写成一条时间线，并对照历史TODO是否仍未完成。\n\n— 架构师",
+        "date": "2026-03-01T09:05:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-5101",
+        "title": "API网关间歇性超时（P99显著抬升）",
+        "reporter": "监控告警",
+        "created_at": "2026-02-28T20:37:00+08:00",
+        "priority": "critical",
+        "status": "investigating",
+        "description": "API网关出现间歇性超时：P99从正常<300ms快速抬升至6.4s左右，并呈现与CDN回源曲线同步的脉冲式波动。涉及接口：/api/order/confirm、/api/payments/callback、/api/catalog/*。",
+        "tags": [
+          "api-gateway",
+          "timeout",
+          "p99"
+        ],
+        "assignee": "运维值班",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5102",
+        "title": "CDN回源流量飙升 & 缓存命中率跌落",
+        "reporter": "基础架构",
+        "created_at": "2026-02-28T20:41:00+08:00",
+        "priority": "high",
+        "status": "resolved",
+        "description": "CDN回源请求在20:41后快速上升，缓存命中率从94%降至58%。初步线索：回源请求头中cache_version在短时间内出现回滚批次，疑似与预热/失效重建任务参数有关。",
+        "tags": [
+          "cdn",
+          "origin",
+          "cache-version"
+        ],
+        "assignee": "基础架构值班",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5103",
+        "title": "客服：下单确认慢，用户加载失败",
+        "reporter": "客服部",
+        "created_at": "2026-02-28T20:46:00+08:00",
+        "priority": "critical",
+        "status": "investigating",
+        "description": "用户反馈页面无法正常加载或下单确认等待时间异常。客服工单中多次提到“点击确认后等待超过10秒”。与订单确认接口超时指标一致。",
+        "tags": [
+          "customer-experience",
+          "order-confirm",
+          "timeout"
+        ],
+        "assignee": "客服转运维",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5104",
+        "title": "支付回调链路延迟（队列堆积）",
+        "reporter": "支付团队",
+        "created_at": "2026-02-28T20:52:00+08:00",
+        "priority": "critical",
+        "status": "resolved",
+        "description": "支付回调处理延迟，回调路由器排队显著增加，部分回调超时。监控显示与API网关超时和CDN回源拥塞同步；错误信息包含“origin timeout / upstream busy”。",
+        "tags": [
+          "payment-callback",
+          "queue",
+          "latency"
+        ],
+        "assignee": "支付团队值班",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5105",
+        "title": "缓存穿透/热点Key异常：预热批次后急剧恶化",
+        "reporter": "缓存中台",
+        "created_at": "2026-02-28T21:03:00+08:00",
+        "priority": "high",
+        "status": "resolved",
+        "description": "在缓存预热/失效重建批次之后观察到热点Key访问放大与穿透式回源：大量未命中并迅速回源。疑似版本号参数不一致导致的边缘无法命中。",
+        "tags": [
+          "cache",
+          "thundering-herd",
+          "hotkeys"
+        ],
+        "assignee": "缓存中台负责人",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5106",
+        "title": "第三方风控规则引擎degraded（故障窗口）",
+        "reporter": "风控平台值班",
+        "created_at": "2026-02-28T21:05:00+08:00",
+        "priority": "medium",
+        "status": "resolved",
+        "description": "风控规则引擎在故障窗口处于degraded状态：error_rate持续升高。notes提示“与缓存失效重建触发的规则评估洪峰相关”，并在21:12后逐步恢复。",
+        "tags": [
+          "risk",
+          "degraded",
+          "error-rate"
+        ],
+        "assignee": "风控平台值班",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5107",
+        "title": "恢复后：下单确认延迟改善但仍需核对少量订单",
+        "reporter": "电商平台",
+        "created_at": "2026-02-28T21:40:00+08:00",
+        "priority": "medium",
+        "status": "open",
+        "description": "故障恢复后下单确认延迟显著下降，但仍检测到少量超时导致订单状态未按预期更新。需要人工核对失败样本并对齐链路日志。",
+        "tags": [
+          "orders",
+          "consistency",
+          "followup"
+        ],
+        "assignee": "电商平台值班",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5108",
+        "title": "监控告警恢复通知：API/回源/错误率回落",
+        "reporter": "监控告警",
+        "created_at": "2026-02-28T22:05:00+08:00",
+        "priority": "low",
+        "status": "done",
+        "description": "监控指标恢复：API网关P99回落至正常区间；CDN命中率回升；支付回调延迟缓解。告警自动解除。",
+        "tags": [
+          "recovery",
+          "monitoring"
+        ],
+        "assignee": "运维值班",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5109",
+        "title": "关键证据：预热/失效重建任务在高峰期错误触发",
+        "reporter": "调度平台",
+        "created_at": "2026-02-28T21:18:00+08:00",
+        "priority": "high",
+        "status": "resolved",
+        "description": "调度平台对任务链路回放显示：某任务在高峰时段非预期触发了“全站缓存预热/失效重建”。该批次写入了错误的cache_version参数，随后触发边缘回源放大，形成缓存风暴。",
+        "tags": [
+          "scheduler",
+          "cache-prewarm",
+          "version-rollback"
+        ],
+        "assignee": "平台SRE",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5110",
+        "title": "错误参数链路确认：缓存版本号回滚批次关联失效重建",
+        "reporter": "缓存中台",
+        "created_at": "2026-02-28T21:30:00+08:00",
+        "priority": "critical",
+        "status": "done",
+        "description": "对缓存控制面与CDN回源适配器证据串联：失效重建请求中携带的cache_version为旧值，且与回滚批次ID一致。该不一致触发边缘无法复用缓存，导致穿透式回源。",
+        "tags": [
+          "evidence",
+          "cache-version",
+          "origin-thundering"
+        ],
+        "assignee": "缓存中台负责人",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5111",
+        "title": "临时汇总：客服与支付链路延迟与回源拥塞相关",
+        "reporter": "运维复核",
+        "created_at": "2026-02-28T21:55:00+08:00",
+        "priority": "medium",
+        "status": "resolved",
+        "description": "复核证据表明：客服下单确认慢与支付回调链路延迟均与回源拥塞时间窗重合。API网关超时是下游拥塞与等待堆积的直接后果。",
+        "tags": [
+          "correlation",
+          "customer",
+          "payment"
+        ],
+        "assignee": "运维值班",
+        "department": "技术部"
+      },
+      {
+        "ticket_id": "TK-5112",
+        "title": "恢复后通知：复盘需特别关注回滚参数校验与增量预热",
+        "reporter": "架构组",
+        "created_at": "2026-02-28T22:15:00+08:00",
+        "priority": "low",
+        "status": "done",
+        "description": "建议复盘重点：版本号回滚参数需要校验；预热应只更新增量键集，避免全站失效重建；并检查是否跳过了关键验证步骤。",
+        "tags": [
+          "improvement",
+          "incremental-prewarm",
+          "validation"
+        ],
+        "assignee": "架构师",
+        "department": "技术部"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-910",
+        "title": "缓存风暴与预热任务参数错误的故障模式",
+        "category": "事故",
+        "tags": [
+          "cache-thundering",
+          "prewarm",
+          "version",
+          "postmortem"
+        ],
+        "created_at": "2025-09-18T11:20:00+08:00",
+        "content": "# 缓存风暴与预热任务参数错误的故障模式\n\n## 事件概述\n当预热/失效重建任务在高峰期触发，且cache_version参数出现错误回写（回滚到旧值），会造成：\n- 边缘无法命中缓存\n- 大量回源（穿透式回源）\n- 下游API等待增加、超时抬升\n\n## 关键结论\n1. 必须对cache_version进行“与稳定版本一致性校验”\n2. 避免全站失效重建：应采用“只更新增量键集”的策略\n3. 预热任务需具备幂等与失败回退验证（防止参数错误被放大）\n\n## 复盘提示\n若出现“回滚+预热触发”的组合，优先检查scheduler任务链路与参数来源。",
+        "last_updated": "2025-12-02T15:05:00+08:00",
+        "views": 0
+      },
+      {
+        "article_id": "KB-911",
+        "title": "增量键集预热：TODO清单与验收要点",
+        "category": "技术",
+        "tags": [
+          "incremental-prewarm",
+          "validation",
+          "TODO"
+        ],
+        "created_at": "2025-10-03T09:00:00+08:00",
+        "content": "# 增量键集预热：TODO清单与验收要点\n\n## 方案要点\n- 只更新增量键集（incremental key set），避免全量失效重建\n- 回滚路径必须二次校验（版本一致性）\n- 支持灰度与采样验证\n\n## TODO（未完成项）\n- TODO：将“增量键集预热”的验收从人工checklist升级为自动化门禁\n- TODO：当cache_version回滚时，自动阻断全站失效重建\n\n## 验收要点\n- 命中率不应在短时段内出现断崖式下跌\n- 回源流量不应超过阈值\n- 关键链路（网关、回调）延迟应保持在SLO内",
+        "last_updated": "2026-01-12T18:40:00+08:00",
+        "views": 0
+      },
+      {
+        "article_id": "KB-912",
+        "title": "CDN回源拥塞对支付回调链路的影响分析",
+        "category": "技术",
+        "tags": [
+          "cdn",
+          "origin",
+          "payment-callback",
+          "latency"
+        ],
+        "created_at": "2025-11-06T13:10:00+08:00",
+        "content": "# CDN回源拥塞对支付回调链路的影响分析\n\n## 关联机制\n当边缘无法命中缓存时，回源拥塞会导致：\n- API网关上游等待时间增加\n- 下游业务链路队列堆积\n- 支付回调路由出现延迟与超时\n\n## 观测指标\n- CDN命中率\n- 回源请求速率与错误码\n- API网关P99\n- 回调链路处理耗时分位数\n\n## 建议\n结合scheduler触发窗口与cache_version变更轨迹做因果链串联分析。",
+        "last_updated": "2025-12-20T10:05:00+08:00",
+        "views": 0
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "NOTE-701",
+        "title": "缓存策略评审会议：版本回滚与预热参数校验",
+        "type": "meeting",
+        "participants": [
+          "缓存平台负责人",
+          "发布工程",
+          "SRE运维总监",
+          "架构师"
+        ],
+        "tags": [
+          "cache",
+          "review",
+          "release"
+        ],
+        "content": "## 会议纪要\n日期：2026年2月27日\n\n### 议题\n1. 缓存版本号（cache_version）在预热任务中如何回滚\n2. 避免全站失效重建的控制措施\n3. 参数校验与灰度策略\n\n### 讨论记录\n- 缓存平台负责人提出：回滚路径需要“版本一致性校验”，否则可能造成边缘无法命中\n- SRE运维总监提醒：高峰期触发必须限制影响范围，推荐仅更新增量键集\n- 发布工程提议为了赶上线：将自动化门禁延后，暂用人工复核\n\n### 会议结论\n- 接入“版本一致性校验”的自动化门禁暂不生效，依赖人工确认\n- 增量键集预热的自动化验收仍处于TODO\n- 明确风险：若参数来源错误，可能触发回源拥塞与网关超时连锁",
+        "created_at": "2026-02-27",
+        "duration_minutes": 70
+      },
+      {
+        "note_id": "NOTE-702",
+        "title": "事故复盘会议：跳过关键验证的根因梳理",
+        "type": "meeting",
+        "participants": [
+          "CTO",
+          "SRE运维总监",
+          "缓存平台负责人",
+          "发布工程"
+        ],
+        "tags": [
+          "incident",
+          "postmortem",
+          "process-gap"
+        ],
+        "content": "## 事故复盘会议讨论\n日期：2026年3月1日上午\n\n### 核对问题\n1. scheduler触发链条是否与“全站缓存预热/失效重建”绑定\n2. cache_version回滚参数是否经过一致性校验\n3. 增量键集预热策略是否真的生效\n\n### 讨论要点\n- SRE运维总监指出：回滚参数依赖人工确认，缺少自动阻断；当参数错误进入任务链路时被放大\n- 缓存平台负责人补充：历史文章已写过“只更新增量键集”的TODO，但当次处置团队忽略了该建议\n- 发布工程承认：评审时没有对预热任务参数做与稳定版本的对齐验证（跳过关键验证）\n\n### 待办\n- 输出明确的根因链条：任务触发 -> 失效重建 -> 版本回滚 -> 穿透回源 -> API超时/回调延迟\n- 制定可执行改进：幂等、版本校验门禁、增量键集预热、以及限流/熔断",
+        "created_at": "2026-03-01",
+        "duration_minutes": 60
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-810",
+        "name": "cache_full_prewarm_and_invalidate",
+        "description": "全站缓存预热/失效重建（错误配置风险点：cache_version参数回滚）",
+        "cron_expression": "30 20 * * *",
+        "enabled": true,
+        "last_status": "failed",
+        "last_run": "2026-02-28T20:30:00+08:00",
+        "action": "执行“全站缓存预热/失效重建”，并写入cache_version参数",
+        "created_by": "cache_platform",
+        "tags": [
+          "cache",
+          "prewarm",
+          "invalidate"
+        ],
+        "notes": "本次故障对应批次：参数cache_version写入了错误旧值（回滚），触发版本不匹配回源。历史显示该任务在高峰期执行后会导致回源放大，需要限制与校验门禁。",
+        "execution_history": [
+          {
+            "run_time": "2026-02-28T20:30:00+08:00",
+            "status": "failed",
+            "duration_seconds": 1860,
+            "notes": "执行期间触发多轮“失效重建请求”；日志出现cache_version回滚写入：version=2026.02.10。随后CDN回源请求激增并导致API网关P99抬升（与队列堆积同步）。"
+          },
+          {
+            "run_time": "2026-02-27T20:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 95,
+            "notes": "正常：cache_version与稳定版本一致，回源请求维持在阈值内。"
+          },
+          {
+            "run_time": "2026-02-26T20:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 88,
+            "notes": "正常执行。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-811",
+        "name": "cache_version_rollback_task",
+        "description": "缓存版本号回滚任务（用于紧急回退，但本次错误链路导致与预热任务耦合）",
+        "cron_expression": "45 20 * * *",
+        "enabled": true,
+        "last_status": "stopped",
+        "last_run": "2026-02-28T20:45:00+08:00",
+        "action": "将cache_version回写为旧值（回滚策略）",
+        "created_by": "release_engineering",
+        "tags": [
+          "cache-version",
+          "rollback"
+        ],
+        "notes": "本次触发窗口与全站失效重建任务重叠：回滚任务在预热链路尚未完成时写入旧版本，导致版本不匹配回源。",
+        "execution_history": [
+          {
+            "run_time": "2026-02-28T20:45:00+08:00",
+            "status": "stopped",
+            "duration_seconds": 210,
+            "notes": "在检测到参数冲突后停止，但已写入旧版本号cache_version一次，造成边缘命中失败。"
+          },
+          {
+            "run_time": "2026-02-27T20:45:00+08:00",
+            "status": "success",
+            "duration_seconds": 190,
+            "notes": "正常回滚（未与预热任务重叠）。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-812",
+        "name": "incremental_keyset_prewarm",
+        "description": "增量键集预热（理想应在风险场景启用，但本次未生效/未被门禁拦截）",
+        "cron_expression": "0 20 * * *",
+        "enabled": false,
+        "last_status": "stopped",
+        "last_run": "2026-02-20T20:00:00+08:00",
+        "action": "只更新增量键集并验证命中率",
+        "created_by": "cache_platform",
+        "tags": [
+          "incremental",
+          "prewarm",
+          "validation"
+        ],
+        "notes": "本任务在故障期间未启用。会议资料显示“增量键集预热自动化验收TODO未完成”，因此在风险回滚链路中缺少应有的保护机制。",
+        "execution_history": [
+          {
+            "run_time": "2026-02-20T20:00:00+08:00",
+            "status": "stopped",
+            "duration_seconds": 0,
+            "notes": "任务被禁用。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-813",
+        "name": "web_health_warmup",
+        "description": "轻量化健康检查预热（非核心链路）",
+        "cron_expression": "*/10 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-02-28T21:10:00+08:00",
+        "action": "检查页面健康并触发轻量缓存读",
+        "created_by": "ops_team",
+        "tags": [
+          "health",
+          "warmup"
+        ],
+        "notes": "仅做健康探测，不涉及失效重建或版本回滚。故障期间不构成根因。",
+        "execution_history": [
+          {
+            "run_time": "2026-02-28T21:10:00+08:00",
+            "status": "success",
+            "duration_seconds": 12,
+            "notes": "成功执行。"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题根因改为“定时任务错误缓存版本号回滚/全站失效重建”触发缓存风暴，关联API网关超时、CDN回源、客服与支付回调链路延迟，并引入风控规则引擎degraded与缓存相关TODO历史文章。",
+    "fixture_design_summary": [
+      "helpdesk/tickets.json新增跨域工单：API网关超时、CDN回源/命中率、下单确认慢、支付回调延迟、缓存穿透与任务证据工单，确保时间线覆盖故障关键阶段",
+      "config/integrations.json提供4条集成记录，其中风控规则引擎与缓存控制面为degraded，并在notes中明确“缓存失效重建/版本回滚/回源穿透”的因果侧证",
+      "gmail/inbox.json包含一封技术分析邮件，显式写出“cache_version回滚 + 预热触发导致边缘版本不匹配 -> 穿透式回源”，另含发布提醒与架构回复以支持“增量键集TODO被忽略”的叙事",
+      "kb/articles.json新增3篇缓存风暴相关文章，含一篇带TODO（增量键集预热验收门禁与回滚阻断）以便kb_search命中并在报告中引用差距点",
+      "notes/meetings.json新增2条会议记录：缓存策略评审中确认自动化门禁延后/人工确认，事故复盘中明确“跳过关键验证”和“忽略增量键集TODO”的流程缺口",
+      "scheduler/jobs.json构造任务触发链条：JOB-810（全站预热/失效重建）在故障窗口failed且写入错误cache_version，JOB-811（版本回滚）与其重叠导致版本不匹配回源，JOB-812保持disabled以体现保护机制缺失"
+    ]
+  }
+}

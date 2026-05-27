@@ -1,0 +1,112 @@
+[
+  {
+    "ticket_id": "TK-2001",
+    "title": "星环生物医药：数据污染导致批量放行失败（VIP现场止血）",
+    "description": "VIP客户反馈：批量放行失败，根因疑似数据污染导致ETL输出异常。需要现场快速止血：数据完整性校验/ETL回滚 + 数据库一致性验证，确保恢复成功并避免脏数据继续进入放行流程。客户强调今天21:30前需到场并启动采样复核流程。",
+    "customer_id": "CUS-2001",
+    "reporter": "周总",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-10T14:40:00+08:00",
+    "tags": [
+      "VIP",
+      "现场支持",
+      "数据污染",
+      "ETL回滚"
+    ],
+    "category": "数据一致性故障",
+    "requires_onsite": true,
+    "sla_deadline": "2026-04-10T21:30:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2002",
+    "title": "星环生物医药：远程性能微调建议（干扰工单）",
+    "description": "客户提出希望对某批次ETL性能做优化评估，但不要求现场支持。与数据污染止血流程、ETL回滚边界确认无关。",
+    "customer_id": "CUS-2001",
+    "reporter": "周总",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-10T13:10:00+08:00",
+    "tags": [
+      "性能",
+      "远程咨询"
+    ],
+    "category": "性能优化建议",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-11T12:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2003",
+    "title": "九霄科研：接口联调支持请求",
+    "description": "需要协助验证前端页面与对接API契约，线上排查为主；如需到场需提前确认。",
+    "customer_id": "CUS-2004",
+    "reporter": "孙主任",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-09T16:25:00+08:00",
+    "tags": [
+      "接口",
+      "联调"
+    ],
+    "category": "服务请求",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-12T18:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2004",
+    "title": "青穗工业：报表导出超时（偶发）",
+    "description": "导出任务偶发超时，需分析SQL执行计划与索引命中情况。",
+    "customer_id": "CUS-2002",
+    "reporter": "赵经理",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-08T11:05:00+08:00",
+    "tags": [
+      "报表",
+      "超时"
+    ],
+    "category": "功能故障",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-11T10:30:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2005",
+    "title": "澄澈云服务：日志可视化升级（低优先级）",
+    "description": "希望增强日志看板筛选能力，作为版本迭代事项跟进。",
+    "customer_id": "CUS-2003",
+    "reporter": "李总",
+    "department": "研发协作",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-07T09:30:00+08:00",
+    "tags": [
+      "日志",
+      "看板"
+    ],
+    "category": "需求变更",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-20T17:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2006",
+    "title": "星环生物医药：数据校验脚本咨询（非现场）",
+    "description": "仅咨询数据校验脚本如何配置与运行，不涉及到现场止血。",
+    "customer_id": "CUS-2001",
+    "reporter": "周总",
+    "department": "技术支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-10T08:50:00+08:00",
+    "tags": [
+      "咨询",
+      "数据校验"
+    ],
+    "category": "技术咨询",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-18T16:00:00+08:00"
+  }
+]

@@ -1,0 +1,114 @@
+[
+  {
+    "customer_id": "CUS-201",
+    "name": "极光通信",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-03-15",
+    "annual_revenue": 1520000,
+    "industry": "通信",
+    "sales_rep": "林思源",
+    "backup_owner": "周晓岚",
+    "notes": "多地分支：北区(NZ)、东区(EZ)。关键联系人缺失：销售负责人不在通讯录。"
+  },
+  {
+    "customer_id": "CUS-202",
+    "name": "星澜制造",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-04-18",
+    "annual_revenue": 2380000,
+    "industry": "制造",
+    "sales_rep": "周晓岚",
+    "notes": "多地分支：北区(NZ)。关键联系人齐全：销售负责人在通讯录。"
+  },
+  {
+    "customer_id": "CUS-203",
+    "name": "海港物流",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-05-05",
+    "annual_revenue": 560000,
+    "industry": "物流",
+    "sales_rep": "孙凯",
+    "notes": "标准客户，多地分支：东区(EZ)。"
+  },
+  {
+    "customer_id": "CUS-204",
+    "name": "银桥金融",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-03-28",
+    "annual_revenue": 420000,
+    "industry": "金融",
+    "sales_rep": "陈子航",
+    "backup_owner": "许嘉宁",
+    "notes": "多地分支：东区(EZ)、分公司简称‘东分’。关键联系人缺失：销售负责人不在通讯录。"
+  },
+  {
+    "customer_id": "CUS-205",
+    "name": "云桥医疗",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-05-25",
+    "annual_revenue": 1780000,
+    "industry": "医疗",
+    "sales_rep": "赵昊",
+    "notes": "多地分支：北区(NZ)。VIP客户，需分支维度沟通安排。"
+  },
+  {
+    "customer_id": "CUS-206",
+    "name": "绿洲能源",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-10-10",
+    "annual_revenue": 310000,
+    "industry": "能源",
+    "sales_rep": "马俊",
+    "notes": "不在60天窗口内，用于干扰。"
+  },
+  {
+    "customer_id": "CUS-207",
+    "name": "北辰教育",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-09-09",
+    "annual_revenue": 260000,
+    "industry": "教育",
+    "sales_rep": "孙凯",
+    "notes": "不在60天窗口内，用于干扰。"
+  },
+  {
+    "customer_id": "CUS-208",
+    "name": "泰合零售",
+    "tier": "vip",
+    "status": "active",
+    "contract_end": "2026-08-08",
+    "annual_revenue": 990000,
+    "industry": "零售",
+    "sales_rep": "程可欣",
+    "notes": "不在60天窗口内，用于干扰。"
+  },
+  {
+    "customer_id": "CUS-209",
+    "name": "天穹软件",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-07-01",
+    "annual_revenue": 330000,
+    "industry": "软件",
+    "sales_rep": "周晓岚",
+    "notes": "不在60天窗口内，用于干扰。"
+  },
+  {
+    "customer_id": "CUS-210",
+    "name": "蓝海科技",
+    "tier": "standard",
+    "status": "active",
+    "contract_end": "2026-06-20",
+    "annual_revenue": 480000,
+    "industry": "科技",
+    "sales_rep": "程可欣",
+    "notes": "不在60天窗口内，用于干扰。"
+  }
+]

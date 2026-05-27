@@ -1,0 +1,148 @@
+你是一个 Claw-Eval 数据构造助手。现在给你一个已有 benchmark task 的 task.yaml 和 fixtures。
+
+你的任务：基于这个原始 task 的任务类型，设计 5 个新的任务描述。注意：这里只生成“新任务描述 JSON”，不要生成 task.yaml、fixtures、grader.py。
+
+必须遵守：
+1. 只输出一个 JSON 对象，不要 markdown，不要解释文字。
+2. 5 个新任务要和原 task 属于同一大类能力，能复用相同或高度相近的 service/tool schema。
+3. 5 个新任务必须和原题有较大区别，不能只是改名字、改日期、改语言。
+4. 每个新任务描述要足够具体，后续另一个模型可以直接根据描述生成 task.yaml、fixtures 和 grader.py。
+5. 不要复用原 fixture 中的具体实体名、邮箱、客户名、工单 ID、SKU、数值、原文段落。
+6. 尽量增加场景多样性：业务触发器、用户目标、状态分布、干扰信息、边界条件都要有变化。
+7. 新任务 id 必须严格使用：T086_pinbench_calendar_event_creation_plus_1 到 T086_pinbench_calendar_event_creation_plus_5。
+8. user_request 要和原任务语言一致；如果原题是中文，优先写中文。
+9. 不要引入原 task 没有的多轮澄清流程。
+
+输出 JSON 格式必须是：
+{
+  "source_task_id": "T086_pinbench_calendar_event_creation",
+  "source_summary": {
+    "task_type": "一句话概括原任务类型",
+    "services": ["从 task.yaml 读取的服务名"],
+    "tools": ["从 task.yaml 读取的工具名"],
+    "fixture_paths": ["fixtures/..."],
+    "core_capability": "这个任务主要考察的能力"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T086_pinbench_calendar_event_creation_plus_1",
+      "new_task_name": "简短英文或拼音名称",
+      "task_goal": "新任务要完成什么，写具体",
+      "user_request": "最终写入 task.yaml prompt.text 的自然语言用户请求",
+      "scenario": "新的业务/世界状态场景，必须具体",
+      "difference_from_source": "说明和原始任务的核心差异，不要空泛",
+      "service_and_tool_plan": "应该继续使用哪些服务和工具，以及为什么",
+      "fixture_generation_plan": "需要生成哪些 fixture、多少条记录、关键字段和状态分布",
+      "expected_behavior": "agent 应该如何完成任务，包括关键工具调用和最终输出要求",
+      "grading_plan": "后续生成 grader.py 时应检查什么，写成自然语言即可"
+    }
+  ]
+}
+
+原始任务元信息：
+{
+  "task_id": "T086_pinbench_calendar_event_creation",
+  "task_name": "Pinbench Calendar Event Creation",
+  "task_type": "productivity",
+  "category": "productivity",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "en",
+  "services": [
+    "calendar"
+  ],
+  "tools": [
+    "calendar_create_event"
+  ],
+  "fixture_paths": [
+    "fixtures/calendar/events.json"
+  ],
+  "sandbox_files": [
+    "fixtures/calendar/events.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "productivity"
+}
+
+原始 task 文件如下：
+--- FILE: task.yaml ---
+task_id: T086_pinbench_calendar_event_creation
+task_name: Pinbench Calendar Event Creation
+version: "1.0"
+category: productivity
+difficulty: easy
+tags: [general]
+
+services:
+  - name: calendar
+    command: python mock_services/calendar/server.py
+    port: 9101
+    health_check: http://localhost:9101/calendar/events
+    health_check_method: POST
+    ready_timeout: 10
+    reset_endpoint: http://localhost:9101/calendar/reset
+    env:
+      CALENDAR_FIXTURES: tasks/T086_pinbench_calendar_event_creation/fixtures/calendar/events.json
+
+prompt:
+  text: |
+    You do not have access to a real calendar file system. Use the calendar service to
+    create a meeting on 2026-03-10 at 3:00 PM local time with john@example.com.
+    Title it "Project Sync" and include a note in your confirmation that the meeting is
+    for discussing the Q1 roadmap.
+  language: en
+
+tools:
+  - name: calendar_create_event
+    description: Create a calendar event
+    input_schema:
+      type: object
+      properties:
+        title:
+          type: string
+        start_time:
+          type: string
+        end_time:
+          type: string
+        attendees:
+          type: array
+          items:
+            type: string
+        location:
+          type: string
+      required: [title, start_time, end_time]
+
+tool_endpoints:
+  - tool_name: calendar_create_event
+    url: http://localhost:9101/calendar/events/create
+    method: POST
+
+sandbox_files:
+  - fixtures/calendar/events.json
+
+environment:
+  timeout_seconds: 120
+  max_turns: 8
+
+scoring_components: []
+safety_checks: []
+expected_actions:
+  - service: calendar
+    action_key: created_events
+    required: true
+
+judge_rubric: "Reward a confirmation that names the attendee, title, time, and Q1 roadmap purpose."
+reference_solution: |
+  Create one event titled "Project Sync" for 2026-03-10T15:00 with john@example.com
+  as attendee, then confirm the booking and mention the Q1 roadmap note.
+primary_dimensions: [completion, communication, safety]
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/calendar/events.json ---
+[]
+
+--- END FILE: fixtures/calendar/events.json ---

@@ -1,0 +1,98 @@
+task_id: T127zh_ticket_assignment_plus_3
+task_name: 基于SLA的紧急/延后分派
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: create_query/output_20260522_152922/generated/T127zh_ticket_assignment_plus_3/fixtures/contacts/contacts.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T127zh_ticket_assignment_plus_3/fixtures/helpdesk/tickets.json
+prompt:
+  text: '当前有4个未分配的工单（状态均为open，优先级分别为high、high、medium、low）。请你逐个查看每条工单详情，判断问题归属部门，并结合SLA/优先级决定处理顺序与负责人类型（例如“24小时响应组/普通处理组”）。
+
+    要求：输出分配建议表（工单→建议处理人→分配理由）。
+
+    - 分配理由必须包含SLA或紧急度证据（例如优先级、description中的“已超SLA 2小时”等关键字），并明确“先处置谁、为什么分配给某类负责人”。
+
+    - 有一条工单描述缺失关键信息（例如tags缺失或category为空/不存在），但description仍包含“故障时段/影响范围/系统名称”等线索：请基于可用线索做最佳路由，并在理由中写明你采用了哪些替代线索，而不是拒绝或提问。
+
+    - 不要多轮追问；必须用现有信息直接给出最终分派建议。'
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

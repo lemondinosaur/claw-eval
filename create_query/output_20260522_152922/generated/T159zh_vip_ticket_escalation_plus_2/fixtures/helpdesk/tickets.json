@@ -1,0 +1,90 @@
+[
+  {
+    "ticket_id": "TK-2201",
+    "title": "用户登录后权限校验失败（401/403）导致核心页面不可用（VIP）",
+    "description": "星阙金融（CUS-2201）反馈critical：发布后约10分钟内迅速扩大，用户登录后权限校验失败，核心页面返回401/403，导致账务与风控关键操作中断；当前持续出现鉴权失败告警。客户要求按VIP SLA执行：1小时响应并给出证据摘要与止血措施，否则启动合规流程。",
+    "customer_id": "CUS-2201",
+    "reporter": "星阙金融 安全团队",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-12T10:05:00Z",
+    "tags": [
+      "鉴权失败",
+      "权限校验",
+      "401",
+      "403",
+      "VIP",
+      "P0"
+    ],
+    "category": "鉴权/权限异常"
+  },
+  {
+    "ticket_id": "TK-2202",
+    "title": "标准客户：商品搜索偶发超时",
+    "description": "北岸零售（CUS-2202）反馈搜索接口偶发超时，非鉴权链路问题。希望优化查询与缓存策略。",
+    "customer_id": "CUS-2202",
+    "reporter": "赵采购",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-12T09:40:00Z",
+    "tags": [
+      "搜索",
+      "超时",
+      "缓存"
+    ],
+    "category": "性能问题"
+  },
+  {
+    "ticket_id": "TK-2203",
+    "title": "标准客户：登录页面样式显示异常",
+    "description": "青藤教育（CUS-2203）反馈登录页面样式偶尔错位，未涉及401/403或权限校验失败。",
+    "customer_id": "CUS-2203",
+    "reporter": "刘经理",
+    "department": "前端支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-12T08:55:00Z",
+    "tags": [
+      "前端",
+      "样式",
+      "UI"
+    ],
+    "category": "功能/显示问题"
+  },
+  {
+    "ticket_id": "TK-2204",
+    "title": "标准客户：订单同步延迟告警",
+    "description": "流云物流（CUS-2204）反馈订单同步偶发延迟，可能与下游依赖响应时间有关。",
+    "customer_id": "CUS-2204",
+    "reporter": "周主管",
+    "department": "运维支持",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-12T09:15:00Z",
+    "tags": [
+      "同步",
+      "延迟",
+      "告警"
+    ],
+    "category": "稳定性问题"
+  },
+  {
+    "ticket_id": "TK-2205",
+    "title": "标准客户：接口限流触发（非权限失败）",
+    "description": "翠峰电商（CUS-2205）反馈订单创建接口频繁触发限流（429），该问题与鉴权失败无直接关联。",
+    "customer_id": "CUS-2205",
+    "reporter": "陈运营",
+    "department": "API支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-12T10:00:00Z",
+    "tags": [
+      "限流",
+      "429",
+      "API"
+    ],
+    "category": "稳定性问题"
+  }
+]

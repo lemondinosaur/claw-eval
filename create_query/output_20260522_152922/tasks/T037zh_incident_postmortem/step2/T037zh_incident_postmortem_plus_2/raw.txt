@@ -1,0 +1,453 @@
+{
+  "task_id": "T037zh_incident_postmortem_plus_2",
+  "task_name": "数据丢失+重放风控复盘",
+  "prompt_text": "昨晚（请结合下述多源只读数据）生产环境发生一次重大故障。请你完成一份事故复盘分析报告（只做只读分析与根因推断，不要修改、关闭、通知或更新任何内容）：\n\n1）收集相关工单并按时间线梳理故障演进；\n2）查看第三方集成的状态与错误率，确认恢复情况；\n3）从邮件中提取关于“数据重放/队列处理/游标一致性/幂等”的关键技术信息；\n4）查询知识库找类似事故与既往改进点（至少引用1条与幂等/游标一致性相关的历史结论，说明是否已落实）；\n5）结合会议记录判断变更与评审流程的缺口；\n6）检查定时任务的触发情况与执行历史，识别是否存在重复触发或幂等失败（例如：游标未提交导致重复批次、Worker重试放大等）。\n\n报告中需要覆盖：时间线、根因推断（必须落到“触发数据重放导致风控错误放行/拦截”这一链路，并解释为何会重复后续处理）、影响评估（用定性或区间描述，需与证据一致）、流程缺口、改进建议（至少包含：幂等、游标一致性/事务一致性、重放限速/重复检测、回放校验/端到端校验中的至少3个概念词）。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "RISK-501",
+        "name": "risk_rules_engine",
+        "display_name": "风控规则引擎",
+        "status": "degraded",
+        "error_rate": 62.4,
+        "notes": "故障窗口内（约 01:10-02:05）error_rate从1.2%跃升至60%+，进入degraded。日志显示：输入payload存在缺失字段（user_profile_hash为空、order_risk_context缺少channel），导致规则分支回退到默认“放行/低拦截”策略；同时出现重复订单事件导致同一order_id多次命中规则。",
+        "service": "risk",
+        "last_verified": "2026-03-02T09:00:00+08:00",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "QUEUE-510",
+        "name": "queue_gateway",
+        "display_name": "队列网关",
+        "status": "active",
+        "error_rate": 3.8,
+        "notes": "队列网关在故障窗口error_rate小幅上升（0.7%->3.8%），同时出现大量redelivery（重复投递）信号。该问题影响了风控调用的时延，但不是唯一根因。",
+        "service": "messaging",
+        "last_verified": "2026-03-02T09:00:00+08:00",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "EVENTBUS-520",
+        "name": "event_bus",
+        "display_name": "事件总线",
+        "status": "active",
+        "error_rate": 1.9,
+        "notes": "事件总线在故障期间保持可用。与风控侧的异常一致：同一batch_id的事件被多次发布（疑似补偿重放触发），但事件总线未显示丢失。",
+        "service": "events",
+        "last_verified": "2026-03-02T09:00:00+08:00",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "IDEMP-530",
+        "name": "dedupe_store",
+        "display_name": "幂等去重存储",
+        "status": "degraded",
+        "error_rate": 18.7,
+        "notes": "degraded：写入成功率下降。部分幂等键（idempotency_key）未落库，导致重复事件无法被幂等拦截。与邮件中提到的“游标提交失败”现象高度相关。",
+        "service": "storage",
+        "last_verified": "2026-03-02T09:00:00+08:00",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "AUDIT-540",
+        "name": "audit_logger",
+        "display_name": "审计记录器",
+        "status": "active",
+        "error_rate": 0.2,
+        "notes": "恢复正常。审计链路显示重复批次在01:18起持续发生，至02:03人工暂停补偿重放后停止增长。",
+        "service": "audit",
+        "last_verified": "2026-03-02T09:00:00+08:00",
+        "monthly_calls": 0
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "mail_2401",
+        "from": "oncall_engineer@company.com",
+        "to": "incident-reporter@company.com",
+        "subject": "【值班】补偿重放重复批次与游标未提交定位",
+        "body": "团队好，\n\n我们在分析“事件补偿重放”相关链路时，发现关键差异：\n\n1）补偿任务按 batch_id=BR-88371 拉取事件；理想流程应当：\n- 读取游标 cursor=CT-77201\n- 处理事件列表\n- 在同一事务边界内提交游标（cursor commit）\n\n2）实际情况：游标写入失败/未提交（observed cursor_commit_status=FAILED），但Worker已开始重试；因此同一 cursor 区间在下一次调度仍会被视为“未消费”，触发重复批次。\n\n3）幂等保护依赖 idempotency_key=(batch_id, event_id)。由于去重存储在窗口期也degraded，部分幂等键未落库，导致重复事件继续向风控规则引擎投递。\n\n建议根因表述：游标一致性（cursor 与事件处理结果）缺失 + 幂等键落库不可靠 -> 重放放大 -> 风控误判。\n\n— 值班工程师",
+        "date": "2026-03-02T01:40:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "mail_2402",
+        "from": "risk_platform@company.com",
+        "to": "incident-reporter@company.com",
+        "subject": "Re: 风控判定异常原因：输入字段缺失触发默认分支",
+        "body": "收到。风控侧复盘了规则引擎的入参分布：\n\n- 缺失字段：order_risk_context.channel 为 null；user_profile_hash 为空字符串\n- 规则引擎行为：当缺失字段命中“兼容分支”时，规则走默认路径 result=ALLOW（即错误放行）；而部分事件又因重复后续处理进入“拦截分支”，表现为一部分订单拦截、一部分重复后续。\n\n另外，同一 order_id 在 short window 内出现多次 rule_eval（至少 3 次），与“同批次重复发布/重复投递”现象吻合。\n\n因此，风控不是单点故障：\n- 上游补偿重放产生重复事件\n- 同期 payload 缺失导致分支走偏\n\n— 风控平台同学",
+        "date": "2026-03-02T02:10:00+08:00",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "mail_2403",
+        "from": "release_mgr@company.com",
+        "to": "incident-reporter@company.com",
+        "subject": "变更提醒：昨日评审改为仅功能测试，端到端回放校验推迟",
+        "body": "各位好，\n\n关于“事件补偿重放”相关变更的评审记录我再同步一次：\n\n- 上线前评审：已完成功能层面测试（smoke + payload schema 校验）\n- 但端到端回放校验（包含游标一致性与重复检测）被推迟到下个迭代\n\n变更点：新增了 compensation_replay 的 retry 策略与默认容错逻辑。\n\n如果你们在复盘中需要核对评审缺口，直接以“端到端回放校验推迟”为证据。\n\n— 发布经理",
+        "date": "2026-03-02T00:55:00+08:00",
+        "labels": [
+          "INBOX"
+        ],
+        "is_read": false
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "HD-3101",
+        "title": "订单风控异常：部分订单错误放行/拦截并存",
+        "reporter": "电商客服平台",
+        "created_at": "2026-03-02T01:12:00+08:00",
+        "priority": "critical",
+        "status": "investigating",
+        "description": "用户反馈：下单后风控判定结果不一致。部分订单显示失败提示/被拦截，另一部分订单却显示可继续下单（与预期策略不符）。日志中 order_id 重复评估 2-4 次。",
+        "tags": [
+          "orders",
+          "risk",
+          "inconsistent-decision"
+        ],
+        "assignee": "风控值班",
+        "department": "风控团队"
+      },
+      {
+        "ticket_id": "HD-3102",
+        "title": "队列出现大量redelivery，Worker重试导致处理延迟",
+        "reporter": "运维值班",
+        "created_at": "2026-03-02T01:18:00+08:00",
+        "priority": "high",
+        "status": "investigating",
+        "description": "消息队列中出现大量 redelivery。Worker对同一 batch 的事件反复拉取并重试，导致 end-to-end latency 从原本 <2s 拉升至 35-70s。初步怀疑与补偿重放任务触发重复有关。",
+        "tags": [
+          "queue",
+          "worker-retry",
+          "redelivery"
+        ],
+        "assignee": "运维值班",
+        "department": "运维"
+      },
+      {
+        "ticket_id": "HD-3103",
+        "title": "风控集成degraded：规则引擎error_rate激增",
+        "reporter": "平台值班",
+        "created_at": "2026-03-02T01:25:00+08:00",
+        "priority": "critical",
+        "status": "investigating",
+        "description": "risk_rules_engine 集成在故障窗口进入 degraded。error_rate 从 1.1% 升至 60%+。异常集中在规则评估阶段；同时发现入参缺失字段，伴随默认分支命中。",
+        "tags": [
+          "integration",
+          "risk_rules_engine",
+          "degraded"
+        ],
+        "assignee": "平台值班",
+        "department": "平台"
+      },
+      {
+        "ticket_id": "HD-3104",
+        "title": "幂等去重存储写入失败，导致重复事件无法拦截",
+        "reporter": "数据平台",
+        "created_at": "2026-03-02T01:33:00+08:00",
+        "priority": "high",
+        "status": "resolved",
+        "description": "dedupe_store 出现写入成功率下降。部分 idempotency_key 未落库，造成同一 event_id 的重复投递无法被幂等拦截。与事件补偿重放的重复批次时间窗口一致。",
+        "tags": [
+          "idempotency",
+          "dedupe_store",
+          "write-failure"
+        ],
+        "assignee": "数据平台值班",
+        "department": "数据平台"
+      },
+      {
+        "ticket_id": "HD-3105",
+        "title": "审计链路显示重复批次：batch_id重复发布",
+        "reporter": "审计系统",
+        "created_at": "2026-03-02T01:45:00+08:00",
+        "priority": "medium",
+        "status": "resolved",
+        "description": "审计日志统计：batch_id=BR-88371 在 01:18-02:03 期间被多次发布/处理。重复后续处理表现为状态反复（部分订单回滚后又重新推进）。",
+        "tags": [
+          "audit",
+          "batch-repeat",
+          "state-flap"
+        ],
+        "assignee": "审计系统值班",
+        "department": "审计"
+      },
+      {
+        "ticket_id": "HD-3106",
+        "title": "恢复：人工暂停补偿重放后redelivery下降",
+        "reporter": "运维值班",
+        "created_at": "2026-03-02T02:03:00+08:00",
+        "priority": "high",
+        "status": "done",
+        "description": "在 02:03 人工暂停 event_compensation_replay 后，redelivery 速率明显下降。处理延迟回落至 5-15s；风控集成error_rate逐步恢复，degraded状态结束。",
+        "tags": [
+          "mitigation",
+          "pause-replay",
+          "recovery"
+        ],
+        "assignee": "运维值班",
+        "department": "运维"
+      },
+      {
+        "ticket_id": "HD-3107",
+        "title": "用户侧影响评估：拦截与重复后续占比需要核算",
+        "reporter": "业务分析",
+        "created_at": "2026-03-02T02:20:00+08:00",
+        "priority": "medium",
+        "status": "open",
+        "description": "初步统计（待最终校验）：\n- 错误拦截（失败提示）订单约 1.4k-1.9k 笔\n- 重复后续处理（状态反复/重复推进）约 0.6k-0.9k 笔\n需结合订单状态变更记录与事件批次ID进行交叉验证。",
+        "tags": [
+          "impact",
+          "orders",
+          "estimate"
+        ],
+        "assignee": "业务分析同学",
+        "department": "业务"
+      },
+      {
+        "ticket_id": "HD-3108",
+        "title": "排查工单：是否存在重复触发或游标回退",
+        "reporter": "研发值班",
+        "created_at": "2026-03-02T02:35:00+08:00",
+        "priority": "high",
+        "status": "resolved",
+        "description": "结合补偿重放任务历史：发现 cursor 回退/未提交导致同一 cursor 区间重复处理。并观察到重试策略使得重复放大（同一批次在短时间触发多次）。",
+        "tags": [
+          "cursor",
+          "replay",
+          "duplicate-trigger"
+        ],
+        "assignee": "研发值班",
+        "department": "研发"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-701",
+        "title": "补偿任务：游标一致性与严格幂等（TODO/已知缺口）",
+        "category": "工程治理",
+        "tags": [
+          "compensation",
+          "idempotency",
+          "cursor-consistency",
+          "replay"
+        ],
+        "created_at": "2025-10-05T11:10:00+08:00",
+        "content": "# 补偿任务：游标一致性与严格幂等\n\n## 关键结论\n1. 补偿/重放任务必须保证：**cursor 提交与事件处理结果的可观测一致**。\n   - 允许先处理后提交，但必须在“事务边界/两阶段一致性”上做到可追溯\n2. 幂等键必须覆盖业务语义：至少包含（batch_id, event_id, 规则版本/策略版本）。\n3. 必须做重复检测与回放限速：对同一 batch_id 的重复重放应当限流/直接跳过。\n\n## 既往TODO（示例）\n- “游标一致性校验”未完成：仅做功能层面的payload schema校验，缺少端到端回放校验。\n\n## 推荐整改点\n- 增加 end-to-end replay validator：验证（游标->事件->幂等落库->规则评估入参）链路一致。\n- 增加重放幂等保护与幂等键落库可用性监控。",
+        "last_updated": "2026-01-15T16:30:00+08:00",
+        "views": 0
+      },
+      {
+        "article_id": "KB-702",
+        "title": "事件重放引发风控误判的案例复盘模板",
+        "category": "事故复盘",
+        "tags": [
+          "incident",
+          "risk",
+          "replay",
+          "field-missing"
+        ],
+        "created_at": "2025-11-12T09:40:00+08:00",
+        "content": "# 事件重放引发风控误判的案例复盘模板\n\n## 常见触发链路\n- 补偿重放任务因游标未提交/写入失败，重复拉取同一批事件\n- Worker重试或并发调度放大重复投递\n- 去重存储幂等键落库失败导致重复事件进入下游\n- 风控规则引擎在入参缺失时触发默认分支，从而出现：\n  - 错误放行（ALLOW分支被错误命中）\n  - 或状态反复（重复后续处理导致状态抖动）\n\n## 必须包含的证据\n- 工单：重复批次、degraded、redelivery、人工暂停\n- 集成：error_rate 与输入字段缺失描述\n- 邮件/会议：评审时端到端回放校验是否到位\n- 任务：event_compensation_replay 的触发次数与历史失败原因\n",
+        "last_updated": "2026-02-02T10:00:00+08:00",
+        "views": 0
+      }
+    ],
+    "fixtures/notes/meetings.json": [
+      {
+        "note_id": "MEET-8101",
+        "title": "补偿重放上线评审会（端到端校验未落地）",
+        "type": "meeting",
+        "participants": [
+          "研发负责人A",
+          "风控负责人B",
+          "运维负责人C",
+          "数据平台负责人D"
+        ],
+        "tags": [
+          "release",
+          "replay",
+          "review-gap"
+        ],
+        "content": "## 补偿重放上线评审会\n\n日期：2026年3月1日\n\n### 评审结果\n- 已完成功能测试：payload schema 校验、基本字段映射\n- 端到端回放校验：**被推迟**（原因：时间紧张 + 认为仅属“补偿路径”，主链路不影响）\n\n### 讨论要点\n- 风控负责人强调：重放链路必须保证游标一致性与幂等保护，否则会出现误判/重复处理\n- 数据平台负责人提醒：cursor commit 与幂等键落库需在一致性策略下完成\n- 评审结论：上线采用保守容错，后续用监控观察；未给出强制跳过重复 batch 的验收条件\n",
+        "created_at": "2026-03-01",
+        "duration_minutes": 55
+      },
+      {
+        "note_id": "MEET-8102",
+        "title": "故障复盘同步会（确认“游标一致性校验缺口”）",
+        "type": "meeting",
+        "participants": [
+          "CTO",
+          "运维总监",
+          "风控平台同学",
+          "研发值班"
+        ],
+        "tags": [
+          "incident",
+          "postmortem",
+          "root-cause"
+        ],
+        "content": "## 故障复盘同步会\n\n日期：2026年3月2日\n\n### 核心结论（初步）\n1. 重放路径重复批次的根因证据：cursor_commit_status=FAILED，但任务仍进行了重试与重复拉取。\n2. 去重存储写入失败导致幂等键未落库，无法拦截重复事件。\n3. 风控侧观测到输入字段缺失，默认分支触发，出现错误放行与状态反复。\n\n### 流程缺口\n- 上线评审时端到端回放校验被弱化：只做功能层面测试，缺少游标一致性与端到端重复检测验收。\n- 数据一致性校验（游标-事件-幂等落库）未作为发布门禁项。\n",
+        "created_at": "2026-03-02",
+        "duration_minutes": 45
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-611",
+        "name": "event_compensation_replay",
+        "description": "事件补偿重放：按游标批次重放缺失事件，失败重试与人工暂停支持",
+        "cron_expression": "*/7 * * * *",
+        "enabled": true,
+        "last_status": "stopped",
+        "last_run": "2026-03-02T02:03:00+08:00",
+        "action": "重放事件批次（含cursor提交与幂等落库步骤）",
+        "created_by": "replay_platform_team",
+        "tags": [
+          "replay",
+          "compensation",
+          "cursor",
+          "idempotency"
+        ],
+        "notes": "故障窗口内重复触发。历史显示游标提交失败后触发重试，导致同一 cursor 区间重复批次投递；同时幂等键落库失败放大重复进入风控链路。",
+        "execution_history": [
+          {
+            "run_time": "2026-03-02T01:11:00+08:00",
+            "status": "failed",
+            "duration_seconds": 38,
+            "notes": "处理 batch_id=BR-88371，cursor=CT-77201；cursor_commit_status=FAILED；redelivery开始；幂等键idempotency_key落库部分失败。"
+          },
+          {
+            "run_time": "2026-03-02T01:18:00+08:00",
+            "status": "failed",
+            "duration_seconds": 46,
+            "notes": "重试同一 cursor 区间，仍提示 cursor未提交/回退；Worker继续拉取，重复发布同批事件到event_bus与queue_gateway。"
+          },
+          {
+            "run_time": "2026-03-02T01:25:00+08:00",
+            "status": "failed",
+            "duration_seconds": 44,
+            "notes": "重复批次继续出现，导致risk_rules_engine入参缺失比例上升；错误率保持高位。"
+          },
+          {
+            "run_time": "2026-03-02T01:52:00+08:00",
+            "status": "success",
+            "duration_seconds": 61,
+            "notes": "尝试恢复后仍触发部分重复投递（去重落库仍不稳定），直到02:03人工暂停。"
+          },
+          {
+            "run_time": "2026-03-02T02:03:00+08:00",
+            "status": "stopped",
+            "duration_seconds": 0,
+            "notes": "人工暂停job，停止后续重复批次增长；观察到redelivery下降。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-612",
+        "name": "risk_replay_validator",
+        "description": "风控回放校验器：对重放后的入参与幂等落库进行校验（理想情况下应阻断不一致批次）",
+        "cron_expression": "*/10 * * * *",
+        "enabled": false,
+        "last_status": "stopped",
+        "last_run": "2026-03-01T23:50:00+08:00",
+        "action": "校验重放一致性（cursor-幂等-入参）",
+        "created_by": "risk_platform_team",
+        "tags": [
+          "validator",
+          "end-to-end"
+        ],
+        "notes": "该校验器在上线评审后被暂时关闭，用于规避性能影响；因此端到端回放校验门禁缺失，无法在故障初期阻断重复批次下游流转。",
+        "execution_history": [
+          {
+            "run_time": "2026-03-01T23:50:00+08:00",
+            "status": "stopped",
+            "duration_seconds": 0,
+            "notes": "关闭状态：不执行一致性拦截。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-613",
+        "name": "worker_queue_redelivery_monitor",
+        "description": "Worker重试/重复投递监控：统计redelivery速率并告警",
+        "cron_expression": "*/5 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-02T02:10:00+08:00",
+        "action": "检查redelivery与队列积压",
+        "created_by": "ops_team",
+        "tags": [
+          "monitoring",
+          "redelivery"
+        ],
+        "notes": "故障窗口内持续告警。02:03暂停补偿重放后，redelivery速率显著回落。",
+        "execution_history": [
+          {
+            "run_time": "2026-03-02T01:20:00+08:00",
+            "status": "success",
+            "duration_seconds": 4,
+            "notes": "告警：redelivery速率异常上升（同batch重复投递）。"
+          },
+          {
+            "run_time": "2026-03-02T01:45:00+08:00",
+            "status": "success",
+            "duration_seconds": 5,
+            "notes": "告警：worker重试次数飙升，队列堆积持续增长。"
+          },
+          {
+            "run_time": "2026-03-02T02:10:00+08:00",
+            "status": "success",
+            "duration_seconds": 4,
+            "notes": "告警解除趋势：redelivery下降，积压开始消化。"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-614",
+        "name": "daily_order_state_audit",
+        "description": "日终审计：对订单状态反复与幂等异常进行抽检",
+        "cron_expression": "0 2 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-02T02:00:00+08:00",
+        "action": "抽检订单状态与去重异常",
+        "created_by": "data_platform_team",
+        "tags": [
+          "audit",
+          "orders"
+        ],
+        "notes": "抽检在故障窗口末期触发，发现部分订单状态反复与重复规则评估记录关联明显。",
+        "execution_history": [
+          {
+            "run_time": "2026-03-02T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 90,
+            "notes": "发现异常样本：order_id重复评估与重复后续处理（状态反复）。"
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题为CRM同步SQL导致连接池耗尽；本题改为补偿/事件重放触发的游标一致性与幂等缺失，导致风控规则误判并出现重复后续处理。",
+    "fixture_design_summary": [
+      "helpdesk/tickets 构造覆盖：风控异常、redelivery/Worker重试、degraded恢复、暂停补偿重放、影响评估与cursor回退证据。",
+      "config/integrations.json 设置 risk_rules_engine 与 dedupe_store 为degraded，并在notes中明确缺失字段与重复事件命中。",
+      "gmail/inbox.json 提供3封关键技术邮件：游标未提交导致重复批次、风控输入缺失触发默认分支、发布评审推迟端到端回放校验。",
+      "kb/articles.json 包含至少1篇带TODO的“游标一致性校验/端到端回放校验缺口”文章，并提供风控误判案例链路模板。",
+      "notes/meetings.json 放入两次会议记录：评审时端到端回放校验弱化/推迟，以及故障复盘同步确认游标一致性校验缺口。",
+      "scheduler/jobs.json 设置 event_compensation_replay 在故障窗口多次失败并记录 cursor_commit_status=FAILED、重复批次；同时设置校验器关闭以制造流程缺口。"
+    ]
+  }
+}

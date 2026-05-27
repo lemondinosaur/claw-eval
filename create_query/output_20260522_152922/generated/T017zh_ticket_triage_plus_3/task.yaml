@@ -1,0 +1,95 @@
+task_id: T017zh_ticket_triage_plus_3
+task_name: 门禁与考勤数据异常
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T017zh_ticket_triage_plus_3/fixtures/helpdesk/tickets.json
+prompt:
+  text: 帮我把待处理工单做门禁与考勤问题分诊：按“门禁硬件故障”“门禁授权/权限变更（授权批次）”“考勤数据延迟/补登规则”“场地网络与时钟同步”“流程咨询/服务申请”“测试噪声”进行分类；对同楼层同机型同时间窗的门禁终端建立关联并标出；对“授权批次导入失败导致权限未生效”的工单标出关联并提升优先级；对“数据库已同步完成但报表仍延迟”的考勤工单设置相对更低优先级；不要关闭任何工单，只更新每条工单的
+    priority、tags 和 category。
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选 (open/closed/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级 (urgent/high/medium/low)
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 分类
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决方案描述
+    required:
+    - ticket_id
+    - resolution
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+sandbox_files:
+- fixtures/helpdesk/tickets.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

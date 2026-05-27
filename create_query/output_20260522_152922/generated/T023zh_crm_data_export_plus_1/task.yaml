@@ -1,0 +1,98 @@
+task_id: T023zh_crm_data_export_plus_1
+task_name: Reactivation VIP名单导出
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T023zh_crm_data_export_plus_1/fixtures/crm/customers.json
+prompt:
+  text: '请从CRM系统导出一份“VIP客户唤回(reactivation)跟进清单”报告。要求：
+
+    1）只列出 tier=VIP 且 status=active 的VIP客户（排除 inactive/churned 的VIP）。
+
+    2）对每位入选客户获取详细信息：客户名称、行业、年收入、最近联系日期，并取得 notes。
+
+    3）生成汇总报告：
+
+    - 报告标题使用“VIP客户唤回(reactivation)跟进清单”。
+
+    - 明细/清单中每位客户都需要在“摘要”里根据其 notes 是否包含触发词“续签 / 评估 / 升级”进行标注：命中则写“触发词命中”，否则写“触发词未命中”。
+
+    - 在 summary 中体现每位客户的触发判断结果。
+
+    4）系统可能不稳定：若发生接口错误请重试。
+
+
+    输出最终报告内容即可。'
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 获取CRM客户列表，可按状态、等级、行业筛选
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选：active, inactive, churned
+      tier:
+        type: string
+        description: 客户等级筛选：VIP, standard
+      industry:
+        type: string
+        description: 按行业筛选
+    required: []
+- name: crm_get_customer
+  description: 获取单个客户的完整详细信息
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: crm_export_report
+  description: 导出客户汇总报告
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 报告标题
+      customer_ids:
+        type: array
+        items:
+          type: string
+        description: 要包含的客户ID列表
+      summary:
+        type: string
+        description: 报告摘要内容
+    required:
+    - title
+    - customer_ids
+    - summary
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: crm_export_report
+  url: http://localhost:9110/crm/export
+  method: POST
+sandbox_files:
+- fixtures/crm/customers.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

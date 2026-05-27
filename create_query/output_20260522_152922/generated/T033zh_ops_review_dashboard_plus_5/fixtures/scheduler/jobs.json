@@ -1,0 +1,221 @@
+[
+  {
+    "job_id": "JOB-501",
+    "name": "delivery_dependency_data_generate",
+    "description": "交付依赖数据生成：为交付凭证/合同续约审批生成依赖数据",
+    "cron_expression": "*/15 * * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-03-01T09:00:00+08:00",
+    "next_run": "2026-03-01T09:15:00+08:00",
+    "average_duration_seconds": 38,
+    "tags": [
+      "delivery",
+      "dependency",
+      "retry"
+    ],
+    "error": "DB事务超时：generate_dependencies 写入失败",
+    "execution_history": [
+      {
+        "run_at": "2026-03-01T09:00:00+08:00",
+        "status": "failed",
+        "error": "DB事务超时：generate_dependencies 写入失败",
+        "duration_seconds": 34
+      },
+      {
+        "run_at": "2026-03-01T08:45:00+08:00",
+        "status": "failed",
+        "error": "DB事务超时：generate_dependencies 写入失败",
+        "duration_seconds": 33
+      },
+      {
+        "run_at": "2026-03-01T08:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 29
+      },
+      {
+        "run_at": "2026-03-01T08:15:00+08:00",
+        "status": "failed",
+        "error": "依赖字段校验失败：delivery_batch_id缺失",
+        "duration_seconds": 22
+      }
+    ],
+    "notes": "失败序列与VIP续约风险时间窗重合：工单反馈交付凭证缺失导致采购审批冻结。"
+  },
+  {
+    "job_id": "JOB-502",
+    "name": "packaging_notification_dispatch",
+    "description": "物料打包完成后派发通知：通知Webhook投递交付事件",
+    "cron_expression": "0 */1 * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-03-01T10:00:00+08:00",
+    "next_run": "2026-03-01T11:00:00+08:00",
+    "average_duration_seconds": 26,
+    "tags": [
+      "delivery",
+      "notification",
+      "webhook"
+    ],
+    "error": "Webhook 5xx：notification_webhook 返回错误，触发重试",
+    "execution_history": [
+      {
+        "run_at": "2026-03-01T10:00:00+08:00",
+        "status": "failed",
+        "error": "Webhook 5xx：notification_webhook 返回错误，触发重试",
+        "duration_seconds": 24
+      },
+      {
+        "run_at": "2026-03-01T09:00:00+08:00",
+        "status": "failed",
+        "error": "Webhook timeout：notification_webhook 30s内无响应",
+        "duration_seconds": 30
+      },
+      {
+        "run_at": "2026-03-01T08:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 19
+      },
+      {
+        "run_at": "2026-02-28T15:00:00+08:00",
+        "status": "failed",
+        "error": "Webhook 5xx：notification_webhook 返回错误，触发重试",
+        "duration_seconds": 22
+      }
+    ],
+    "notes": "notes提示：状态active但存在延迟投递/失败重试，可能造成客户采购系统未及时接收到事件。"
+  },
+  {
+    "job_id": "JOB-503",
+    "name": "delivery_status_synchronization",
+    "description": "交付状态同步：将交付事件同步到下游系统并更新客户可见状态",
+    "cron_expression": "*/30 * * * *",
+    "enabled": false,
+    "last_status": "failed",
+    "last_run": "2026-02-29T08:00:00+08:00",
+    "next_run": null,
+    "average_duration_seconds": 41,
+    "tags": [
+      "delivery",
+      "sync",
+      "disabled"
+    ],
+    "error": "任务被管理员禁用（未启用导致状态缺口）",
+    "execution_history": [
+      {
+        "run_at": "2026-02-29T08:00:00+08:00",
+        "status": "failed",
+        "error": "任务被管理员禁用（未启用导致状态缺口）",
+        "duration_seconds": 0
+      },
+      {
+        "run_at": "2026-02-29T07:30:00+08:00",
+        "status": "failed",
+        "error": "任务未启用，跳过执行",
+        "duration_seconds": 0
+      },
+      {
+        "run_at": "2026-02-29T07:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 44
+      }
+    ],
+    "disabled_by": "admin",
+    "disabled_date": "2026-02-29",
+    "disabled_reason": "临时维护：与依赖数据生成接口兼容性验证中"
+  },
+  {
+    "job_id": "JOB-504",
+    "name": "inventory_reservation_compaction",
+    "description": "库存预占数据压缩/对齐：给打包前置步骤提供视图数据",
+    "cron_expression": "*/20 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T09:40:00+08:00",
+    "next_run": "2026-03-01T10:00:00+08:00",
+    "average_duration_seconds": 15,
+    "tags": [
+      "inventory",
+      "reservation"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-03-01T09:40:00+08:00",
+        "status": "success",
+        "duration_seconds": 14
+      },
+      {
+        "run_at": "2026-03-01T09:20:00+08:00",
+        "status": "success",
+        "duration_seconds": 16
+      },
+      {
+        "run_at": "2026-03-01T09:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 15
+      }
+    ],
+    "notes": "该任务本周整体成功；但与库存预占API拥塞在时序上可能导致打包前置等待。"
+  },
+  {
+    "job_id": "JOB-505",
+    "name": "crm_contract_renewal_event_push",
+    "description": "CRM合同续约事件推送：把关键交付状态回传给CRM做风险评估",
+    "cron_expression": "0 */2 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T08:00:00+08:00",
+    "next_run": "2026-03-01T10:00:00+08:00",
+    "average_duration_seconds": 52,
+    "tags": [
+      "crm",
+      "contract"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-03-01T08:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 49
+      },
+      {
+        "run_at": "2026-03-01T06:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 55
+      },
+      {
+        "run_at": "2026-02-29T20:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 51
+      }
+    ],
+    "notes": "推送链路可用；但当上游交付事件缺口时，CRM侧只能基于更旧信息做判断。"
+  },
+  {
+    "job_id": "JOB-506",
+    "name": "monitoring_health_check",
+    "description": "每5分钟执行一次系统健康检查",
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T10:35:00+08:00",
+    "next_run": "2026-03-01T10:40:00+08:00",
+    "average_duration_seconds": 6,
+    "tags": [
+      "monitoring",
+      "critical"
+    ],
+    "execution_history": [
+      {
+        "run_at": "2026-03-01T10:35:00+08:00",
+        "status": "success",
+        "duration_seconds": 6
+      },
+      {
+        "run_at": "2026-03-01T10:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 6
+      }
+    ],
+    "notes": "健康检查显示active/可用，但notes可能覆盖“超时重试/短暂降级”场景。"
+  }
+]

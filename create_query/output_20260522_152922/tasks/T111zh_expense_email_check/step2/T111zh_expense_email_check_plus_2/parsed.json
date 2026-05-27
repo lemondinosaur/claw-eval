@@ -1,0 +1,147 @@
+{
+  "task_id": "T111zh_expense_email_check_plus_2",
+  "task_name": "报销对账 B（发票重复）",
+  "prompt_text": "收件箱中包含报销申请邮件与少量干扰邮件。请你完成报销对账：\n1) 从收件箱中识别“报销申请”邮件（仅处理正文里明确包含发票号与报销金额的邮件；对不含发票号、或不是报销申请的邮件需排除）。\n2) 对每笔报销邮件，提取发票号与报销金额。\n3) 到财务系统中按发票号匹配对应交易（如果同一发票号存在多条候选交易，需要结合交易类型/类别与description内容，选择与该邮件报销描述最匹配、且应能完成最终核对的那一条；例如优先选择description更完整且status为completed的记录）。\n4) 核对：所选交易的金额是否与邮件一致、交易状态是否为completed。\n5) 输出核对报告，按三类列出：匹配正常、金额不符、状态异常；并在“发票重复”的条目中说明你选择了哪一条交易以及选择理由（与邮件描述/类别一致性）。",
+  "files": {
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXB-201",
+        "date": "2026-03-26",
+        "amount": 2379.5,
+        "currency": "CNY",
+        "type": "差旅费报销",
+        "category": "费用报销",
+        "description": "赵晨出差上海差旅费，发票号INV-B401，交通+住宿合计2379.50元",
+        "status": "completed",
+        "approved_by": "财务主管"
+      },
+      {
+        "transaction_id": "TXB-202",
+        "date": "2026-03-26",
+        "amount": 2379.5,
+        "currency": "CNY",
+        "type": "差旅费报销（调整）",
+        "category": "费用报销",
+        "description": "赵晨出差上海差旅费调整单，发票号INV-B401，包含交通住宿明细，金额2379.50",
+        "status": "pending",
+        "approved_by": "财务主管"
+      },
+      {
+        "transaction_id": "TXB-203",
+        "date": "2026-03-26",
+        "amount": 1680.0,
+        "currency": "CNY",
+        "type": "餐饮报销",
+        "category": "费用报销",
+        "description": "周宁客户招待餐费，发票号INV-B402（含发票明细与参与人员），金额1680.00",
+        "status": "completed",
+        "approved_by": "李主管"
+      },
+      {
+        "transaction_id": "TXB-204",
+        "date": "2026-03-26",
+        "amount": 1760.0,
+        "currency": "CNY",
+        "type": "餐饮报销（差额）",
+        "category": "费用报销",
+        "description": "周宁客户招待餐费补差，发票号INV-B402，调整后金额1760.00",
+        "status": "completed",
+        "approved_by": "李主管"
+      },
+      {
+        "transaction_id": "TXB-205",
+        "date": "2026-03-27",
+        "amount": 9800.0,
+        "currency": "CNY",
+        "type": "云服务费",
+        "category": "运营成本",
+        "description": "运营云服务采购付款（非报销），参考单号OP-77881",
+        "status": "completed",
+        "approved_by": "采购专员"
+      },
+      {
+        "transaction_id": "TXB-206",
+        "date": "2026-03-25",
+        "amount": 560.25,
+        "currency": "CNY",
+        "type": "办公杂费",
+        "category": "费用报销",
+        "description": "日常办公杂费结算（无发票号，系统生成）",
+        "status": "completed",
+        "approved_by": "行政部"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_b01",
+        "from": "chaodayi@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：差旅费 2379.50元（上海）",
+        "date": "2026-03-26T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "财务部您好，我是赵晨。本次出差上海发生差旅费用共计2379.50元，发票号INV-B401（交通+住宿合计）。请审核并走账。附件：行程单与费用明细。"
+      },
+      {
+        "message_id": "msg_b02",
+        "from": "zhouning@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：客户招待餐费 1680.00元（发票）",
+        "date": "2026-03-26T10:45:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "你好，周宁申请报销客户招待餐费，金额为1680.00元，发票号INV-B402。包含参与人员与餐饮明细。请核对并完成报销。"
+      },
+      {
+        "message_id": "msg_b03",
+        "from": "chenlei@company.com",
+        "to": "finance@company.com",
+        "subject": "报销申请：办公用品 299.80元（补录）",
+        "date": "2026-03-26T13:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "财务同事您好，补录本月办公用品报销：共计299.80元，发票号INV-B403。请尽快处理。"
+      },
+      {
+        "message_id": "msg_b04",
+        "from": "itops@company.com",
+        "to": "all@company.com",
+        "subject": "差旅政策更新：报销材料清单调整（请勿回复）",
+        "date": "2026-03-26T15:30:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "各位同学注意：差旅政策更新，新增报销材料清单与审批流程。内容仅为制度通知，不涉及任何发票号或报销金额。"
+      },
+      {
+        "message_id": "msg_b05",
+        "from": "forwarder@partner.com",
+        "to": "finance@company.com",
+        "subject": "转发提醒：本周费用报销待处理",
+        "date": "2026-03-26T16:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，转发一条内部提醒：有同事提交了费用报销（金额约三百元），请留意系统待办。该邮件内容未包含发票号，无法直接核对。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新增“同一发票号在财务侧存在多条交易（pending 与 completed）”的分支，并加入干扰邮件“差旅政策更新/转发提醒”（一个不含报销申请词且不含发票号，另一个不含发票号）。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 共5条：3条报销申请（msg_b01~msg_b03），2条干扰（msg_b04通知、msg_b05转发提醒且正文不含发票号）。",
+      "INV-B401 在 finance/transactions.json 中对应两条：TXB-202(pending) 与 TXB-201(completed) 金额一致；核对时应选择 completed 且 description 与邮件差旅内容更匹配的一条。",
+      "INV-B402 在财务侧存在两条且均 completed，其中一条金额与邮件不一致（1680.00 vs 1760.00），应归入“金额不符”。",
+      "INV-B403 在财务侧不提供匹配发票号的交易（用于检验解析与排除/异常处理边界）。",
+      "所有金额均保留两位小数，确保可比较；交易状态仅使用 completed/pending。"
+    ]
+  }
+}

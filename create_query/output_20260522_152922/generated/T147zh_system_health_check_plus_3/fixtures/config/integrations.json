@@ -1,0 +1,80 @@
+[
+  {
+    "integration_id": "INT-2201",
+    "name": "支付网关回调",
+    "status": "error",
+    "config": {
+      "endpoint": "https://gateway-1.payco.example.com/callback/v3",
+      "timeout_ms": 4500,
+      "retry_count": 2,
+      "signature_scheme": "HMAC-SHA256"
+    },
+    "error_rate": 0.81,
+    "error_message": "签名校验失败（回调验签返回 false）",
+    "description": "处理支付网关回调并入库（订单支付状态与风控特征）",
+    "service": "payment",
+    "last_verified": "2026-04-18",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-2202",
+    "name": "对账数据汇聚",
+    "status": "active",
+    "config": {
+      "endpoint": "https://recon-engine.example.com/rollup",
+      "timeout_ms": 8000,
+      "retry_count": 4
+    },
+    "error_rate": 0.22,
+    "error_message": "下游数据行数为 0（可能由回调验签失败导致）",
+    "description": "从回调明细聚合对账数据并生成差异输入集",
+    "service": "recon",
+    "last_verified": "2026-04-18",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-2203",
+    "name": "风控规则分发",
+    "status": "active",
+    "config": {
+      "endpoint": "https://risk-distribution.example.com/rulesync",
+      "timeout_ms": 6000,
+      "retry_count": 3
+    },
+    "error_rate": 0.03,
+    "description": "向风控服务分发最新规则版本（不含定时任务启停信息）",
+    "service": "risk",
+    "last_verified": "2026-04-21",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-2204",
+    "name": "退款状态通知",
+    "status": "active",
+    "config": {
+      "endpoint": "https://refund-hub.example.com/status/notify",
+      "timeout_ms": 5500,
+      "retry_count": 3
+    },
+    "error_rate": 0.01,
+    "description": "接收退款状态流并同步至业务库",
+    "service": "refund",
+    "last_verified": "2026-04-20",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-2205",
+    "name": "审计事件投递",
+    "status": "active",
+    "config": {
+      "endpoint": "https://audit-stream.example.com/events",
+      "timeout_ms": 3500,
+      "retry_count": 1
+    },
+    "error_rate": 0.004,
+    "description": "投递对账与退款风控相关审计事件用于追踪",
+    "service": "audit",
+    "last_verified": "2026-04-22",
+    "monthly_calls": 0
+  }
+]

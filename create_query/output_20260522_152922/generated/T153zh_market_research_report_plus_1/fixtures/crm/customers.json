@@ -1,0 +1,122 @@
+[
+  {
+    "customer_id": "CUS-2301",
+    "name": "北域智能装备",
+    "industry": "制造业-装备制造",
+    "tier": "vip",
+    "annual_revenue": 1650000,
+    "status": "active",
+    "contract_end": "2026-10-15",
+    "sales_rep": "王总（销售）",
+    "notes": "正评估以数据平台为核心的并购整合方案；若竞品将数据治理模块打包，可能改变采购偏好。合同到期前需要明确合规云与数据治理交付范围。",
+    "contact_person": "周VP"
+  },
+  {
+    "customer_id": "CUS-2302",
+    "name": "澄港医疗数据科技",
+    "industry": "医疗信息化-数据平台",
+    "tier": "vip",
+    "annual_revenue": 1320000,
+    "status": "active",
+    "contract_end": "2026-12-05",
+    "sales_rep": "王总（销售）",
+    "notes": "并购后组织架构调整，正在同步升级合规与审计能力；有意在下一轮预算中扩充合规云能力，需尽快提供认证路径与迁移方案。",
+    "contact_person": "刘VP"
+  },
+  {
+    "customer_id": "CUS-2303",
+    "name": "青砚合规云集成商",
+    "industry": "行业信息化-合规云集成",
+    "tier": "standard",
+    "annual_revenue": 540000,
+    "status": "active",
+    "contract_end": "2026-11-20",
+    "sales_rep": "刘VP",
+    "notes": "区域集成商参与并购重组，倾向选择“更快上线+更低合规成本”的供应商。将到期但短期仍有扩容可能，建议提供一体化交付包与样板客户案例。",
+    "contact_person": "刘VP"
+  },
+  {
+    "customer_id": "CUS-2304",
+    "name": "星河金融风控云",
+    "industry": "金融科技-风控与合规",
+    "tier": "vip",
+    "annual_revenue": 2100000,
+    "status": "active",
+    "contract_end": "2027-01-31",
+    "sales_rep": "邹总（市场）",
+    "notes": "监管合规成本上升后，客户更看重等保/审计能力交付确定性。若并购带来同类能力“捆绑降价”，续约谈判可能更激进，但合规壁垒仍利于我们强化差异化。",
+    "contact_person": "陈总"
+  },
+  {
+    "customer_id": "CUS-2305",
+    "name": "锦桥教育云服务",
+    "industry": "教育信息化-教研与考试",
+    "tier": "standard",
+    "annual_revenue": 320000,
+    "status": "active",
+    "contract_end": "2026-08-30",
+    "sales_rep": "邹总（市场）",
+    "notes": "并购整合导致产品路线变动，可能把AI教学辅助功能切换为“合作伙伴平台”。合同到期较近，需要把续约与升级路径前置绑定，降低迁移风险。",
+    "contact_person": "陈总"
+  },
+  {
+    "customer_id": "CUS-2306",
+    "name": "宏远制造供应链",
+    "industry": "制造业-供应链协同",
+    "tier": "standard",
+    "annual_revenue": 460000,
+    "status": "active",
+    "contract_end": "2026-09-18",
+    "sales_rep": "王总（销售）",
+    "notes": "对数据治理与供应链可视化平台并购传闻较敏感，担心采购偏好被平台型AI公司重塑。建议提供“数据治理+集成接口+合规云托管”的组合方案。",
+    "contact_person": "周VP"
+  },
+  {
+    "customer_id": "CUS-2307",
+    "name": "云屿医疗影像协作",
+    "industry": "医疗信息化-影像与协作",
+    "tier": "standard",
+    "annual_revenue": 280000,
+    "status": "active",
+    "contract_end": "2026-07-26",
+    "sales_rep": "刘VP",
+    "notes": "将到期且使用活跃度下降；并购后采购可能转向“更便捷的交付商”。建议开展合规云迁移评估与续约保底方案，并在两个月内完成价值复盘。",
+    "contact_person": "刘VP"
+  },
+  {
+    "customer_id": "CUS-2308",
+    "name": "盛岸金融数据中台",
+    "industry": "金融科技-数据中台",
+    "tier": "standard",
+    "annual_revenue": 390000,
+    "status": "active",
+    "contract_end": "2026-10-02",
+    "sales_rep": "邹总（市场）",
+    "notes": "并购带来数据治理模块整合诉求；客户关注企业级AI调用与合规审计联动。建议提供端到端审计闭环与可量化ROI口径。",
+    "contact_person": "周VP"
+  },
+  {
+    "customer_id": "CUS-2309",
+    "name": "清澜教育运营平台",
+    "industry": "教育信息化-运营与分析",
+    "tier": "standard",
+    "annual_revenue": 210000,
+    "status": "churned",
+    "contract_end": "2026-05-15",
+    "sales_rep": "邹总（市场）",
+    "notes": "已流失：合同到期后转用低价AI运营套件，核心原因是合规与认证交付周期不清晰。后续需要在续约沟通中明确认证节点与责任边界。",
+    "contact_person": "陈总"
+  },
+  {
+    "customer_id": "CUS-2310",
+    "name": "睿航制造AI运维",
+    "industry": "制造业-运维与预测",
+    "tier": "vip",
+    "annual_revenue": 1780000,
+    "status": "active",
+    "contract_end": "2026-11-08",
+    "sales_rep": "王总（销售）",
+    "notes": "竞品并购“行业数据平台”后，计划更快推出预测性运维能力。我们需要通过行业AI可解释性+合规云托管+集成工单闭环来稳住偏好，并提前锁定升级里程碑。",
+    "contact_person": "周VP"
+  }
+]

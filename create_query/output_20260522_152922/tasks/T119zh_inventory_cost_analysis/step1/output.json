@@ -1,0 +1,102 @@
+{
+  "schema_version": "step1.task_descriptions.v2",
+  "generated_at": "2026-05-22 15:35:55",
+  "source_task_id": "T119zh_inventory_cost_analysis",
+  "source_summary": {
+    "task_id": "T119zh_inventory_cost_analysis",
+    "task_name": "库存成本分析",
+    "task_type": "跨 inventory 与 finance 的采购成本核对，识别单位成本/分批价格等异常并输出结构化报告",
+    "category": "ops",
+    "difficulty": "medium",
+    "tags": [
+      "general",
+      "multi_service"
+    ],
+    "language": "zh",
+    "services": [
+      "inventory",
+      "finance"
+    ],
+    "tools": [
+      "inventory_list_items",
+      "inventory_get_item",
+      "finance_list_transactions",
+      "finance_get_transaction"
+    ],
+    "fixture_paths": [
+      "fixtures/finance/transactions.json",
+      "fixtures/inventory/items.json"
+    ],
+    "sandbox_files": [],
+    "has_user_agent": false,
+    "has_grader": true,
+    "core_capability": "多服务数据交叉核对与异常检测的库存成本分析"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T119zh_inventory_cost_analysis_plus_1",
+      "new_task_name": "批量采购价漂移检测",
+      "task_goal": "对所有库存品按分类逐项核对：库存的 unit_cost 与财务采购交易中对应批次的单价/加权平均单价是否一致；识别单一品类存在“同一期间多次采购但财务未汇总一致、导致库存成本偏离”的异常，并给出偏差原因推断与校正建议。",
+      "user_request": "请帮我做一次库存与采购成本的核对（重点：同一品类在财务中存在多笔分批采购，核对库存 unit_cost 是否为正确加权平均）。\n1）拉取当前所有库存品的数量与单位成本\n2）按采购交易查找这些品类对应的采购批次（同一品类可能多笔）\n3）核对：库存的 unit_cost 是否等于对应采购批次的加权平均单价（按交易数量加权）\n4）找出成本异常的品类，并解释偏差来自哪些批次\n5）输出一份成本分析报告（包含核对表、异常列表、建议）",
+      "scenario": "库存包含 5 个品类；其中“云存储硬盘”在财务系统中有三笔连续采购（不同单价），但库存记录只反映了其中两笔的部分加权结果，导致 unit_cost 偏高/偏低。另有一类“办公椅”存在一笔已完成的采购与一笔冲销/调整交易（finance 中 type='采购'但 description 指向调整，需在比对时排除或单独标注）。同时混入一笔非采购交易（type='服务'或 category='差旅'）应忽略。",
+      "difference_from_source": "不再只找“单价差异”与“鼠标垫两批导致库存只记第一批”的固定模式，而是要求对同一品类的多批采购计算加权平均单价，并判断偏离是否来自“遗漏某笔批次/把调整交易当作采购”。异常类型从2类扩展为“加权平均不一致 + 调整/冲销识别”。",
+      "service_and_tool_plan": "使用 inventory_list_items 获取全部库存品的 product_id、quantity、unit_cost、category；对候选异常品类再用 inventory_get_item 拉取更完整字段以支持匹配（如 supplier/ location）。使用 finance_list_transactions 按日期范围获取本期交易列表，再对与异常品类相关的交易用 finance_get_transaction 拉取 transaction 详情以确认批次数量与单价来源。两服务的组合仍然使用同一套工具 schema，但匹配逻辑需从一对一升级为一对多。",
+      "fixture_generation_plan": "生成 inventory/items.json：5条记录；每条包含 product_id、name、category、quantity、unit、unit_cost、location、reorder_level、supplier。生成 finance/transactions.json：至少 10 笔交易；其中对“云存储硬盘”生成 3 笔采购（status=completed，type=采购，且 description 中明确单价与数量），并额外生成 1 笔“调整/冲销”交易（仍为 completed，但 description 带“冲销/调整”，amount 符合调整逻辑）。其他品类各至少 1 笔采购；另加入 1 笔非采购（type='服务'或 category='差旅'）作为干扰。确保：库存的 unit_cost 对 4 个品类匹配正确；对“云存储硬盘”故意设置 unit_cost 为错误的加权结果。避免复用原题商品名、产品ID、交易ID、邮箱/客户名/具体数值。",
+      "expected_behavior": "1）agent 应调用 inventory_list_items 获取全部库存品；2）对每个品类在 finance_list_transactions 的结果中筛选出对应采购批次（基于 description/category/reference 的可解析信息）；3）对含多批的品类计算加权平均单价 = Σ(批次单价×批次数量) / Σ(批次数量)，与库存 unit_cost 对比；4）若存在调整/冲销交易，应识别其与正常采购不同的语义并在计算中排除或单独给出“若纳入将导致何种偏差”；5）输出成本分析报告：至少包含每品类核对摘要表（库存单价、财务计算单价、差异、匹配批次列表）与异常解释、建议（如更新库存成本、复核调整单）。",
+      "grading_plan": "检查 grader.py 中：是否进行了加权平均计算并对多批采购品类给出正确财务单价；是否识别并处理了冲销/调整交易（例如标注为排除项或单独计算对比）；是否最终至少发现 1 个异常品类且解释到“来自哪些批次导致偏离”；报告需结构清晰（核对表+异常列表+建议）并基于 fixture 数据给出一致的数值关系。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T119zh_inventory_cost_analysis_plus_2",
+      "new_task_name": "同类跨币种换算核对",
+      "task_goal": "核对库存 unit_cost（假定为 CNY）与财务采购交易金额（可能含 USD/EUR 且需要按交易币种换算）之间是否一致；识别由于币种换算缺失或汇率错误导致的成本异常，并给出换算依据与修正建议。",
+      "user_request": "请帮我做一次库存与采购成本的交叉核对（注意：采购交易可能使用不同币种，需要换算后再核对）。\n1）查看当前所有库存品的数量和单位成本（库存 unit_cost 默认按人民币计）\n2）查询财务系统中对应品类的采购交易（可能是 USD/EUR）\n3）将交易金额按给定汇率换算为人民币，并核对换算后的单价是否与库存 unit_cost 一致\n4）找出成本异常的品类（例如汇率未换算或换算后单价偏离）\n5）输出成本分析报告（包含汇率换算过程/结果）",
+      "scenario": "库存包含 4 个品类：其中“无线网卡模块”有两笔采购，一笔以 USD 计价、一笔以 CNY 计价；库存 unit_cost 被错误地按原币单价直接写入（即未换算），导致异常。另有“打印机硒鼓”只有一笔采购但 status='pending'（未完成），应忽略。再加一个干扰品类“门禁卡”财务存在一笔 completed 的采购但 reference 指向不同 product_id，需谨慎匹配。",
+      "difference_from_source": "核心差异是新增“跨币种换算”维度：异常来自币种与汇率处理，而非单价差异/分批未汇总。并引入 pending 未完成交易与错误引用 reference 的干扰，要求匹配与过滤更严谨。",
+      "service_and_tool_plan": "使用 inventory_list_items 获取全部库存品；对异常候选品类用 inventory_get_item 获取更多匹配信息（如 supplier 或 category）。使用 finance_list_transactions 获取指定区间交易，随后对候选交易用 finance_get_transaction 获取币种、汇率字段（或在 description/transaction 中给出换算所需信息）。仍使用 finance_list_transactions/finance_get_transaction 两类工具，但比对公式需引入汇率换算。",
+      "fixture_generation_plan": "生成 inventory/items.json：4条记录，设置库存 unit_cost 以 CNY 表示。生成 finance/transactions.json：至少 8 笔交易，其中“无线网卡模块”至少 2 笔采购（type=采购，status=completed，分别币种=USD与CNY，description 中含数量与单价或可推导单价；并提供固定汇率字段或在 transaction 详情中可得）。为“打印机硒鼓”添加 1 笔采购 status='pending'（应被排除）与 1 笔 completed 正常交易（确保核对在其他品类上能成功或失败可控）。加入 1 笔 completed 干扰采购（reference 指向未出现在 inventory 的 product 或指向其他类）。另加入 1 笔非采购交易。确保“无线网卡模块”经过正确换算后单价与库存不一致，且差异可量化。",
+      "expected_behavior": "1）调用工具拉取库存与交易；2）筛选出与每个库存品匹配的 completed 采购交易（排除 pending/非采购、排除 reference不对应的交易）；3）对 USD/EUR 交易按汇率换算到 CNY 后计算单价或批次金额对应单价；4）若计算后的单价与库存 unit_cost 不一致，标记为异常并说明“库存似乎把外币单价未换算/使用了错误汇率”；5）输出报告：包含每个品类的换算后对比结果、异常品类的详细换算过程（列出币种、原单价、汇率、换算后单价、差异）。",
+      "grading_plan": "grader 应核查：是否正确过滤 pending 与非采购/错引用交易；是否对跨币种交易进行了换算（且汇率来源匹配 fixtures）；对异常品类是否给出正确的差异方向（未换算/错误换算）；报告中是否提供可复核的换算步骤与一致的数值。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T119zh_inventory_cost_analysis_plus_3",
+      "new_task_name": "部分缺货触发缺单核对",
+      "task_goal": "在库存品数量可能为0或极低的情况下，仍要核对库存 unit_cost 与财务最近采购的成本是否一致；识别“库存已清零但财务仍存在采购记录”“库存数量为0但 unit_cost 仍有值”等边界情况，并输出可操作的核查结论。",
+      "user_request": "请帮我做一次库存与采购成本的交叉核对（包含边界条件：库存数量为0/缺货、财务可能只有历史采购）。\n1）拉取当前库存品列表，重点记录 quantity=0 的品类\n2）查询财务系统中这些品类在给定时间窗口内的采购交易\n3）核对：若库存 quantity>0，则库存 unit_cost 是否与对应采购的实际单价/加权平均一致；若 quantity=0，则说明应如何处理（例如：只验证成本来源是否合理，或跳过单价核对但给出风险）\n4）找出异常与数据质量问题\n5）输出成本分析报告（区分“成本异常”与“库存状态异常/数据不一致”）",
+      "scenario": "库存包含 6 个品类：其中 2 个品类 quantity=0 但 unit_cost 保留了旧值；1 个品类数量很小（如1个），但财务该品类在窗口内只有一次采购且状态 completed。另有 1 个品类库存 quantity>0，但财务窗口内没有对应采购交易（可能数据缺失），需要判定为“无法核对/疑似缺单”。再加入干扰：财务有采购交易但日期在窗口外，应不纳入核对。",
+      "difference_from_source": "原题假设库存数量与财务采购能形成匹配；新题加入边界：quantity=0、缺失采购记录（无法核对）、以及窗口外交易干扰。要求输出中把“成本异常”与“库存状态/数据缺失”区分清楚，而不是只给出单价差异。",
+      "service_and_tool_plan": "使用 inventory_list_items 获取全部库存品并识别 quantity=0；必要时对疑似异常品类用 inventory_get_item 获取其 category/supplier 以用于交易筛选。使用 finance_list_transactions 按窗口日期获取交易列表，再用 finance_get_transaction 拉取详情验证交易类型、status 与 description 中的数量/单价线索。工具不变，但核对策略需要包含“无法核对”的分支。",
+      "fixture_generation_plan": "生成 inventory/items.json：6条记录（不复用原ID/名称），其中2条 quantity=0，unit_cost 给出但不用于强断言；1条 quantity=1；其余 quantity>1。生成 finance/transactions.json：至少 12 笔交易，覆盖大部分品类在窗口内的采购（status=completed，type=采购），另加入：a）对“缺单疑似品类”在窗口内不放采购交易，仅放窗口外交易或完全不放；b）插入窗口外的采购交易若干笔作为干扰；c）加入 1-2 笔非采购/已取消交易（status='cancelled'）供过滤。确保：至少有 1 个品类成本核对不一致（真实异常），至少有 1 个品类无法核对（缺单），以及 quantity=0 带来的数据质量说明可被验证。",
+      "expected_behavior": "1）调用 inventory_list_items；2）对 quantity>0 的品类，寻找窗口内 completed 采购并比对 unit_cost（若多批则按加权平均）；3）若找不到窗口内采购交易，输出“无法核对/疑似缺单”，不强行判定成本异常但给出需要补录的建议；4）对 quantity=0 品类，输出“库存为0，不进行成本强核对/只做历史来源合理性检查或标注风险”；5）最终报告需分段：成本异常、数据缺失/无法核对、库存状态异常（quantity=0）三类。",
+      "grading_plan": "grader 应检查：是否对 quantity=0 品类采取了与 quantity>0 不同的处理方式；是否识别至少一个“无法核对/缺单”品类；是否过滤窗口外交易；是否对至少一个真实成本异常品类给出正确差异判定与计算依据；报告分类是否清晰且不混淆。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T119zh_inventory_cost_analysis_plus_4",
+      "new_task_name": "异常交易类型排除核对",
+      "task_goal": "对库存品进行成本核对时，需要识别并排除财务中的非采购交易（例如内部转拨、退货、折扣抵扣、运费单等），仅使用可作为采购成本依据的交易；找出因错误纳入“退货/折扣”导致的表面异常，并给出纠正后的真实结果。",
+      "user_request": "请帮我做一次库存与采购成本的交叉核对（重点：排除非采购/退货/折扣/运费等交易类型）。\n1）查看库存品数量与单位成本\n2）从财务拉取对应品类相关交易\n3）识别交易类型：仅将“采购”类且符合完成状态的成本计入核对；退货/折扣/运费/内部转拨需排除或单独列为干扰\n4）比对库存 unit_cost 与采购单价/加权平均\n5）输出成本分析报告：列出被排除的异常交易及排除理由，并给出最终异常结论",
+      "scenario": "库存包含 5 个品类：其中“耗电稳压器”在财务中既有一笔 completed 采购，又有一笔 completed 退货（type='采购'但 description 含“退货/已冲回”，amount 为负或与采购不匹配）。另有“防静电手套”存在采购与运费交易分拆（运费单 amount 较大但不是采购成本单价应被排除）。再有一个品类“桌面支架”库存单价与财务采购单价一致，但财务存在折扣抵扣交易（type='采购'且 status=completed），如果错误纳入会造成假异常。只有一个品类“工业相机模组”是真正成本异常。",
+      "difference_from_source": "原题要求比对与找异常但没有强调交易类型排除细则；新题显式加入：退货/运费/折扣抵扣等会干扰“类型为采购但语义不是采购成本”的情况，并要求输出“排除理由 + 最终异常结论”。",
+      "service_and_tool_plan": "使用 inventory_list_items 获取库存清单；可能对疑似异常品类用 inventory_get_item 辅助匹配。财务端使用 finance_list_transactions 获取窗口内交易，再对相关交易调用 finance_get_transaction 获取 transaction 详情中 description/status/type/amount 结构，以判断是否应纳入核对或排除。",
+      "fixture_generation_plan": "生成 inventory/items.json：5条记录，设置其中 1-2 个品类 unit_cost 正常、1 个真实异常品类 unit_cost 故意设为错误；其余两类设置为“若错误纳入干扰交易会出现偏差但正确排除后应一致”。生成 finance/transactions.json：至少 14 笔交易；对异常品类与其余品类各至少 2 笔交易以形成干扰：包括退货（描述含退货/冲回或金额为负）、运费（category='物流/运费'或 description 含运费）、折扣抵扣（description 含折扣/抵扣）。包含一两笔 cancelled 作为过滤干扰。交易中不复用原ID/名称/数值。",
+      "expected_behavior": "1）拉取库存与交易；2）对每个品类建立候选交易集合；3）对候选交易做语义过滤：仅当交易能代表采购成本（符合可核对语义，如 description 不含退货/运费/折扣抵扣，且 status=completed）时才纳入；4）退货/折扣若纳入应造成偏差，但正确做法是排除或在报告中说明“排除后差异消失”；5）输出报告：核对表（仅基于有效采购交易）、被排除交易清单（交易ID、品类、排除理由）、最终异常品类与修正建议。",
+      "grading_plan": "grader 应检查：是否正确识别并排除退货/运费/折扣抵扣等干扰交易；是否说明“排除后假异常消失”的品类；是否最终只将真实异常品类判为异常并给出正确差异计算；报告中排除理由是否与 fixtures 中 description/category 匹配。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T119zh_inventory_cost_analysis_plus_5",
+      "new_task_name": "按仓位成本分层一致性",
+      "task_goal": "在同一 product_id 可能存在多个仓位成本口径差异的情况下（库存工具返回可能包含不同 location 或历史成本线索），对每个仓位/批次口径做一致性核对；识别仓位层面的成本记录与采购交易的偏差，并给出应该合并或重算的建议。",
+      "user_request": "请帮我做一次库存与采购成本的交叉核对（按仓位分层一致性）。\n1）列出库存品并关注其 location（仓位）与 unit_cost\n2）对每个库存品按仓位口径核对其 unit_cost 与财务采购交易单价\n3）若同一品类在不同仓位的 unit_cost 不一致，分析它们是否分别对应不同批次采购（多批价格）\n4）找出成本异常（仓位间不一致但财务只能解释为单一采购口径、或缺少某批采购映射）\n5）输出成本分析报告（包含：按仓位的核对表、异常解释、建议）",
+      "scenario": "库存数据返回 3 个 product_id，但每个 product_id 在 inventory_get_item 的详情中会包含多个 location 成本条目（或同一 product_id 多条记录映射到不同 location；fixtures 可用 location 字段来体现）。财务中存在两笔采购批次：批次A对应仓位X与Y，批次B对应仓位Z。设计一个异常：对其中一个 product_id，某仓位的 unit_cost 被错误写成另一批次的价格，导致仓位间不一致；但从财务角度应能明确映射到正确批次。另加入干扰：财务中有同名但 description reference 指向不同批次，需基于数量/金额与仓位数量一致性做判断。",
+      "difference_from_source": "原题是全局一对一或按品类分批的简单核对；新题要求“按仓位分层一致性”和“仓位间的成本差异是否可由采购批次映射解释”。异常不仅是数值不等，还要能论证映射关系错误。",
+      "service_and_tool_plan": "使用 inventory_list_items 获取产品列表与基础 quantity/unit_cost，并标记需要深入的 product_id；对这些 product_id 使用 inventory_get_item 获取其 location 与仓位口径（由 fixtures 定义）。财务端通过 finance_list_transactions 拉取交易，随后 finance_get_transaction 获取每笔采购批次的数量与单价信息。核对时将“仓位数量”映射到批次数量占比（若多批）以判定正确批次对应关系。",
+      "fixture_generation_plan": "生成 inventory/items.json：3条基础库存记录（每条包含 product_id、name、category、总 quantity、unit_cost、location、supplier、reorder_level），并确保 inventory_get_item 在 fixture 或服务返回中能体现该 product_id 对应多个 location 成本口径（可通过 items.json 中增补字段或让服务按 product_id 返回明细；生成时需在 items.json 里预置足够信息，如 location 组合/仓位明细字段）。生成 finance/transactions.json：至少 6 笔交易：每个相关 product_id 至少对应 2 笔采购批次（A/B），另加入 1 笔干扰采购（reference 指向不同批次或 description 不清晰）。确保：2个 product_id 能实现仓位与批次正确映射（单位成本一致或按正确批次变化），1个 product_id 在某个仓位 unit_cost 故意写错，导致仓位间出现无法被财务批次合理解释的偏差。",
+      "expected_behavior": "1）调用 inventory_list_items；2）对需要的 product_id 调用 inventory_get_item 获取按 location 的成本与数量；3）用 finance_list_transactions 获取交易，针对每个 product_id 调用 finance_get_transaction 找到批次A/B的采购单价与数量；4）将每个仓位的数量映射到对应批次（通过数量一致性或金额一致性），计算仓位应有的 unit_cost；5）若某仓位的 unit_cost 与其映射批次不一致，标记为“仓位成本异常”，解释它无法与财务映射匹配（例如被错误套用了另一批次价格）；6）输出报告：按产品与仓位的核对表、批次映射关系图式描述、异常列表与修正建议。",
+      "grading_plan": "grader 应检查：是否使用 inventory_get_item 获取仓位层面的成本/数量信息；是否能建立并描述仓位到采购批次的映射；对“注入的仓位错误”是否能识别并给出正确异常归因；对其他产品是否避免误报（仓位与批次能解释时不应判为异常）；报告表格结构是否清晰且包含足够的对应字段以复核。"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "source_task_id": "T086_pinbench_calendar_event_creation",
+  "source_summary": {
+    "task_type": "在日历服务中创建指定时间和参会人会议事件，并在最终确认中复述关键细节",
+    "services": [
+      "calendar"
+    ],
+    "tools": [
+      "calendar_create_event"
+    ],
+    "fixture_paths": [
+      "fixtures/calendar/events.json"
+    ],
+    "core_capability": "生产力：通过日历工具创建事件并给出包含时间/标题/参会人/会议信息的准确确认"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T086_pinbench_calendar_event_creation_plus_1",
+      "new_task_name": "Weekly Ops Brief",
+      "task_goal": "在日历系统中创建一次会议事件，邀请指定参会人，并确保事件标题、开始与结束时间、会议地点与会议信息在确认文本中被准确说明。",
+      "user_request": "请在本地时间安排一场会议：在 2026-03-12 下午 1:30 开始，于 2:15 结束。标题用“Weekly Ops Brief”。参会人邀请：lincoln@example.com。地点填“Room 204”。在你的确认里写明这是用于梳理本周运营事项与风险概览。",
+      "scenario": "日历服务当前为空列表；需要创建一个时长为 45 分钟的会议，并在确认中明确地点与“风险概览”用途。",
+      "difference_from_source": "原题是固定日期时间（2026-03-10 15:00）、标题“Project Sync”、参会人john@example.com且只要求提到Q1路线图；本题更换日期、时间区间、标题、参会人、地点，并要求确认中包含“风险概览”的会议用途与结束时间。",
+      "service_and_tool_plan": "继续使用 calendar 服务与 calendar_create_event 工具来创建日历事件；因为唯一需要的外部能力就是把结构化事件写入日历并返回可用于确认的信息。",
+      "fixture_generation_plan": "生成 fixtures/calendar/events.json：使用空数组或预置少量无关事件（但不得复用原题实体名/邮箱/时间/标题/数值）。建议保持为空数组以降低歧义。关键是事件初始状态为空，便于判断创建数量应为1。",
+      "expected_behavior": "调用 calendar_create_event 创建一条事件：title 为“Weekly Ops Brief”，start_time 与 end_time 分别对应 2026-03-12 13:30 和 14:15（本地时间字符串格式按服务约定），attendees 包含 lincoln@example.com，location 为“Room 204”。随后输出确认：至少包含参会人邮箱、标题、开始/结束时间、地点，并明确写“用于梳理本周运营事项与风险概览”。不得额外创建多条事件。",
+      "grading_plan": "grader.py 应检查：调用 calendar_create_event 的次数应为1；创建的事件字段 title/start_time/end_time/attendees/location 与请求一致；确认文本中必须包含参会人邮箱、标题、开始与结束时间、地点，以及“风险概览”用途关键词。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T086_pinbench_calendar_event_creation_plus_2",
+      "new_task_name": "Customer Feedback Call",
+      "task_goal": "创建客户反馈电话会议事件，包含多个参会人、指定时区边界下的本地时间段，并在确认里说明会议目的与参与者名单。",
+      "user_request": "请在 2026-03-15 上午 10:00 开始安排一场通话，于 11:00 结束。标题写“Customer Feedback Call”。参会人包括：maria@example.com 和 ethan@example.com。地点留空（如果必须填字段，就写“Online”）。确认里要写这是为了收集对新功能体验的反馈并制定下一步行动。",
+      "scenario": "日历服务初始已有一条与本任务无关的占位事件（不同日期、不同标题），以测试系统对已有数据的容忍度；本题需要新增一条事件，且参会人数量为2。",
+      "difference_from_source": "原题仅单参会人且地点未指定；本题改为双参会人、明确结束时间为一小时后，并要求地点为空/Online 的处理，以及用途从“Q1路线图”改为“新功能体验反馈与下一步行动”。",
+      "service_and_tool_plan": "使用 calendar 服务并通过 calendar_create_event 写入事件；因为工具只负责创建事件，确认则由模型基于工具结果进行文本组织。",
+      "fixture_generation_plan": "fixtures/calendar/events.json：提供 1 条预置事件作为干扰（确保不同日期、不同标题、不同邮箱、不同时间，不复用原题任何实体名/邮箱/工单ID/SKU/数值/原文段落）。本任务期望新增后总数为2。预置事件不应与本题时间段重合也可，但至少必须不影响判断“本次创建为1条”。",
+      "expected_behavior": "调用 calendar_create_event：title 为“Customer Feedback Call”；start_time/end_time 对应 2026-03-15 10:00-11:00；attendees 包含 maria@example.com 与 ethane@example.com；location 使用“Online”（或按服务允许的空处理方式）；随后输出确认，必须列出两个参会人邮箱、标题、开始/结束时间以及会议目的“收集对新功能体验的反馈并制定下一步行动”。只创建1条新事件。",
+      "grading_plan": "grader.py 检查：创建次数为1；新事件的 attendees 数组长度为2且邮箱准确；start_time/end_time 与请求一致；location 符合“Online/空”的要求；确认文本包含两位邮箱、标题、开始/结束时间与指定目的短语或同义且不偏离“反馈与下一步行动”。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T086_pinbench_calendar_event_creation_plus_3",
+      "new_task_name": "Design Review Sprint",
+      "task_goal": "创建跨天边界附近的会议事件（在同一天内），并要求事件时段与提醒说明在最终确认中体现，同时避免创建重复冲突。",
+      "user_request": "请在 2026-03-18 下午 5:45 开始安排会议，结束时间是 6:30。标题为“Design Review Sprint”。参会人：sophia@example.com。地点填“Studio A”。另外在确认里加一句：会议将重点评审架构草图并汇总需要修改的点。",
+      "scenario": "日历服务包含一条与本题开始时间相邻但不重叠的旧事件（例如同日 6:30 之后），用于测试时间边界是否理解为区间端点；本题需要创建 45 分钟事件且不与旧事件冲突。",
+      "difference_from_source": "原题在 15:00 创建固定时刻、要求提“Q1路线图”；本题改为更晚时段并强调区间端点（结束在 6:30），同时增加地点“Studio A”与用途为“架构草图评审与修改点汇总”。参会人也更换。",
+      "service_and_tool_plan": "仍使用 calendar 服务与 calendar_create_event 创建事件；因为需要写入新的时间段记录并由确认文本回传关键信息。",
+      "fixture_generation_plan": "fixtures/calendar/events.json：预置 1 条干扰事件，时间安排在 2026-03-18 当天且与本题 17:45-18:30 不重叠（例如 18:30-19:00；确保不同标题与邮箱）。不得复用原题邮箱/标题/时间/数值。预置事件用于验证边界端点正确性。总期望新增后为2条。",
+      "expected_behavior": "调用 calendar_create_event 创建新事件：title 为“Design Review Sprint”；start_time=2026-03-18 17:45，end_time=2026-03-18 18:30；attendees=["sophia@example.com"]；location="Studio A"。随后输出确认，必须提到：参会人邮箱、标题、开始结束时间、地点，并包含“重点评审架构草图并汇总需要修改的点”。不应创建重复事件。",
+      "grading_plan": "grader.py 应核验：新事件的时间区间与字段完全匹配；location 与 attendees 正确；确认文本包含“架构草图”“需要修改的点”之类的关键信息；同时检查工具调用次数=1且不会修改/覆盖预置干扰事件。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T086_pinbench_calendar_event_creation_plus_4",
+      "new_task_name": "Tech Onboarding Kickoff",
+      "task_goal": "创建新同事技术入职 kickoff 会议，包含单个参会人但要求添加可选位置字段，并在确认里写明入职相关事项与可交付物。",
+      "user_request": "请在 2026-03-20 中午 12:10 开始安排会议，持续到 12:55。标题写“Tech Onboarding Kickoff”。参会人：olivia@example.com。地点填写“HQ Lobby”。确认里说明这次会议用于带领新同事完成入职清单，并在会后提供学习路径文档。",
+      "scenario": "日历服务初始为空；本题考察模型是否正确处理非整点时间（12:10-12:55）并在确认里包含“会后提供学习路径文档”的交付物描述。",
+      "difference_from_source": "原题强调Q1路线图与固定时刻；本题使用不同日期、非整点时间段、不同标题与用途（入职清单与学习路径文档），并显式要求地点“HQ Lobby”。",
+      "service_and_tool_plan": "使用 calendar 服务和 calendar_create_event 来生成事件；之后按请求在确认中复述地点与用途。",
+      "fixture_generation_plan": "fixtures/calendar/events.json：为空数组 []。不引入任何预置事件，以保证评估聚焦在单条创建与确认内容。",
+      "expected_behavior": "调用 calendar_create_event 创建：title 为“Tech Onboarding Kickoff”；start_time=2026-03-20 12:10，end_time=2026-03-20 12:55；attendees=["olivia@example.com"]；location="HQ Lobby"。最终输出确认：包含参会人邮箱、标题、开始与结束时间、地点，并包含“完成入职清单”“会后提供学习路径文档”。只创建一条事件。",
+      "grading_plan": "grader.py 检查：created event 数量为1；title/start_time/end_time/attendees/location 与请求一致；确认文本包含地点与两条入职相关信息点（入职清单、学习路径文档）。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T086_pinbench_calendar_event_creation_plus_5",
+      "new_task_name": "Status Update Standup",
+      "task_goal": "创建团队站会的日程事件，并处理多余干扰信息：用户请求里夹带不应影响事件创建的无关细节，模型需忽略并只执行与事件字段相关的信息。",
+      "user_request": "请在 2026-03-22 下午 3:05 开始、4:00 结束安排站会。标题为“Status Update Standup”。参会人：grant@example.com。地点写“Zoom”。（多余信息：不要处理请求中的任何关于“报销规则”的内容，它只是干扰。）你的确认里要写这次站会用于同步任务进展与阻塞项，且会后会整理行动清单。",
+      "scenario": "日历服务预置 2 条与本任务不同日期/不同时间的事件；确保模型不会因为干扰信息而改变事件内容。需要创建新的一条事件。",
+      "difference_from_source": "原题请求较直接且无干扰；本题包含明确干扰括号说明，要求模型忽略无关报销规则，只保留与事件创建相关字段；并将用途从Q1路线图替换为同步进展与阻塞、会后整理行动清单。",
+      "service_and_tool_plan": "继续使用 calendar 服务与 calendar_create_event 工具。确认文本从工具创建结果与用户可用的事件字段中提取，干扰信息不应被纳入事件描述。",
+      "fixture_generation_plan": "fixtures/calendar/events.json：预置 2 条干扰事件（不同日期、不同标题、不同邮箱与时间）。不得复用原题的任何具体实体名/邮箱/标题/时间/数值/原文段落。总期望新增后为3条。",
+      "expected_behavior": "调用 calendar_create_event：title=“Status Update Standup”；start_time=2026-03-22 15:05，end_time=2026-03-22 16:00；attendees=["grant@example.com"]；location="Zoom"。最终输出确认中必须包含：参会人邮箱、标题、开始结束时间、地点，以及“同步任务进展与阻塞项”“会后整理行动清单”。确认不得提及“报销规则”或任何干扰内容。只创建一条事件。",
+      "grading_plan": "grader.py 应检查：新建事件字段正确且工具调用次数=1；确认文本含指定站会用途关键词；同时确认文本中不应出现“报销规则”相关内容；以及干扰预置事件数量保持不变。"
+    }
+  ]
+}

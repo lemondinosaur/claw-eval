@@ -1,0 +1,289 @@
+{
+  "task_id": "T159zh_vip_ticket_escalation_plus_1",
+  "task_name": "VIP关键链路中断升级",
+  "prompt_text": "有一位VIP客户提交了critical级别的工单，请按VIP客户紧急升级流程处理：\n\n1) 查看工单详情与关联客户CRM信息，确认其VIP等级与SLA约束（需明确读取并写入后续邮件的预计响应时间/恢复窗口）。\n2) 在知识库中用“callback timeout / 回调超时 / 重试风暴 / 止损 / 恢复窗口”等关键词搜索并提取应急处置步骤，确保文章与本次“支付回调接口超时触发重试风暴、导致资金状态不一致风险”的现象强匹配。\n3) 定位需要参与的技术负责人与客户对接人：\n   - 执行侧偏“平台架构/中间件/支付链路”；\n   - 内部升级接收点偏“技术管理/架构平台负责人”；\n   - 客户成功对接人负责与VIP运营对接。\n4) 结合工单现象和KB应急要点，起草两封邮件草稿并保存到Gmail（不发送）：\n   a) 给客户的“确认回复”草稿：确认已收到、给出紧急止损路径、说明已启动的关键动作、给出按SLA的预计响应时间与预计恢复时间窗口，并提醒将持续跟进风险控制；语气专业且安抚。\n   b) 给内部的“内部升级通知”草稿：说明工单严重性与影响范围（资金状态不一致风险+持续时长+链路受影响方向）、点名分配的执行人/升级接收人、引用KB应急措施要点摘要、明确SLA时间节点与下一步里程碑。\n\n最终输出：所选critical工单ID、客户ID、匹配到的KB文章ID、内部与客户邮件草稿的to/subject要点，以及两封草稿内容的要点摘要。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-2301",
+        "name": "陈屹",
+        "department": "技术平台部",
+        "title": "平台架构负责人",
+        "email": "chenyi@company.com",
+        "phone": "13900323001",
+        "location": "深圳总部",
+        "specialization": "支付链路架构/中间件",
+        "notes": "负责支付回调链路、消息/重试机制与中间件架构的应急处置与升级执行，偏架构/平台。"
+      },
+      {
+        "contact_id": "CT-2302",
+        "name": "周澄",
+        "department": "客户成功部",
+        "title": "VIP客户成功对接人",
+        "email": "zhouchen@company.com",
+        "phone": "13900323002",
+        "location": "深圳总部",
+        "specialization": "VIP对接与升级沟通",
+        "notes": "负责VIP客户运营对接、信息同步与升级沟通落地。"
+      },
+      {
+        "contact_id": "CT-2303",
+        "name": "郑远",
+        "department": "技术管理办公室",
+        "title": "技术总监（升级接收点）",
+        "email": "zhengyuan@company.com",
+        "phone": "13900323003",
+        "location": "上海总部",
+        "specialization": "P0/P1跨团队升级管理",
+        "notes": "P0关键链路升级接收人，负责跨团队调度与升级决策。"
+      },
+      {
+        "contact_id": "CT-2304",
+        "name": "林乔",
+        "department": "运维与可靠性",
+        "title": "SRE工程师",
+        "email": "linqiao@company.com",
+        "phone": "13900323004",
+        "location": "北京分部",
+        "specialization": "可靠性/限流/熔断",
+        "notes": "负责应急过程中的限流、熔断、回滚与观测指标处置。"
+      },
+      {
+        "contact_id": "CT-2305",
+        "name": "许然",
+        "department": "技术平台部",
+        "title": "中间件负责人",
+        "email": "xuran@company.com",
+        "phone": "13900323005",
+        "location": "杭州分部",
+        "specialization": "队列/重试/幂等",
+        "notes": "负责回调重试风暴相关的队列策略、幂等与重试退避配置。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2301",
+        "name": "星澜商户集团",
+        "contact_person": "林总（运营负责人）",
+        "email": "lin@star-lane-merchant.com",
+        "phone": "13900423001",
+        "industry": "支付/商户服务",
+        "tier": "vip",
+        "annual_revenue": 2210000,
+        "sla": "1小时响应，4小时解决（critical适用）",
+        "last_contact_date": "2026-04-12",
+        "status": "active",
+        "contract_end_date": "2027-09-30",
+        "notes": "VIP客户。支付回调链路对账敏感，合同约定关键链路SLA：1小时响应、4小时解决，并包含服务不可用/资金一致性风险的赔付口径。"
+      },
+      {
+        "customer_id": "CUS-2302",
+        "name": "北极星零售",
+        "contact_person": "周经理",
+        "email": "zhou@polar-retail.com",
+        "phone": "13900423002",
+        "industry": "零售",
+        "tier": "standard",
+        "annual_revenue": 540000,
+        "sla": "4小时响应，24小时解决",
+        "last_contact_date": "2026-04-10",
+        "status": "active",
+        "contract_end_date": "2026-12-15",
+        "notes": "标准客户，非关键链路SLA更宽。"
+      },
+      {
+        "customer_id": "CUS-2303",
+        "name": "珊瑚云服务",
+        "contact_person": "贾主管",
+        "email": "jia@coral-cloud.com",
+        "phone": "13900423003",
+        "industry": "云服务",
+        "tier": "standard",
+        "annual_revenue": 320000,
+        "sla": "8小时响应，48小时解决",
+        "last_contact_date": "2026-04-08",
+        "status": "active",
+        "contract_end_date": "2026-11-30",
+        "notes": "标准客户，对接口稳定性有要求但SLA宽松。"
+      },
+      {
+        "customer_id": "CUS-2304",
+        "name": "皓月出行",
+        "contact_person": "刘总监",
+        "email": "liu@haoyue-travel.com",
+        "phone": "13900423004",
+        "industry": "出行",
+        "tier": "vip",
+        "annual_revenue": 980000,
+        "sla": "2小时响应，8小时解决",
+        "last_contact_date": "2026-04-11",
+        "status": "active",
+        "contract_end_date": "2027-02-28",
+        "notes": "VIP但SLA为2小时响应/8小时解决，用于干扰。"
+      },
+      {
+        "customer_id": "CUS-2305",
+        "name": "天桥物流",
+        "contact_person": "蒋经理",
+        "email": "jiang@tq-logistics.com",
+        "phone": "13900423005",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 610000,
+        "sla": "4小时响应，24小时解决",
+        "last_contact_date": "2026-04-09",
+        "status": "active",
+        "contract_end_date": "2026-10-20",
+        "notes": "标准客户，用于干扰。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2301",
+        "from": "lin@star-lane-merchant.com",
+        "to": "support@company.com",
+        "subject": "【critical】回调接口超时&重试风暴风险扩散：请1小时内给出止损与恢复窗口",
+        "date": "2026-04-13T08:55:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "vip-critical"],
+        "body": "你好，我是星澜商户集团的林总（运营负责人）。\n\n我们侧支付回调接口在特定交易批次上持续超时，系统开始触发重试风暴，导致部分订单出现资金状态不一致风险（对账差异在扩大）。当前问题已持续约35分钟，并且正在影响多个下游商户的对账结果。\n\n合同条款里对资金一致性/对账差异的止损与恢复要求非常明确：\n1）请在1小时内给出明确的止损方案；\n2）请同时给出预计恢复时间窗口（不是“正在排查”）；\n3）若因你方原因导致服务异常扩大影响范围，我们将按条款追究赔付责任。\n\n麻烦你们立刻启动紧急升级流程。我需要今天内看到可执行的恢复路径和下一节点时间点。\n\n谢谢。\n林总\n电话：13900423001"
+      },
+      {
+        "message_id": "msg_2302",
+        "from": "product-ops@company.com",
+        "to": "all-staff@company.com",
+        "subject": "生产周报：支付链路观测指标与报警规则回顾",
+        "date": "2026-04-13T07:30:00+08:00",
+        "is_read": true,
+        "labels": ["inbox"],
+        "body": "本周重点：\n- 新增回调超时告警与重试风暴阈值\n- 优化幂等写入与对账延迟观测\n\n请相关团队确认演练记录是否更新。"
+      },
+      {
+        "message_id": "msg_2303",
+        "from": "reliability@company.com",
+        "to": "support@company.com",
+        "subject": "提醒：部分回调重试退避配置可能在某批次上未生效",
+        "date": "2026-04-13T08:10:00+08:00",
+        "is_read": true,
+        "labels": ["inbox", "important"],
+        "body": "简要提醒：最近一次配置变更后，存在少量批次队列退避参数未正确下发的风险。建议结合工单定位触发批次的路由与配置来源。"
+      },
+      {
+        "message_id": "msg_2304",
+        "from": "ops-notify@company.com",
+        "to": "support@company.com",
+        "subject": "内部通知：本周双写一致性验收节点",
+        "date": "2026-04-12T18:00:00+08:00",
+        "is_read": true,
+        "labels": ["inbox"],
+        "body": "各团队请在本周内完成双写一致性验收材料补充。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2301",
+        "title": "callback timeout spike：回调超时触发重试风暴，资金状态不一致风险扩散",
+        "description": "星澜商户集团（CUS-2301）报告：支付回调接口在特定交易批次出现超时，随后触发重试风暴，导致对账差异扩大与资金状态不一致风险。工单数据：持续约35分钟，已影响多个下游商户连锁对账。\n\n现象要点：\n- 回调请求延迟显著升高\n- 重试次数异常增长\n- 对账差异在扩大\n\n客户要求：按VIP SLA 1小时内给出止损方案与预计恢复窗口。",
+        "customer_id": "CUS-2301",
+        "reporter": "林总（运营负责人）",
+        "department": "商户支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-04-13T08:30:00Z",
+        "tags": ["支付回调", "callback timeout", "重试风暴", "资金一致性", "VIP", "止损"],
+        "category": "支付链路故障"
+      },
+      {
+        "ticket_id": "TK-2302",
+        "title": "数据库慢查询导致部分商户响应抖动",
+        "description": "北极星零售（CUS-2302）反馈：高峰期接口偶发慢查询，导致响应抖动但未出现重试风暴。现象持续约15分钟，影响单一商户链路。",
+        "customer_id": "CUS-2302",
+        "reporter": "周经理",
+        "department": "技术支持",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-04-13T09:10:00Z",
+        "tags": ["数据库", "慢查询", "性能"],
+        "category": "性能问题"
+      },
+      {
+        "ticket_id": "TK-2303",
+        "title": "API网关偶发超时（非关键批次）",
+        "description": "珊瑚云服务（CUS-2303）反馈：订单查询API在非关键批次上偶发超时，重试次数正常范围内，影响较小。",
+        "customer_id": "CUS-2303",
+        "reporter": "贾主管",
+        "department": "技术支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-13T08:05:00Z",
+        "tags": ["API", "超时", "偶发"],
+        "category": "性能问题"
+      },
+      {
+        "ticket_id": "TK-2304",
+        "title": "支付回调幂等校验失败（单商户）",
+        "description": "皓月出行（CUS-2304）反馈：仅单商户出现幂等校验失败，未触发重试风暴，但对账有延迟。",
+        "customer_id": "CUS-2304",
+        "reporter": "刘总监",
+        "department": "支付支持",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-04-13T07:55:00Z",
+        "tags": ["幂等", "回调", "对账延迟"],
+        "category": "支付链路问题"
+      },
+      {
+        "ticket_id": "TK-2305",
+        "title": "下游渠道回传数据格式不一致导致解析失败",
+        "description": "天桥物流（CUS-2305）反馈：部分渠道回传字段格式变更，导致解析失败，需要调整映射规则。",
+        "customer_id": "CUS-2305",
+        "reporter": "蒋经理",
+        "department": "集成支持",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-04-13T06:50:00Z",
+        "tags": ["数据格式", "解析失败", "集成"],
+        "category": "接口对接"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-2301",
+        "title": "支付回调超时与重试风暴应急处置：止损+恢复窗口",
+        "category": "应急手册",
+        "tags": ["callback timeout", "重试风暴", "止损", "资金一致性", "对账", "升级"],
+        "content": "## 支付回调超时与重试风暴应急处置（止损优先）\n\n### 适用场景\n- 回调接口在特定交易批次出现超时\n- 重试次数异常增长，形成“重试风暴”\n- 资金状态不一致/对账差异扩大风险\n\n### 应急处置原则\n1. **先止损再恢复**：先降压、阻断风暴来源，再逐步恢复流量与一致性。\n2. **幂等优先**：避免重复写入/重复回调导致对账差异进一步扩大。\n3. **观测先行**：每个动作后观察延迟、重试率、对账差异指标是否回落。\n\n### 止损动作（立即）\n- 对触发批次/路由启用**临时降重试**：将重试退避从“紧密重试”切换为指数退避，并限制单批次并发重试数。\n- 开启**熔断/限流**：对回调入口启用短时限流，阻断超时请求进一步堆积。\n- 强制对回调写入路径启用/校验**幂等键**（order_id+批次号），防止重复落库。\n\n### 恢复路径（按窗口）\n- 逐步恢复回调流量：先放量到 10% -> 30% -> 60% -> 100%，每阶段至少观察 10-15 分钟。\n- 对账差异收敛：启动增量对账补偿任务（按批次回放），并设置对账差异告警阈值。\n- 完成一致性验证后再解除熔断/限流策略。\n\n### 升级条件与SLA节点建议\n- 如果出现**重试风暴**且对账差异扩散 → 升级至P0/关键链路升级点。\n- VIP客户：按合同在**1小时内**给出止损方案与预计恢复窗口；并在恢复后给出对账收敛确认时间点。\n\n### 需要通知的角色\n- 平台/中间件架构负责人（负责重试策略、路由与限流参数）\n- 技术管理升级接收点（负责跨团队决策）\n- 客户成功对接人（负责向VIP客户同步SLA节点与风险控制进展）\n",
+        "last_updated": "2026-04-01",
+        "views": 2340
+      },
+      {
+        "article_id": "KB-2302",
+        "title": "API超时的一般排查与告警响应",
+        "category": "技术文档",
+        "tags": ["API", "超时", "排查", "告警"],
+        "content": "## API超时的一般排查\n\n### 常见原因\n- 网关超时阈值配置不合理\n- 下游依赖响应慢\n\n### 建议动作\n- 先查看网关与下游耗时分布\n- 检查是否存在单点故障\n\n### 升级条件\n- 若核心业务受影响且持续超出响应窗口 → 按P1/P0升级。\n\n（注：本文章偏通用排查，不包含针对“重试风暴+止损恢复窗口”的专用步骤。）\n",
+        "last_updated": "2026-03-18",
+        "views": 980
+      },
+      {
+        "article_id": "KB-2303",
+        "title": "数据库连接池相关故障应急（干扰项）",
+        "category": "技术文档",
+        "tags": ["数据库", "连接池", "故障", "排查"],
+        "content": "## 数据库连接池相关故障应急\n- 适用于无法获取连接、连接数耗尽\n- 应急措施包括kill空闲连接、重启连接池\n\n（注：不适用于支付回调超时触发重试风暴与资金一致性风险场景。）\n",
+        "last_updated": "2026-03-05",
+        "views": 1200
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题“数据库连接池耗尽”替换为“支付回调接口特定批次超时触发重试风暴导致资金状态不一致风险”，并匹配对应回调止损/恢复窗口的知识库与平台架构类升级接收人，且在Gmail草稿中强调VIP SLA时间节点。",
+    "fixture_design_summary": [
+      "helpdesk/tickets.json：新增1条critical的callback timeout spike工单（open），其余加入数据库/权限/API超时干扰。",
+      "crm/customers.json：新增1个vip客户CUS-2301，SLA为“1小时响应，4小时解决（critical适用）”，并加入另一个vip但SLA更长的干扰客户CUS-2304。",
+      "gmail/inbox.json：新增来自CUS-2301运营负责人的未读critical不满邮件msg_2301，要求1小时止损与恢复窗口，并补充周报/内部提醒干扰邮件。",
+      "kb/articles.json：新增强匹配文章KB-2301（回调超时+重试风暴+止损恢复窗口+升级条件），并加入通用API超时KB-2302与数据库类KB-2303干扰。",
+      "contacts/contacts.json：新增平台架构负责人、VIP客户成功对接人、技术总监升级接收点等全新联系人，确保内部草稿的to/对接人类型匹配任务要求。"
+    ]
+  }
+}

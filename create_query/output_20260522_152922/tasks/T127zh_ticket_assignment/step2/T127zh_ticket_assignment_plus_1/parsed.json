@@ -1,0 +1,184 @@
+{
+  "task_id": "T127zh_ticket_assignment_plus_1",
+  "task_name": "跨域路由优先级分派",
+  "prompt_text": "当前有5个尚未分配的工单需要做建议分配：\n\n1. 逐个查看每张工单详情，综合判断其归属域（IT / 安全 / 数据 / 行政采购 / 其他）。\n2. 注意干扰：category/title 可能与 tags、description 甚至 reporter 部门不一致；不能只凭 category 或标题。\n3. 在通讯录查找对应部门负责人，并可在需要时获取负责人详情补充输出姓名。\n4. 结合每张工单的 priority 与标签/描述证据，给出不超过3条的分配理由，并明确说明“为何不按 category/title 而按证据判定”。\n5. 输出分配建议表（工单ID → 建议处理人姓名 → 分配理由）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-1101",
+        "name": "王凯",
+        "department": "IT运维组",
+        "title": "运维经理",
+        "email": "wangkai@company.com",
+        "phone": "13901111011",
+        "location": "北京总部",
+        "notes": "负责服务器/邮件/域名解析/远程接入与基础运维"
+      },
+      {
+        "contact_id": "CT-1102",
+        "name": "蒋敏",
+        "department": "安全组",
+        "title": "安全审计专员",
+        "email": "jiangmin@company.com",
+        "phone": "13901111012",
+        "location": "北京总部",
+        "notes": "负责权限策略、账号审计、合规与安全告警处置"
+      },
+      {
+        "contact_id": "CT-1103",
+        "name": "赵航",
+        "department": "数据组",
+        "title": "数据平台负责人",
+        "email": "zhaohang@company.com",
+        "phone": "13901111013",
+        "location": "北京总部",
+        "notes": "负责数据仓库、ETL、报表口径与数据质量监控"
+      },
+      {
+        "contact_id": "CT-1104",
+        "name": "周雪",
+        "department": "行政与采购部",
+        "title": "行政采购主管",
+        "email": "zhouxue@company.com",
+        "phone": "13901111014",
+        "location": "北京总部",
+        "notes": "负责办公环境维护、门禁设备/工牌类物料协调、采购与更换"
+      },
+      {
+        "contact_id": "CT-1105",
+        "name": "郑博",
+        "department": "网络组",
+        "title": "网络工程师",
+        "email": "zhengbo@company.com",
+        "phone": "13901111015",
+        "location": "北京总部",
+        "notes": "负责交换/防火墙/VPN/无线与网络连通性排障"
+      },
+      {
+        "contact_id": "CT-1106",
+        "name": "陈珊",
+        "department": "客服系统管理员",
+        "title": "客服系统管理员",
+        "email": "chenshan@company.com",
+        "phone": "13901111016",
+        "location": "北京总部",
+        "notes": "负责客服工单系统、权限分配接口、客服业务账号配置"
+      },
+      {
+        "contact_id": "CT-1107",
+        "name": "孙涛",
+        "department": "IT支持中心",
+        "title": "IT支持工程师",
+        "email": "suntao@company.com",
+        "phone": "13901111017",
+        "location": "北京总部",
+        "notes": "负责办公端IT故障、打印/终端基础排障与工单路由协助"
+      },
+      {
+        "contact_id": "CT-1108",
+        "name": "李欣",
+        "department": "安全响应组",
+        "title": "安全响应工程师",
+        "email": "lixin@company.com",
+        "phone": "13901111018",
+        "location": "北京总部",
+        "notes": "负责安全事件处置、异常登录追踪、日志取证"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-1201",
+        "title": "高频白屏疑似权限问题",
+        "description": "客服门户打开后仅显示空白页；浏览器控制台报错包含“403 forbidden”。受影响用户主要是新入职客服；同时工单提到需要检查“权限分配接口”和“用户角色映射”。",
+        "reporter": "客服部周助理",
+        "department": "客服部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-10T02:10:00Z",
+        "tags": [
+          "权限",
+          "403",
+          "新员工",
+          "客服门户"
+        ],
+        "category": "系统故障"
+      },
+      {
+        "ticket_id": "TK-1202",
+        "title": "门禁读卡失败",
+        "description": "办公区电梯厅门禁刷卡无响应，系统提示“读卡器离线”；现场同一批工牌均无法通过。相关标签强调“门禁设备/读卡器”。但工单分类被填写为“权限管理”。",
+        "reporter": "行政与采购部刘文",
+        "department": "行政与采购部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-10T03:00:00Z",
+        "tags": [
+          "门禁",
+          "读卡器",
+          "离线",
+          "工牌"
+        ],
+        "category": "权限管理"
+      },
+      {
+        "ticket_id": "TK-1203",
+        "title": "数据看板人数偏差",
+        "description": "人力数据看板“在职人数”比HR系统导出的名单少约120人；同时日志显示某ETL作业的分区字段为“emp_status”但上游字段名为“employment_status”。需要核对数据口径与ETL映射。",
+        "reporter": "人事部曹专员",
+        "department": "人事部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-10T04:20:00Z",
+        "tags": [
+          "数据",
+          "ETL",
+          "口径",
+          "在职人数"
+        ],
+        "category": "系统故障"
+      },
+      {
+        "ticket_id": "TK-1204",
+        "title": "VPN 连接超时（远程办公）",
+        "description": "远程办公时VPN连接反复超时；客户端提示“握手失败”。同部门同时间段多人反馈；排查信息包含“防火墙策略命中”和“隧道建立失败”。",
+        "reporter": "运营部赵琳",
+        "department": "运营部",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-10T05:10:00Z",
+        "tags": [
+          "VPN",
+          "网络",
+          "握手失败",
+          "防火墙"
+        ],
+        "category": "网络问题"
+      },
+      {
+        "ticket_id": "TK-1205",
+        "title": "财务模板无法生成（疑似系统问题）",
+        "description": "财务模板生成时提示字段校验失败，报错指向“报表字段映射缺失”；生成的统计口径与上月不一致。工单tags明确包含“报表口径”和“字段映射”，并指出需要数据组检查数据模型/映射。",
+        "reporter": "财务部陈会计",
+        "department": "财务部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-10T06:30:00Z",
+        "tags": [
+          "报表口径",
+          "字段映射",
+          "数据模型"
+        ],
+        "category": "办公设备"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的6张固定工单改为5张open工单，并引入至少两处category/title与tags/description冲突干扰，同时要求理由以优先级与证据点为导向做跨域分派。",
+    "fixture_design_summary": [
+      "contacts 新增8名联系人，覆盖IT运维、安全、数据、行政采购、网络及客服系统管理员等部门，且ID/邮箱全新。",
+      "helpdesk tickets 共5条，priority 分布为2 high + 2 medium + 1 low，ticket_id 使用全新“TK-”编号。",
+      "设置冲突工单：TK-1201 category=系统故障但tags/description指向权限/403与客服门户；TK-1202 category=权限管理但tags/description指向门禁读卡器离线与工牌故障。",
+      "其余工单通过description中的ETL映射字段、VPN握手/防火墙线索、报表字段映射口径缺失等证据支持正确归属，避免模型仅凭category/title作答。"
+    ]
+  }
+}

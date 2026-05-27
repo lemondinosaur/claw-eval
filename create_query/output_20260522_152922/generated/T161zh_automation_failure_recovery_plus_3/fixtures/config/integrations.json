@@ -1,0 +1,58 @@
+[
+  {
+    "integration_id": "INT-TNT-9101",
+    "name": "租户范围库存写入（隔离作用域）",
+    "service": "inventory_writer_mt",
+    "status": "active",
+    "endpoint": "https://inv-writer.internal.example.com/api/v4/tenant/write",
+    "api_key": "sk-inv-writer-mt-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-10T09:10:00Z",
+    "monthly_calls": 98000,
+    "error_rate": 0.18,
+    "notes": "启用后部分租户出现 tenant scope mismatch：请求头中的 tenant_id 来自租户B，但运行上下文/调用方标识却指向租户A；导致库存写入返回403（仅根因租户B配置标识错误）。"
+  },
+  {
+    "integration_id": "INT-TNT-9102",
+    "name": "租户范围库存写入（正确作用域）-备用配置",
+    "service": "inventory_writer_mt",
+    "status": "inactive",
+    "endpoint": "https://inv-writer.internal.example.com/api/v4/tenant/write",
+    "api_key": "sk-inv-writer-mt2-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-09T16:20:00Z",
+    "monthly_calls": 0,
+    "error_rate": 0.0,
+    "notes": "用于修复：将tenant_id/header及caller scope映射修正为租户B对应的隔离标识。确认后再切换到生产使用。"
+  },
+  {
+    "integration_id": "INT-SUP-9103",
+    "name": "供应数据获取（价格/库存快照）",
+    "service": "supplier_api",
+    "status": "active",
+    "endpoint": "https://supplier-mock.internal.example.com/api/v1/snapshot",
+    "api_key": "sk-sup-snap-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-20T12:00:00Z",
+    "monthly_calls": 5400,
+    "error_rate": 0.004,
+    "notes": "正常。下游失败不是因为上游供应数据不可用。"
+  },
+  {
+    "integration_id": "INT-HEALTH-9104",
+    "name": "通用健康检查与日志采集",
+    "service": "ops_health",
+    "status": "active",
+    "endpoint": "https://healthops.internal.example.com/api/v2/ingest",
+    "api_key": "sk-health-xxxx-REDACTED",
+    "api_secret": null,
+    "webhook_url": null,
+    "last_verified": "2026-05-21T08:30:00Z",
+    "monthly_calls": 12000,
+    "error_rate": 0.03,
+    "notes": "该集成在最近一次任务中触发超时错误，但与隔离链路无关（不应作为主因）。"
+  }
+]

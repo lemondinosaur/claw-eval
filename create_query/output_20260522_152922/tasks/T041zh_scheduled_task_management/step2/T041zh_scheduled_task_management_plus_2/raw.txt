@@ -1,0 +1,429 @@
+{
+  "task_id": "T041zh_scheduled_task_management_plus_2",
+  "task_name": "归档超限与临时任务治理",
+  "prompt_text": "请整理并治理系统的调度器定时任务。重点关注与“归档/清理”相关的失败与风险：\n1) 找出因数据归档失败而导致失败的任务，并结合执行历史提取根因。\n2) 检查所有带 temporary 标签且 created_at 距今过久的任务：按知识库给出的临界策略判断是否需要处置（给出建议为：评估删除或转永久，但必须不实际调用删除动作）。\n3) 对符合规则的任务执行调整或重启（例如：通过 scheduler_update_job 进行 enabled/cron 的修复，不要删除任务）。\n4) 若治理决策需要人工审批，用邮件通知运维：包含任务名称、风险、拟采取的自动动作与待审批事项。\n5) 最终输出“定时任务健康报告”，需结构化覆盖：问题分类、采取措施、待人工确认项与预计影响。\n\n注意：索引重建任务可能表现为 last_status=success，但若 job_history 显示与归档写入窗口冲突风险，也需要按知识库“错峰与窗口冲突规则”调整其 cron_expression。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_4407",
+        "from": "dataops@company.com",
+        "to": "me@company.com",
+        "subject": "归档存储用量攀升：请确认调度侧是否有异常策略",
+        "date": "2026-02-26T16:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，\n\n我们观察到归档存储的可用配额在近两天快速下降，推测可能与“归档写入”相关的定时任务策略有关。\n\n目前日志里看到部分批次写入被拒（并非所有任务都处于失败状态），需要你们从调度器侧核查：哪些任务在错误重试或与其它写入窗口重叠。\n\n如果涉及临时任务（temporary）长期运行，也请评估是否应降频或转更稳定的治理方案。\n\n谢谢。\n数据运维"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-611",
+        "title": "归档存储配额超限排查与处置要点",
+        "category": "归档治理",
+        "tags": [
+          "归档",
+          "配额",
+          "失败",
+          "重试"
+        ],
+        "content": "# 归档存储配额超限排查与处置要点\n\n## 触发特征\n- 任务失败错误信息出现“quota exceeded / 配额超限 / 存储拒绝写入”等字样。\n- job_history 中同一任务在短时间窗口多次失败，且错误集中在归档写入阶段。\n\n## 修复策略（自动可做）\n1. 立刻降压：将归档相关任务的执行频率降一档（例如从每30分钟改为每小时），或将 enabled=false 暂停后再验证。\n2. 若任务负责“归档写入/落盘”，需对齐索引重建任务错峰窗口：索引重建完成后再进行写入。\n3. 检查任务是否同时承担清理/回收：如未包含清理逻辑，则建议启用对应清理临时任务（若存在），或由另一个清理任务接手。\n\n## 需要人工确认的点\n- 配额超限可能由外部容量策略变更导致，需人工确认当前配额是否仍在下降。\n",
+        "last_updated": "2026-02-18",
+        "views": 92
+      },
+      {
+        "article_id": "KB-612",
+        "title": "Temporary 超期治理：评估删除或转永久（安全约束）",
+        "category": "临时任务治理",
+        "tags": [
+          "temporary",
+          "超期",
+          "删除",
+          "转永久",
+          "审批"
+        ],
+        "content": "# Temporary 超期治理：评估删除或转永久（安全约束）\n\n## 临界策略\n- created_at 超过 90 天：视为“超期 temporary”。优先进入治理流程。\n- created_at 超过 60 天但未超过 90 天：先降频/降并发（如可通过 cron 间隔实现），并观察 1~2 个周期。\n\n## 建议处置（必须给出结论，但不实际删除）\n- 若任务与当前业务目标已脱钩（例如迁移类已完成，但仍在跑）：建议“删除或转永久”，但需要人工审批。\n- 若任务仍承担关键写入/校验：建议“转永久”或调整为更稳健的运行计划；同样需要人工审批确认。\n\n## 审批触发条件\n满足以下任一项即需要发邮件给运维/审批：\n1) 任务 created_at 超过 90 天；\n2) job_history 显示与归档资源消耗存在关联（例如与配额超限同时间段）。\n\n## 自动动作（允许执行）\n- 对超期 temporary：可通过 scheduler_update_job 将 enabled=false 或降低 cron 频率，以减少对归档资源占用。\n- 不得调用 scheduler_delete_job。\n",
+        "last_updated": "2026-02-19",
+        "views": 143
+      },
+      {
+        "article_id": "KB-613",
+        "title": "错峰与窗口冲突规则：索引重建 vs 归档写入",
+        "category": "调度策略",
+        "tags": [
+          "索引重建",
+          "归档写入",
+          "窗口冲突",
+          "cron"
+        ],
+        "content": "# 错峰与窗口冲突规则：索引重建 vs 归档写入\n\n## 资源竞争点\n- 索引重建任务会占用归档索引相关的写入资源。\n- 归档写入任务在高峰窗口执行时可能被锁/限流，导致 intermittently failed。\n\n## 建议窗口\n- 建议索引重建运行在每天 01:10-01:50。\n- 归档写入执行在每天 02:10-02:50。\n- 若存在冲突风险：应将归档写入或索引重建 cron_expression 调整错开至少 35 分钟。\n\n## 风险判断\n- 即便 last_status=success，也需结合 job_history 中的偶发失败/超时/锁冲突字样判定风险。\n",
+        "last_updated": "2026-02-20",
+        "views": 81
+      },
+      {
+        "article_id": "KB-614",
+        "title": "失败连续通知规则与健康报告模板字段",
+        "category": "运维规范",
+        "tags": [
+          "通知",
+          "健康报告",
+          "连续失败"
+        ],
+        "content": "# 失败连续通知规则与健康报告模板字段\n\n## 连续失败通知\n- 若 job_history 中同一任务连续失败 ≥ 2 次且错误指向归档写入阶段：需要触发运维通知。\n- 通知要包含：任务名、最近失败时间、错误摘要、建议动作（降频/停用/错峰调整）、以及待审批项。\n\n## 健康报告建议字段\n1. 问题分类（归档配额超限/超期 temporary/窗口冲突风险/其他异常）\n2. 采取措施（已执行的调度调整或计划）\n3. 待人工确认项（需审批的删除/转永久、配额是否仍下降等）\n4. 预计影响（对业务的风险范围与时间窗）\n",
+        "last_updated": "2026-02-21",
+        "views": 55
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JID-210",
+        "name": "归档配额写入任务_A",
+        "cron_expression": "0 2 * * *",
+        "action": "将冷数据批次写入归档存储（含索引快照）",
+        "enabled": true,
+        "last_run": "2026-02-25T02:00:00+08:00",
+        "next_run": "2026-02-26T02:00:00+08:00",
+        "last_status": "failed",
+        "created_by": "archive-bot",
+        "tags": [
+          "archive",
+          "write"
+        ],
+        "created_at": "2025-09-10T09:40:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-25T02:00:00+08:00",
+            "status": "failed",
+            "error": "归档存储配额超限：写入被拒（ArchiveQuota: 0可用）",
+            "duration_seconds": 41
+          },
+          {
+            "run_time": "2026-02-24T02:00:00+08:00",
+            "status": "failed",
+            "error": "归档落盘失败：QuotaExceeded during commit",
+            "duration_seconds": 38
+          },
+          {
+            "run_time": "2026-02-23T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 46
+          }
+        ]
+      },
+      {
+        "job_id": "JID-211",
+        "name": "归档索引重建_每日",
+        "cron_expression": "10 1 * * *",
+        "action": "重建归档索引分区（可能与写入窗口竞争）",
+        "enabled": true,
+        "last_run": "2026-02-25T01:10:00+08:00",
+        "next_run": "2026-02-26T01:10:00+08:00",
+        "last_status": "success",
+        "created_by": "search-platform",
+        "tags": [
+          "archive",
+          "index",
+          "rebuild"
+        ],
+        "created_at": "2025-12-05T11:05:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-25T01:10:00+08:00",
+            "status": "success",
+            "duration_seconds": 132
+          },
+          {
+            "run_time": "2026-02-24T01:10:00+08:00",
+            "status": "failed",
+            "error": "索引重建阶段出现归档写入锁争用（LockTimeout: 300s）",
+            "duration_seconds": 302
+          },
+          {
+            "run_time": "2026-02-23T01:10:00+08:00",
+            "status": "success",
+            "duration_seconds": 128
+          }
+        ]
+      },
+      {
+        "job_id": "JID-212",
+        "name": "短期归档清理临时任务_B",
+        "cron_expression": "0 2 * * *",
+        "action": "清理过期归档段并尝试回收空间（temporary）",
+        "enabled": true,
+        "last_run": "2026-02-25T02:00:00+08:00",
+        "next_run": "2026-02-26T02:00:00+08:00",
+        "last_status": "success",
+        "created_by": "ops-automation",
+        "tags": [
+          "temporary",
+          "archive",
+          "cleanup"
+        ],
+        "created_at": "2025-11-20T02:30:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-25T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 210
+          },
+          {
+            "run_time": "2026-02-24T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 205
+          },
+          {
+            "run_time": "2026-02-23T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 198
+          }
+        ]
+      },
+      {
+        "job_id": "JID-213",
+        "name": "临时迁移校验任务_C",
+        "cron_expression": "*/20 * * * *",
+        "action": "对迁移后的归档元数据进行一致性校验（temporary）",
+        "enabled": true,
+        "last_run": "2026-02-25T16:00:00+08:00",
+        "next_run": "2026-02-25T16:20:00+08:00",
+        "last_status": "failed",
+        "created_by": "migration-tools",
+        "tags": [
+          "temporary",
+          "migration",
+          "checksum"
+        ],
+        "created_at": "2025-10-10T13:00:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-25T16:00:00+08:00",
+            "status": "failed",
+            "error": "校验依赖归档存储不可写：资源占用导致超时（WriteBusy）",
+            "duration_seconds": 507
+          },
+          {
+            "run_time": "2026-02-25T15:40:00+08:00",
+            "status": "failed",
+            "error": "metadata check failed: ArchiveStore returned retryable error",
+            "duration_seconds": 491
+          },
+          {
+            "run_time": "2026-02-25T15:20:00+08:00",
+            "status": "success",
+            "duration_seconds": 162
+          }
+        ]
+      },
+      {
+        "job_id": "JID-214",
+        "name": "全量用户报表汇总",
+        "cron_expression": "0 8 * * *",
+        "action": "汇总用户行为数据并生成报表",
+        "enabled": true,
+        "last_run": "2026-02-25T08:00:00+08:00",
+        "next_run": "2026-02-26T08:00:00+08:00",
+        "last_status": "success",
+        "created_by": "bi-team",
+        "tags": [
+          "report",
+          "daily"
+        ],
+        "created_at": "2025-07-18T06:20:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-25T08:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 398
+          },
+          {
+            "run_time": "2026-02-24T08:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 410
+          },
+          {
+            "run_time": "2026-02-23T08:00:00+08:00",
+            "status": "failed",
+            "error": "上游数据延迟导致任务超时（UpstreamDelay）",
+            "duration_seconds": 120
+          }
+        ]
+      },
+      {
+        "job_id": "JID-215",
+        "name": "告警路由规则同步",
+        "cron_expression": "*/10 * * * *",
+        "action": "同步告警路由规则到告警网关",
+        "enabled": true,
+        "last_run": "2026-02-25T16:10:00+08:00",
+        "next_run": "2026-02-25T16:20:00+08:00",
+        "last_status": "success",
+        "created_by": "platform-team",
+        "tags": [
+          "alert",
+          "sync"
+        ],
+        "created_at": "2025-08-29T17:45:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-25T16:10:00+08:00",
+            "status": "success",
+            "duration_seconds": 12
+          },
+          {
+            "run_time": "2026-02-25T16:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 11
+          },
+          {
+            "run_time": "2026-02-25T15:50:00+08:00",
+            "status": "success",
+            "duration_seconds": 13
+          }
+        ]
+      },
+      {
+        "job_id": "JID-216",
+        "name": "消息队列健康采样",
+        "cron_expression": "*/15 * * * *",
+        "action": "采样消息队列堆积情况并写入监控指标",
+        "enabled": true,
+        "last_run": "2026-02-25T16:15:00+08:00",
+        "next_run": "2026-02-25T16:30:00+08:00",
+        "last_status": "success",
+        "created_by": "observability",
+        "tags": [
+          "monitoring",
+          "mq"
+        ],
+        "created_at": "2025-06-12T09:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-25T16:15:00+08:00",
+            "status": "success",
+            "duration_seconds": 6
+          },
+          {
+            "run_time": "2026-02-25T16:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 5
+          },
+          {
+            "run_time": "2026-02-25T15:45:00+08:00",
+            "status": "success",
+            "duration_seconds": 6
+          }
+        ]
+      },
+      {
+        "job_id": "JID-217",
+        "name": "数据分区统计回填",
+        "cron_expression": "0 3 * * *",
+        "action": "回填数据分区统计用于查询优化",
+        "enabled": false,
+        "last_run": "2026-02-10T03:00:00+08:00",
+        "next_run": null,
+        "last_status": "success",
+        "created_by": "data-platform",
+        "tags": [
+          "maintenance",
+          "stats"
+        ],
+        "created_at": "2025-05-01T02:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-10T03:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 74
+          },
+          {
+            "run_time": "2026-02-09T03:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 71
+          },
+          {
+            "run_time": "2026-02-08T03:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 69
+          }
+        ]
+      },
+      {
+        "job_id": "JID-218",
+        "name": "归档写入降压演练任务_D",
+        "cron_expression": "0 */2 * * *",
+        "action": "低频写入演练（用于容量评估）",
+        "enabled": true,
+        "last_run": "2026-02-25T14:00:00+08:00",
+        "next_run": "2026-02-25T16:00:00+08:00",
+        "last_status": "success",
+        "created_by": "capacity-lab",
+        "tags": [
+          "archive",
+          "drill"
+        ],
+        "created_at": "2025-12-30T18:10:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-25T14:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 58
+          },
+          {
+            "run_time": "2026-02-25T12:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 61
+          },
+          {
+            "run_time": "2026-02-25T10:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 57
+          }
+        ]
+      },
+      {
+        "job_id": "JID-219",
+        "name": "归档批处理排队器调度（非归档核心）",
+        "cron_expression": "0 6 * * *",
+        "action": "调度归档批处理队列（仅派发，不直接写入）",
+        "enabled": true,
+        "last_run": "2026-02-25T06:00:00+08:00",
+        "next_run": "2026-02-26T06:00:00+08:00",
+        "last_status": "success",
+        "created_by": "queue-scheduler",
+        "tags": [
+          "archive",
+          "queue"
+        ],
+        "created_at": "2025-08-20T08:05:00+08:00",
+        "execution_history": [
+          {
+            "run_time": "2026-02-25T06:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 22
+          },
+          {
+            "run_time": "2026-02-24T06:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 21
+          },
+          {
+            "run_time": "2026-02-23T06:00:00+08:00",
+            "status": "failed",
+            "error": "队列派发失败：归档队列后端短暂不可用（BackendUnavailable）",
+            "duration_seconds": 19
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新任务聚焦“归档存储配额超限失败 + temporary 超期治理（建议删除或转永久但不删除）+ 索引重建与归档写入窗口冲突风险”，并要求对需审批的决策邮件通知与输出健康报告。",
+    "fixture_design_summary": [
+      "scheduler/jobs.json 共10个任务：包含1个归档配额超限 failed、2个涉及temporary且已超过90天/并与归档资源占用相关的任务、1个last_status=success但job_history含锁争用风险的归档索引重建任务，以及其余成功任务作为背景干扰。",
+      "kb/articles.json 新增围绕配额超限排查、temporary超期治理（90天阈值与审批要求但禁止实际删除）、错峰窗口规则（索引重建与归档写入错开35分钟）、以及健康报告与通知要点的条目。",
+      "gmail/inbox.json 提供1封来自dataops的干扰邮件，内容指向归档存储用量攀升与任务重叠/错误重试排查，但不直接复述调度器内部错误原文。"
+    ]
+  }
+}

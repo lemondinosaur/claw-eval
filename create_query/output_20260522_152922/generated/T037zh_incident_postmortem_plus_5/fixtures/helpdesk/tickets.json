@@ -1,0 +1,130 @@
+[
+  {
+    "ticket_id": "TK-2401",
+    "title": "风控离线批处理延迟：fraud_batch_recompute 超时",
+    "reporter": "监控系统",
+    "created_at": "2026-04-28T01:00:00+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "fraud_batch_recompute 预计 00:45 完成并回填，但在 01:00 仍未达到目标完成时间；队列等待时间从5分钟升至38分钟。下游实时依赖开始积压等待。",
+    "tags": [
+      "risk",
+      "batch",
+      "latency"
+    ],
+    "assignee": "风控运维值班",
+    "department": "SRE"
+  },
+  {
+    "ticket_id": "TK-2402",
+    "title": "第三方评分回填延迟：部分批次在2小时后到达",
+    "reporter": "风控平台",
+    "created_at": "2026-04-28T01:18:00+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "fraud_scoring_provider 反馈 degraded：回填通道延迟明显，部分批次从预期T+30min 延后到 T+2h。影响订单复核结果更新节奏。",
+    "tags": [
+      "integration",
+      "refill",
+      "degraded"
+    ],
+    "assignee": "平台对接同学",
+    "department": "Risk"
+  },
+  {
+    "ticket_id": "TK-2403",
+    "title": "实时风控 API 等待批处理输出超时",
+    "reporter": "监控系统",
+    "created_at": "2026-04-28T01:26:00+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "实时风控接口开始超时（>5s），错误原因包含等待批处理结果。告警从“超时”扩展到“依赖降级”与“链路错误率上升”。",
+    "tags": [
+      "realtime",
+      "timeout",
+      "cascading-alerts"
+    ],
+    "assignee": "风控SRE",
+    "department": "SRE"
+  },
+  {
+    "ticket_id": "TK-2404",
+    "title": "订单被标记为“待复核”并延迟放行",
+    "reporter": "电商订单服务",
+    "created_at": "2026-04-28T01:35:00+08:00",
+    "priority": "high",
+    "status": "open",
+    "description": "故障窗口内大量订单状态停留在“待复核”，延迟放行；预计影响约 1.2k~1.8k 单，需人工复核或等待回填结果写入。",
+    "tags": [
+      "orders",
+      "pending-review",
+      "delay"
+    ],
+    "assignee": "订单值班",
+    "department": "Order"
+  },
+  {
+    "ticket_id": "TK-2405",
+    "title": "连锁告警与降级策略触发（实时依赖被限流）",
+    "reporter": "值班SRE",
+    "created_at": "2026-04-28T01:48:00+08:00",
+    "priority": "high",
+    "status": "resolved",
+    "description": "由于批处理结果回填迟导致实时链路超时，触发依赖降级与限流策略；告警从“timeout”切换为“degraded”与“fallback执行”。",
+    "tags": [
+      "degrade",
+      "rate-limit",
+      "alerts"
+    ],
+    "assignee": "风控SRE",
+    "department": "SRE"
+  },
+  {
+    "ticket_id": "TK-2406",
+    "title": "部分恢复：回填延迟改善但优先级队列仍积压",
+    "reporter": "风控平台",
+    "created_at": "2026-04-28T02:20:00+08:00",
+    "priority": "medium",
+    "status": "resolved",
+    "description": "看到回填延迟从约2小时缩短到约55分钟，但仍存在低优先级队列积压，导致批处理吞吐未完全恢复。需要确认分区路由映射是否正确。",
+    "tags": [
+      "partial-recovery",
+      "queue",
+      "routing"
+    ],
+    "assignee": "平台对接同学",
+    "department": "Risk"
+  },
+  {
+    "ticket_id": "TK-2407",
+    "title": "确认存在分区路由错配：批次A被当作批次B处理",
+    "reporter": "oncall-dba",
+    "created_at": "2026-04-28T03:05:00+08:00",
+    "priority": "critical",
+    "status": "resolved",
+    "description": "核对日志后确认：定时任务读取了错误的分区键映射，导致大量批次标识错配（A→B）。错误分区批次进入低优先级队列，回填通道延迟并触发实时依赖超时。",
+    "tags": [
+      "partition",
+      "routing-mismatch",
+      "root-cause"
+    ],
+    "assignee": "oncall-dba",
+    "department": "DBA"
+  },
+  {
+    "ticket_id": "TK-2408",
+    "title": "恢复后清理：积压批处理与回填补偿完成",
+    "reporter": "运维值班",
+    "created_at": "2026-04-28T04:10:00+08:00",
+    "priority": "high",
+    "status": "done",
+    "description": "恢复阶段完成：低优先级队列逐步消化，回填补偿完成；实时超时告警停止，降级策略自动解除。仍有少量订单待人工复核。",
+    "tags": [
+      "recovery",
+      "cleanup",
+      "compensation"
+    ],
+    "assignee": "SRE值班",
+    "department": "SRE"
+  }
+]

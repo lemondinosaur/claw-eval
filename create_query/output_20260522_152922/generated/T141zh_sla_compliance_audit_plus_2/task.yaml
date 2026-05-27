@@ -1,0 +1,184 @@
+task_id: T141zh_sla_compliance_audit_plus_2
+task_name: 多地区分表SLA偏差核验
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T141zh_sla_compliance_audit_plus_2/fixtures/helpdesk/tickets.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: create_query/output_20260522_152922/generated/T141zh_sla_compliance_audit_plus_2/fixtures/scheduler/jobs.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: create_query/output_20260522_152922/generated/T141zh_sla_compliance_audit_plus_2/fixtures/config/integrations.json
+prompt:
+  text: '请帮我做一次SLA合规审查（重点核验：多地区分表路由导致的SLA偏差）
+
+
+    1) 查看系统配置中的SLA响应时间规则：确认是否存在按地区/渠道生效的适用条件（region_policy/channel_policy 或等效字段），并明确如何为工单选择对应的response_time_minutes阈值（优先匹配更具体的覆盖规则）。
+
+    2) 拉取近期工单并逐单核算：对每条非内部工单读取其region（东区/西区）、channel（网页/APP）、first_response_at以及applied_policy_version；根据其适用条件选择对应地区/渠道阈值，判断达标/超标/临界（临界差值<=5分钟）。若first_response_at为空，标注为“未完成响应，无法判定”。
+
+    3) 检查调度任务：重点定位“地区路由SLA映射同步”类任务的运行状态与失败原因；并核对配置侧“地区SLA映射集成”的状态是否为error/部分disabled，推断是否导致SLA阈值映射未更新，进而让旧版策略仍被应用。
+
+    4) 输出SLA合规分析报告：
+
+    - 每个地区/渠道维度的达标率概览（可用文字统计，不必固定表格格式）
+
+    - 疑似SLA未生效的工单列表（applied_policy_version显示旧版本，且与“按当前配置应使用的新阈值”的结论相矛盾）
+
+    - 自动化偏差影响分析（同步失败→映射未更新→旧版本策略/阈值偏用的链路解释）
+
+    - 改进建议（修复同步脚本、触发缓存刷新/重建映射、版本回溯或补偿策略等）
+
+
+    注意：不要关闭工单。'
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 列出工单
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选(open/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决说明
+    required:
+    - ticket_id
+    - resolution
+- name: scheduler_list_jobs
+  description: 列出定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选(all/enabled/disabled)
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: config_list_integrations
+  description: 列出系统集成配置
+  input_schema:
+    type: object
+    properties:
+      type:
+        type: string
+        description: 按类型筛选
+      status:
+        type: string
+        description: 按状态筛选
+    required: []
+- name: config_get_integration
+  description: 获取集成配置详情
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

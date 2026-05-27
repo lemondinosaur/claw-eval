@@ -1,0 +1,106 @@
+{
+  "schema_version": "step1.task_descriptions.v2",
+  "generated_at": "2026-05-22 15:40:40",
+  "source_task_id": "T137zh_restock_chain_check",
+  "source_summary": {
+    "task_id": "T137zh_restock_chain_check",
+    "task_name": "补货链路检查",
+    "task_type": "自动补货系统的跨服务故障链排查：从定时任务状态定位失败链，再检查API集成与库存水位，给出根因与修复建议",
+    "category": "ops",
+    "difficulty": "medium",
+    "tags": [
+      "general",
+      "multi_service"
+    ],
+    "language": "zh",
+    "services": [
+      "scheduler",
+      "config",
+      "inventory"
+    ],
+    "tools": [
+      "scheduler_list_jobs",
+      "scheduler_get_job",
+      "config_list_integrations",
+      "config_get_integration",
+      "inventory_list_items",
+      "inventory_get_item"
+    ],
+    "fixture_paths": [
+      "fixtures/config/integrations.json",
+      "fixtures/inventory/items.json",
+      "fixtures/scheduler/jobs.json"
+    ],
+    "sandbox_files": [],
+    "has_user_agent": false,
+    "has_grader": true,
+    "core_capability": "多服务联动的故障链追踪与根因分析（任务失败→集成配置异常→库存低于安全线）"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T137zh_restock_chain_check_plus_1",
+      "new_task_name": "夜间补货链路排障",
+      "task_goal": "针对夜间自动补货系统的异常，找出3条“失败任务→集成配置问题→库存低于安全线”的故障链，并输出根因分析与可执行修复建议。",
+      "user_request": "自动补货系统在夜间运行时出现异常，现请你完成补货链路排查：\n1）列出所有补货定时任务并筛查出失败或被禁用的任务；\n2）针对失败任务，逐个查看任务失败原因；\n3）检查这些任务关联的API集成配置是否存在高错误率、停用或凭证过期等问题；\n4）在库存中定位哪些品类/产品已低于安全线；\n5）把每条故障链整理成“任务→集成→受影响库存”的报告，给出根因与修复建议（尽量包含具体动作与优先级）。",
+      "scenario": "场景为“月初促销前夜”的库存压力测试：调度侧有两类问题同时存在——部分补货任务由于集成错误率上升导致超时失败，另有一条补货任务被运维临时禁用但其下游库存已跌破安全阈值。库存数据包含一个噪声品类（低库存但其集成正常），用于干扰判断。要求最终输出恰好3条故障链，且每条链中的库存都要确实低于对应安全线。",
+      "difference_from_source": "原题故障链类型以IT设备超时、清洁用品集成停用、耗材凭证过期为主；本题改为夜间促销压力测试，故障组合换成：①物流冷链相关补货因接口响应延迟/超时失败；②电商包装材料补货因集成被标记为inactive；③实验室耗材补货因access token过期/认证失败。同时加入“低库存但集成正常”的干扰产品，考察是否严格从任务失败链路反推到库存。",
+      "service_and_tool_plan": "继续使用scheduler_list_jobs获取任务全集并定位enabled/disabled与failed；用scheduler_get_job读取每个失败任务的错误码/原因；用config_list_integrations枚举集成并判断错误率、状态与凭证到期信号；必要时用config_get_integration确认关键集成字段；用inventory_list_items定位低于安全线的产品集合，再用inventory_get_item补充每条链中受影响产品的安全线对比，保证链路闭环。",
+      "fixture_generation_plan": "生成3个失败任务与若干正常/成功任务的混合数据：\n- scheduler/jobs.json：至少5个任务；其中3个任务last_status为failed（错误分别覆盖超时/认证失败/禁用导致无法拉取），另1个任务last_status为success作为干扰，另1个任务enabled为false作为诱饵但需确认是否仍有库存破线；\n- config/integrations.json：至少6条集成；确保与3个失败任务分别对应的集成在status与字段上体现差异（高error_rate、inactive、credentials_expired或token_expired标记）；其余集成需保持正常以制造“任务无故障但库存低”的干扰条件；\n- inventory/items.json：至少12个产品；其中每条故障链至少命中2个低于安全线的产品（quantity < reorder_level）；同时至少安排1-2个低于安全线的产品但supplier_integration状态/配置正常，用于干扰；所有实体名、集成ID、任务ID、品名、邮箱/客户名字段均不得与原题复用。关键字段要覆盖quantity、reorder_level、supplier_integration、category与last_restock。",
+      "expected_behavior": "代理应输出报告结构清晰并严格对应3条故障链：对每条链必须包含(1)任务ID与失败原因（从scheduler_get_job读取的error/last_status信息归纳）；(2)关联集成ID与异常类型（如timeout、高error_rate、inactive、token_expired/credentials_expired）；(3)至少2个库存产品，并明确指出它们的quantity低于reorder_level；(4)根因分析与修复建议（如重试与限流、联系供应商修复延迟、恢复/启用集成、更新令牌/密钥并验证）。同时不应把干扰品类纳入故障链（若集成正常则说明其可能由其他因素导致并在报告中标注为“非本链路根因”或不纳入3条故障链）。最终输出为中文排查报告，包含优先级。",
+      "grading_plan": "grader应检查：①scheduler_list_jobs与scheduler_get_job调用后是否能识别并形成恰好3条故障链；②每条链中的集成异常类型与任务失败原因是否一致（例如超时应对应高error_rate或超时类错误）；③库存断言是否正确（quantity确实小于reorder_level）；④修复建议是否可执行且与根因匹配（不允许泛泛而谈）；⑤干扰产品是否被正确排除或被合理解释为非本链路故障。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T137zh_restock_chain_check_plus_2",
+      "new_task_name": "多区域补货一致性检查",
+      "task_goal": "对多区域自动补货任务进行一致性排查：找出2条跨区域失败链与1条局部配置异常链，并给出修复建议。",
+      "user_request": "自动补货系统在不同仓区的补货执行不一致。请你排查并输出：\n1）列出所有补货定时任务，并重点关注失败任务及其标签（例如“华东/华南/海外”）；\n2）对失败任务获取详情，分析失败类型（失败/被禁用/任务执行报错）；\n3）检查与这些任务关联的API集成配置：确认是否存在区域路由错误、集成状态异常或凭证问题；\n4）根据库存数据，找出哪些产品在对应仓区维度下低于安全线（如果库存由多个仓区汇总，至少说明你使用的判定口径）；\n5）输出3条故障链：两条跨区域、一条单区域，包含根因与具体修复动作。",
+      "scenario": "世界状态：系统支持“区域路由”字段，调度任务带有region_tag（如EAST/SOUTH/OVERSEA）。这次出现：某个集成在EAST区域错误率飙升导致两项任务失败（跨区域同一原因，要求输出为同一类根因但仍分别形成两条链）；另一个任务在SOUTH区域被错误地绑定到inactive的集成。库存方面存在“总量低于线但实际受影响仅在某区域”的情况；要求报告中解释你如何依据库存fixture里的仓区字段进行判断（例如按仓区库存量与安全线）。",
+      "difference_from_source": "原题不涉及区域维度判断；本题引入region_tag与仓区库存判定口径，并要求“两条跨区域失败链”和“一条单区域配置异常链”。同时把根因从供应商API超时/停用/密钥过期换成“区域路由错误导致错误率升高”与“区域绑定到inactive集成”。",
+      "service_and_tool_plan": "仍使用scheduler_list_jobs定位带有region标签的failed/disabled任务；用scheduler_get_job获取任务的region_tag与错误摘要；config_list_integrations/config_get_integration用于确认集成是否inactive或存在region_scope/路由异常字段（如misrouted_to_region）；inventory_list_items定位低于安全线的产品，再用inventory_get_item按仓区读取quantity与reorder_level对比，确保链路严格对应到受影响仓区。",
+      "fixture_generation_plan": "需要生成更贴近区域维度的fixture：\n- scheduler/jobs.json：至少7个任务；其中3个目标任务分别覆盖：A（EAST区域超时失败）、B（OVERSEA区域同类失败，错误字段需指向同一个集成/同类问题）、C（SOUTH区域因集成inactive导致失败或无法下发；任务可能enabled=false或last_status failed且error为IntegrationInactive）；同时加入若干success任务用于干扰。\n- config/integrations.json：至少7-8条集成；其中两个目标集成：一个为高error_rate但带region_scope=EAST与OVERSEA（或路由异常字段）；另一个为status=inactive且region_scope=SOUTH；其余集成保持active与低error_rate。\n- inventory/items.json：至少15个产品记录，包含仓区字段（例如warehouse_region或region）；对每条故障链在对应区域至少准备2个产品满足quantity < reorder_level；同时准备1-2条“非目标区域低库存但集成正常”的干扰，确保代理能按区域口径筛选。\n所有ID与品名、集成名称均需全新，不复用原题JOB/INT/INV具体编号与名称。",
+      "expected_behavior": "代理需在报告中明确采用的判定口径（例如按仓区库存quantity与安全线reorder_level比较）。形成3条故障链：\n- 链1与链2（跨区域）：分别列出对应任务ID与region_tag、失败原因（从scheduler_get_job归纳），说明同一个根因集成在对应区域错误率升高/路由错误；并列出在各自区域低于安全线的产品（至少2个/链）。\n- 链3（单区域）：说明该任务在SOUTH区域绑定到inactive集成，列出对应低于安全线产品。\n修复建议必须具体：包括调整区域路由配置、恢复集成启用、重置/更新认证（如适用）以及补货任务启用/重试策略。",
+      "grading_plan": "grader应检查：①3条链的区域归属是否正确（链1/链2必须是不同region_tag但共享同类集成根因）；②集成异常字段与任务失败原因一致（例如inactive与IntegrationInactiveError）；③库存低于安全线判断是否按仓区维度做对；④是否排除非目标区域干扰产品；⑤修复建议是否与根因对应且包含可执行动作。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T137zh_restock_chain_check_plus_3",
+      "new_task_name": "禁用任务导致的库存断档",
+      "task_goal": "从“禁用/半停用”的定时任务入手，识别出2条实际造成库存断档的故障链，并指出与之相符的集成状态异常与库存低水位；同时说明1条表面告警但并未形成故障链的原因。",
+      "user_request": "补货系统近期出现疑似断档。请你做链路排查报告：\n1）列出所有补货定时任务，筛查出enabled=false或last_status异常的任务；\n2）对所有异常任务逐个获取详情，确认它们是执行失败还是仅被禁用；\n3）检查对应API集成是否inactive/凭证过期/高错误率；\n4）查看库存，找出哪些产品低于安全线，并判断这些低库存是否与上述任务链路一致；\n5）输出两条“真实故障链”（任务→集成→低库存）以及一条“表面问题但非故障链”的解释（说明为什么不计入真实链）。",
+      "scenario": "系统管理员曾在维护窗口禁用部分补货任务，但遗漏了维护结束后的恢复操作。与此同时，库存端存在一定程度的下降：有些产品确实在禁用任务覆盖范围内跌破安全线；也存在一个干扰：某产品低于安全线但其供货集成仍active且有其他成功补货任务覆盖。要求模型能区分“任务被禁用”是否能够解释库存低水位，并在报告里对第三条做排除说明。",
+      "difference_from_source": "与原题相比，本题重点考察“disabled任务”对库存的因果链判断，而不是单纯failed任务。故障链来源换成：①一个任务被长期禁用但库存已低于阈值且对应集成仍active（需要在建议中提出尽快启用任务）；②另一个任务虽enabled=true但因集成处于inactive导致连续失败；第三条干扰为“库存低但有其它成功补货任务/集成正常”，要求解释不计入故障链。",
+      "service_and_tool_plan": "scheduler_list_jobs用于定位enabled=false与非success任务；scheduler_get_job用于区分last_status与error字段（若有）并读取覆盖的品类/标签；config_list_integrations与config_get_integration用于核验集成status与凭证到期；inventory_list_items与inventory_get_item用于核对低库存产品及其supplier_integration是否落在对应任务覆盖集合里。",
+      "fixture_generation_plan": "fixture生成要体现“真实链=禁用/异常任务能解释库存破线”：\n- scheduler/jobs.json：至少8个任务；其中2个目标任务具备关键差异：Task-A为enabled=false但last_status可能为success或failed（你需通过详情确认其覆盖的品类）；Task-B为enabled=true但last_status failed且错误为IntegrationInactive；另外加入一个“表面问题任务”Task-C：任务disabled但其覆盖品类在库存里没有破线（或破线原因来自其它链）；再加入若干成功任务覆盖干扰。\n- config/integrations.json：至少6-7条集成；Task-A对应集成active（制造“禁用导致”根因）；Task-B对应集成inactive；其余正常。\n- inventory/items.json：至少14个产品；Task-A链至少2个产品quantity < reorder_level；Task-B链至少2个产品quantity < reorder_level；干扰产品（低于安全线但非本链）至少1-2个，且其supplier_integration应匹配另一个成功任务或对应集成active。\n确保所有ID、名称、品类、数值与原题完全不同。",
+      "expected_behavior": "报告中应：\n- 真实故障链1：指出任务A被禁用（enabled=false）导致无法触发补货，且对应集成active但库存仍跌破安全线；列出至少2个产品与明确对比。\n- 真实故障链2：指出任务B失败原因（从任务详情读取），对应集成inactive；列出至少2个产品。\n- 表面问题排除：对任务C说明为何不计入（例如库存未破线，或破线产品来自其他成功补货链）。\n修复建议需包含具体动作：启用被禁用任务、校验任务触发窗口、恢复/启用inactive集成并验证。",
+      "grading_plan": "grader应检查：①是否正确识别disabled任务并在库存破线处给出因果解释；②对两条真实链的库存数量与安全线比较是否准确；③第三条解释是否基于数据得出（不是凭空否定）；④修复建议是否贴合两类根因（启用任务 vs 恢复集成）。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T137zh_restock_chain_check_plus_4",
+      "new_task_name": "跨系统凭证失效与级联影响",
+      "task_goal": "排查凭证相关异常引发的补货故障链：输出3条故障链，且覆盖“部分集成凭证过期导致失败”、“单个任务连锁影响多个产品线”。",
+      "user_request": "自动补货系统出现供应拉取失败。请你排查补货链路并输出报告：\n1）列出所有补货定时任务，找出失败任务；\n2）获取失败任务详情，提取错误类型（例如认证失败、签名过期、凭证过期）；\n3）检查对应API集成配置，确认凭证是否过期、密钥轮换状态是否异常；\n4）在库存中找出所有受影响的低水位产品（必须是与这些任务/集成关联的产品）；\n5）输出3条故障链，并给出修复建议（包括密钥轮换步骤与验证方式）。",
+      "scenario": "系统接入了两类供应方：一类使用签名校验，另一类使用token鉴权。此次发生“密钥轮换未完成”的问题：同一个集成对多个任务生效，但每个任务覆盖不同品类，因此需要把“同一集成凭证过期”拆成多条故障链（但仍保持任务→集成→库存闭环）。另外加入干扰：某个集成也有token_expired字段，但其对应的任务仍success且库存正常，要求不纳入。",
+      "difference_from_source": "原题根因包含超时/停用/密钥过期；本题聚焦更细的“签名/认证链路与轮换未完成”，并要求同一集成凭证问题能导致跨品类任务分别失败形成3条链（而非单条对应单类）。同时引入“字段看似过期但并未影响运行成功”的干扰。",
+      "service_and_tool_plan": "scheduler_list_jobs获取failed任务；scheduler_get_job读取error_type或提示字段（认证失败/SignatureExpired等）；config_list_integrations定位可能凭证过期的集成；config_get_integration核验credentials_expired或token_expired与last_verified/notes；inventory_list_items找低水位产品，再inventory_get_item核对其supplier_integration与安全线，确保只输出与故障集一致的低库存。",
+      "fixture_generation_plan": "fixture需支持“同集成影响多个任务”：\n- scheduler/jobs.json：至少9个任务；其中3个failed任务应关联到同一个（或两个相近）集成，但覆盖不同tags/品类。要求失败错误均为认证/签名类（至少两条不同任务但同类错误）。加入1-2个任务success以制造“看似过期但没影响”的干扰。\n- config/integrations.json：至少8条集成；其中目标集成至少1条credentials_expired=true且notes表明轮换未完成；另准备1条integration也带token_expired=true但仍能成功（通过将其与success任务关联或让对应库存正常）。\n- inventory/items.json：至少16个产品；对3条故障链分别准备≥2个低于安全线的产品；干扰产品（token过期但成功任务覆盖）需保持quantity≥reorder_level或不属于目标supplier_integration。\n禁止复用原题JOB-801/802/803/804与INT-801/802/803/804及INV-801等任何具体编号与名称。",
+      "expected_behavior": "输出3条故障链：每条链均应包含任务ID与认证失败细节、关联集成ID与凭证异常字段、以及至少2个低于安全线的受影响库存产品。修复建议必须具体可执行：\n- 密钥轮换/证书更新步骤（例如更新密钥、刷新并验证签名算法/clock skew）；\n- 建议的验证方式（例如重新拉取一次供应数据、检查监控错误率是否下降、验证任务下次执行是否success）；\n- 若有“同一集成影响多个任务”，需说明如何一次性修复并验证所有相关任务。",
+      "grading_plan": "grader应检查：①3条链的错误类型是否属于认证/签名类并与集成凭证字段匹配；②同一集成导致多任务的拆分是否正确；③库存选择是否仅限与故障集成关联且确实破线；④对干扰集成的处理是否正确（不把其纳入链路）；⑤修复建议是否包含轮换步骤与验证方式（非泛化）。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T137zh_restock_chain_check_plus_5",
+      "new_task_name": "缓存过期引发的接口降级",
+      "task_goal": "排查因缓存过期与接口降级导致补货链路异常的情况：输出3条故障链，并对“延迟/降级并非真正低库存原因”的边界条件进行说明。",
+      "user_request": "补货系统的部分品类出现补货不稳定。请你进行链路排查并输出报告：\n1）列出所有补货定时任务，找到失败或重试频繁的任务；\n2）查看每个任务的失败详情，提取错误是否指向缓存过期/降级/限流等；\n3）检查关联API集成配置是否存在限流策略、降级开关或错误率异常；\n4）在库存中识别低于安全线的产品，并判断这些低库存是否确实由链路故障导致；\n5）输出3条故障链（任务→集成→库存）并在报告末尾补充一段边界条件：哪些“仅延迟/降级”不会导致低库存，以及你如何区分。",
+      "scenario": "系统最近上线了接口缓存：当缓存过期未刷新时，供应方API会触发降级响应，调度任务表现为短时失败并产生重试记录。库存侧则并非所有受影响品类都会破线：例如某些SKU即使遇到降级，仍因现有库存与补货周期覆盖而未跌破安全线。任务要区分“因降级导致失败的链路”与“仅延迟但不影响库存底线”的边界。要求输出3条故障链，其中至少1条故障链的低库存产品数量较少，考察对边界条件的描述准确性。",
+      "difference_from_source": "原题主要是超时/停用/凭证过期三类；本题引入“缓存过期→接口降级/限流→任务失败或重试”的新故障模式，并要求额外输出“边界条件说明段”，区分延迟/降级与真正导致低库存的链路。故障链中的库存破线数量与分布也会变化。",
+      "service_and_tool_plan": "使用scheduler_list_jobs根据last_status与execution_history中的失败/错误摘要识别重试频繁任务；scheduler_get_job提取缓存过期/降级类错误；config_list_integrations/config_get_integration检查集成notes或字段中的degraded_mode、rate_limit或high_error_rate等线索；inventory_list_items识别低于安全线产品，再inventory_get_item用于精确给出quantity与reorder_level对比。报告末尾根据数据与链路因果关系写边界说明。",
+      "fixture_generation_plan": "fixture生成需覆盖“失败但不必然低库存”的边界：\n- scheduler/jobs.json：至少8个任务；其中3个任务为目标故障链，last_status=failed或execution_history包含多次error但最终未成功；错误类型需包含缓存过期/降级/限流信号。再加入2个任务显示重试但last_status=success或库存未破线，用于边界对比。\n- config/integrations.json：至少7条集成；至少2条存在高error_rate或限流策略被触发（例如rate_limit_enabled=true且notes表明降级）；其中1条集成需为正常但出现在重试成功任务中以制造边界。\n- inventory/items.json：至少18个产品；为3条链分别准备低于安全线产品（每链≥2个），并确保至少1条链只涉及1个或2个产品破线以体现边界；同时准备至少2个“任务失败/降级相关但库存仍未破线”的产品用于边界段说明。\n所有实体名、ID、名称、数值均全新且不与原题复用。",
+      "expected_behavior": "代理应输出3条故障链：\n- 每条链必须包含：任务失败/重试证据（从任务详情归纳缓存过期/降级/限流类错误）、对应集成异常（degraded/rate_limit/high_error_rate相关字段或notes）、至少2个低于安全线的产品与明确对比。\n- 边界条件段：指出为何某些任务虽然出现降级/重试但不导致低库存（例如相关SKU quantity≥reorder_level或其supplier_integration并非同一异常集成），并说明区分依据（使用库存破线与集成异常的匹配关系）。",
+      "grading_plan": "grader应检查：①三条故障链的错误类型与集成配置线索是否一致（缓存过期/降级/限流→对应集成字段或notes）；②低库存判断是否准确；③边界条件段是否基于fixture数据给出区分逻辑（不是空泛）；④对“重试但最终success/不破线”的任务是否被正确处理为非故障链或被用于边界说明。"
+    }
+  ]
+}

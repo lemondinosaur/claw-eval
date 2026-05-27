@@ -1,0 +1,218 @@
+{
+  "task_id": "T117zh_customer_followup_plus_5",
+  "task_name": "合规告知式客户跟进（退订/数据处理说明）",
+  "prompt_text": "请帮我对CRM中的客户进行“合规告知式”跟进：\n1. 以今天视为2026-04-05为时间基准，筛选CRM中状态为active且last_contact_date早于2026-03-10（即超过25天未联系）的客户，并排除status为churned的客户。\n2. 对每位目标客户，从Gmail中找到该客户在最近沟通中发送的邮件（以客户邮箱匹配from，必要时结合客户姓名线索），提取邮件正文里关于“联系频率/隐私/数据处理/退订偏好/异议点”的明确表述；若未提及，则仅使用通用合规表述。\n3. 为每位客户起草“合规告知式”跟进邮件草稿并保存草稿（不要发送）。邮件中所有客户都必须包含：\n   - 我们如何处理与使用联系信息/数据（简要说明）\n   - 退订/调整联系偏好指引（可随时选择停止或减少联系）\n   - 尊重用户偏好的表述\n   其中：\n   - VIP客户邮件语气更正式、更细化（流程化写法，包含更具体的退订与偏好设置步骤）\n   - 普通客户邮件语气更温和、更简短（但仍包含上述合规三要点）\n4. 识别干扰：存在“群发模板”邮件可能包含退订链接字样，但若其from与任何目标客户不匹配，或正文不含客户自身提出的隐私/频率/退订偏好相关表述，则不得将其当作客户异议或偏好的证据。\n5. 输出：需跟进客户 + 邮件中合规段落摘要（包含是否提到隐私/频率/退订偏好及对应调整）。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-801",
+        "name": "北辰工业",
+        "contact_person": "陈总监",
+        "email": "chenjd@beichen-ind.com",
+        "phone": "13900138001",
+        "industry": "制造业",
+        "tier": "vip",
+        "annual_revenue": 7600000,
+        "last_contact_date": "2026-02-20",
+        "status": "active",
+        "notes": "偏好更少频次沟通；对数据处理透明度较敏感，曾提到“不要频繁营销”。"
+      },
+      {
+        "customer_id": "CUS-802",
+        "name": "星澜云计算",
+        "contact_person": "李女士",
+        "email": "liwx@starline-cloud.cn",
+        "phone": "13900138002",
+        "industry": "云服务",
+        "tier": "vip",
+        "annual_revenue": 4100000,
+        "last_contact_date": "2026-02-28",
+        "status": "active",
+        "notes": "合规要求高；希望我们明确说明如何处理其联系信息，并强调可随时退订/更改偏好。"
+      },
+      {
+        "customer_id": "CUS-803",
+        "name": "海岬医疗",
+        "contact_person": "周院长",
+        "email": "zhouyuan@seagull-hospital.cn",
+        "phone": "13900138003",
+        "industry": "医疗",
+        "tier": "standard",
+        "annual_revenue": 1500000,
+        "last_contact_date": "2026-03-01",
+        "status": "active",
+        "notes": "对隐私不特别敏感但需要合规告知；沟通以项目更新为主。"
+      },
+      {
+        "customer_id": "CUS-804",
+        "name": "繁桥零售",
+        "contact_person": "孙经理",
+        "email": "sunmin@fanqiao-retail.com",
+        "phone": "13900138004",
+        "industry": "零售",
+        "tier": "standard",
+        "annual_revenue": 620000,
+        "last_contact_date": "2026-03-18",
+        "status": "active",
+        "notes": "近期刚联系，无需本次跟进。"
+      },
+      {
+        "customer_id": "CUS-805",
+        "name": "青禾能源",
+        "contact_person": "吴工",
+        "email": "wug@qinghe-energy.com",
+        "phone": "13900138005",
+        "industry": "新能源",
+        "tier": "vip",
+        "annual_revenue": 2400000,
+        "last_contact_date": "2026-03-05",
+        "status": "active",
+        "notes": "未到25天门槛，本次不纳入目标。"
+      },
+      {
+        "customer_id": "CUS-806",
+        "name": "银港咨询",
+        "contact_person": "赵顾问",
+        "email": "zhaogy@yin-gangadvisory.com",
+        "phone": "13900138006",
+        "industry": "咨询",
+        "tier": "standard",
+        "annual_revenue": 900000,
+        "last_contact_date": "2026-02-12",
+        "status": "churned",
+        "notes": "已流失；不应生成跟进草稿。"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "m_801_01",
+        "from": "chenjd@beichen-ind.com",
+        "to": "ops@company.com",
+        "subject": "关于联系频率与数据使用的说明诉求",
+        "date": "2026-02-21T09:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "陈述一下我们的偏好：请不要频繁推送营销信息。若需要联系，请尽量合并成少量必要沟通。同时希望你们在处理我们的联系信息时，说明数据将如何被使用以及我们如何选择停止接收。谢谢。——陈总监"
+      },
+      {
+        "message_id": "m_802_01",
+        "from": "liwx@starline-cloud.cn",
+        "to": "ops@company.com",
+        "subject": "隐私合规与退订方式确认",
+        "date": "2026-03-02T16:35:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "为满足内部合规要求，我需要你们明确两点：1）如何处理/保存我们的联系信息；2）如未来不想接收推广，能否直接退订并更改联系偏好。请在回信中写清楚操作路径，最好包含步骤。——李女士"
+      },
+      {
+        "message_id": "m_803_01",
+        "from": "zhouyuan@seagull-hospital.cn",
+        "to": "ops@company.com",
+        "subject": "项目节点更新与下一步安排",
+        "date": "2026-03-03T11:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "院内目前正在推进数据对接的节点，请你们提供下一步的时间安排与需要的资料清单。我们希望沟通以项目为主。——周院长"
+      },
+      {
+        "message_id": "m_noise_batch_01",
+        "from": "newsletter@company-automation.com",
+        "to": "ops@company.com",
+        "subject": "我们为你提供最新消息（退订）",
+        "date": "2026-03-10T08:05:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "【群发模板】点击退订链接停止接收。此邮件为自动更新通知，与个人偏好无关。若不希望继续，请在页面选择关闭订阅。"
+      },
+      {
+        "message_id": "m_noise_batch_02",
+        "from": "support@company-automation.com",
+        "to": "ops@company.com",
+        "subject": "账户通知：可随时退订（批量）",
+        "date": "2026-03-15T14:45:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "【批量通知】如需停止接收营销邮件，请使用文中退订链接。我们会在你的选择后调整发送频率。"
+      },
+      {
+        "message_id": "m_noise_04",
+        "from": "sunmin@fanqiao-retail.com",
+        "to": "ops@company.com",
+        "subject": "关于上次会议材料补充",
+        "date": "2026-03-18T12:10:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "补充一下我们需要的材料格式：请按附件模板提供。谢谢。——孙经理"
+      },
+      {
+        "message_id": "m_noise_05",
+        "from": "zhaogy@yin-gangadvisory.com",
+        "to": "ops@company.com",
+        "subject": "（已结束）不再续用服务的确认",
+        "date": "2026-02-20T10:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "关于合作我们决定不再续用。请后续不要再联系。——赵顾问"
+      },
+      {
+        "message_id": "m_noise_06",
+        "from": "wug@qinghe-energy.com",
+        "to": "ops@company.com",
+        "subject": "近期沟通安排（未到25天）",
+        "date": "2026-03-08T09:00:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "我们本周有调整，等下次再对接。——吴工"
+      },
+      {
+        "message_id": "m_noise_extra_07",
+        "from": "ops@company.com",
+        "to": "chenjd@beichen-ind.com",
+        "subject": "回复：推进方式与下一步材料",
+        "date": "2026-02-19T18:20:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "收到，我们会合并信息再沟通，并在邮件中补充退订与数据处理说明。"
+      },
+      {
+        "message_id": "m_noise_extra_08",
+        "from": "starline-cloud.cn-team@company-automation.com",
+        "to": "ops@company.com",
+        "subject": "退订链接测试（非客户相关）",
+        "date": "2026-03-20T07:25:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "【测试邮件】包含退订链接字段，用于系统验证。正文不包含客户隐私/频率/退订偏好的具体表述。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "相比原任务要求基于历史意向起草跟进，本任务强制在邮件中加入数据处理与退订合规段落，并依据目标客户自身邮件中的隐私/频率/退订异议定制，同时排除群发模板干扰。",
+    "fixture_design_summary": [
+      "CRM共6名客户：3名active且last_contact_date早于2026-03-10作为目标（CUS-801 VIP、CUS-802 VIP、CUS-803 standard），2名active但<=25天不纳入，1名churned排除（CUS-806）。",
+      "Gmail为目标客户分别提供匹配from的历史邮件：CUS-801明确提及不想频繁联系+请求数据使用说明与停止接收；CUS-802明确要求数据处理与退订/偏好更改步骤；CUS-803仅有项目更新且不含隐私/退订相关内容。",
+      "加入2封群发模板干扰邮件：from不属于任何目标客户，正文虽包含退订链接字样但不应被当作客户异议证据。",
+      "跨fixture实体引用一致：CRM客户邮箱与Gmail邮件from一一匹配（chenjd@beichen-ind.com、liwx@starline-cloud.cn、zhouyuan@seagull-hospital.cn）。"
+    ]
+  }
+}

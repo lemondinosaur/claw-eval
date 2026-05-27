@@ -1,0 +1,355 @@
+[
+  {
+    "job_id": "JOB-A101",
+    "name": "billing_settlement_noeager",
+    "cron_expression": "*/5 * * * *",
+    "action": "结算对账：读取暂存账单并写入 settlement_check（非幂等写）",
+    "enabled": true,
+    "last_run": "2026-04-20T10:15:00+08:00",
+    "next_run": "2026-04-20T10:20:00+08:00",
+    "last_status": "failed",
+    "error": "版本号不匹配：上游落库发生重复写入导致结算结果不一致",
+    "created_by": "finops_team",
+    "tags": [
+      "idempotent=false",
+      "billing",
+      "settlement"
+    ],
+    "created_at": "2026-01-08T16:20:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-20T10:15:00+08:00",
+        "status": "failed",
+        "error": "版本号不匹配：settlement_check.v=18 但期望 v=17",
+        "duration_seconds": 19
+      },
+      {
+        "run_time": "2026-04-20T10:10:00+08:00",
+        "status": "failed",
+        "error": "版本号不匹配：settlement_check.v=18 但期望 v=17",
+        "duration_seconds": 22
+      },
+      {
+        "run_time": "2026-04-20T10:05:00+08:00",
+        "status": "success",
+        "duration_seconds": 34
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A102",
+    "name": "queue_lock_filler",
+    "cron_expression": "*/10 * * * *",
+    "action": "填充队列：写入 queue_fill_state（依赖锁释放）",
+    "enabled": true,
+    "last_run": "2026-04-20T10:20:00+08:00",
+    "next_run": "2026-04-20T10:30:00+08:00",
+    "last_status": "failed",
+    "error": "任务已在运行中/锁未释放：可能存在重复写入冲突",
+    "created_by": "scheduler_ops",
+    "tags": [
+      "lock-sensitive",
+      "idempotent=false"
+    ],
+    "created_at": "2025-12-02T09:40:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-20T10:20:00+08:00",
+        "status": "failed",
+        "error": "任务已在运行中/锁未释放（lock_key=fill_state:jobA102）",
+        "duration_seconds": 8
+      },
+      {
+        "run_time": "2026-04-20T10:10:00+08:00",
+        "status": "failed",
+        "error": "任务已在运行中/锁未释放（lock_key=fill_state:jobA102）",
+        "duration_seconds": 9
+      },
+      {
+        "run_time": "2026-04-20T10:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 41
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A103",
+    "name": "daily_cost_rollup",
+    "cron_expression": "0 1 * * *",
+    "action": "每日汇总成本到 cost_rollup（幂等）",
+    "enabled": true,
+    "last_run": "2026-04-20T01:00:00+08:00",
+    "next_run": "2026-04-21T01:00:00+08:00",
+    "last_status": "success",
+    "created_by": "data_marts",
+    "tags": [
+      "cost",
+      "idempotent=true"
+    ],
+    "created_at": "2025-10-11T12:00:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-20T01:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 52
+      },
+      {
+        "run_time": "2026-04-19T01:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 49
+      },
+      {
+        "run_time": "2026-04-18T01:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 51
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A104",
+    "name": "webhook_dispatcher",
+    "cron_expression": "*/2 * * * *",
+    "action": "分发 webhook（可能触发并发写冲突，需抑制）",
+    "enabled": true,
+    "last_run": "2026-04-20T10:30:00+08:00",
+    "next_run": "2026-04-20T10:32:00+08:00",
+    "last_status": "success",
+    "created_by": "integrations",
+    "tags": [
+      "webhook",
+      "idempotent=false"
+    ],
+    "created_at": "2026-02-01T10:10:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-20T10:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 26
+      },
+      {
+        "run_time": "2026-04-20T10:30:15+08:00",
+        "status": "success",
+        "duration_seconds": 24
+      },
+      {
+        "run_time": "2026-04-20T10:30:40+08:00",
+        "status": "success",
+        "duration_seconds": 25
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A105",
+    "name": "inbox_cleanup_temp",
+    "cron_expression": "0 4 * * *",
+    "action": "清理临时消息表（temporary 任务）",
+    "enabled": false,
+    "last_run": "2026-04-11T04:00:00+08:00",
+    "next_run": null,
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": [
+      "temporary",
+      "cleanup"
+    ],
+    "created_at": "2025-11-05T08:00:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-11T04:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 33
+      },
+      {
+        "run_time": "2026-04-10T04:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 36
+      }
+    ],
+    "last_disable_reason": "人工维护：待确认数据保留策略"
+  },
+  {
+    "job_id": "JOB-A106",
+    "name": "after_hours_index_build",
+    "cron_expression": "12 2 * * *",
+    "action": "夜间重建搜索索引（与白天写入错峰）",
+    "enabled": true,
+    "last_run": "2026-04-20T02:12:00+08:00",
+    "next_run": "2026-04-21T02:12:00+08:00",
+    "last_status": "success",
+    "created_by": "search_team",
+    "tags": [
+      "search",
+      "maintenance",
+      "idempotent=true"
+    ],
+    "created_at": "2025-09-09T09:09:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-20T02:12:00+08:00",
+        "status": "success",
+        "duration_seconds": 310
+      },
+      {
+        "run_time": "2026-04-19T02:12:00+08:00",
+        "status": "success",
+        "duration_seconds": 298
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A107",
+    "name": "order_snapshot_export",
+    "cron_expression": "7 3 * * *",
+    "action": "订单快照导出到对象存储（写入不同分区，幂等）",
+    "enabled": true,
+    "last_run": "2026-04-20T03:07:00+08:00",
+    "next_run": "2026-04-21T03:07:00+08:00",
+    "last_status": "success",
+    "created_by": "warehouse_team",
+    "tags": [
+      "export",
+      "idempotent=true"
+    ],
+    "created_at": "2025-08-20T14:00:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-20T03:07:00+08:00",
+        "status": "success",
+        "duration_seconds": 76
+      },
+      {
+        "run_time": "2026-04-19T03:07:00+08:00",
+        "status": "success",
+        "duration_seconds": 71
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A108",
+    "name": "sync_user_profile",
+    "cron_expression": "*/30 * * * *",
+    "action": "同步用户资料并写入 user_profile（需要错峰以避免锁冲突）",
+    "enabled": true,
+    "last_run": "2026-04-20T10:30:00+08:00",
+    "next_run": "2026-04-20T11:00:00+08:00",
+    "last_status": "success",
+    "created_by": "identity_team",
+    "tags": [
+      "sync",
+      "lock-sensitive"
+    ],
+    "created_at": "2026-03-03T13:10:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-20T10:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 88
+      },
+      {
+        "run_time": "2026-04-20T10:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 91
+      },
+      {
+        "run_time": "2026-04-20T09:30:00+08:00",
+        "status": "failed",
+        "error": "锁未释放（lock_key=user_profile:update）",
+        "duration_seconds": 12
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A109",
+    "name": "fraud_rule_refresh",
+    "cron_expression": "*/15 * * * *",
+    "action": "刷新风控规则缓存（幂等读为主）",
+    "enabled": true,
+    "last_run": "2026-04-20T10:45:00+08:00",
+    "next_run": "2026-04-20T11:00:00+08:00",
+    "last_status": "success",
+    "created_by": "risk_team",
+    "tags": [
+      "risk",
+      "idempotent=true"
+    ],
+    "created_at": "2025-07-07T07:07:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-20T10:45:00+08:00",
+        "status": "success",
+        "duration_seconds": 9
+      },
+      {
+        "run_time": "2026-04-20T10:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 10
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A110",
+    "name": "shipment_manifest_write",
+    "cron_expression": "*/10 * * * *",
+    "action": "生成发货清单并写入 manifest（非幂等写，锁冲突易发生）",
+    "enabled": true,
+    "last_run": "2026-04-20T10:10:00+08:00",
+    "next_run": "2026-04-20T10:20:00+08:00",
+    "last_status": "failed",
+    "error": "任务已在运行中/锁未释放：重复写入导致冲突",
+    "created_by": "logistics_team",
+    "tags": [
+      "idempotent=false",
+      "manifest",
+      "lock-sensitive"
+    ],
+    "created_at": "2026-01-22T11:11:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-20T10:10:00+08:00",
+        "status": "failed",
+        "error": "任务已在运行中/锁未释放（lock_key=manifest:write）",
+        "duration_seconds": 7
+      },
+      {
+        "run_time": "2026-04-20T10:00:00+08:00",
+        "status": "failed",
+        "error": "任务已在运行中/锁未释放（lock_key=manifest:write）",
+        "duration_seconds": 8
+      },
+      {
+        "run_time": "2026-04-19T10:50:00+08:00",
+        "status": "success",
+        "duration_seconds": 64
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-A111",
+    "name": "campaign_audience_refresh",
+    "cron_expression": "0 10 * * *",
+    "action": "刷新活动受众（幂等）",
+    "enabled": true,
+    "last_run": "2026-04-20T10:00:00+08:00",
+    "next_run": "2026-04-21T10:00:00+08:00",
+    "last_status": "success",
+    "created_by": "marketing_team",
+    "tags": [
+      "campaign",
+      "audience",
+      "idempotent=true"
+    ],
+    "created_at": "2025-06-30T18:30:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-04-20T10:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 120
+      },
+      {
+        "run_time": "2026-04-19T10:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 116
+      }
+    ]
+  }
+]

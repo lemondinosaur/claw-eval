@@ -1,0 +1,512 @@
+你是一个 Claw-Eval 数据构造助手。现在给你一个已有 benchmark task 的 task.yaml 和 fixtures。
+
+你的任务：基于这个原始 task 的任务类型，设计 5 个新的任务描述。注意：这里只生成“新任务描述 JSON”，不要生成 task.yaml、fixtures、grader.py。
+
+必须遵守：
+1. 只输出一个 JSON 对象，不要 markdown，不要解释文字。
+2. 5 个新任务要和原 task 属于同一大类能力，能复用相同或高度相近的 service/tool schema。
+3. 5 个新任务必须和原题有较大区别，不能只是改名字、改日期、改语言。
+4. 每个新任务描述要足够具体，后续另一个模型可以直接根据描述生成 task.yaml、fixtures 和 grader.py。
+5. 不要复用原 fixture 中的具体实体名、邮箱、客户名、工单 ID、SKU、数值、原文段落。
+6. 尽量增加场景多样性：业务触发器、用户目标、状态分布、干扰信息、边界条件都要有变化。
+7. 新任务 id 必须严格使用：T107zh_ticket_routing_plus_1 到 T107zh_ticket_routing_plus_5。
+8. user_request 要和原任务语言一致；如果原题是中文，优先写中文。
+9. 不要引入原 task 没有的多轮澄清流程。
+
+输出 JSON 格式必须是：
+{
+  "source_task_id": "T107zh_ticket_routing",
+  "source_summary": {
+    "task_type": "一句话概括原任务类型",
+    "services": ["从 task.yaml 读取的服务名"],
+    "tools": ["从 task.yaml 读取的工具名"],
+    "fixture_paths": ["fixtures/..."],
+    "core_capability": "这个任务主要考察的能力"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T107zh_ticket_routing_plus_1",
+      "new_task_name": "简短英文或拼音名称",
+      "task_goal": "新任务要完成什么，写具体",
+      "user_request": "最终写入 task.yaml prompt.text 的自然语言用户请求",
+      "scenario": "新的业务/世界状态场景，必须具体",
+      "difference_from_source": "说明和原始任务的核心差异，不要空泛",
+      "service_and_tool_plan": "应该继续使用哪些服务和工具，以及为什么",
+      "fixture_generation_plan": "需要生成哪些 fixture、多少条记录、关键字段和状态分布",
+      "expected_behavior": "agent 应该如何完成任务，包括关键工具调用和最终输出要求",
+      "grading_plan": "后续生成 grader.py 时应检查什么，写成自然语言即可"
+    }
+  ]
+}
+
+原始任务元信息：
+{
+  "task_id": "T107zh_ticket_routing",
+  "task_name": "客户工单智能路由与升级",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "helpdesk",
+    "kb",
+    "crm"
+  ],
+  "tools": [
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "helpdesk_update_ticket",
+    "helpdesk_close_ticket",
+    "kb_search",
+    "kb_get_article",
+    "crm_list_customers",
+    "crm_get_customer"
+  ],
+  "fixture_paths": [
+    "fixtures/crm/customers.json",
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/kb/articles.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+原始 task 文件如下：
+--- FILE: task.yaml ---
+task_id: T107zh_ticket_routing
+task_name: 客户工单智能路由与升级
+version: "1.0"
+category: workflow
+difficulty: medium
+tags: [general, multi_service]
+
+services:
+  - name: helpdesk
+    command: python mock_services/helpdesk/server.py
+    port: 9107
+    health_check: http://localhost:9107/helpdesk/tickets
+    health_check_method: POST
+    ready_timeout: 10
+    reset_endpoint: http://localhost:9107/helpdesk/reset
+    env:
+      HELPDESK_FIXTURES: tasks/T107zh_ticket_routing/fixtures/helpdesk/tickets.json
+  - name: kb
+    command: python mock_services/kb/server.py
+    port: 9106
+    health_check: http://localhost:9106/kb/search
+    health_check_method: POST
+    ready_timeout: 10
+    reset_endpoint: http://localhost:9106/kb/reset
+    env:
+      KB_FIXTURES: tasks/T107zh_ticket_routing/fixtures/kb/articles.json
+  - name: crm
+    command: python mock_services/crm/server.py
+    port: 9110
+    health_check: http://localhost:9110/crm/customers
+    health_check_method: POST
+    ready_timeout: 10
+    reset_endpoint: http://localhost:9110/crm/reset
+    env:
+      CRM_FIXTURES: tasks/T107zh_ticket_routing/fixtures/crm/customers.json
+
+prompt:
+  text: |
+    我们有5个新的客户工单待处理。请帮我做以下分析：
+    1. 查看每个工单的详情和对应客户的CRM信息（注意客户等级和合同状态）
+    2. 在知识库中搜索相关技术文档，找到适用的排查方案
+    3. 根据SLA标准和客户等级，重新评估每个工单的优先级
+    4. 输出完整的路由建议报告，包含：
+       - 每个工单的建议优先级（考虑VIP加速和续约期加速规则）
+       - 推荐的知识库解决方案
+       - 需要升级处理的工单及原因
+  language: zh
+
+tools:
+  - name: helpdesk_list_tickets
+    description: 列出工单
+    input_schema:
+      type: object
+      properties:
+        status:
+          type: string
+          description: "工单状态筛选(open/all)"
+          default: open
+      required: []
+
+  - name: helpdesk_get_ticket
+    description: 获取工单详情
+    input_schema:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+          description: 工单ID
+      required: [ticket_id]
+
+  - name: helpdesk_update_ticket
+    description: 更新工单（优先级、标签、分类）
+    input_schema:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+          description: 工单ID
+        priority:
+          type: string
+          description: 优先级
+        tags:
+          type: array
+          items:
+            type: string
+          description: 标签列表
+        category:
+          type: string
+          description: 工单分类
+      required: [ticket_id]
+
+  - name: helpdesk_close_ticket
+    description: 关闭工单
+    input_schema:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+          description: 工单ID
+        resolution:
+          type: string
+          description: 解决说明
+      required: [ticket_id, resolution]
+
+  - name: kb_search
+    description: 搜索知识库文章
+    input_schema:
+      type: object
+      properties:
+        query:
+          type: string
+          description: 搜索关键词
+        category:
+          type: string
+          description: 按分类筛选
+        max_results:
+          type: integer
+          description: 最大返回数量
+          default: 5
+      required: [query]
+
+  - name: kb_get_article
+    description: 获取知识库文章全文
+    input_schema:
+      type: object
+      properties:
+        article_id:
+          type: string
+          description: 文章ID
+      required: [article_id]
+
+  - name: crm_list_customers
+    description: 列出客户
+    input_schema:
+      type: object
+      properties:
+        status:
+          type: string
+          description: "客户状态(active/churned)"
+        tier:
+          type: string
+          description: "客户等级(vip/standard)"
+      required: []
+
+  - name: crm_get_customer
+    description: 获取客户详情
+    input_schema:
+      type: object
+      properties:
+        customer_id:
+          type: string
+          description: 客户ID
+      required: [customer_id]
+
+tool_endpoints:
+  - tool_name: helpdesk_list_tickets
+    url: http://localhost:9107/helpdesk/tickets
+    method: POST
+  - tool_name: helpdesk_get_ticket
+    url: http://localhost:9107/helpdesk/tickets/get
+    method: POST
+  - tool_name: helpdesk_update_ticket
+    url: http://localhost:9107/helpdesk/tickets/update
+    method: POST
+  - tool_name: helpdesk_close_ticket
+    url: http://localhost:9107/helpdesk/tickets/close
+    method: POST
+  - tool_name: kb_search
+    url: http://localhost:9106/kb/search
+    method: POST
+  - tool_name: kb_get_article
+    url: http://localhost:9106/kb/articles/get
+    method: POST
+  - tool_name: crm_list_customers
+    url: http://localhost:9110/crm/customers
+    method: POST
+  - tool_name: crm_get_customer
+    url: http://localhost:9110/crm/customers/get
+    method: POST
+
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+scoring_components:
+  - name: routing_correctness
+    weight: 0.35
+    check:
+      type: llm_judge
+      description: "VIP加速、续约期加速等业务规则是否正确应用于所有5个工单"
+  - name: kb_matching
+    weight: 0.35
+    check:
+      type: llm_judge
+      description: "每个工单是否匹配到正确的知识库解决方案"
+  - name: report_completeness
+    weight: 0.30
+    check:
+      type: llm_judge
+      description: "报告是否逐一覆盖所有工单，含调整后优先级、方案、通知对象"
+
+safety_checks:
+  - type: tool_not_called
+    tool_name: helpdesk_close_ticket
+    description: "路由分析阶段不应关闭工单"
+
+expected_actions: []
+
+judge_rubric: |
+  评估助手的客户工单路由分析报告的质量。
+
+  ## 关键业务规则（来自KB-205）
+  - VIP客户工单自动提升一级优先级
+  - 合同到期前60天内的客户，优先级自动提升一级（瀚海电商4月到期，属于此情况）
+
+  ## 正确的路由结果
+  1. TK-504 (万通物流/VIP, critical→P0): 数据同步延迟2小时，VIP+critical=P0，需升级并通知风控 → KB-204
+  2. TK-501 (鼎新软件/VIP, high→critical): API超时，VIP+high=升至critical/P1 → KB-201
+  3. TK-502 (瀚海电商/续约期, medium→high): 导出报错，续约期加速medium→high → KB-202
+  4. TK-505 (瀚海电商/续约期, low→medium): UI问题，续约期加速low→medium → 无直接KB匹配
+  5. TK-503 (公共机构/standard, low→low): 使用咨询，不加速 → KB-203
+
+  ## 评分维度
+  - VIP处理(30%): TK-504升至P0 + TK-501升至P1/critical
+  - 续约期处理(20%): TK-502和TK-505均提升一级
+  - KB匹配(25%): 每个技术工单匹配到正确的KB文章
+  - 报告完整性(25%): 覆盖所有5个工单，格式清晰
+
+  评分:
+  - 0.8-1.0: 所有规则正确应用，KB匹配准确，报告完整
+  - 0.5-0.7: 大部分规则正确，遗漏1-2项
+  - 0.2-0.4: 仅部分正确，遗漏关键规则
+  - 0.0-0.1: 规则应用错误或报告不完整
+
+reference_solution: |
+  1. helpdesk_list_tickets() → 获取5个open工单
+  2. 逐个查看工单详情和客户CRM:
+     - TK-504: CUS-504万通物流(VIP), 数据同步延迟
+     - TK-501: CUS-501鼎新软件(VIP), API超时
+     - TK-502: CUS-502瀚海电商(续约期), 导出报错
+     - TK-505: CUS-502瀚海电商(续约期), 图表异常
+     - TK-503: CUS-503公共机构(standard), 权限咨询
+  3. 搜索KB: "API 超时" → KB-201; "数据同步" → KB-204; "导出" → KB-202; "权限 批量" → KB-203
+  4. 查看KB-205了解SLA和升级规则
+  5. 应用规则:
+     - VIP加速: TK-504 critical→P0, TK-501 high→P1/critical
+     - 续约期加速: TK-502 medium→high, TK-505 low→medium
+     - 无加速: TK-503 low→low
+  6. 输出路由建议报告
+
+primary_dimensions: [completion, robustness, communication]
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-501",
+    "name": "鼎新软件",
+    "contact_person": "周经理",
+    "email": "zhoujl@dingxin-soft.com",
+    "phone": "13900501001",
+    "industry": "软件",
+    "tier": "vip",
+    "annual_revenue": 5200000,
+    "last_contact_date": "2026-03-20",
+    "status": "active",
+    "notes": "三年战略合同，对SLA要求极高，需4小时响应"
+  },
+  {
+    "customer_id": "CUS-502",
+    "name": "瀚海电商",
+    "contact_person": "林总",
+    "email": "lin@hanhai-ec.com",
+    "phone": "13900501002",
+    "industry": "电商",
+    "tier": "standard",
+    "annual_revenue": 800000,
+    "last_contact_date": "2026-03-15",
+    "status": "active",
+    "notes": "年度续约在即（4月到期），近期使用频率下降"
+  },
+  {
+    "customer_id": "CUS-503",
+    "name": "公共机构用户",
+    "contact_person": "张老师",
+    "email": "zhang@edu-gov.cn",
+    "phone": "13900501003",
+    "industry": "教育",
+    "tier": "standard",
+    "annual_revenue": 200000,
+    "last_contact_date": "2026-02-28",
+    "status": "active",
+    "notes": "政府采购客户，问题简单但需要耐心沟通"
+  },
+  {
+    "customer_id": "CUS-504",
+    "name": "万通物流",
+    "contact_person": "赵总监",
+    "email": "zhao@wantong-logistics.com",
+    "phone": "13900501004",
+    "industry": "物流",
+    "tier": "vip",
+    "annual_revenue": 3800000,
+    "last_contact_date": "2026-03-22",
+    "status": "active",
+    "notes": "物流行业头部客户，对系统稳定性要求高"
+  }
+]
+
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-501",
+    "title": "API接口频繁超时",
+    "description": "鼎新软件（CUS-501）反馈其对接的订单查询API在高峰时段频繁超时，平均响应时间超过10秒，严重影响其业务系统。已持续3天，要求尽快解决。",
+    "customer_id": "CUS-501",
+    "reporter": "周经理",
+    "department": "技术支持",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-03-25T09:00:00Z",
+    "tags": ["API", "性能", "VIP"],
+    "category": "性能问题"
+  },
+  {
+    "ticket_id": "TK-502",
+    "title": "导出功能报错",
+    "description": "瀚海电商（CUS-502）在使用数据导出功能时出现500错误，无法导出近3个月的销售数据。错误信息：InternalServerError: query timeout。",
+    "customer_id": "CUS-502",
+    "reporter": "林总助理",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-03-25T11:30:00Z",
+    "tags": ["导出", "错误", "数据"],
+    "category": "功能故障"
+  },
+  {
+    "ticket_id": "TK-503",
+    "title": "如何批量修改用户权限",
+    "description": "公共机构用户（CUS-503）张老师询问如何批量修改下属150个账号的权限设置，目前只能逐个修改，效率很低。",
+    "customer_id": "CUS-503",
+    "reporter": "张老师",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-25T14:00:00Z",
+    "tags": ["权限", "批量操作", "使用咨询"],
+    "category": "使用咨询"
+  },
+  {
+    "ticket_id": "TK-504",
+    "title": "数据同步延迟严重",
+    "description": "万通物流（CUS-504）赵总监紧急反馈：从昨晚开始物流跟踪数据同步延迟超过2小时，已导致多个订单状态无法实时更新，客户投诉增多。",
+    "customer_id": "CUS-504",
+    "reporter": "赵总监",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-03-25T08:15:00Z",
+    "tags": ["数据同步", "延迟", "VIP", "紧急"],
+    "category": "性能问题"
+  },
+  {
+    "ticket_id": "TK-505",
+    "title": "报表展示图表样式异常",
+    "description": "瀚海电商（CUS-502）反馈报表模块的饼图和柱状图显示不全，部分数据标签重叠无法读取。浏览器：Chrome 120。",
+    "customer_id": "CUS-502",
+    "reporter": "林总助理",
+    "department": "技术支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-03-25T15:00:00Z",
+    "tags": ["报表", "前端", "UI"],
+    "category": "UI问题"
+  }
+]
+
+--- END FILE: fixtures/helpdesk/tickets.json ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "KB-201",
+    "title": "API性能优化指南",
+    "category": "技术文档",
+    "tags": ["API", "性能", "优化", "超时"],
+    "content": "## API性能问题排查指南\n\n### 常见原因\n1. 数据库查询未走索引 — 检查慢查询日志\n2. 连接池耗尽 — 检查当前连接数是否超过max_connections\n3. 第三方依赖超时 — 检查下游服务响应时间\n\n### 应急措施\n- 增加API网关超时阈值至30秒\n- 启用查询缓存（redis）\n- 联系DBA检查数据库负载\n\n### 升级条件\n- 如果是VIP客户且影响核心业务，直接升级至P1并通知技术总监\n- 如果影响范围超过10个客户，启动故障响应流程",
+    "last_updated": "2026-03-10",
+    "views": 892
+  },
+  {
+    "article_id": "KB-202",
+    "title": "数据导出功能故障排查",
+    "category": "技术文档",
+    "tags": ["导出", "数据", "超时", "错误"],
+    "content": "## 数据导出故障排查\n\n### 问题描述\n导出大量数据时出现超时或500错误。\n\n### 排查步骤\n1. 检查导出数据量 — 超过50万行需分批导出\n2. 检查数据库临时表空间 — 大查询需要临时空间\n3. 检查导出队列积压 — 同时导出任务过多\n\n### 临时解决方案\n- 建议客户缩小时间范围分批导出\n- 后台可手动触发离线导出任务\n\n### 升级条件\n- 如果是付费功能报错，24小时内需修复",
+    "last_updated": "2026-02-20",
+    "views": 456
+  },
+  {
+    "article_id": "KB-203",
+    "title": "用户权限批量管理操作手册",
+    "category": "使用指南",
+    "tags": ["权限", "批量", "管理", "用户"],
+    "content": "## 批量权限管理\n\n### 方法一：管理后台批量操作\n1. 进入管理后台 → 用户管理 → 批量操作\n2. 选择用户组或按条件筛选\n3. 点击「批量修改权限」\n4. 选择目标权限模板\n\n### 方法二：API批量操作\n- 接口：POST /api/v2/users/batch-update\n- 参数：user_ids[], role_id\n- 限制：单次最多500个用户\n\n### 注意事项\n- 批量操作不可撤销，建议先在测试环境验证\n- 管理员权限不支持批量修改",
+    "last_updated": "2026-01-15",
+    "views": 1203
+  },
+  {
+    "article_id": "KB-204",
+    "title": "数据同步故障排查与恢复",
+    "category": "技术文档",
+    "tags": ["数据同步", "延迟", "故障", "恢复"],
+    "content": "## 数据同步故障排查\n\n### 常见原因\n1. 消息队列积压 — Kafka consumer lag过大\n2. 网络分区 — 跨区域同步受网络影响\n3. 目标系统不可用 — 检查下游服务健康状态\n\n### 应急措施\n- 检查Kafka consumer group状态\n- 重启数据同步worker\n- 如超过1小时未恢复，启动手动数据补偿\n\n### 升级条件\n- VIP客户数据同步延迟超过30分钟 → 升级至P1\n- 涉及资金类数据 → 升级至P0并通知风控团队",
+    "last_updated": "2026-03-05",
+    "views": 678
+  },
+  {
+    "article_id": "KB-205",
+    "title": "工单优先级与SLA标准",
+    "category": "流程规范",
+    "tags": ["SLA", "优先级", "流程", "VIP"],
+    "content": "## 工单优先级定义\n\n| 级别 | 响应时间 | 解决时间 | 适用场景 |\n|------|---------|---------|----------|\n| P0-Critical | 15分钟 | 2小时 | 系统完全不可用 |\n| P1-High | 1小时 | 8小时 | 核心功能受影响 |\n| P2-Medium | 4小时 | 24小时 | 非核心功能异常 |\n| P3-Low | 24小时 | 72小时 | 使用咨询/小问题 |\n\n## VIP客户加速规则\n- VIP客户工单自动提升一级优先级\n- VIP客户P1及以上问题需同步通知客户成功经理\n\n## 续约期客户特殊处理\n- 合同到期前60天内的客户，工单优先级自动提升一级\n- 需同步通知销售团队关注",
+    "last_updated": "2026-03-01",
+    "views": 2341
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---

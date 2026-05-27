@@ -1,0 +1,69 @@
+[
+  {
+    "event_id": "evt_401",
+    "title": "全天合规访谈",
+    "start_time": "2026-01-19T09:00:00+08:00",
+    "end_time": "2026-01-19T18:00:00+08:00",
+    "location": "合规中心",
+    "organizer": "法务合规部",
+    "attendees": [
+      "我"
+    ],
+    "description": "confirmed 且标注为不可改期：必须准时参加，确认后不可随意调整。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_402",
+    "title": "需求澄清会",
+    "start_time": "2026-01-20T09:30:00+08:00",
+    "end_time": "2026-01-20T11:30:00+08:00",
+    "location": "线上会议室B",
+    "organizer": "产品负责人",
+    "attendees": [
+      "我",
+      "客户代表"
+    ],
+    "description": "可改期但仍占用：如有需要可联系对方调整会议时间，但当前仍已安排占用上午时段。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_403",
+    "title": "下午简短对齐会",
+    "start_time": "2026-01-20T14:30:00+08:00",
+    "end_time": "2026-01-20T15:30:00+08:00",
+    "location": "会议室C",
+    "organizer": "项目经理",
+    "attendees": [
+      "我"
+    ],
+    "description": "短会，预计 1 小时，用于阶段对齐。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_404",
+    "title": "系统上线演练（确认后不可调整）",
+    "start_time": "2026-01-21T13:00:00+08:00",
+    "end_time": "2026-01-21T16:00:00+08:00",
+    "location": "演练环境",
+    "organizer": "运维团队",
+    "attendees": [
+      "我",
+      "运维负责人"
+    ],
+    "description": "确认后不可改期：演练必须按计划执行，任何调整会影响放行窗口。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_405",
+    "title": "补充说明电话会（可灵活插入）",
+    "start_time": "2026-01-20T16:00:00+08:00",
+    "end_time": "2026-01-20T16:30:00+08:00",
+    "location": "电话会议",
+    "organizer": "合作方",
+    "attendees": [
+      "我"
+    ],
+    "description": "30 分钟电话会，可灵活插入或顺延，但仍算占用时段。",
+    "status": "confirmed"
+  }
+]

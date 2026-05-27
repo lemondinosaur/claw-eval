@@ -1,0 +1,131 @@
+[
+  {
+    "ticket_id": "TK-2201",
+    "title": "支付确认卡住：回调已到但状态未推进",
+    "description": "多个商户反馈：支付完成后订单停留在“支付确认中”，回调记录在回调接收层可见但未触发后续写回；疑似对账/回写任务在高峰时段连续失败导致状态回不去。",
+    "department": "运维/支付",
+    "priority": "high",
+    "status": "open",
+    "category": "payment_confirmation_stuck",
+    "created_at": "2026-04-27T19:12:00+08:00",
+    "assigned_to": "林运维",
+    "updated_at": "2026-04-28T09:05:00+08:00",
+    "reporter": "林运维",
+    "related_customer": "CUS-401",
+    "payment_trace": {
+      "gateway_integration_id": "INT-201",
+      "callback_integration_id": "INT-202",
+      "writer_integration_id": "INT-203",
+      "symptom": "订单支付确认未推进（回调已到达但对账写回未生效）"
+    }
+  },
+  {
+    "ticket_id": "TK-2202",
+    "title": "回调超时：支付回调重试触发但最终失败",
+    "description": "支付回调方多次重试仍超时，最终返回失败；工单集中在同一时间窗内（20:30-21:10）。尽管集成监控显示回调接收active且错误率低，但体验侧仍出现回调处理失败。",
+    "department": "运维/支付",
+    "priority": "high",
+    "status": "open",
+    "category": "payment_callback_timeout",
+    "created_at": "2026-04-27T20:31:00+08:00",
+    "assigned_to": "王运维",
+    "updated_at": "2026-04-28T08:40:00+08:00",
+    "reporter": "王运维",
+    "related_customer": "CUS-401",
+    "payment_trace": {
+      "callback_integration_id": "INT-202",
+      "symptom": "回调超时；重试后仍失败"
+    }
+  },
+  {
+    "ticket_id": "TK-2203",
+    "title": "对账差异：退款状态未同步到订单系统",
+    "description": "部分退款已在账本侧完成，但订单/退款状态未同步；与“对账写回(支付结果回写)”任务在夜间失败序列高度重叠。建议检查写回幂等与失败重试策略是否与当前支付回调节奏一致。",
+    "department": "运维/支付",
+    "priority": "medium",
+    "status": "open",
+    "category": "reconciliation_mismatch_refund_not_synced",
+    "created_at": "2026-04-28T01:18:00+08:00",
+    "assigned_to": "周SRE",
+    "updated_at": "2026-04-28T09:20:00+08:00",
+    "reporter": "周SRE",
+    "related_customer": "CUS-401",
+    "payment_trace": {
+      "writer_integration_id": "INT-203",
+      "orders_writer_integration_id": "INT-206",
+      "symptom": "退款状态未同步；对账差异未完成写回"
+    }
+  },
+  {
+    "ticket_id": "TK-2204",
+    "title": "支付结果回写失败：夜间峰值集中出现",
+    "description": "对账/回写任务失败导致多笔支付结果无法落库；工单在02:00-02:40出现聚簇。与定时任务JOB对账链路的连续失败时间一致。",
+    "department": "运维/支付",
+    "priority": "high",
+    "status": "open",
+    "category": "payment_result_writeback_failed",
+    "created_at": "2026-04-28T02:05:00+08:00",
+    "assigned_to": "林运维",
+    "updated_at": "2026-04-28T06:35:00+08:00",
+    "reporter": "林运维",
+    "payment_trace": {
+      "writer_integration_id": "INT-203",
+      "symptom": "支付结果回写失败；状态滞后"
+    }
+  },
+  {
+    "ticket_id": "TK-2205",
+    "title": "库存延迟导致部分客户体验下降（疑似次级因素）",
+    "description": "个别订单因履约排队导致发货延迟2-6小时，客户抱怨“体验异常”。该问题量级较小，且未能解释支付确认/回调超时的核心现象，仅作为干扰背景记录。",
+    "department": "履约/运营",
+    "priority": "low",
+    "status": "open",
+    "category": "fulfillment_delay",
+    "created_at": "2026-04-26T11:45:00+08:00",
+    "assigned_to": "赵运营",
+    "updated_at": "2026-04-26T18:20:00+08:00",
+    "reporter": "赵运营"
+  },
+  {
+    "ticket_id": "TK-2206",
+    "title": "通知链路异常：支付结果告警未及时推送（跟进）",
+    "description": "通知服务偶发延迟，导致部分“支付确认卡住”告警在工单高峰之后才到达值班群。可能是通知侧webhook处理慢，不作为支付写回失败根因，但会放大发现延迟。",
+    "department": "运维/通知",
+    "priority": "medium",
+    "status": "open",
+    "category": "notification_delay",
+    "created_at": "2026-04-28T03:10:00+08:00",
+    "assigned_to": "蔡值班",
+    "updated_at": "2026-04-28T05:50:00+08:00",
+    "reporter": "蔡值班",
+    "payment_trace": {
+      "notification_integration_id": "INT-207"
+    }
+  },
+  {
+    "ticket_id": "TK-2207",
+    "title": "对账差异报表延迟：可能与任务停摆相关",
+    "description": "对账差异报表在本周多次延迟生成，怀疑与调度器触发间隔或任务状态相关。该问题可能影响排查效率，但需与“对账写回任务连续失败”共同验证关联。",
+    "department": "运维/支付",
+    "priority": "medium",
+    "status": "open",
+    "category": "reconciliation_report_delay",
+    "created_at": "2026-04-25T16:20:00+08:00",
+    "assigned_to": "周SRE",
+    "updated_at": "2026-04-27T12:05:00+08:00",
+    "reporter": "周SRE"
+  },
+  {
+    "ticket_id": "TK-2208",
+    "title": "支付回调重试策略需评审：疑似与当前故障模式不匹配",
+    "description": "根据历史流程文档，回调重试策略以“固定间隔+固定次数”为主；当前工单时间窗显示重试节奏与对账写回任务失败窗口不匹配，可能导致结果回写错过或被幂等抑制。",
+    "department": "运维/支付",
+    "priority": "low",
+    "status": "open",
+    "category": "process_policy_review",
+    "created_at": "2026-04-28T09:30:00+08:00",
+    "assigned_to": "流程负责人",
+    "updated_at": "2026-04-28T10:10:00+08:00",
+    "reporter": "流程负责人"
+  }
+]

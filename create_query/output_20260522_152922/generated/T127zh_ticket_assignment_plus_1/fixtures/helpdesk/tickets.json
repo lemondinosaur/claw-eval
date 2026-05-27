@@ -1,0 +1,86 @@
+[
+  {
+    "ticket_id": "TK-1201",
+    "title": "高频白屏疑似权限问题",
+    "description": "客服门户打开后仅显示空白页；浏览器控制台报错包含“403 forbidden”。受影响用户主要是新入职客服；同时工单提到需要检查“权限分配接口”和“用户角色映射”。",
+    "reporter": "客服部周助理",
+    "department": "客服部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-10T02:10:00Z",
+    "tags": [
+      "权限",
+      "403",
+      "新员工",
+      "客服门户"
+    ],
+    "category": "系统故障"
+  },
+  {
+    "ticket_id": "TK-1202",
+    "title": "门禁读卡失败",
+    "description": "办公区电梯厅门禁刷卡无响应，系统提示“读卡器离线”；现场同一批工牌均无法通过。相关标签强调“门禁设备/读卡器”。但工单分类被填写为“权限管理”。",
+    "reporter": "行政与采购部刘文",
+    "department": "行政与采购部",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-05-10T03:00:00Z",
+    "tags": [
+      "门禁",
+      "读卡器",
+      "离线",
+      "工牌"
+    ],
+    "category": "权限管理"
+  },
+  {
+    "ticket_id": "TK-1203",
+    "title": "数据看板人数偏差",
+    "description": "人力数据看板“在职人数”比HR系统导出的名单少约120人；同时日志显示某ETL作业的分区字段为“emp_status”但上游字段名为“employment_status”。需要核对数据口径与ETL映射。",
+    "reporter": "人事部曹专员",
+    "department": "人事部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-10T04:20:00Z",
+    "tags": [
+      "数据",
+      "ETL",
+      "口径",
+      "在职人数"
+    ],
+    "category": "系统故障"
+  },
+  {
+    "ticket_id": "TK-1204",
+    "title": "VPN 连接超时（远程办公）",
+    "description": "远程办公时VPN连接反复超时；客户端提示“握手失败”。同部门同时间段多人反馈；排查信息包含“防火墙策略命中”和“隧道建立失败”。",
+    "reporter": "运营部赵琳",
+    "department": "运营部",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-05-10T05:10:00Z",
+    "tags": [
+      "VPN",
+      "网络",
+      "握手失败",
+      "防火墙"
+    ],
+    "category": "网络问题"
+  },
+  {
+    "ticket_id": "TK-1205",
+    "title": "财务模板无法生成（疑似系统问题）",
+    "description": "财务模板生成时提示字段校验失败，报错指向“报表字段映射缺失”；生成的统计口径与上月不一致。工单tags明确包含“报表口径”和“字段映射”，并指出需要数据组检查数据模型/映射。",
+    "reporter": "财务部陈会计",
+    "department": "财务部",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-05-10T06:30:00Z",
+    "tags": [
+      "报表口径",
+      "字段映射",
+      "数据模型"
+    ],
+    "category": "办公设备"
+  }
+]

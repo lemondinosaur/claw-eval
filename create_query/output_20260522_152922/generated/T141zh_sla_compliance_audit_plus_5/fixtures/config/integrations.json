@@ -1,0 +1,62 @@
+[
+  {
+    "integration_id": "INT-G01",
+    "name": "SLA规则配置（四级阈值）",
+    "status": "active",
+    "config": {
+      "time_standard": "UTC",
+      "critical": {
+        "response_time_minutes": 45,
+        "resolution_time_hours": 6,
+        "escalation_after_minutes": 20
+      },
+      "high": {
+        "response_time_minutes": 180,
+        "resolution_time_hours": 10,
+        "escalation_after_minutes": 90
+      },
+      "medium": {
+        "response_time_minutes": 360,
+        "resolution_time_hours": 24,
+        "escalation_after_minutes": 180
+      },
+      "low": {
+        "response_time_minutes": 1440,
+        "resolution_time_hours": 72,
+        "escalation_after_minutes": 720
+      }
+    },
+    "service": "sla_policy",
+    "last_verified": "2026-04-02",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  },
+  {
+    "integration_id": "INT-G02",
+    "name": "时间标准/时区解析集成",
+    "status": "error",
+    "config": {
+      "parser_mode": "strict",
+      "expected_time_standard": "UTC",
+      "fallback_to_local_if_missing_offset": false
+    },
+    "error_message": "时区解析失败：字段缺失或无法从时间戳中识别偏移（例如缺少Z/+HH:MM）",
+    "service": "time_parser",
+    "last_verified": "2026-04-20",
+    "monthly_calls": 0,
+    "error_rate": 0.12
+  },
+  {
+    "integration_id": "INT-G03",
+    "name": "即时告警通知集成",
+    "status": "active",
+    "config": {
+      "url": "https://im.example.org/webhook/ops-alerts",
+      "channel": "#ops-sla"
+    },
+    "service": "webhook",
+    "last_verified": "2026-04-10",
+    "monthly_calls": 0,
+    "error_rate": 0.0
+  }
+]

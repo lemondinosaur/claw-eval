@@ -1,0 +1,28 @@
+[
+  {
+    "transaction_id": "TXN-2301",
+    "date": "2026-02-10",
+    "amount": 118000.0,
+    "currency": "CNY",
+    "customer_id": "CUST-205",
+    "customer_name": "青岚教育科技",
+    "type": "客户退款/补偿",
+    "category": "争议处理-部分退款",
+    "description": "青岚教育科技：多供应商争议退款的历史部分处理记录（非最终结算）",
+    "approved_by": "cs_lead.chen@company.com",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-2302",
+    "date": "2026-02-18",
+    "amount": 42000.0,
+    "currency": "CNY",
+    "customer_id": "CUST-201",
+    "customer_name": "北辰航运有限公司",
+    "type": "客户退款/补偿",
+    "category": "争议处理-部分退款",
+    "description": "北辰航运有限公司：争议发生前的早期工单补偿支出记录",
+    "approved_by": "cs_lead.chen@company.com",
+    "status": "completed"
+  }
+]

@@ -1,0 +1,359 @@
+{
+  "task_id": "T131zh_order_profit_analysis_plus_1",
+  "task_name": "分期回款利润率与缺口监测",
+  "prompt_text": "请帮我分析本季度内各客户订单的利润与回款异常情况：\n1) 从CRM获取客户列表与每位客户最近订单及其产品组合（每个客户仅取recent_orders中最近的1条订单）。\n2) 从库存系统为订单内每个产品取成本价unit_cost，按订单产品汇总总成本。\n3) 使用订单字段total_price作为订单售价，计算利润与利润率：利润率=(售价-成本)/售价。\n4) 从财务系统按给定起止日期筛选交易，只统计与这些客户订单相关的“订单收款/退款/收款冲正”等订单类交易，忽略工资/运营费等非订单交易。\n5) 对回款进行净额汇总：净回款=所有相关收款金额 + 退款金额（退款为负数） + 收款冲正金额（负数计入净额）。\n6) 若存在partial状态（分期未完成）、退款或冲正导致净回款偏差：\n   - 标注异常类型与原因（分期未完成/部分退款/冲正导致净回款偏差）；\n   - 计算缺口金额：缺口=售价-净回款；若净回款不足售价给出缺口，否则给出净回款结论。\n7) 最终输出一份按客户维度的利润与回款异常报告，至少包含：客户名称、订单售价、成本、利润、利润率、回款摘要（已回款/净回款/缺口）、异常类型与结论。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-901",
+        "name": "珑域科技",
+        "contact_person": "陈岚",
+        "email": "chenlan@longyu.example",
+        "phone": "13900112233",
+        "industry": "制造",
+        "tier": "vip",
+        "annual_revenue": 6100000,
+        "last_contact_date": "2026-04-18",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-901",
+            "products": [
+              "SKU-ALPHA",
+              "SKU-SVC-ONB",
+              "SKU-ADD-EDGE"
+            ],
+            "total_price": 156000,
+            "date": "2026-04-12"
+          }
+        ],
+        "notes": "产线数字化续费"
+      },
+      {
+        "customer_id": "CUS-902",
+        "name": "青帆云商",
+        "contact_person": "周琦",
+        "email": "zhouqi@qingfan.example",
+        "phone": "13900445566",
+        "industry": "电商",
+        "tier": "standard",
+        "annual_revenue": 980000,
+        "last_contact_date": "2026-04-25",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-902",
+            "products": [
+              "SKU-ALPHA",
+              "SKU-SVC-IMPL"
+            ],
+            "total_price": 91000,
+            "date": "2026-04-20"
+          }
+        ],
+        "notes": "平台运营提效"
+      },
+      {
+        "customer_id": "CUS-903",
+        "name": "皓辰物流",
+        "contact_person": "马烁",
+        "email": "masuo@haocheng.example",
+        "phone": "13900776655",
+        "industry": "物流",
+        "tier": "vip",
+        "annual_revenue": 2600000,
+        "last_contact_date": "2026-04-10",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-903",
+            "products": [
+              "SKU-ALPHA",
+              "SKU-BETA",
+              "SKU-ADD-EDGE",
+              "SKU-SVC-SUP"
+            ],
+            "total_price": 318000,
+            "date": "2026-04-08"
+          }
+        ],
+        "notes": "多部门联动"
+      },
+      {
+        "customer_id": "CUS-904",
+        "name": "星阙文娱",
+        "contact_person": "孙薇",
+        "email": "sunwei@xingque.example",
+        "phone": "13900998877",
+        "industry": "文娱",
+        "tier": "standard",
+        "annual_revenue": 420000,
+        "last_contact_date": "2026-04-28",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-904",
+            "products": [
+              "SKU-BETA",
+              "SKU-SVC-IMPL"
+            ],
+            "total_price": 135000,
+            "date": "2026-04-22"
+          }
+        ],
+        "notes": "试运营阶段"
+      },
+      {
+        "customer_id": "CUS-905",
+        "name": "北岭教育（已流失）",
+        "contact_person": "刘航",
+        "email": "liuhang@beiling.example",
+        "phone": "13900223344",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 310000,
+        "last_contact_date": "2026-03-05",
+        "status": "churned",
+        "recent_orders": [
+          {
+            "order_id": "ORD-905",
+            "products": [
+              "SKU-GAMMA",
+              "SKU-SVC-ONB"
+            ],
+            "total_price": 68000,
+            "date": "2026-03-20"
+          }
+        ],
+        "notes": "仍有未结算订单"
+      }
+    ]
+  ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-1001",
+        "date": "2026-04-13",
+        "amount": 93600.00,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "珑域科技",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "珑域科技ORD-901 分期首款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1002",
+        "date": "2026-04-20",
+        "amount": 54600.00,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "珑域科技",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "珑域科技ORD-901 分期次款（partial待入账）",
+        "status": "partial"
+      },
+      {
+        "transaction_id": "TXN-1003",
+        "date": "2026-04-21",
+        "amount": 7800.00,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "珑域科技",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "珑域科技ORD-901 追加服务补款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1004",
+        "date": "2026-04-18",
+        "amount": -27500.00,
+        "currency": "CNY",
+        "customer_id": "CUS-902",
+        "customer_name": "青帆云商",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "青帆云商ORD-902 部分退款（20%-35%区间）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1005",
+        "date": "2026-04-20",
+        "amount": 65000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-902",
+        "customer_name": "青帆云商",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "青帆云商ORD-902 首笔回款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1006",
+        "date": "2026-04-22",
+        "amount": 26000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-902",
+        "customer_name": "青帆云商",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "青帆云商ORD-902 尾款（partial待入账）",
+        "status": "partial"
+      },
+      {
+        "transaction_id": "TXN-1007",
+        "date": "2026-04-09",
+        "amount": 190000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-903",
+        "customer_name": "皓辰物流",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "皓辰物流ORD-903 全额回款（阶段一）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1008",
+        "date": "2026-04-16",
+        "amount": 78000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-903",
+        "customer_name": "皓辰物流",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "皓辰物流ORD-903 分期第二笔（partial待入账）",
+        "status": "partial"
+      },
+      {
+        "transaction_id": "TXN-1009",
+        "date": "2026-04-17",
+        "amount": -12000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-903",
+        "customer_name": "皓辰物流",
+        "type": "收款冲正",
+        "category": "应收冲正",
+        "description": "皓辰物流ORD-903 冲正一笔对账差异",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1010",
+        "date": "2026-04-23",
+        "amount": 98000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-904",
+        "customer_name": "星阙文娱",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "星阙文娱ORD-904 首款回款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1011",
+        "date": "2026-04-26",
+        "amount": -39000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-904",
+        "customer_name": "星阙文娱",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "星阙文娱ORD-904 部分退款（25%-35%区间）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1012",
+        "date": "2026-04-24",
+        "amount": 31000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-904",
+        "customer_name": "星阙文娱",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "星阙文娱ORD-904 待入账回款（partial）",
+        "status": "partial"
+      },
+      {
+        "transaction_id": "TXN-1013",
+        "date": "2026-04-02",
+        "amount": 34000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-905",
+        "customer_name": "北岭教育（已流失）",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "北岭教育ORD-905 回款（partial待入账）",
+        "status": "partial"
+      },
+      {
+        "transaction_id": "TXN-1014",
+        "date": "2026-04-06",
+        "amount": -6800.00,
+        "currency": "CNY",
+        "customer_id": "CUS-905",
+        "customer_name": "北岭教育（已流失）",
+        "type": "收款冲正",
+        "category": "应收冲正",
+        "description": "北岭教育ORD-905 收款冲正（负数）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1015",
+        "date": "2026-04-07",
+        "amount": 24000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-905",
+        "customer_name": "北岭教育（已流失）",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "北岭教育ORD-905 已完成回款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1090",
+        "date": "2026-04-15",
+        "amount": 42000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "工资",
+        "category": "人力成本",
+        "description": "研发团队工资",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1091",
+        "date": "2026-04-24",
+        "amount": 16000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "运营费",
+        "category": "管理费用",
+        "description": "市场活动运营费",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-1092",
+        "date": "2026-04-11",
+        "amount": 9000.00,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "利息收入",
+        "category": "其他收入",
+        "description": "银行利息",
+        "status": "completed"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原有订单利润分析基础上，加入分期partial回款、退款负额以及收款冲正的净回款与缺口计算，并覆盖多产品订单与异常归因输出。",
+    "fixture_design_summary": [
+      "CRM提供5个客户（含1个已流失），每个客户仅1条recent_orders且产品组合覆盖许可与多服务类别。",
+      "Inventory准备10个全新SKU，unit_cost与selling_price区间拉开以产生多种利润率。",
+      "Finance在同一时间窗内为各订单构造多笔交易：至少2个订单含partial；至少2个订单含退款负额；至少2个订单含收款冲正负额；额外插入3条非订单类交易用于筛选。"
+    ]
+  }
+}

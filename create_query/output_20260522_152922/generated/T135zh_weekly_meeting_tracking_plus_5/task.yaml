@@ -1,0 +1,131 @@
+task_id: T135zh_weekly_meeting_tracking_plus_5
+task_name: 里程碑阶段行动项与状态收敛
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_5/fixtures/calendar/events.json
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_5/fixtures/notes/meetings.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T135zh_weekly_meeting_tracking_plus_5/fixtures/todo/tasks.json
+prompt:
+  text: "请生成本周会议（以 mock_today=2026-07-02 为准，统计范围为 2026-06-24 到 2026-06-30）的里程碑阶段行动项跟踪报告：\n\
+    1）查询该日期范围内的日历会议，只处理带纪要关联的会议；\n2）从纪要中提取行动项，并读取每个行动项的目标里程碑阶段（如目标：m1 / 目标：m2 / 目标：final）；\n\
+    3）在待办系统中找到对应的里程碑任务：同一行动项可能在待办中出现多个阶段候选（如 milestone-1/milestone-2/final），需要选择“最高阶段”作为最终阶段；\n\
+    4）输出每会议：\n   - 每项：给出最终状态（completed/in_progress/pending）与最终里程碑阶段（m1/m2/final）；\n\
+    \   - 计算阶段收敛率 = 该会议行动项中“最终阶段为 final”的行动项数 / 该会议行动项总数；若最终选到的最高阶段与目标 final 不一致且该项最终状态未完成，则标记“未收敛”。\n\
+    5）识别纪要中有但待办中完全缺失的行动项（遗漏），列出遗漏项。\n输出必须按会议分组展示，并包含每会议收敛率与遗漏清单。"
+  language: zh
+tools:
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: all
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+tool_endpoints:
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+environment:
+  mock_today: '2026-03-26'
+  timeout_seconds: 600
+  max_turns: 30

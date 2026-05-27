@@ -1,0 +1,74 @@
+[
+  {
+    "message_id": "msg_e01",
+    "from": "suzi@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：住宿费 2380元（发票 INV-E901）",
+    "date": "2026-03-26T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "财务部您好，我是苏子。本次出差住宿费共计2380元，发票号INV-E901。请审核报销。"
+  },
+  {
+    "message_id": "msg_e02",
+    "from": "liupeng@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：交通费 1650元（INV-E902）",
+    "date": "2026-03-26T10:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位好，刘鹏提交差旅交通费报销：金额1650元，对应发票号INV-E902。请核对入账。"
+  },
+  {
+    "message_id": "msg_e03",
+    "from": "maria@contractor.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：外包协作费 USD 9,800.00（发票 INV-E903）",
+    "date": "2026-03-26T11:30:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "你好，以下为外包协作费报销：币种USD 9,800.00，发票号INV-E903。我们未提供换算汇率，金额按账面USD填写，请确认归档。"
+  },
+  {
+    "message_id": "msg_e04",
+    "from": "zhaoqi@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：客户招待 1299元（INV-E904）",
+    "date": "2026-03-26T14:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "财务同事好，我赵琦申请客户招待餐费1299元，发票号INV-E904。请处理后续付款，当前审批中。"
+  },
+  {
+    "message_id": "msg_e05",
+    "from": "payroll@company.com",
+    "to": "finance@company.com",
+    "subject": "发票提醒：报销金额已打款（无发票号）",
+    "date": "2026-03-26T16:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "通知：本批次报销金额已打款。由于缺少发票号，后续请按系统信息补录。"
+  },
+  {
+    "message_id": "msg_e06",
+    "from": "customer_service@company.com",
+    "to": "finance@company.com",
+    "subject": "客服咨询：关于报销流程的说明",
+    "date": "2026-03-26T17:25:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "你好，请问报销流程是否需要发票原件？以及金额填写是否必须与系统一致？"
+  }
+]

@@ -1,0 +1,340 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T117zh_customer_followup_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/crm/customers.json",
+  "fixtures/gmail/inbox.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T117zh_customer_followup_plus_5",
+  "new_task_name": "合规告知式跟进（含退订/数据处理说明）",
+  "task_goal": "在CRM中找到超过25天未联系的活跃客户并排除churned，然后为每位客户起草“合规告知式”跟进邮件：根据客户等级调整语气与细节深度，并在邮件中加入合规段落（数据处理说明/退订指引）。从Gmail提取最近一次沟通中客户提出的诉求或异议点（例如不希望被频繁联系、对数据处理敏感等），用于定制合规段落措辞。只保存草稿不发送。",
+  "user_request": "请帮我做合规告知式客户跟进：找出CRM里超过25天未联系的活跃客户（排除churned）。查看每位客户的最新邮件沟通里是否提到过频率、隐私/数据处理、退订偏好或异议点。然后起草跟进邮件草稿：所有客户都要包含合规说明（如我们如何处理联系信息以及如何退订），VIP邮件语气更正式且细化到流程，普通客户语气更温和并用更简短的说明。最后输出“需跟进客户 + 邮件中合规段落摘要”。",
+  "scenario": "今天视为2026-04-05。CRM包含6名客户，其中3位为目标（active且last_contact_date在2026-03-10之前，超过25天）；另有2位active但<=25天；1位churned要排除。Gmail中对2位目标客户的历史邮件包含“隐私敏感/不想接收营销”“希望减少频率并可随时退订”的明确表述；对第3位目标客户未提及隐私，但需要在合规段落中仍加入通用退订与数据处理说明。还存在干扰：有一封邮件是群发模板且包含退订链接字样，但发件人并不是客户相关线程；必须不要把群发模板当作客户提出异议的证据。",
+  "difference_from_source": "原任务重点是跟进意向与历史沟通回顾，本任务改为“合规告知式跟进”，要求在邮件中强制加入合规段落，并根据客户历史异议点定制合规措辞；同时增加对群发干扰邮件的识别与排除。",
+  "service_and_tool_plan": "crm_list_customers用于筛选active且>25天客户并排除churned；crm_get_customer获取联系人与notes中的偏好（如notes可能写明“倾向少频率/更关注隐私”）；gmail_list_messages拉取足够范围并用gmail_get_message获取邮件正文；对每个客户从邮件中提取隐私/频率/退订相关表述用于定制合规段落；使用gmail_save_draft保存每位客户草稿，不调用gmail_send_message。",
+  "fixture_generation_plan": "fixtures/crm/customers.json：6条记录，3条目标（active且>25天）、2条不需跟进（<=25天）、1条churned；tier分布可设置2位VIP+1位standard；notes中至少包含联系人偏好或行业背景（但不得复用原题公司/邮箱/客户名/工单ID等）。fixtures/gmail/inbox.json：至少10封邮件；其中至少2封明确来自目标客户并在body中出现“隐私/数据处理/退订/频率”等关键信息（并与正确客户from匹配）；1封对应第三位目标客户但不含隐私相关内容；至少2封干扰邮件为群发模板，虽然包含退订链接字样，但from与客户不匹配或正文缺少客户关键信息，确保不能被当作证据。",
+  "expected_behavior": "筛选出3位目标客户；对每位客户提取最新匹配邮件（以from与客户邮箱/姓名关键字匹配），并从邮件正文中检索隐私/数据处理/退订/频率相关异议点；若邮件未提及，则使用通用合规段落。无论是否提及异议，邮件都必须包含：我们如何处理联系信息的说明、退订/偏好设置的方式、以及尊重用户偏好的表述。VIP邮件合规段落更正式、更细化流程措辞；普通客户更温和简短。为每位客户调用gmail_save_draft生成草稿。输出只需列出每位客户及合规段落摘要（可包含提到的异议点与对应调整）。不发送。",
+  "grading_plan": "grader.py应检查：1）客户识别正确：active且>25天且排除churned；2）邮件证据匹配：合规段落定制应基于目标客户自己的历史表述，避免使用群发干扰邮件当作依据；3）合规段落是否必含且语义正确（数据处理说明+退订指引+尊重偏好）；4）VIP与standard合规措辞差异（正式细化 vs 温和简短）；5）只保存草稿不发送；6）输出包含每位目标客户的合规段落摘要且数量正确。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T117zh_customer_followup",
+  "task_name": "客户跟进提醒",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "crm",
+    "gmail"
+  ],
+  "tools": [
+    "crm_list_customers",
+    "crm_get_customer",
+    "gmail_list_messages",
+    "gmail_get_message",
+    "gmail_save_draft",
+    "gmail_send_message"
+  ],
+  "fixture_paths": [
+    "fixtures/crm/customers.json",
+    "fixtures/gmail/inbox.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T117zh_customer_followup
+task_name: 客户跟进提醒
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: tasks/T117zh_customer_followup/fixtures/crm/customers.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T117zh_customer_followup/fixtures/gmail/inbox.json
+prompt:
+  text: "请帮我检查CRM中的客户联系状态：\n1. 找出超过30天未联系的活跃客户\n2. 查看邮件记录，了解最后沟通内容\n3. 根据客户等级（VIP/standard）起草不同风格的跟进邮件草稿\n\
+    \   - VIP客户：正式、重视、提及合作关系\n   - 普通客户：友好、简洁、了解需求\n4. 注意排除已流失(churned)的客户\n5. 输出需跟进客户清单和对应邮件草稿\n"
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-701",
+    "name": "鼎新软件",
+    "contact_person": "周经理",
+    "email": "zhoujl@dingxin-soft.com",
+    "phone": "13900701001",
+    "industry": "软件",
+    "tier": "vip",
+    "annual_revenue": 5200000,
+    "last_contact_date": "2026-02-10",
+    "status": "active",
+    "notes": "三年战略合同客户，近期沟通减少"
+  },
+  {
+    "customer_id": "CUS-702",
+    "name": "瀚海电商",
+    "contact_person": "林总",
+    "email": "lin@hanhai-ec.com",
+    "phone": "13900701002",
+    "industry": "电商",
+    "tier": "standard",
+    "annual_revenue": 800000,
+    "last_contact_date": "2026-03-20",
+    "status": "active",
+    "notes": "年度续约在即，上周刚沟通过功能需求"
+  },
+  {
+    "customer_id": "CUS-703",
+    "name": "万通物流",
+    "contact_person": "赵总监",
+    "email": "zhao@wantong-logistics.com",
+    "phone": "13900701003",
+    "industry": "物流",
+    "tier": "vip",
+    "annual_revenue": 3800000,
+    "last_contact_date": "2026-02-25",
+    "status": "active",
+    "notes": "物流行业头部客户，服务满意度高"
+  },
+  {
+    "customer_id": "CUS-704",
+    "name": "公共机构",
+    "contact_person": "张老师",
+    "email": "zhang@edu-gov.cn",
+    "phone": "13900701004",
+    "industry": "教育",
+    "tier": "standard",
+    "annual_revenue": 200000,
+    "last_contact_date": "2026-01-15",
+    "status": "active",
+    "notes": "政府采购客户，使用频率低但合同还在"
+  },
+  {
+    "customer_id": "CUS-705",
+    "name": "阳光传媒",
+    "contact_person": "张华",
+    "email": "zhanghua@sunlight-media.com",
+    "phone": "13900701005",
+    "industry": "传媒",
+    "tier": "vip",
+    "annual_revenue": 4800000,
+    "last_contact_date": "2026-02-05",
+    "status": "active",
+    "notes": "VIP大客户，近期有合作意向升级"
+  },
+  {
+    "customer_id": "CUS-706",
+    "name": "前锋科技",
+    "contact_person": "王敏",
+    "email": "wangmin@qianfeng-tech.com",
+    "phone": "13900701006",
+    "industry": "科技",
+    "tier": "standard",
+    "annual_revenue": 360000,
+    "last_contact_date": "2026-03-25",
+    "status": "churned",
+    "notes": "已于上月正式流失，不再续约"
+  }
+]
+
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_711",
+    "from": "zhoujl@dingxin-soft.com",
+    "to": "sales@company.com",
+    "subject": "关于下季度合作计划",
+    "date": "2026-02-10T14:00:00+08:00",
+    "is_read": true,
+    "labels": ["inbox"],
+    "body": "您好，上次讨论的Q2合作计划还需要进一步细化，方便时请联系我。——周经理"
+  },
+  {
+    "message_id": "msg_712",
+    "from": "zhanghua@sunlight-media.com",
+    "to": "sales@company.com",
+    "subject": "合作升级意向",
+    "date": "2026-02-05T10:00:00+08:00",
+    "is_read": true,
+    "labels": ["inbox"],
+    "body": "你好，我们考虑将现有的标准版升级到企业版，希望了解具体的功能差异和价格方案。请尽快安排沟通。——张华"
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

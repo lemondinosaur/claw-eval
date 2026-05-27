@@ -1,0 +1,118 @@
+[
+  {
+    "job_id": "JOB-D11",
+    "name": "地区路由SLA映射同步",
+    "schedule": "*/10 * * * *",
+    "status": "failed",
+    "last_run": "2026-05-20T09:30:00Z",
+    "last_status": "failed",
+    "description": "同步地区路由到SLA响应映射，失败会导致阈值映射未更新",
+    "tags": [
+      "sla",
+      "mapping",
+      "region-routing"
+    ],
+    "failure_count": 5,
+    "first_failure": "2026-05-15T12:10:00Z",
+    "error_message": "分表字段变更导致同步脚本报错：字段route_table_column缺失，已中止本次写入",
+    "cron_expression": "*/10 * * * *",
+    "enabled": true,
+    "action": "拉取地区路由分表并写入sla_response_map",
+    "next_run": null,
+    "created_at": "2025-07-03T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T09:30:00Z",
+        "status": "failed",
+        "duration_s": 42
+      },
+      {
+        "run_at": "2026-05-20T09:20:00Z",
+        "status": "failed",
+        "duration_s": 41
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-D12",
+    "name": "配置缓存刷新",
+    "schedule": "0 */2 * * *",
+    "status": "enabled",
+    "last_run": "2026-05-20T10:10:00Z",
+    "last_status": "success",
+    "description": "按计划刷新sla_policy_cache（无法保证在映射同步失败后立刻拉取新映射版本）",
+    "tags": [
+      "cache",
+      "sla"
+    ],
+    "failure_count": 0,
+    "first_failure": null,
+    "error_message": null,
+    "cron_expression": "0 */2 * * *",
+    "enabled": true,
+    "action": "刷新sla_policy_cache",
+    "next_run": null,
+    "created_at": "2025-07-03T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T10:10:00Z",
+        "status": "success",
+        "duration_s": 55
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-D13",
+    "name": "ES索引重建",
+    "schedule": "0 3 * * *",
+    "status": "enabled",
+    "last_run": "2026-05-19T03:00:00Z",
+    "last_status": "success",
+    "description": "重建ES索引，用于搜索可用性保障（干扰项）",
+    "tags": [
+      "es",
+      "reindex"
+    ],
+    "failure_count": 0,
+    "first_failure": null,
+    "error_message": null,
+    "cron_expression": "0 3 * * *",
+    "enabled": true,
+    "action": "重建ES索引",
+    "next_run": null,
+    "created_at": "2025-06-15T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-05-19T03:00:00Z",
+        "status": "success",
+        "duration_s": 240
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-D14",
+    "name": "队列路由校验",
+    "schedule": "*/30 * * * *",
+    "status": "disabled",
+    "last_run": "2026-05-18T11:00:00Z",
+    "last_status": "disabled",
+    "description": "队列路由一致性校验（当前禁用，与SLA映射链路无关）",
+    "tags": [
+      "routing",
+      "check"
+    ],
+    "failure_count": 0,
+    "first_failure": null,
+    "error_message": "job disabled",
+    "cron_expression": "*/30 * * * *",
+    "enabled": false,
+    "action": "校验队列路由与地区映射一致性",
+    "next_run": null,
+    "created_at": "2025-07-10T00:00:00Z",
+    "created_by": "system",
+    "execution_history": []
+  }
+]

@@ -1,0 +1,85 @@
+[
+  {
+    "task_id": "TD-UP-1047",
+    "title": "ACME-1047：核心系统升级上线（回归测试补跑）",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-10",
+    "progress": 74,
+    "notes": "回归测试尚未完全通过，预计04/08完成补跑后确认最终上线日期；当前处于可能延期状态。",
+    "created_at": "2026-04-01"
+  },
+  {
+    "task_id": "TD-MG-2213",
+    "title": "NW-2213：数据迁移窗口确认与交付",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-09",
+    "progress": 25,
+    "notes": "等待客户审批完成（客户审批流程仍在等待）。审批通过后才能锁定迁移窗口与交付节奏。",
+    "blocked_by": "等待客户审批",
+    "created_at": "2026-03-28"
+  },
+  {
+    "task_id": "TD-RB-3302",
+    "title": "LH-3302：版本回滚预案二次评审与验证",
+    "status": "blocked_by",
+    "priority": "high",
+    "due_date": "2026-04-10",
+    "progress": 40,
+    "notes": "内部评审未通过点位列表需补齐并提交改进说明；评审通过前无法安排回滚验证演练。",
+    "blocked_by": "等待内部评审通过",
+    "created_at": "2026-03-30"
+  },
+  {
+    "task_id": "TD-OPS-1401",
+    "title": "升级环境健康检查脚本更新",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-04-08",
+    "progress": 58,
+    "notes": "已完成脚本框架，正在补充异常告警与回滚前置检查项。",
+    "created_at": "2026-04-02"
+  },
+  {
+    "task_id": "TD-DOC-3007",
+    "title": "升级SOP文档整理（含回归测试章节）",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-11",
+    "progress": 10,
+    "notes": "等待三方对回归测试策略的文字确认后更新文档。",
+    "created_at": "2026-04-03"
+  },
+  {
+    "task_id": "TD-TRN-5112",
+    "title": "客户支持培训：变更窗口与风险沟通",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-04-12",
+    "progress": 0,
+    "notes": "培训材料草稿已准备，待确定各工单最终窗口后补充案例。",
+    "created_at": "2026-04-03"
+  },
+  {
+    "task_id": "TD-MNT-7710",
+    "title": "工单系统工时记录对账修正",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-04-04",
+    "progress": 100,
+    "notes": "已完成对账修正并同步到系统。",
+    "completed_at": "2026-04-04",
+    "created_at": "2026-03-31"
+  },
+  {
+    "task_id": "TD-SEC-6120",
+    "title": "升级后权限回归核查（抽样）",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-13",
+    "progress": 20,
+    "notes": "待关键升级分支合并后抽样执行回归核查。",
+    "created_at": "2026-04-02"
+  }
+]

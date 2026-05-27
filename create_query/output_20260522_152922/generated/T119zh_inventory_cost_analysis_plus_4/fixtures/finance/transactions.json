@@ -1,0 +1,156 @@
+[
+  {
+    "transaction_id": "FIN-9101",
+    "date": "2026-04-03",
+    "amount": 64000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "电子元件",
+    "description": "耗电稳压器 DZ-500 200台 × 320元/台",
+    "status": "completed",
+    "reference": "PO-7701"
+  },
+  {
+    "transaction_id": "FIN-9102",
+    "date": "2026-04-15",
+    "amount": -64000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "电子元件",
+    "description": "耗电稳压器 DZ-500 200台 × 320元/台（已退货/已冲回）",
+    "status": "completed",
+    "reference": "PO-7701-RETURN"
+  },
+  {
+    "transaction_id": "FIN-9103",
+    "date": "2026-04-18",
+    "amount": 5600.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "电子元件",
+    "description": "耗电稳压器 DZ-500 25台 × 224元/台（替换补货）",
+    "status": "completed",
+    "reference": "PO-7702"
+  },
+  {
+    "transaction_id": "FIN-9111",
+    "date": "2026-04-06",
+    "amount": 45000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "劳保用品",
+    "description": "防静电手套 ESD-GL 300副 × 150元/副",
+    "status": "completed",
+    "reference": "PO-7811"
+  },
+  {
+    "transaction_id": "FIN-9112",
+    "date": "2026-04-08",
+    "amount": 9800.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "物流/运费",
+    "description": "防静电手套 ESD-GL 配套运费单（不含货款）",
+    "status": "completed",
+    "reference": "SHIP-7811"
+  },
+  {
+    "transaction_id": "FIN-9113",
+    "date": "2026-04-20",
+    "amount": 25000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "劳保用品",
+    "description": "防静电手套 ESD-GL 200副 × 125元/副",
+    "status": "completed",
+    "reference": "PO-7812"
+  },
+  {
+    "transaction_id": "FIN-9121",
+    "date": "2026-04-02",
+    "amount": 36000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公家具",
+    "description": "桌面支架 BRK-AD 120个 × 300元/个",
+    "status": "completed",
+    "reference": "PO-7921"
+  },
+  {
+    "transaction_id": "FIN-9122",
+    "date": "2026-04-12",
+    "amount": -7200.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公家具",
+    "description": "桌面支架 BRK-AD 120个 × 300元/个（折扣抵扣/已冲减）",
+    "status": "completed",
+    "reference": "DISC-7921"
+  },
+  {
+    "transaction_id": "FIN-9123",
+    "date": "2026-04-22",
+    "amount": 18000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "办公家具",
+    "description": "桌面支架 BRK-AD 60个 × 300元/个（补货）",
+    "status": "completed",
+    "reference": "PO-7922"
+  },
+  {
+    "transaction_id": "FIN-9131",
+    "date": "2026-04-05",
+    "amount": 98000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "工业设备",
+    "description": "工业相机模组 CAM-MOD 100套 × 980元/套",
+    "status": "completed",
+    "reference": "PO-8031"
+  },
+  {
+    "transaction_id": "FIN-9132",
+    "date": "2026-04-16",
+    "amount": 50400.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "工业设备",
+    "description": "工业相机模组 CAM-MOD 60套 × 840元/套（第二批）",
+    "status": "completed",
+    "reference": "PO-8032"
+  },
+  {
+    "transaction_id": "FIN-9133",
+    "date": "2026-04-23",
+    "amount": 6000.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "物流/运费",
+    "description": "工业相机模组 CAM-MOD 配送运费（单独计费）",
+    "status": "completed",
+    "reference": "SHIP-8032"
+  },
+  {
+    "transaction_id": "FIN-9141",
+    "date": "2026-04-09",
+    "amount": 12000.0,
+    "currency": "CNY",
+    "type": "运营",
+    "category": "差旅",
+    "description": "4月差旅报销",
+    "status": "completed",
+    "reference": "EXP-1001"
+  },
+  {
+    "transaction_id": "FIN-9142",
+    "date": "2026-04-11",
+    "amount": 7777.0,
+    "currency": "CNY",
+    "type": "采购",
+    "category": "杂项",
+    "description": "临时订单（已取消）",
+    "status": "cancelled",
+    "reference": "PO-CANCEL-1"
+  }
+]

@@ -1,0 +1,405 @@
+{
+  "task_id": "T141zh_sla_compliance_audit_plus_4",
+  "task_name": "SLA升级阈值误配置导致过早升级",
+  "prompt_text": "请帮我做一次SLA合规审查（重点验证“升级阈值”是否与“响应时间SLA”一致），并输出分析报告：\n1) 查看系统配置中的SLA响应时间规则，并重点核对每个优先级的 escalation_after_minutes 与对应 response_time_minutes/策略类型是否合理匹配。\n2) 检查近期工单的时序：对比 created_at、first_response_at，以及是否存在 upgrade_at / 升级相关标签或升级时间戳；判断是否存在“升级过早但首次响应仍达标”或“升级过晚导致超标”的问题。\n3) 检查与“升级触发/标签打标/升级流程触发”相关的自动化任务运行状态：确认该类任务最近多次成功运行但行为异常（通常意味着参数/阈值配置问题，而非任务故障）。同时排除“邮件通知集成失效”这类导致缺失告警的干扰因素。\n4) 输出SLA合规分析报告：包含阈值一致性检查结果（给出量化不合理点）、异常工单明细（含关键时间字段与差值）、自动化与集成影响分析、以及修复建议（包括配置修正与增加校验/灰度回放建议）。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-1101",
+        "name": "SLA规则配置（升级阈值版）",
+        "status": "active",
+        "config": {
+          "critical": {
+            "response_time_minutes": 45,
+            "resolution_time_hours": 3,
+            "escalation_after_minutes": 15
+          },
+          "high": {
+            "response_time_minutes": 180,
+            "resolution_time_hours": 10,
+            "escalation_after_minutes": 60
+          },
+          "medium": {
+            "response_time_minutes": 480,
+            "resolution_time_hours": 24,
+            "escalation_after_minutes": 25
+          },
+          "low": {
+            "response_time_minutes": 1440,
+            "resolution_time_hours": 72,
+            "escalation_after_minutes": 300
+          }
+        },
+        "service": "sla_policy",
+        "last_verified": "2026-05-01",
+        "monthly_calls": 0,
+        "error_rate": 0.0
+      },
+      {
+        "integration_id": "INT-1102",
+        "name": "邮件通知集成",
+        "status": "active",
+        "config": {
+          "host": "smtp.ops-example.com",
+          "port": 587,
+          "auth": "oauth2"
+        },
+        "service": "smtp",
+        "last_verified": "2026-05-10",
+        "monthly_calls": 0,
+        "error_rate": 0.0
+      },
+      {
+        "integration_id": "INT-1103",
+        "name": "即时消息集成",
+        "status": "active",
+        "config": {
+          "url": "https://im.ops-example.com/webhook/alerts",
+          "channel": "#sre-sla-alerts"
+        },
+        "service": "webhook",
+        "last_verified": "2026-04-18",
+        "monthly_calls": 0,
+        "error_rate": 0.0
+      },
+      {
+        "integration_id": "INT-1104",
+        "name": "每日巡检集成",
+        "status": "error",
+        "config": {
+          "endpoint": "https://healthcheck.ops-example.com/api/v2/daily"
+        },
+        "service": "api",
+        "last_verified": "2026-05-12",
+        "monthly_calls": 0,
+        "error_rate": 0.0,
+        "error_message": "鉴权失败: token expired"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-8081",
+        "title": "中间件索引构建延迟",
+        "subject": "中间件索引构建延迟",
+        "customer_id": "CUS-808",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T09:10:00",
+        "first_response_at": "2026-05-20T17:00:00",
+        "upgrade_at": "2026-05-20T09:35:00",
+        "tags": [
+          "sla:upgraded",
+          "sla:priority_medium",
+          "escalation:triggered"
+        ],
+        "assigned_to": "周琦",
+        "category": "后端",
+        "description": "索引构建耗时异常波动但用户未见明显中断",
+        "reporter": "周琦",
+        "department": "后端",
+        "internal": false
+      },
+      {
+        "ticket_id": "TK-8082",
+        "title": "API 网关偶发 502",
+        "subject": "API 网关偶发 502",
+        "customer_id": "CUS-808",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T12:00:00",
+        "first_response_at": "2026-05-20T20:10:00",
+        "upgrade_at": "2026-05-20T12:25:00",
+        "tags": [
+          "sla:upgraded",
+          "sla:priority_medium"
+        ],
+        "assigned_to": "林薇",
+        "category": "后端",
+        "description": "短时间返回 502，重试后恢复",
+        "reporter": "林薇",
+        "department": "后端",
+        "internal": false
+      },
+      {
+        "ticket_id": "TK-8083",
+        "title": "权限系统角色同步延迟",
+        "subject": "权限系统角色同步延迟",
+        "customer_id": "CUS-808",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-20T10:30:00",
+        "first_response_at": "2026-05-20T11:35:00",
+        "upgrade_at": "2026-05-20T11:30:00",
+        "tags": [
+          "sla:upgraded",
+          "sla:priority_high"
+        ],
+        "assigned_to": "赵航",
+        "category": "权限",
+        "description": "角色同步延迟但影响范围有限",
+        "reporter": "赵航",
+        "department": "权限",
+        "internal": false
+      },
+      {
+        "ticket_id": "TK-8084",
+        "title": "日志平台采集不完整",
+        "subject": "日志平台采集不完整",
+        "customer_id": "CUS-809",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-20T08:20:00",
+        "first_response_at": "2026-05-20T08:50:00",
+        "upgrade_at": "2026-05-20T08:35:00",
+        "tags": [
+          "sla:upgraded",
+          "sla:priority_critical"
+        ],
+        "assigned_to": "陈晨",
+        "category": "运维",
+        "description": "采集链路间歇性丢包，需尽快恢复",
+        "reporter": "陈晨",
+        "department": "运维",
+        "internal": false
+      },
+      {
+        "ticket_id": "TK-8085",
+        "title": "低优先级文档错误申诉",
+        "subject": "低优先级文档错误申诉",
+        "customer_id": "CUS-810",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-20T13:40:00",
+        "first_response_at": null,
+        "tags": [
+          "sla:priority_low"
+        ],
+        "assigned_to": "周琦",
+        "category": "咨询",
+        "description": "文档中某段示例与实际产品不符",
+        "reporter": "周琦",
+        "department": "咨询",
+        "internal": false
+      },
+      {
+        "ticket_id": "TK-8086",
+        "title": "内部压测环境重置请求",
+        "subject": "内部压测环境重置请求",
+        "customer_id": "internal",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T11:10:00",
+        "first_response_at": "2026-05-20T12:30:00",
+        "upgrade_at": "2026-05-20T11:35:00",
+        "tags": [
+          "sla:upgraded",
+          "sla:priority_medium"
+        ],
+        "assigned_to": "林薇",
+        "category": "内部",
+        "description": "请求重置压测环境，非对外SLA业务",
+        "reporter": "林薇",
+        "department": "内部",
+        "internal": true
+      },
+      {
+        "ticket_id": "TK-8087",
+        "title": "中等优先级缓存策略调整",
+        "subject": "中等优先级缓存策略调整",
+        "customer_id": "CUS-811",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T15:05:00",
+        "first_response_at": "2026-05-20T23:40:00",
+        "upgrade_at": "2026-05-20T15:35:00",
+        "tags": [
+          "sla:upgraded",
+          "sla:priority_medium"
+        ],
+        "assigned_to": "刘洋",
+        "category": "平台",
+        "description": "缓存命中率下降，需要调整策略参数",
+        "reporter": "刘洋",
+        "department": "平台",
+        "internal": false
+      },
+      {
+        "ticket_id": "TK-8088",
+        "title": "关键告警未触达（对照组）",
+        "subject": "关键告警未触达（对照组）",
+        "customer_id": "CUS-812",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-20T07:50:00",
+        "first_response_at": "2026-05-20T08:15:00",
+        "upgrade_at": "2026-05-20T08:05:00",
+        "tags": [
+          "sla:upgraded",
+          "sla:priority_critical"
+        ],
+        "assigned_to": "陈晨",
+        "category": "运维",
+        "description": "告警渠道延迟但最终仍在阈值内完成首次响应",
+        "reporter": "陈晨",
+        "department": "运维",
+        "internal": false
+      },
+      {
+        "ticket_id": "TK-8089",
+        "title": "中等优先级队列积压（边界测试）",
+        "subject": "中等优先级队列积压（边界测试）",
+        "customer_id": "CUS-813",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T16:20:00",
+        "first_response_at": "2026-05-20T23:45:00",
+        "upgrade_at": "2026-05-20T16:45:00",
+        "tags": [
+          "sla:upgraded",
+          "sla:priority_medium",
+          "escalation:triggered"
+        ],
+        "assigned_to": "赵航",
+        "category": "消息队列",
+        "description": "队列积压短时增大，首次响应在较晚但仍达标窗口内",
+        "reporter": "赵航",
+        "department": "消息队列",
+        "internal": false
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-1211",
+        "name": "SLA升级触发（打标/升级）",
+        "schedule": "*/10 * * * *",
+        "status": "enabled",
+        "last_run": "2026-05-20T16:50:00Z",
+        "last_status": "success",
+        "description": "根据 SLA 规则的 escalation_after_minutes 计算升级触发点，命中后打上升级标签并触发升级流程",
+        "tags": [
+          "sla",
+          "escalation",
+          "labeling"
+        ],
+        "cron_expression": "*/10 * * * *",
+        "enabled": true,
+        "action": "升级触发/标签打标（参数来自 sla_policy 配置）",
+        "next_run": null,
+        "created_at": "2026-02-02T00:00:00Z",
+        "created_by": "system",
+        "failure_count": 0,
+        "error_message": "",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T16:40:00Z",
+            "status": "success",
+            "duration_s": 55
+          },
+          {
+            "run_at": "2026-05-20T16:30:00Z",
+            "status": "success",
+            "duration_s": 58
+          },
+          {
+            "run_at": "2026-05-20T16:20:00Z",
+            "status": "success",
+            "duration_s": 52
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-1212",
+        "name": "SLA超时告警",
+        "schedule": "*/15 * * * *",
+        "status": "enabled",
+        "last_run": "2026-05-20T16:45:00Z",
+        "last_status": "success",
+        "description": "检查即将超时的工单并发送超时告警（对本问题用于排除通知链路故障）",
+        "tags": [
+          "sla",
+          "alert"
+        ],
+        "cron_expression": "*/15 * * * *",
+        "enabled": true,
+        "action": "超时告警发送（依赖邮件/IM集成）",
+        "next_run": null,
+        "created_at": "2026-02-02T00:00:00Z",
+        "created_by": "system",
+        "failure_count": 0,
+        "error_message": "",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T16:30:00Z",
+            "status": "success",
+            "duration_s": 66
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-1213",
+        "name": "每日巡检（对照干扰）",
+        "schedule": "0 3 * * *",
+        "status": "enabled",
+        "last_run": "2026-05-20T03:00:00Z",
+        "last_status": "failed",
+        "description": "每日巡检健康检查与数据质量汇总（本次用于干扰，不应影响升级逻辑）",
+        "tags": [
+          "health",
+          "daily"
+        ],
+        "cron_expression": "0 3 * * *",
+        "enabled": true,
+        "action": "每日巡检任务",
+        "next_run": null,
+        "created_at": "2026-01-15T00:00:00Z",
+        "created_by": "system",
+        "failure_count": 3,
+        "error_message": "Daily check failed: invalid token",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T03:00:00Z",
+            "status": "failed",
+            "duration_s": 18
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-1214",
+        "name": "队列路由任务",
+        "schedule": "*/5 * * * *",
+        "status": "enabled",
+        "last_run": "2026-05-20T16:45:00Z",
+        "last_status": "success",
+        "description": "工单事件路由与索引同步（用于排除无关故障）",
+        "tags": [
+          "queue",
+          "routing"
+        ],
+        "cron_expression": "*/5 * * * *",
+        "enabled": true,
+        "action": "队列路由与同步",
+        "next_run": null,
+        "created_at": "2026-01-15T00:00:00Z",
+        "created_by": "system",
+        "failure_count": 0,
+        "error_message": "",
+        "execution_history": [
+          {
+            "run_at": "2026-05-20T16:40:00Z",
+            "status": "success",
+            "duration_s": 44
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "从“通知链路失败导致超标未告警”切换为“升级阈值字段（escalation_after_minutes）误配导致过早升级/告警节奏异常”，同时邮件集成保持 active 用于排除通知失败干扰。",
+    "fixture_design_summary": [
+      "config 中 medium 的 escalation_after_minutes（25）与 response_time_minutes（480）显著不匹配，制造过早升级触发。",
+      "helpdesk 工单为 medium/high/critical/low 覆盖多优先级；medium 工单的 upgrade_at 发生在 created_at 后约 25~35 分钟，但 first_response_at 仍在阈值内（形成“过早升级但最终仍达标”的异常）。",
+      "添加 internal=true 的工单用于验证分析时的排除/不纳入逻辑。",
+      "scheduler 中“升级触发/打标”任务最近多次 success，且另有“每日巡检”failed 作为干扰，但不应被当作升级根因；同时“超时告警”任务 success 用于降低通知链路故障可能性。"
+    ]
+  }
+}

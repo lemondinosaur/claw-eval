@@ -1,0 +1,57 @@
+[
+  {
+    "product_id": "SKU-ELECTRO-001",
+    "name": "耗电稳压器 DZ-500",
+    "category": "电子元件",
+    "quantity": 225,
+    "unit": "台",
+    "unit_cost": 250.0,
+    "location": "仓库C-01",
+    "reorder_level": 80,
+    "supplier": "稳压供应链"
+  },
+  {
+    "product_id": "SKU-ESD-001",
+    "name": "防静电手套 ESD-GL",
+    "category": "劳保用品",
+    "quantity": 500,
+    "unit": "副",
+    "unit_cost": 136.0,
+    "location": "仓库C-02",
+    "reorder_level": 120,
+    "supplier": "安防劳保"
+  },
+  {
+    "product_id": "SKU-BRK-001",
+    "name": "桌面支架 BRK-AD",
+    "category": "办公家具",
+    "quantity": 180,
+    "unit": "个",
+    "unit_cost": 300.0,
+    "location": "仓库D-01",
+    "reorder_level": 60,
+    "supplier": "办公家具城"
+  },
+  {
+    "product_id": "SKU-CAM-MOD-001",
+    "name": "工业相机模组 CAM-MOD",
+    "category": "工业设备",
+    "quantity": 160,
+    "unit": "套",
+    "unit_cost": 950.0,
+    "location": "仓库D-02",
+    "reorder_level": 30,
+    "supplier": "工业视觉"
+  },
+  {
+    "product_id": "SKU-CABLE-001",
+    "name": "连接线 PRO-LINK",
+    "category": "电子辅材",
+    "quantity": 1000,
+    "unit": "根",
+    "unit_cost": 12.5,
+    "location": "仓库C-03",
+    "reorder_level": 400,
+    "supplier": "线缆之家"
+  }
+]

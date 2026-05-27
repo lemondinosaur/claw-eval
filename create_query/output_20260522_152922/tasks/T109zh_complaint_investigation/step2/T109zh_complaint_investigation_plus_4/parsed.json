@@ -1,0 +1,276 @@
+{
+  "task_id": "T109zh_complaint_investigation_plus_4",
+  "task_name": "数据口径差异导致的退款与账务修正",
+  "prompt_text": "请调查收件箱里几封关于“退款金额不对/计算口径不同”的投诉邮件。逐封给出调查结论与处理建议，并为最紧急的案例起草回复邮件草稿并保存。\n\n对每封邮件请按以下步骤处理：\n1）阅读邮件，提取客户自述的退款计算口径线索（例如按自然日/按账单周期、是否包含超额等）以及客户给出的合同/客户标识。\n2）在CRM中核实该客户合同的计费口径与计量方式、客户状态（如vip/active）以及是否存在可能的例外条款。\n3）在财务系统中定位与该客户相关的退款交易（退款completed）以及是否存在账务修正交易（账务修正completed/pending），核验金额与交易描述/字段是否覆盖客户声称的口径差异。\n4）根据调查结果判断差额来源：是确实未按约定口径执行，还是已通过账务修正交易覆盖，或是客户自述口径与我们定义不一致。\n5）如邮件包含干扰（例如客户ID自述错误），解释为何在CRM与财务中无法匹配一致记录，并说明客户需要提供的正确合同编号/官方客户ID。\n6）查找内部负责人的联系方式，并在最紧急案例（优先vip且存在“退款已处理但仍需额外修正/补差”或修正pending）下起草回复邮件草稿。\n\n草稿中必须包含：退款核验结论（退款金额X/账单口径Y与差额原因）、是否已完成修正/覆盖口径差异、如需补差给出预计时间与下一步。请保存草稿（不要发送）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-701",
+        "name": "周晓岚",
+        "department": "财务部",
+        "title": "结算与退款核算专员",
+        "email": "xiaolan.zhou@company.com",
+        "phone": "13800137001",
+        "location": "上海总部",
+        "notes": "负责退款计算口径核验、账务修正跟进"
+      },
+      {
+        "contact_id": "CT-702",
+        "name": "沈嘉铭",
+        "department": "客户成功部",
+        "title": "客户成功经理",
+        "email": "jiaming.shen@company.com",
+        "phone": "13800137002",
+        "location": "上海总部",
+        "notes": "负责vip客户投诉处置与沟通"
+      },
+      {
+        "contact_id": "CT-703",
+        "name": "陈子航",
+        "department": "法务与合规",
+        "title": "合同条款合规顾问",
+        "email": "zihang.chen@company.com",
+        "phone": "13800137003",
+        "location": "杭州分部",
+        "notes": "负责计费口径条款澄清（自然日/账单周期等）"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-701",
+        "name": "北极风电",
+        "contact_person": "赵芷涵",
+        "email": "zhihan.zhao@beijifeng.com",
+        "phone": "13900077001",
+        "industry": "新能源",
+        "tier": "vip",
+        "annual_revenue": 1680000,
+        "last_contact_date": "2026-03-21",
+        "status": "active",
+        "notes": "合同计费：按账单周期结算；退款计算以“账单周期内实际可用天数/账单周期天数”为基准；包含超额天数时以约定比例计入"
+      },
+      {
+        "customer_id": "CUS-702",
+        "name": "河图云联",
+        "contact_person": "许思远",
+        "email": "siyuan.xu@hetoolink.com",
+        "phone": "13900077002",
+        "industry": "互联网",
+        "tier": "standard",
+        "annual_revenue": 420000,
+        "last_contact_date": "2026-03-15",
+        "status": "active",
+        "notes": "合同计费：按自然日计量；退款计算不包含“超额”部分，超额按另行结算"
+      },
+      {
+        "customer_id": "CUS-703",
+        "name": "星桥教育科技",
+        "contact_person": "周婉",
+        "email": "wan.zhou@qiaostar-edu.com",
+        "phone": "13900077003",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 520000,
+        "last_contact_date": "2026-03-09",
+        "status": "active",
+        "notes": "合同计费：按席位数计费；退款计算按“已生效席位/当期席位总数”比例；如账务修正存在则以修正交易覆盖原退款差额"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-701",
+        "date": "2026-03-10",
+        "amount": 105000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北极风电",
+        "type": "退款",
+        "category": "退款收入抵扣",
+        "description": "退款completed：按“自然日口径”计算已处理（客户争议源）",
+        "status": "completed",
+        "calculation_basis": "自然日口径",
+        "related_adjustment_id": null
+      },
+      {
+        "transaction_id": "TXN-702",
+        "date": "2026-03-12",
+        "amount": 20000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北极风电",
+        "type": "账务修正",
+        "category": "退款差额补差",
+        "description": "账务修正completed：已覆盖“自然日/账单周期口径差异”补差（对TXN-701差额补偿）",
+        "status": "completed",
+        "calculation_basis": "账单周期口径",
+        "related_refund_id": "TXN-701"
+      },
+      {
+        "transaction_id": "TXN-703",
+        "date": "2026-03-12",
+        "amount": 15000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北极风电",
+        "type": "账务修正",
+        "category": "超额天数口径校正",
+        "description": "账务修正pending：超额天数是否计入口径仍待审批（未完全覆盖客户账单）",
+        "status": "pending",
+        "calculation_basis": "账单周期口径（含/不含超额待定）"
+      },
+      {
+        "transaction_id": "TXN-704",
+        "date": "2026-03-08",
+        "amount": 60000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "河图云联",
+        "type": "退款",
+        "category": "退款收入抵扣",
+        "description": "退款completed：按“自然日口径”正确执行（不包含超额）",
+        "status": "completed",
+        "calculation_basis": "自然日口径（不含超额）"
+      },
+      {
+        "transaction_id": "TXN-705",
+        "date": "2026-03-08",
+        "amount": -15000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "河图云联",
+        "type": "账务冲回",
+        "category": "部分退款冲回",
+        "description": "冲回completed：旧退款部分冲回（超额部分已更正为不计入）",
+        "status": "completed",
+        "calculation_basis": "不含超额"
+      },
+      {
+        "transaction_id": "TXN-706",
+        "date": "2026-03-11",
+        "amount": 85000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-703",
+        "customer_name": "星桥教育科技",
+        "type": "退款",
+        "category": "退款席位按比例",
+        "description": "退款completed：按席位比例计算（客户认为少退）",
+        "status": "completed",
+        "calculation_basis": "席位比例口径"
+      },
+      {
+        "transaction_id": "TXN-707",
+        "date": "2026-03-14",
+        "amount": 12000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-703",
+        "customer_name": "星桥教育科技",
+        "type": "账务修正",
+        "category": "席位口径补差",
+        "description": "账务修正completed：覆盖席位计算口径差异（已对照合同生效规则）",
+        "status": "completed",
+        "calculation_basis": "席位比例口径（以合同生效为准）",
+        "related_refund_id": "TXN-706"
+      },
+      {
+        "transaction_id": "TXN-708",
+        "date": "2026-02-20",
+        "amount": 30000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北极风电",
+        "type": "退款",
+        "category": "旧退款",
+        "description": "退款completed（历史）：旧批次部分退款，后续被部分覆盖",
+        "status": "completed",
+        "calculation_basis": "自然日口径",
+        "related_adjustment_id": "TXN-702"
+      },
+      {
+        "transaction_id": "TXN-709",
+        "date": "2026-03-18",
+        "amount": -8000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-703",
+        "customer_name": "星桥教育科技",
+        "type": "账务冲回",
+        "category": "旧修正冲回",
+        "description": "冲回completed：对先前差额修正做抵扣（与TXN-707形成净额）",
+        "status": "completed",
+        "calculation_basis": "席位比例口径"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_701",
+        "from": "zhihan.zhao@beijifeng.com",
+        "to": "support@company.com",
+        "subject": "退款金额不对：口径从自然日改成账单周期后仍有差额（VIP）",
+        "date": "2026-03-26T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "您好，我是北极风电赵芷涵。我们导出的用量数据按自然日口径计算，退款应为125,000元；但账单显示本次退款只有105,000元。邮件与口径说明中提到差额来自“账单周期口径”与“是否包含超额”。\n另外我们看到系统里似乎有一笔“账务修正”还显示待处理状态。请你们务必核验：\n1）退款TXN对应的计算依据到底选的是自然日还是账单周期？\n2）账务修正是否已经把差额补齐？如果还没完成，预计何时完成、是否包含超额天数口径校正。\n客户ID：CUS-701"
+      },
+      {
+        "message_id": "msg_702",
+        "from": "siyuan.xu@hetoolink.com",
+        "to": "support@company.com",
+        "subject": "退款计算口径不同：我们认为超额也应计入",
+        "date": "2026-03-25T15:45:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，我是河图云联许思远。合同约定按自然日计量，但我们认为退款计算不应排除超额部分。\n我们这边导出的结果：退款应为60,000元；然而账单只显示45,000元，而且有一笔负数冲回我看不懂。\n请核验财务侧退款completed与是否存在冲回/修正交易，确认口径里是否明确“不含超额”。如果确实不含，麻烦说明合同依据与最终应退款净额。\n客户ID：CUS-702"
+      },
+      {
+        "message_id": "msg_703",
+        "from": "wan.zhou@qiaostar-edu.com",
+        "to": "support@company.com",
+        "subject": "关于席位退款金额偏差：是否已被账务修正覆盖？",
+        "date": "2026-03-24T11:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "你好，我是星桥教育科技周婉。我们按席位比例计算，退款应为97,000元；但账单显示退款85,000元。\n你们是否已经通过账务修正把差额补齐？请以财务交易描述/字段为准，确认是否存在针对席位口径的修正completed，并说明净额是否已满足合同规则。\n客户ID：CUS-703"
+      },
+      {
+        "message_id": "msg_704",
+        "from": "customer.support@unknown-mail.com",
+        "to": "support@company.com",
+        "subject": "退款差额申诉：客户ID可能填错，请协助匹配",
+        "date": "2026-03-26T07:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，我是某客户的售后代表。我们申请退款后发现差额较大，账单显示与我们按自然日导出的计算口径不一致。\n但我这边可能填错了客户ID：我在邮件里写的是CUS-709（我不确定是否准确）。你们可以先帮忙确认是否能在CRM/财务找到一致记录吗？\n如果无法匹配，请告诉我们需要提供的正确合同编号/官方客户ID。\n（本邮件不包含准确用量明细，仅描述口径可能为自然日 vs 账单周期）"
+      },
+      {
+        "message_id": "msg_705",
+        "from": "ops@qianbao-ops.com",
+        "to": "support@company.com",
+        "subject": "咨询：退款处理流程与预计到账时间",
+        "date": "2026-03-23T18:30:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，我们不是投诉，只想了解一下退款处理流程：一般多久会完成退款completed？如果后续还有账务修正（completed或pending），是否会影响预计到账时间？\n请提供一个对账/修正的说明模板（不需要具体到某个客户）。"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新任务聚焦“退款计算口径差异 + 财务账务修正交易是否覆盖”，并加入“客户ID自述错误导致无法匹配”的干扰邮件；最紧急案例优先处理vip且存在pending修正。",
+    "fixture_design_summary": [
+      "Gmail：5封邮件，包含3封口径争议投诉、1封客户ID错误干扰、1封非投诉流程咨询。",
+      "CRM：3个客户（含1个vip），分别对应自然日/账单周期口径、超额排除规则、席位比例与修正覆盖。",
+      "Finance：为VIP客户准备退款completed + 账务修正completed + 账务修正pending；为另一客户准备退款completed + 负数冲回；为席位客户准备退款completed + 账务修正completed + 冲回形成净额。",
+      "Contacts：提供财务核算与客户成功负责人联系方式，用于最紧急案例草稿与各案建议落点。"
+    ]
+  }
+}

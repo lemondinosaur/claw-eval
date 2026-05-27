@@ -1,0 +1,459 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T131zh_order_profit_analysis_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/crm/customers.json",
+  "fixtures/finance/transactions.json",
+  "fixtures/inventory/items.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T131zh_order_profit_analysis_plus_5",
+  "new_task_name": "存货成本波动与历史/当前成本对账",
+  "task_goal": "对比同一订单在不同时间点采用的“历史成本 vs 当前成本”，计算利润率差异，并在成本变更较大时提示风险；同时核对财务收款状态以确认是否已结算。",
+  "user_request": "请帮我分析客户订单利润，并进行成本口径对账：对每个客户最近订单，使用库存系统获取该订单涉及产品的当前成本价；同时使用历史成本价（库存中为同一product提供不同时间版本）计算“历史利润率”和“当前利润率”的差异。再从财务核对该订单在指定月份是否已全部结算（completed），未结算则标注“未完全结算风险”。最终输出：历史利润率、当前利润率、差异原因（成本上调/下调）、结算状态与建议。",
+  "scenario": "库存fixture中对同一product_id提供两条成本记录：一个effective_date早于订单日期（历史成本），一个在订单之后更新（当前成本）。财务系统按月查询交易：对部分客户订单只有部分收款（status='partial'），另一些订单有完整收款但包含退款导致净回款低于售价。需要用CRM订单date作为订单时间锚点，在库存中选择历史成本版本（effective_date<=订单date）与当前成本版本（有效期最新）。干扰信息包括：库存中存在一条effective_date晚于订单且cost字段异常（例如极端值），要求通过选择最新<=订单date的历史版本避免误用。",
+  "difference_from_source": "从单一成本价计算升级为“历史成本 vs 当前成本对账”，需要根据订单日期选择库存版本并输出差异与风险；同时引入订单未完全结算风险(partial)的提示。",
+  "service_and_tool_plan": "使用crm_list_customers与crm_get_customer获取订单date与products；库存方面：先inventory_list_items获取产品列表，再inventory_get_item取得包含多版本成本与effective_date的信息；财务方面：finance_list_transactions按月份抓取候选交易并finance_get_transaction校验status，判断结算是否completed且结合退款形成净回款差异。三服务组合用于“版本成本选择 + 收款结算状态”。",
+  "fixture_generation_plan": "1) CRM fixture：3-4个客户，每个recent_orders包含订单date（至少跨越两个季度边界），products数量2-4；2) Inventory fixture：对至少8个product_id引入成本版本机制（可以用字段history_costs或cost_history数组，包含effective_date与unit_cost）；确保每个被用到的产品在历史与当前两版本都存在；并设置一个产品包含异常极端成本但其effective_date早于/晚于订单以测试选择逻辑（确保选择历史版本时不会取到异常）；3) Finance fixture：约12-18条；每个订单至少有1-3笔交易；设置至少1个订单存在partial回款（status='partial'），另1个订单包含退款（amount负）但status=completed；另外插入1-2条非订单类交易干扰。",
+  "expected_behavior": "代理应：1) 对每个客户订单，基于订单date为每个product选择历史unit_cost（effective_date<=订单date的最近版本）并选择当前unit_cost（effective_date最新的版本）；2) 计算历史利润率与当前利润率，并给出差异（利润率差/百分比变化）；3) 判断成本差异方向：成本上调会导致利润率下降等，并在报告中解释来自哪些产品成本变更；4) 用财务确认结算：若相关订单交易中存在partial或缺少完成收款，标注“未完全结算风险”；若存在退款，说明净回款低于售价但不改变利润率计算口径；5) 输出结构化对账报告，至少包含：客户、订单日期、历史成本/当前成本汇总、两种利润率、差异原因、结算状态与异常说明。",
+  "grading_plan": "grader应检查：1) 历史成本选择是否正确（effective_date<=订单date且取最近）；2) 当前成本选择是否正确（取最新版本）；3) 利润率差异计算是否与成本差异一致；4) 结算状态是否基于财务status判断（partial触发未完全结算风险）；5) 报告中对差异原因的归因是否覆盖具体产品与变更方向。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T131zh_order_profit_analysis",
+  "task_name": "订单利润分析",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "finance",
+    "inventory",
+    "crm"
+  ],
+  "tools": [
+    "crm_list_customers",
+    "crm_get_customer",
+    "inventory_list_items",
+    "inventory_get_item",
+    "finance_list_transactions",
+    "finance_get_transaction"
+  ],
+  "fixture_paths": [
+    "fixtures/crm/customers.json",
+    "fixtures/finance/transactions.json",
+    "fixtures/inventory/items.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T131zh_order_profit_analysis
+task_name: 订单利润分析
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: tasks/T131zh_order_profit_analysis/fixtures/finance/transactions.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: tasks/T131zh_order_profit_analysis/fixtures/inventory/items.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: tasks/T131zh_order_profit_analysis/fixtures/crm/customers.json
+prompt:
+  text: '请帮我分析各客户订单的利润情况：
+
+    1. 从CRM获取每个客户的最近订单和产品组合
+
+    2. 从库存系统查每个产品的成本价
+
+    3. 从财务系统核对收款状态
+
+    4. 计算每个客户的订单利润率 = (售价-成本)/售价
+
+    5. 标注收款异常（欠款、退款等）
+
+    6. 输出客户利润分析报告
+
+    '
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: inventory_list_items
+  description: 查看库存/产品列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取产品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-801",
+    "name": "鼎新软件",
+    "contact_person": "周经理",
+    "email": "zhou@dingxin.com",
+    "phone": "13900801001",
+    "industry": "软件",
+    "tier": "vip",
+    "annual_revenue": 5200000,
+    "last_contact_date": "2026-03-20",
+    "status": "active",
+    "recent_orders": [
+      {"order_id": "ORD-801", "products": ["PROD-01", "PROD-02", "PROD-03"], "total_price": 180000, "date": "2026-03-10"}
+    ],
+    "notes": "战略合作伙伴"
+  },
+  {
+    "customer_id": "CUS-802",
+    "name": "瀚海电商",
+    "contact_person": "林总",
+    "email": "lin@hanhai.com",
+    "phone": "13900801002",
+    "industry": "电商",
+    "tier": "standard",
+    "annual_revenue": 800000,
+    "last_contact_date": "2026-03-15",
+    "status": "active",
+    "recent_orders": [
+      {"order_id": "ORD-802", "products": ["PROD-01", "PROD-04"], "total_price": 80000, "date": "2026-03-12"}
+    ],
+    "notes": "续约期客户"
+  },
+  {
+    "customer_id": "CUS-803",
+    "name": "万通物流",
+    "contact_person": "赵总监",
+    "email": "zhao@wantong.com",
+    "phone": "13900801003",
+    "industry": "物流",
+    "tier": "vip",
+    "annual_revenue": 3800000,
+    "last_contact_date": "2026-03-22",
+    "status": "active",
+    "recent_orders": [
+      {"order_id": "ORD-803", "products": ["PROD-02", "PROD-03", "PROD-05", "PROD-06"], "total_price": 250000, "date": "2026-03-08"}
+    ],
+    "notes": "物流行业标杆"
+  },
+  {
+    "customer_id": "CUS-804",
+    "name": "前锋科技",
+    "contact_person": "王敏",
+    "email": "wang@qianfeng.com",
+    "phone": "13900801004",
+    "industry": "科技",
+    "tier": "standard",
+    "annual_revenue": 360000,
+    "last_contact_date": "2026-03-25",
+    "status": "active",
+    "recent_orders": [
+      {"order_id": "ORD-804", "products": ["PROD-01"], "total_price": 30000, "date": "2026-03-18"}
+    ],
+    "notes": "小型客户"
+  }
+]
+
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/finance/transactions.json ---
+[
+  {
+    "transaction_id": "TXN-811",
+    "date": "2026-03-15",
+    "amount": 180000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-801",
+    "customer_name": "鼎新软件",
+    "type": "订单收款",
+    "category": "销售收入",
+    "description": "鼎新软件ORD-801订单全额收款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-812",
+    "date": "2026-03-18",
+    "amount": 50000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-802",
+    "customer_name": "瀚海电商",
+    "type": "订单收款",
+    "category": "销售收入",
+    "description": "瀚海电商ORD-802订单首款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-813",
+    "date": "2026-03-20",
+    "amount": 250000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-803",
+    "customer_name": "万通物流",
+    "type": "订单收款",
+    "category": "销售收入",
+    "description": "万通物流ORD-803订单全额收款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-814",
+    "date": "2026-03-22",
+    "amount": -20000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-803",
+    "customer_name": "万通物流",
+    "type": "退款",
+    "category": "销售退款",
+    "description": "万通物流ORD-803实施服务部分退款（实施延期补偿）",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-815",
+    "date": "2026-03-20",
+    "amount": 30000.00,
+    "currency": "CNY",
+    "customer_id": "CUS-804",
+    "customer_name": "前锋科技",
+    "type": "订单收款",
+    "category": "销售收入",
+    "description": "前锋科技ORD-804订单全额收款",
+    "status": "completed"
+  },
+  {
+    "transaction_id": "TXN-816",
+    "date": "2026-03-01",
+    "amount": 150000.00,
+    "currency": "CNY",
+    "type": "工资",
+    "category": "人力成本",
+    "description": "3月份销售团队工资",
+    "status": "completed"
+  }
+]
+
+--- END FILE: fixtures/finance/transactions.json ---
+--- FILE: fixtures/inventory/items.json ---
+[
+  {
+    "product_id": "PROD-01",
+    "name": "基础版SaaS许可",
+    "category": "软件许可",
+    "quantity": 1000,
+    "unit": "个",
+    "unit_cost": 8000.00,
+    "selling_price": 30000.00,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研"
+  },
+  {
+    "product_id": "PROD-02",
+    "name": "高级版SaaS许可",
+    "category": "软件许可",
+    "quantity": 500,
+    "unit": "个",
+    "unit_cost": 20000.00,
+    "selling_price": 60000.00,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研"
+  },
+  {
+    "product_id": "PROD-03",
+    "name": "数据分析模块",
+    "category": "增值模块",
+    "quantity": 300,
+    "unit": "个",
+    "unit_cost": 15000.00,
+    "selling_price": 50000.00,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研"
+  },
+  {
+    "product_id": "PROD-04",
+    "name": "API集成套件",
+    "category": "增值模块",
+    "quantity": 200,
+    "unit": "个",
+    "unit_cost": 12000.00,
+    "selling_price": 50000.00,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研"
+  },
+  {
+    "product_id": "PROD-05",
+    "name": "实施服务(标准)",
+    "category": "服务",
+    "quantity": 100,
+    "unit": "人天",
+    "unit_cost": 5000.00,
+    "selling_price": 15000.00,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "内部团队"
+  },
+  {
+    "product_id": "PROD-06",
+    "name": "年度技术支持",
+    "category": "服务",
+    "quantity": 100,
+    "unit": "个",
+    "unit_cost": 10000.00,
+    "selling_price": 25000.00,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "内部团队"
+  }
+]
+
+--- END FILE: fixtures/inventory/items.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

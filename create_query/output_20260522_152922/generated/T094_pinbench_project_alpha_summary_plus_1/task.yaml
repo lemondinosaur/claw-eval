@@ -1,0 +1,73 @@
+task_id: T094_pinbench_project_alpha_summary_plus_1
+task_name: Alpha Data Migration & Security Brief
+version: '1.0'
+category: synthesis
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T094_pinbench_project_alpha_summary_plus_1/fixtures/gmail/inbox.json
+prompt:
+  text: 'Search the Gmail inbox for all messages explicitly related to “Project Alpha”
+    and produce a structured brief in English with exactly these sections:
+
+
+    1) Project Overview
+
+    2) Migration & Switch Timeline
+
+    3) Migration & Security (Risks and Findings)
+
+    4) Business Impact (Customer delivery and Operations)
+
+    5) Current Status (including blockers)
+
+
+    Include a clear ordered timeline extracted across multiple emails, covering: migration
+    phases (prep, dry-run, cutover, post-cutover), the weekend switch window date
+    range, rollback strategy key points, and security/audit chain gaps with proposed
+    remediation. Ignore unrelated promo/meeting content and also ignore similar but
+    not related items (e.g., “AlphaScope” or training).'
+  language: en
+tools:
+- name: gmail_list_messages
+  description: List inbox messages
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        default: 60
+      max_results:
+        type: integer
+        default: 30
+    required: []
+- name: gmail_get_message
+  description: Get one message
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+    required:
+    - message_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

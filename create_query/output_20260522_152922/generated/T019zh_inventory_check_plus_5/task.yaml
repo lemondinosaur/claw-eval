@@ -1,0 +1,88 @@
+task_id: T019zh_inventory_check_plus_5
+task_name: 旺季系数口径的安全库存重算与补货下单
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T019zh_inventory_check_plus_5/fixtures/inventory/products.json
+prompt:
+  text: '这周开始进入夏季旺季，系统已给出季节系数（season_multiplier）。请用季节系数重算每个商品的安全库存需求：adjusted_min_stock
+    = min_stock_threshold * season_multiplier，并结合 sales_already_seasonal 标记决定去重逻辑；再比较当前可用库存
+    current_stock 与 adjusted_min_stock 判断是否需要补货。
+
+
+    补货下单时请说明：
+
+    1) 当 sales_already_seasonal=false 时，日销量 daily_avg_sales 可按旺季系数调整；当 sales_already_seasonal=true
+    时，不要再二次乘系数，避免过量。
+
+    2) 当 lead_time_days <= 2 时，优先补足 immediate_safety_days 对应的安全覆盖（用 immediate_safety_days
+    * 有效日销量计算数量），而不是按长期覆盖逻辑。
+
+    3) 按缺口大小/覆盖天数进行优先级解释，并对需要补货的商品调用下单工具。
+
+
+    最终输出你使用的季节系数与关键公式口径、哪些商品需要补货、以及每个下单数量的计算依据。'
+  language: zh
+tools:
+- name: inventory_list_products
+  description: 获取商品库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: inventory_get_product
+  description: 获取单个商品的详细库存信息
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+    required:
+    - product_id
+- name: inventory_create_order
+  description: 创建补货订单
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+      quantity:
+        type: integer
+        description: 补货数量
+      supplier:
+        type: string
+        description: 供应商
+    required:
+    - product_id
+    - quantity
+tool_endpoints:
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: inventory_create_order
+  url: http://localhost:9108/inventory/orders/create
+  method: POST
+sandbox_files:
+- fixtures/inventory/products.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

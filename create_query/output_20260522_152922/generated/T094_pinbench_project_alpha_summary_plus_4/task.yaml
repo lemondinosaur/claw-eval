@@ -1,0 +1,78 @@
+task_id: T094_pinbench_project_alpha_summary_plus_4
+task_name: Alpha Product Scope & Feature Tradeoffs
+version: '1.0'
+category: synthesis
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T094_pinbench_project_alpha_summary_plus_4/fixtures/gmail/inbox.json
+prompt:
+  text: 'Search the Gmail inbox for everything related to Project Alpha. Ignore unrelated
+    noise.
+
+
+    Produce an English structured summary with these sections:
+
+
+    1) Project Overview
+
+    2) Feature Scope & Decision Timeline (include at least 3 key decision nodes and
+    the outcome of each)
+
+    3) Tradeoff Reasons & Risks (map to at least two categories such as technical
+    dependency, compliance/security audit cost, and/or resource constraints)
+
+    4) Impact on Customer Value & Delivery (how the tradeoffs change what customers
+    get and when)
+
+    5) Current Status & Open Items (list at least 2 open items with their trigger/next
+    step consistent with the latest email progress)
+
+
+    Focus specifically on function additions/cancellations/delays, priority changes,
+    acceptance criteria, and the resulting staged delivery plan (e.g., basic export
+    + read-only now, field-level permissions later).'
+  language: en
+tools:
+- name: gmail_list_messages
+  description: List inbox messages
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        default: 60
+      max_results:
+        type: integer
+        default: 30
+    required: []
+- name: gmail_get_message
+  description: Get one message
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+    required:
+    - message_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

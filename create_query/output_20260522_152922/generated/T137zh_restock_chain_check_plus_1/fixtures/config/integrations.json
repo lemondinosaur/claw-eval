@@ -1,0 +1,80 @@
+[
+  {
+    "integration_id": "INT-910",
+    "name": "冷链物流补货API",
+    "status": "active",
+    "endpoint": "https://api.coldchain-fulfillment.example.com/v3",
+    "api_key": "sk-coldchain-910-xxxx-REDACTED",
+    "error_rate": 0.22,
+    "credentials_expired": false,
+    "notes": "夜间接口响应变慢，偶发超时/5xx上升",
+    "service": "logistics_api",
+    "last_verified": "2026-05-20T00:00:00Z",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-911",
+    "name": "电商包装耗材API",
+    "status": "inactive",
+    "endpoint": "https://api.ecom-packaging.example.com/v1",
+    "api_key": "sk-packaging-911-xxxx-REDACTED",
+    "error_rate": 0,
+    "credentials_expired": false,
+    "notes": "集成被标记inactive（运维临时停用）",
+    "service": "packaging_api",
+    "last_verified": "2026-05-18T00:00:00Z",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-912",
+    "name": "实验室耗材认证API",
+    "status": "active",
+    "endpoint": "https://api.lab-consumables.example.com/auth/v2",
+    "api_key": "sk-lab-912-xxxx-REDACTED",
+    "error_rate": 0.06,
+    "credentials_expired": true,
+    "notes": "access token过期/认证失败，需刷新令牌",
+    "service": "lab_auth_api",
+    "last_verified": "2026-05-01T00:00:00Z",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-913",
+    "name": "常规仓储库存API",
+    "status": "active",
+    "endpoint": "https://api.warehouse-stock.example.com/v2",
+    "api_key": "sk-warehouse-913-xxxx-REDACTED",
+    "error_rate": 0.01,
+    "credentials_expired": false,
+    "notes": "稳定，无需关注",
+    "service": "warehouse_api",
+    "last_verified": "2026-05-20T00:00:00Z",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-914",
+    "name": "办公设备补货API",
+    "status": "active",
+    "endpoint": "https://api.office-devices.example.com/v4",
+    "api_key": "sk-devices-914-xxxx-REDACTED",
+    "error_rate": 0.03,
+    "credentials_expired": false,
+    "notes": "按计划稳定回补",
+    "service": "device_api",
+    "last_verified": "2026-05-19T00:00:00Z",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "INT-915",
+    "name": "噪声品类供应商API（稳定）",
+    "status": "active",
+    "endpoint": "https://api.noise-supplier.example.com/v1",
+    "api_key": "sk-noise-915-xxxx-REDACTED",
+    "error_rate": 0.02,
+    "credentials_expired": false,
+    "notes": "保持低错误率，用于干扰判断",
+    "service": "noise_supplier_api",
+    "last_verified": "2026-05-20T00:00:00Z",
+    "monthly_calls": 0
+  }
+]

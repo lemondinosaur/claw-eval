@@ -1,0 +1,118 @@
+[
+  {
+    "job_id": "JOB-810",
+    "name": "cache_full_prewarm_and_invalidate",
+    "description": "全站缓存预热/失效重建（错误配置风险点：cache_version参数回滚）",
+    "cron_expression": "30 20 * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-02-28T20:30:00+08:00",
+    "action": "执行“全站缓存预热/失效重建”，并写入cache_version参数",
+    "created_by": "cache_platform",
+    "tags": [
+      "cache",
+      "prewarm",
+      "invalidate"
+    ],
+    "notes": "本次故障对应批次：参数cache_version写入了错误旧值（回滚），触发版本不匹配回源。历史显示该任务在高峰期执行后会导致回源放大，需要限制与校验门禁。",
+    "execution_history": [
+      {
+        "run_time": "2026-02-28T20:30:00+08:00",
+        "status": "failed",
+        "duration_seconds": 1860,
+        "notes": "执行期间触发多轮“失效重建请求”；日志出现cache_version回滚写入：version=2026.02.10。随后CDN回源请求激增并导致API网关P99抬升（与队列堆积同步）。"
+      },
+      {
+        "run_time": "2026-02-27T20:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 95,
+        "notes": "正常：cache_version与稳定版本一致，回源请求维持在阈值内。"
+      },
+      {
+        "run_time": "2026-02-26T20:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 88,
+        "notes": "正常执行。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-811",
+    "name": "cache_version_rollback_task",
+    "description": "缓存版本号回滚任务（用于紧急回退，但本次错误链路导致与预热任务耦合）",
+    "cron_expression": "45 20 * * *",
+    "enabled": true,
+    "last_status": "stopped",
+    "last_run": "2026-02-28T20:45:00+08:00",
+    "action": "将cache_version回写为旧值（回滚策略）",
+    "created_by": "release_engineering",
+    "tags": [
+      "cache-version",
+      "rollback"
+    ],
+    "notes": "本次触发窗口与全站失效重建任务重叠：回滚任务在预热链路尚未完成时写入旧版本，导致版本不匹配回源。",
+    "execution_history": [
+      {
+        "run_time": "2026-02-28T20:45:00+08:00",
+        "status": "stopped",
+        "duration_seconds": 210,
+        "notes": "在检测到参数冲突后停止，但已写入旧版本号cache_version一次，造成边缘命中失败。"
+      },
+      {
+        "run_time": "2026-02-27T20:45:00+08:00",
+        "status": "success",
+        "duration_seconds": 190,
+        "notes": "正常回滚（未与预热任务重叠）。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-812",
+    "name": "incremental_keyset_prewarm",
+    "description": "增量键集预热（理想应在风险场景启用，但本次未生效/未被门禁拦截）",
+    "cron_expression": "0 20 * * *",
+    "enabled": false,
+    "last_status": "stopped",
+    "last_run": "2026-02-20T20:00:00+08:00",
+    "action": "只更新增量键集并验证命中率",
+    "created_by": "cache_platform",
+    "tags": [
+      "incremental",
+      "prewarm",
+      "validation"
+    ],
+    "notes": "本任务在故障期间未启用。会议资料显示“增量键集预热自动化验收TODO未完成”，因此在风险回滚链路中缺少应有的保护机制。",
+    "execution_history": [
+      {
+        "run_time": "2026-02-20T20:00:00+08:00",
+        "status": "stopped",
+        "duration_seconds": 0,
+        "notes": "任务被禁用。"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-813",
+    "name": "web_health_warmup",
+    "description": "轻量化健康检查预热（非核心链路）",
+    "cron_expression": "*/10 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-02-28T21:10:00+08:00",
+    "action": "检查页面健康并触发轻量缓存读",
+    "created_by": "ops_team",
+    "tags": [
+      "health",
+      "warmup"
+    ],
+    "notes": "仅做健康探测，不涉及失效重建或版本回滚。故障期间不构成根因。",
+    "execution_history": [
+      {
+        "run_time": "2026-02-28T21:10:00+08:00",
+        "status": "success",
+        "duration_seconds": 12,
+        "notes": "成功执行。"
+      }
+    ]
+  }
+]

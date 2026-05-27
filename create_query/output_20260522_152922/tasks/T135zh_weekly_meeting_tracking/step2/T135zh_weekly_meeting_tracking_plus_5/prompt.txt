@@ -1,0 +1,313 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T135zh_weekly_meeting_tracking_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/calendar/events.json",
+  "fixtures/notes/meetings.json",
+  "fixtures/todo/tasks.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务 environment.mock_today = 2026-03-26，如新任务涉及日期，请让 fixture 中的绝对日期与该日期锚点兼容。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T135zh_weekly_meeting_tracking_plus_5",
+  "new_task_name": "里程碑阶段行动项与状态收敛",
+  "task_goal": "将纪要行动项映射到待办的里程碑阶段，并计算“收敛进度”：同一行动项在待办中可能随阶段多次更新（例如 milestone-1/milestone-2），需要选择最高阶段但仍区分完成与未完成；输出每会议的阶段收敛率（最高阶段达到“final”的占比）以及遗漏项。",
+  "user_request": "请生成本周会议行动项里程碑跟踪报告：\n1）查询上周一到上周日的日历会议，只处理带纪要关联的会议；\n2）从纪要中提取行动项，并为每个行动项确定其里程碑目标（例如：阶段1/阶段2/final）；\n3）在待办系统中找到对应的里程碑任务：如果同一行动项存在多个里程碑条目，需选择“最高阶段”作为最终阶段；\n4）输出每会议：\n   - 每项：给出最终状态（completed/in_progress/pending）与最终里程碑阶段（m1/m2/final）；\n   - 计算阶段收敛率：达到 final 阶段的行动项数 / 该会议行动项总数；\n5）识别纪要中有但待办中完全缺失的行动项（遗漏）。\n\n注意：如果最终选到的最高阶段仍未完成，需要在报告中标记“未收敛”。",
+  "scenario": "mock_today 设为 2026-07-02。日历范围 2026-06-24 到 2026-06-30：共 6 事件，其中 2 个与纪要关联。notes 中 2 条纪要，合计行动项 6 个；每个行动项在描述中明确写出目标里程碑（如“目标：final”或“目标：m2”。至少包含3个目标为final）。todo 中对部分行动项会出现多条里程碑任务（例如同一事项存在 m1 与 m2 两条；其中一条已完成但另一条在进行中），需要按阶段优先选择最终里程碑；同时有 1 个行动项在 todo 中不存在（遗漏）。另外还有 1 条待办里程碑任务仅存在于某个会议之外，不应影响统计（但不要求额外反向检查）。",
+  "difference_from_source": "原题只看完成状态并识别遗漏。本任务引入“里程碑阶段选择+阶段收敛率+未收敛标记”，要求在同一行动项多候选里按阶段收敛规则选择最终阶段，而不仅是状态匹配。",
+  "service_and_tool_plan": "使用 calendar_list_events 获取范围事件，calendar_get_event 核对纪要关联note_id；notes_get 读取纪要并解析每个行动项的目标里程碑；todo_list_tasks(all) 拉取所有里程碑任务后按行动项短标题/负责人+事项映射到对应任务集合，再从集合中按最高阶段选择最终候选（可用 todo_get_task 精确获取阶段字段与状态）；最后在输出中计算收敛率。",
+  "fixture_generation_plan": "生成 fixtures：\n1）calendar/events.json：6条事件，其中2条带纪要关联（NOTE-R1、NOTE-R2），其余4条无关联；start_time 覆盖整周。\n2）notes/meetings.json：2条纪要。\n- 总行动项 6 个；每个行动项文本包含目标里程碑标识（m1/m2/final），且事项名与负责人全新；\n- content 内加入一些非行动项句子干扰。\n3）todo/tasks.json：任务总计 11条：\n- 覆盖至少5个行动项的里程碑候选（其中至少2个行动项各有2条不同阶段任务：m1与m2、或m2与final）；\n- 至少1个行动项完全缺失（遗漏）；\n- 在三种状态分布上覆盖 completed/in_progress/pending；\n- 为里程碑任务设置可区分阶段的字段：如 title/description 中包含“m1/m2/final”；\n- 添加1条与任何纳入纪要行动项不匹配的干扰里程碑任务。\n确保不复用原题ID、名称、数值与段落。",
+  "expected_behavior": "智能体应：\n- 找到2个纪要会议并提取6个行动项及其目标里程碑；\n- 在待办中为每个行动项收集所有候选里程碑任务，选择最高阶段作为最终阶段（若有final候选则最终阶段为final）；\n- 输出每项：最终状态与最终里程碑阶段；当最终阶段未达到目标final或目标要求且状态未完成时标记“未收敛”；\n- 计算每会议的阶段收敛率：final阶段行动项数/该会议行动项总数；\n- 输出遗漏清单（纪要有但待办完全没有候选）。",
+  "grading_plan": "grader.py 应检查：\n- 目标里程碑解析准确（每项目标正确）；\n- 最高阶段选择规则正确（同一行动项多候选时取最高阶段）；\n- 阶段收敛率计算正确且仅基于纳入纪要行动项；\n- “未收敛”标记条件符合定义（最高阶段未达到目标/仍未完成）；\n- 遗漏项数量与对应行动项正确；\n- 输出按会议分组并包含每会议收敛率与遗漏清单。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T135zh_weekly_meeting_tracking",
+  "task_name": "周会行动项跟踪",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "calendar",
+    "notes",
+    "todo"
+  ],
+  "tools": [
+    "calendar_list_events",
+    "calendar_get_event",
+    "notes_list",
+    "notes_get",
+    "todo_list_tasks",
+    "todo_get_task"
+  ],
+  "fixture_paths": [
+    "fixtures/calendar/events.json",
+    "fixtures/notes/meetings.json",
+    "fixtures/todo/tasks.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T135zh_weekly_meeting_tracking
+task_name: 周会行动项跟踪
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: tasks/T135zh_weekly_meeting_tracking/fixtures/calendar/events.json
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: tasks/T135zh_weekly_meeting_tracking/fixtures/notes/meetings.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: tasks/T135zh_weekly_meeting_tracking/fixtures/todo/tasks.json
+prompt:
+  text: '请帮我生成上周的会议行动项跟踪报告：
+
+    1. 查看上周的日历会议
+
+    2. 找到有纪要的会议，查看行动项
+
+    3. 在待办中查找每个行动项的完成状态
+
+    4. 找出遗漏的行动项（纪要中有但待办中没有的）
+
+    5. 输出周进度报告：按会议分组，标注每项状态和完成率
+
+    '
+  language: zh
+tools:
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: all
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+tool_endpoints:
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+environment:
+  mock_today: '2026-03-26'
+  timeout_seconds: 600
+  max_turns: 30
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/calendar/events.json ---
+[
+  {"event_id": "evt_501", "title": "产品需求周会", "start_time": "2026-03-16T10:00:00+08:00", "end_time": "2026-03-16T11:30:00+08:00", "location": "会议室A", "organizer": "王明", "attendees": ["王明","李华","赵蕾"], "description": "每周产品需求评审，关联纪要NOTE-501", "status": "confirmed"},
+  {"event_id": "evt_502", "title": "技术评审会", "start_time": "2026-03-18T14:00:00+08:00", "end_time": "2026-03-18T16:00:00+08:00", "location": "技术区", "organizer": "李华", "attendees": ["李华","马强","周明"], "description": "架构评审，关联纪要NOTE-502", "status": "confirmed"},
+  {"event_id": "evt_503", "title": "客户进展同步会", "start_time": "2026-03-20T09:00:00+08:00", "end_time": "2026-03-20T10:00:00+08:00", "location": "会议室B", "organizer": "赵蕾", "attendees": ["赵蕾","王明"], "description": "大客户进展同步，关联纪要NOTE-503", "status": "confirmed"},
+  {"event_id": "evt_504", "title": "全员站会", "start_time": "2026-03-17T10:00:00+08:00", "end_time": "2026-03-17T10:15:00+08:00", "location": "开放区", "organizer": "王明", "attendees": ["全员"], "description": "每日站会，无纪要", "status": "confirmed"},
+  {"event_id": "evt_505", "title": "午餐分享", "start_time": "2026-03-19T12:00:00+08:00", "end_time": "2026-03-19T13:00:00+08:00", "location": "食堂", "organizer": "HR", "attendees": ["自愿参加"], "description": "技术午餐分享，无纪要", "status": "confirmed"}
+]
+
+--- END FILE: fixtures/calendar/events.json ---
+--- FILE: fixtures/notes/meetings.json ---
+[
+  {
+    "note_id": "NOTE-501",
+    "title": "产品需求周会纪要 3/16",
+    "content": "## 产品需求周会\n\n### 行动项\n1. 【王明】完成需求优先级排序文档，截止3/22\n2. 【李华】评估微服务拆分可行性，截止3/25\n3. 【赵蕾】收集客户反馈汇总，截止3/20",
+    "participants": [
+      "王明",
+      "李华",
+      "赵蕾"
+    ],
+    "tags": [
+      "产品",
+      "需求"
+    ],
+    "created_at": "2026-03-16T10:00:00Z",
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-502",
+    "title": "技术评审会纪要 3/18",
+    "content": "## 技术评审\n\n### 行动项\n1. 【李华】编写API网关设计文档，截止3/25\n2. 【马强】完成压力测试报告，截止3/22\n3. 【周明】前端性能优化方案，截止3/24",
+    "participants": [
+      "李华",
+      "马强",
+      "周明"
+    ],
+    "tags": [
+      "技术",
+      "架构"
+    ],
+    "created_at": "2026-03-18T10:00:00Z",
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-503",
+    "title": "客户进展同步会纪要 3/20",
+    "content": "## 客户进展\n\n### 行动项\n1. 【赵蕾】更新鼎新软件的合同方案，截止3/25\n2. 【王明】安排技术团队支持万通物流POC，截止3/27",
+    "participants": [
+      "赵蕾",
+      "王明"
+    ],
+    "tags": [
+      "客户",
+      "销售"
+    ],
+    "created_at": "2026-03-20T10:00:00Z",
+    "duration_minutes": 60
+  }
+]
+--- END FILE: fixtures/notes/meetings.json ---
+--- FILE: fixtures/todo/tasks.json ---
+[
+  {"task_id": "TODO-501", "title": "需求优先级排序", "description": "完成Q2需求优先级文档", "status": "completed", "priority": "high", "due_date": "2026-03-22", "assignee": "王明", "tags": ["产品"]},
+  {"task_id": "TODO-502", "title": "微服务拆分评估", "description": "评估微服务拆分方案可行性", "status": "in_progress", "priority": "high", "due_date": "2026-03-25", "assignee": "李华", "tags": ["技术"]},
+  {"task_id": "TODO-503", "title": "客户反馈汇总", "description": "收集并汇总Top客户反馈", "status": "completed", "priority": "medium", "due_date": "2026-03-20", "assignee": "赵蕾", "tags": ["客户"]},
+  {"task_id": "TODO-504", "title": "API网关设计", "description": "编写API网关技术设计文档", "status": "in_progress", "priority": "high", "due_date": "2026-03-25", "assignee": "李华", "tags": ["技术"]},
+  {"task_id": "TODO-505", "title": "压力测试", "description": "执行系统压力测试并出报告", "status": "completed", "priority": "high", "due_date": "2026-03-22", "assignee": "马强", "tags": ["运维"]},
+  {"task_id": "TODO-506", "title": "前端性能优化", "description": "前端性能优化方案设计", "status": "pending", "priority": "medium", "due_date": "2026-03-24", "assignee": "周明", "tags": ["前端"]},
+  {"task_id": "TODO-507", "title": "鼎新合同方案", "description": "更新鼎新软件的合同方案", "status": "pending", "priority": "high", "due_date": "2026-03-25", "assignee": "赵蕾", "tags": ["客户"]},
+  {"task_id": "TODO-508", "title": "日常代码审查", "description": "本周PR代码审查", "status": "completed", "priority": "low", "due_date": "2026-03-22", "assignee": "李华", "tags": ["日常"]},
+  {"task_id": "TODO-509", "title": "更新Jira面板", "description": "更新项目管理面板", "status": "pending", "priority": "low", "due_date": "2026-03-26", "assignee": "王明", "tags": ["日常"]},
+  {"task_id": "TODO-510", "title": "团队周报整理", "description": "汇总团队成员周报", "status": "pending", "priority": "low", "due_date": "2026-03-26", "assignee": "王明", "tags": ["日常"]}
+]
+
+--- END FILE: fixtures/todo/tasks.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

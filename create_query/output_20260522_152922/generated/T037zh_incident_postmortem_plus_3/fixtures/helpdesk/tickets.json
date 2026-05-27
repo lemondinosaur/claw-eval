@@ -1,0 +1,98 @@
+[
+  {
+    "ticket_id": "TK-5171",
+    "title": "关键通知缺失：生产故障期间部分用户未收到告警邮件",
+    "reporter": "值班运维",
+    "created_at": "2026-03-01T00:55:00+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "告警系统触发后，多名值班成员收到“关键通知缺失”的反馈。邮件投递延迟明显，部分告警在队列中停留超过10分钟。",
+    "tags": [
+      "notification",
+      "missing",
+      "smtp"
+    ],
+    "assignee": "值班SRE",
+    "department": "SRE"
+  },
+  {
+    "ticket_id": "TK-5172",
+    "title": "邮件队列积压：投递任务处理速率下降",
+    "reporter": "消息平台",
+    "created_at": "2026-03-01T01:03:20+08:00",
+    "priority": "high",
+    "status": "investigating",
+    "description": "notification_dispatch处理开始出现波动：队列积压从2万增长到超过7万，且处理耗时显著增加。疑似下游SMTP中继在故障窗口degraded导致失败回滚。",
+    "tags": [
+      "queue",
+      "delay",
+      "dispatch"
+    ],
+    "assignee": "消息平台工程师",
+    "department": "Messaging"
+  },
+  {
+    "ticket_id": "TK-5173",
+    "title": "重复发送：同一告警ID在短时间内被多次邮件触达",
+    "reporter": "安全监控",
+    "created_at": "2026-03-01T01:08:05+08:00",
+    "priority": "critical",
+    "status": "resolved",
+    "description": "发现同一告警（ALRM-88421）对应的通知被重复发送多次；日志显示同一消息在失败后重试时被再次入队，出现短时间内的重复投递。",
+    "tags": [
+      "duplicate",
+      "retries",
+      "out-of-order"
+    ],
+    "assignee": "消息平台工程师",
+    "department": "Security"
+  },
+  {
+    "ticket_id": "TK-5174",
+    "title": "乱序到达：先失败后成功导致到达顺序颠倒",
+    "reporter": "值班运维",
+    "created_at": "2026-03-01T01:12:45+08:00",
+    "priority": "high",
+    "status": "resolved",
+    "description": "观察到部分告警邮件“先失败后成功”的乱序：同一告警的不同重试版本到达顺序颠倒，造成用户误判故障已恢复。\n目前已定位到失败重试风暴阶段，后续逐步稳定。",
+    "tags": [
+      "out-of-order",
+      "recovery",
+      "smtp"
+    ],
+    "assignee": "值班SRE",
+    "department": "SRE"
+  },
+  {
+    "ticket_id": "TK-5175",
+    "title": "SMTP中继降级确认：退避配置疑似异常",
+    "reporter": "集成负责人",
+    "created_at": "2026-03-01T01:18:10+08:00",
+    "priority": "critical",
+    "status": "investigating",
+    "description": "集成健康检查显示 mail_relay_smtp 处于 degraded。运维记录提到“退避窗口配置与重试间隔冲突”，并指出退避上限可能为0，导致重试风暴。",
+    "tags": [
+      "integration",
+      "degraded",
+      "backoff"
+    ],
+    "assignee": "集成负责人",
+    "department": "Integrations"
+  },
+  {
+    "ticket_id": "TK-5176",
+    "title": "恢复后仍有少量乱序修复中",
+    "reporter": "消息平台",
+    "created_at": "2026-03-01T01:45:00+08:00",
+    "priority": "medium",
+    "status": "resolved",
+    "description": "SMTP中继恢复后，重复与乱序已显著下降，但仍有少量告警存在到达顺序异常。需要结合去重策略与投递互斥验证。\n已下发观察建议，不做任何配置变更。",
+    "tags": [
+      "post-recovery",
+      "ordering",
+      "dedupe"
+    ],
+    "assignee": "消息平台工程师",
+    "department": "Messaging"
+  }
+]

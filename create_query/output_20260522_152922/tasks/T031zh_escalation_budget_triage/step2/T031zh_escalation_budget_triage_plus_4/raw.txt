@@ -1,0 +1,474 @@
+{
+  "task_id": "T031zh_escalation_budget_triage_plus_4",
+  "task_name": "隐含费用条款触发的升级拦截",
+  "prompt_text": "处理收件箱中“隐含费用条款触发升级”的邮件。请从正文中识别并提取“实际需要承诺/等效赔付”的金额口径（例如：违约金豁免合计、服务费减免/抵扣金额等价于赔付；若出现“USD 30k等值/已按汇率换算为CNY”等信息，以正文给出的等值金额为准）。\n\n按如下规则处理：\n1）读取并解析收件箱所有升级邮件（共9封）。\n2）对每封邮件：\n   - 先解析“合同编号”和“条款名称”（用于在Helpdesk里按“合同编号+条款名称”匹配最相关工单）。\n   - 从CRM获取该客户的annual_revenue、status与tier。\n3）规则分流（动作类型与工单更新必须一致）：\n   - 若正文显示金额为“待确认/另行核算”：仅更新工单状态为“待核算”，并打tag含“待核算”；不发送邮件、不保存承诺草稿。\n   - 若status=churned或正文含“已终止/不续约”：通知法务并在工单打tag“异常-条款触发”。\n   - 否则：计算等效赔付金额 / annual_revenue 的阈值比率。若<=5%：发送“处理通知”给客户服务联络人；若>5%：仅保存草稿“需上级审批”。\n   - 若客户tier为vip：在不改变阈值规则的前提下，将工单priority提升（如standard->medium/low，vip->high/critical）。\n4）最终输出一份清晰摘要：对每封邮件给出“等效赔付金额口径依据（来自哪种隐含费用条款表达）”、提取金额、阈值比率、是否待核算/异常、以及动作类型（发送处理通知/保存草稿需上级审批/仅待核算/异常通知法务）。\n\n若邮件缺失客户编号或合同编号等关键匹配信息，则跳过该邮件并在摘要中标注“跳过：关键信息缺失”。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-311",
+        "name": "周雪",
+        "department": "客户服务部",
+        "title": "客户成功负责人",
+        "email": "csm.zhouxue@company.com",
+        "phone": "13911001111",
+        "location": "上海"
+      },
+      {
+        "contact_id": "CT-312",
+        "name": "陈涛",
+        "department": "法务部",
+        "title": "法务经理",
+        "email": "legal.chen tao@company.com",
+        "phone": "13911002222",
+        "location": "上海"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-101",
+        "name": "北方航联",
+        "contact_person": "高然",
+        "email": "gaoran@beifanghanglian.com",
+        "phone": "18810001001",
+        "industry": "航空物流",
+        "tier": "standard",
+        "annual_revenue": 2000000,
+        "last_contact_date": "2026-03-02",
+        "status": "active",
+        "notes": "历史续约稳定，近期出现条款争议。"
+      },
+      {
+        "customer_id": "CUS-102",
+        "name": "青橙金融",
+        "contact_person": "周总",
+        "email": "zhouzong@qingcheng-fin.com",
+        "phone": "18810001002",
+        "industry": "金融科技",
+        "tier": "vip",
+        "annual_revenue": 10000000,
+        "last_contact_date": "2026-03-01",
+        "status": "active",
+        "notes": "VIP，高价值客户，对沟通速度敏感。"
+      },
+      {
+        "customer_id": "CUS-103",
+        "name": "星图软件",
+        "contact_person": "王经理",
+        "email": "wang.j@startool.io",
+        "phone": "18810001003",
+        "industry": "软件",
+        "tier": "standard",
+        "annual_revenue": 5000000,
+        "last_contact_date": "2026-02-24",
+        "status": "active",
+        "notes": "标准客户，预算敏感。"
+      },
+      {
+        "customer_id": "CUS-104",
+        "name": "万象能源",
+        "contact_person": "赵总",
+        "email": "zhaozong@wanxiang-energy.cn",
+        "phone": "18810001004",
+        "industry": "能源",
+        "tier": "vip",
+        "annual_revenue": 7200000,
+        "last_contact_date": "2026-02-21",
+        "status": "active",
+        "notes": "VIP客户，条款触发后优先级需提升。"
+      },
+      {
+        "customer_id": "CUS-105",
+        "name": "荣达制造",
+        "contact_person": "孙经理",
+        "email": "sun.manager@rongda-manufacture.cn",
+        "phone": "18810001005",
+        "industry": "制造",
+        "tier": "standard",
+        "annual_revenue": 3000000,
+        "last_contact_date": "2026-02-19",
+        "status": "active",
+        "notes": "中等收入客户，需精确阈值判断。"
+      },
+      {
+        "customer_id": "CUS-106",
+        "name": "云岚通信",
+        "contact_person": "丁总",
+        "email": "ding@yunlan-comm.com",
+        "phone": "18810001006",
+        "industry": "通信",
+        "tier": "standard",
+        "annual_revenue": 1600000,
+        "last_contact_date": "2026-02-20",
+        "status": "active",
+        "notes": "小额客户，可能落入<=5%区间。"
+      },
+      {
+        "customer_id": "CUS-107",
+        "name": "彩虹零售",
+        "contact_person": "刘总",
+        "email": "liu@caihong-retail.com",
+        "phone": "18810001007",
+        "industry": "零售",
+        "tier": "standard",
+        "annual_revenue": 4000000,
+        "last_contact_date": "2026-02-27",
+        "status": "active",
+        "notes": "以服务费抵扣表达赔付。"
+      },
+      {
+        "customer_id": "CUS-108",
+        "name": "海岸物流",
+        "contact_person": "吴总",
+        "email": "wu@haian-logistics.com",
+        "phone": "18810001008",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 2500000,
+        "last_contact_date": "2026-01-15",
+        "status": "active",
+        "notes": "合同接近尾声但仍active。"
+      },
+      {
+        "customer_id": "CUS-109",
+        "name": "蓝鲸科技",
+        "contact_person": "陈总",
+        "email": "chen@bluewhaletech.com",
+        "phone": "18810001009",
+        "industry": "科技",
+        "tier": "vip",
+        "annual_revenue": 8000000,
+        "last_contact_date": "2025-12-10",
+        "status": "churned",
+        "churn_date": "2025-12-10",
+        "churn_reason": "未续约导致终止",
+        "notes": "已流失，条款触发需异常处理。"
+      },
+      {
+        "customer_id": "CUS-110",
+        "name": "长风教育",
+        "contact_person": "马校长",
+        "email": "maxiaozhang@changfeng.edu",
+        "phone": "18810001010",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 1000000,
+        "last_contact_date": "2026-02-10",
+        "status": "active",
+        "notes": "测试<=5%边界样本。"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2401",
+        "date": "2026-02-01",
+        "amount": 60000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-107",
+        "customer_name": "彩虹零售",
+        "type": "客户豁免/抵扣",
+        "category": "费用抵扣",
+        "description": "服务费抵扣已完成（用于折抵违约金等价赔付）",
+        "approved_by": "周雪",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-2402",
+        "date": "2026-02-10",
+        "amount": 95000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-101",
+        "customer_name": "北方航联",
+        "type": "客户豁免/抵扣",
+        "category": "违约金豁免",
+        "description": "违约金豁免额度使用记录（部分已入账）",
+        "approved_by": "周雪",
+        "status": "open"
+      },
+      {
+        "transaction_id": "TXN-2403",
+        "date": "2026-02-18",
+        "amount": 120000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-102",
+        "customer_name": "青橙金融",
+        "type": "客户补偿",
+        "category": "补偿支出",
+        "description": "等效赔付已核验（基于费用减免条款）",
+        "approved_by": "陈涛",
+        "status": "completed"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2401",
+        "from": "billing@beifanghanglian.com",
+        "to": "me@company.com",
+        "subject": "【隐含费用条款】合同BFL-77：违约金豁免合计要求 10.0万（已等价）",
+        "date": "2026-03-02T09:10:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "fee-clause"],
+        "body": "你好，\n\n关于合同编号：BFL-77，条款名称：违约金豁免条款。\n\n我们理解贵司应承担等效赔付：违约金豁免合计 10.0万元（用于抵扣我方因逾期产生的可量化损失）。\n\n本邮件视为正式条款触发升级，请安排内部处理口径。\n\n客户编号：CUS-101\n客户名称：北方航联\n联系人：高然\n\n此致\n高然"
+      },
+      {
+        "message_id": "msg_2402",
+        "from": "ops@qingcheng-fin.com",
+        "to": "me@company.com",
+        "subject": "升级：服务费减免替代赔付（合同QCJ-2024，付款抵扣条款）USD 60k等值",
+        "date": "2026-03-02T10:20:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "important", "escalation", "fee-clause"],
+        "body": "您好，\n\n合同编号：QCJ-2024\n条款名称：付款抵扣条款（服务费减免替代赔付）。\n\n根据条款，贵司可将赔付写为：服务费减免 USD 60k 等值金额；并且已按汇率换算为 CNY 420,000 元（即等效赔付口径）。\n\n请贵司以该等值金额作为承诺依据。\n\n客户编号：CUS-102\n客户名称：青橙金融\n联系人：周总\n\n感谢。\n周总"
+      },
+      {
+        "message_id": "msg_2403",
+        "from": "support@startool.io",
+        "to": "me@company.com",
+        "subject": "【待核算】隐含费用条款触发：违约金豁免合计=待确认（合同STG-12，SLA条款）",
+        "date": "2026-03-02T11:35:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "fee-clause"],
+        "body": "你好，\n\n合同编号：STG-12\n条款名称：SLA违约条款。\n\n根据条款，需以“违约金豁免合计”作为等效赔付，但金额目前标注为：待确认/另行核算。\n\n请勿直接承诺具体金额；我们希望贵司先更新工单到“待核算”并同步内部核算口径。\n\n客户编号：CUS-103\n客户名称：星图软件\n联系人：王经理\n\n王经理"
+      },
+      {
+        "message_id": "msg_2404",
+        "from": "legal@wanxiang-energy.cn",
+        "to": "me@company.com",
+        "subject": "【已终止/不续约】合同WX-901：服务费抵扣金额不再适用（争议条款）",
+        "date": "2026-03-02T12:05:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "fee-clause"],
+        "body": "敬启者：\n\n合同编号：WX-901\n条款名称：争议条款。\n\n由于合同已终止且我方不再续约，原“服务费抵扣金额”相关承诺不再适用。\n\n请贵司停止按该口径对外承诺，并进行法务评估。若仍需处理，请在系统中标记：异常-条款触发。\n\n客户编号：CUS-109\n客户名称：蓝鲸科技（已流失）\n联系人：陈总\n\n陈总"
+      },
+      {
+        "message_id": "msg_2405",
+        "from": "cs@rongda-manufacture.cn",
+        "to": "me@company.com",
+        "subject": "条款升级（合同RD-330）：服务费抵扣金额 15,0000元 作为等效赔付",
+        "date": "2026-03-02T13:40:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "fee-clause"],
+        "body": "您好，\n\n合同编号：RD-330\n条款名称：服务费减免/抵扣条款。\n\n根据条款，本次赔付以服务费抵扣金额形式呈现：\n- 服务费抵扣金额：150,000 元（等效赔付口径）\n\n我们要求贵司明确该等效金额并更新对应工单。\n\n客户编号：CUS-105\n客户名称：荣达制造\n联系人：孙经理\n\n孙经理"
+      },
+      {
+        "message_id": "msg_2406",
+        "from": "acct@yunlan-comm.com",
+        "to": "me@company.com",
+        "subject": "【隐含费用条款】合同YL-88：违约金豁免合计 8万（SLA条款）",
+        "date": "2026-03-02T14:25:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "fee-clause"],
+        "body": "你好，\n\n合同编号：YL-88\n条款名称：SLA违约条款。\n\n条款触发后，我方要求以违约金豁免合计形式替代赔付：\n- 违约金豁免合计：80,000 元（等效赔付金额）\n\n请据此更新工单并执行预算内处理通知。\n\n客户编号：CUS-106\n客户名称：云岚通信\n联系人：丁总\n\n丁总"
+      },
+      {
+        "message_id": "msg_2407",
+        "from": "ops@caihong-retail.com",
+        "to": "me@company.com",
+        "subject": "付款抵扣条款触发：服务费抵扣金额 20万（合同CHR-55）",
+        "date": "2026-03-02T15:05:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "fee-clause"],
+        "body": "您好，\n\n合同编号：CHR-55\n条款名称：付款抵扣条款。\n\n我们收到贵司通知后确认：本次等效赔付应以服务费抵扣金额表示：\n- 服务费抵扣金额：200,000 元（已等价为赔付口径）\n\n请按预算规则处理：若超出阈值则走审批草稿。\n\n客户编号：CUS-107\n客户名称：彩虹零售\n联系人：刘总\n\n刘总"
+      },
+      {
+        "message_id": "msg_2408",
+        "from": "support@haian-logistics.com",
+        "to": "me@company.com",
+        "subject": "【干扰】客户编号缺失：条款触发但无法匹配（合同HL-14，争议条款）",
+        "date": "2026-03-02T16:10:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "fee-clause"],
+        "body": "你好，\n\n合同编号：HL-14\n条款名称：争议条款。\n\n根据条款触发，我方要求等效赔付金额 50,000 元（服务费抵扣口径）。\n\n但本邮件未提供客户编号，导致无法在系统中定位客户与工单。\n\n（此为测试干扰样本）\n\n吴总"
+      },
+      {
+        "message_id": "msg_2409",
+        "from": "admin@changfeng.edu",
+        "to": "me@company.com",
+        "subject": "边界样本：违约金豁免合计=待承诺口径 5万（合同CEF-1，违约金豁免条款）",
+        "date": "2026-03-02T17:20:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "fee-clause"],
+        "body": "您好，\n\n合同编号：CEF-1\n条款名称：违约金豁免条款。\n\n根据条款触发，我方要求以违约金豁免合计作为等效赔付：\n- 违约金豁免合计：50,000 元\n\n该金额用于承诺等效赔付口径。\n\n客户编号：CUS-110\n客户名称：长风教育\n联系人：马校长\n\n马校长"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2401",
+        "title": "BFL-77 违约金豁免条款升级工单",
+        "description": "合同BFL-77对应违约金豁免条款触发。客户CUS-101请求以违约金豁免合计作为等效赔付口径（待模型提取金额）。",
+        "customer_id": "CUS-101",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-02T08:45:00Z",
+        "tags": ["条款触发", "违约金豁免", "升级拦截"]
+      },
+      {
+        "ticket_id": "TK-2402",
+        "title": "QCJ-2024 付款抵扣条款（服务费减免替代赔付）",
+        "description": "合同QCJ-2024付款抵扣条款。需要从邮件解析服务费减免等价金额并按预算阈值分流。客户CUS-102为VIP。",
+        "customer_id": "CUS-102",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-02T09:55:00Z",
+        "tags": ["VIP", "付款抵扣", "等效赔付"]
+      },
+      {
+        "ticket_id": "TK-2403",
+        "title": "STG-12 SLA违约条款待核算",
+        "description": "合同STG-12对应SLA违约条款。邮件中金额为待确认/另行核算：应更新状态到“待核算”。客户CUS-103。",
+        "customer_id": "CUS-103",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-02T10:55:00Z",
+        "tags": ["SLA违约条款", "待核算候选"]
+      },
+      {
+        "ticket_id": "TK-2404",
+        "title": "WX-901 争议条款异常-条款触发（不续约）",
+        "description": "合同WX-901争议条款。邮件将出现已终止/不续约或churned触发：应通知法务并打tag“异常-条款触发”。客户CUS-109。",
+        "customer_id": "CUS-109",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-02T11:20:00Z",
+        "tags": ["异常候选", "争议条款"]
+      },
+      {
+        "ticket_id": "TK-2405",
+        "title": "RD-330 服务费减免/抵扣条款预算分流",
+        "description": "合同RD-330服务费减免/抵扣条款。需要提取服务费抵扣等效赔付金额并按阈值决定发送还是保存审批草稿。客户CUS-105。",
+        "customer_id": "CUS-105",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-02T12:50:00Z",
+        "tags": ["服务费抵扣", "预算分流"]
+      },
+      {
+        "ticket_id": "TK-2406",
+        "title": "YL-88 SLA违约条款 预算内处理通知",
+        "description": "合同YL-88SLA违约条款。提取违约金豁免合计等效金额并计算是否<=5%。客户CUS-106。",
+        "customer_id": "CUS-106",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-02T13:20:00Z",
+        "tags": ["SLA违约条款", "预算内候选"]
+      },
+      {
+        "ticket_id": "TK-2407",
+        "title": "CHR-55 付款抵扣条款 需上级审批草稿",
+        "description": "合同CHR-55付款抵扣条款。提取服务费抵扣等效赔付金额并判断是否>5%以保存草稿。客户CUS-107。",
+        "customer_id": "CUS-107",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-02T14:10:00Z",
+        "tags": ["付款抵扣", "审批候选"]
+      },
+      {
+        "ticket_id": "TK-2408",
+        "title": "HL-14 争议条款（干扰：客户编号缺失）",
+        "description": "合同HL-14争议条款。用于干扰：邮件缺失客户编号，不应更新匹配动作（摘要标注跳过）。",
+        "customer_id": "CUS-108",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-02T15:40:00Z",
+        "tags": ["干扰样本", "争议条款"]
+      },
+      {
+        "ticket_id": "TK-2409",
+        "title": "CEF-1 违约金豁免条款 <=5%边界",
+        "description": "合同CEF-1违约金豁免条款。用于边界：等效赔付50,000与annual_revenue=1,000,000比率=5%。客户CUS-110。",
+        "customer_id": "CUS-110",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-02T16:50:00Z",
+        "tags": ["边界样本", "违约金豁免", "预算阈值5%"]
+      },
+      {
+        "ticket_id": "TK-2410",
+        "title": "QCJ-2024 SLA条款（同合同多条工单用于匹配干扰）",
+        "description": "合同QCJ-2024的SLA违约条款工单。与付款抵扣条款不同，用于确认匹配依据必须是合同编号+条款名称。",
+        "customer_id": "CUS-102",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-02T09:40:00Z",
+        "tags": ["SLA违约条款", "匹配干扰"]
+      },
+      {
+        "ticket_id": "TK-2411",
+        "title": "BFL-77 付款抵扣条款（同合同多条工单用于匹配干扰）",
+        "description": "合同BFL-77的付款抵扣条款工单。用于干扰：邮件实际是违约金豁免条款。",
+        "customer_id": "CUS-101",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-02T08:50:00Z",
+        "tags": ["付款抵扣", "匹配干扰"]
+      },
+      {
+        "ticket_id": "TK-2412",
+        "title": "STG-12 付款抵扣条款（同合同多条工单用于匹配干扰）",
+        "description": "合同STG-12的付款抵扣条款工单。用于干扰：邮件是SLA违约条款且为待核算。",
+        "customer_id": "CUS-103",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-02T10:20:00Z",
+        "tags": ["付款抵扣", "匹配干扰"]
+      },
+      {
+        "ticket_id": "TK-2413",
+        "title": "RD-330 SLA条款（同合同多条工单用于匹配干扰）",
+        "description": "合同RD-330的SLA条款工单。用于干扰：邮件实际是服务费减免/抵扣条款。",
+        "customer_id": "CUS-105",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-02T12:30:00Z",
+        "tags": ["SLA违约条款", "匹配干扰"]
+      },
+      {
+        "ticket_id": "TK-2414",
+        "title": "CHR-55 违约金豁免条款（同合同多条工单用于匹配干扰）",
+        "description": "合同CHR-55的违约金豁免条款工单。用于干扰：邮件实际是付款抵扣条款。",
+        "customer_id": "CUS-107",
+        "reporter": "客户服务-自动触发",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-02T14:00:00Z",
+        "tags": ["违约金豁免", "匹配干扰"]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新增“隐含费用条款”下的等效赔付口径提取（违约金豁免/服务费抵扣/多币种等值）、待确认导致不发送仅待核算、并按“合同编号+条款名称”精确匹配工单，且VIP需提升priority。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 共9封：6封有效处理、3封边界/干扰（待确认、客户编号缺失、churned/不续约异常）。",
+      "有效邮件覆盖三种等效口径：违约金豁免合计、服务费减免/抵扣、以及USD等值已换算CNY。",
+      "helpdesk/tickets.json 为同合同多条条款构造匹配干扰，确保必须使用“合同编号+条款名称”。",
+      "crm/customers.json 提供VIP与churned样本，并设置使<=5%边界与>5%样本同时存在。",
+      "contacts.json 提供客户服务与法务邮箱，用于预算内“发送通知”和异常“法务通知”。"
+    ]
+  }
+}

@@ -1,0 +1,95 @@
+task_id: T017zh_ticket_triage_plus_5
+task_name: 企业Wi-Fi异常与访客网络策略（不关闭工单的分型分优先级归类）
+version: '1.0'
+category: operations
+difficulty: easy
+tags:
+- general
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T017zh_ticket_triage_plus_5/fixtures/helpdesk/tickets.json
+prompt:
+  text: 帮我对系统中所有待处理的网络相关工单做 triage：按“企业内网Wi-Fi故障”“访客网络策略阻断”“DHCP/地址分配异常”“客户端兼容/误配置”“网络设备重启记录异常”进行分类并更新优先级与标签；识别并标注哪些工单存在强关联（例如同楼层同交换机端口区间的
+    DHCP 租约失败）。请不要关闭任何工单，只更新 priority/tags/category。
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 工单状态筛选 (open/closed/all)
+        default: open
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: helpdesk_update_ticket
+  description: 更新工单信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      priority:
+        type: string
+        description: 优先级 (urgent/high/medium/low)
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+      category:
+        type: string
+        description: 分类
+    required:
+    - ticket_id
+- name: helpdesk_close_ticket
+  description: 关闭工单
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+      resolution:
+        type: string
+        description: 解决方案描述
+    required:
+    - ticket_id
+    - resolution
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: helpdesk_update_ticket
+  url: http://localhost:9107/helpdesk/tickets/update
+  method: POST
+- tool_name: helpdesk_close_ticket
+  url: http://localhost:9107/helpdesk/tickets/close
+  method: POST
+sandbox_files:
+- fixtures/helpdesk/tickets.json
+environment:
+  timeout_seconds: 300
+  max_turns: 30

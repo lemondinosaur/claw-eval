@@ -1,0 +1,178 @@
+[
+  {
+    "ticket_id": "TK-2401",
+    "title": "交付依赖数据生成失败导致状态缺失",
+    "description": "交付依赖数据生成任务在本周多次失败，导致系统无法生成用于合同续约/内部审批的交付状态证明。客户反馈：资料缺失，采购审批无法继续。",
+    "department": "交付运营",
+    "priority": "high",
+    "status": "open",
+    "category": "delivery_dependency",
+    "product": "交付状态凭证（系统服务）",
+    "customer_id": "CUS-401",
+    "created_at": "2026-03-01T09:10:00+08:00",
+    "assigned_to": "运营值班-交付",
+    "updated_at": "2026-03-01T13:30:00+08:00",
+    "reporter": "客户成功团队",
+    "related_integration_ids": [
+      "INT-201",
+      "INT-207"
+    ]
+  },
+  {
+    "ticket_id": "TK-2402",
+    "title": "物料打包通知Webhook延迟/未送达",
+    "description": "物料打包完成后，交付通知Webhook延迟发送或未送达。影响：客户采购系统未收到“已发货/已打包”事件，导致发货排期推迟。",
+    "department": "平台运维",
+    "priority": "high",
+    "status": "open",
+    "category": "notification_delay",
+    "product": "通知事件（delivery-notify）",
+    "customer_id": "CUS-401",
+    "created_at": "2026-02-28T15:20:00+08:00",
+    "assigned_to": "平台值班",
+    "updated_at": "2026-03-01T11:40:00+08:00",
+    "reporter": "交付协调",
+    "related_integration_ids": [
+      "INT-202",
+      "INT-203"
+    ]
+  },
+  {
+    "ticket_id": "TK-2403",
+    "title": "交付接口偶发不可用（影响状态回写）",
+    "description": "交付支持API在高峰期出现超时重试，导致状态回写失败。客户侧表现为“查询交付状态一直卡住”。",
+    "department": "平台运维",
+    "priority": "medium",
+    "status": "open",
+    "category": "service_unavailable",
+    "product": "delivery_support_api",
+    "customer_id": "CUS-401",
+    "created_at": "2026-02-28T09:05:00+08:00",
+    "assigned_to": "运维值班-API",
+    "updated_at": "2026-02-29T10:45:00+08:00",
+    "reporter": "客服转交",
+    "related_integration_ids": [
+      "INT-201"
+    ]
+  },
+  {
+    "ticket_id": "TK-2404",
+    "title": "发货推迟：打包前置步骤排队超时",
+    "description": "打包前置步骤依赖库存预占API响应。近期队列拥塞导致预占超时，进而造成发货推迟与预计到货延后。",
+    "department": "供应链",
+    "priority": "medium",
+    "status": "open",
+    "category": "shipping_delay",
+    "product": "物料打包（前置）",
+    "customer_id": "CUS-401",
+    "created_at": "2026-02-27T19:40:00+08:00",
+    "assigned_to": "供应链调度",
+    "updated_at": "2026-02-28T18:10:00+08:00",
+    "reporter": "仓储组",
+    "related_integration_ids": [
+      "INT-205",
+      "INT-203"
+    ]
+  },
+  {
+    "ticket_id": "TK-2405",
+    "title": "交付状态同步任务未启用（本周缺口）",
+    "description": "发现交付状态同步相关逻辑在部分时间窗未正确启用，造成状态事件缺口。需要对齐工单与调度系统时间线以确认影响范围。",
+    "department": "交付运营",
+    "priority": "high",
+    "status": "open",
+    "category": "scheduler_disabled",
+    "product": "交付状态同步",
+    "created_at": "2026-02-29T08:30:00+08:00",
+    "assigned_to": "交付工程",
+    "updated_at": "2026-03-01T10:00:00+08:00",
+    "reporter": "值班经理",
+    "related_integration_ids": [
+      "INT-207"
+    ]
+  },
+  {
+    "ticket_id": "TK-2406",
+    "title": "客户请求升级说明：SLA阈值理解不一致",
+    "description": "客户提出交付SLA升级阈值相关疑问。现有对外口径与内部升级策略存在差异，影响客户对“何时升级/升级到谁”的预期管理。",
+    "department": "客户成功",
+    "priority": "low",
+    "status": "closed",
+    "category": "sla_policy",
+    "product": "SLA升级说明",
+    "customer_id": "CUS-401",
+    "created_at": "2026-02-26T12:10:00+08:00",
+    "assigned_to": "客户成功-运营",
+    "updated_at": "2026-02-26T17:35:00+08:00",
+    "reporter": "客户成功团队",
+    "resolution": "已提供临时口径链接；建议后续更新知识库SLA阈值文档并校对。"
+  },
+  {
+    "ticket_id": "TK-2407",
+    "title": "交付凭证生成成功率下降（半数失败）",
+    "description": "交付凭证生成接口在本周出现成功率下降，失败请求需要重试才能产出。导致部分订单的凭证生成延后，间接影响审批节奏。",
+    "department": "平台运维",
+    "priority": "medium",
+    "status": "open",
+    "category": "delivery_dependency",
+    "product": "交付凭证服务",
+    "customer_id": "CUS-403",
+    "created_at": "2026-02-29T14:50:00+08:00",
+    "assigned_to": "平台值班",
+    "updated_at": "2026-03-01T09:20:00+08:00",
+    "reporter": "客服转交",
+    "related_integration_ids": [
+      "INT-201",
+      "INT-204"
+    ]
+  },
+  {
+    "ticket_id": "TK-2408",
+    "title": "打包服务返回成功但通知链路缺失",
+    "description": "打包服务本身返回成功，但后续通知链路出现缺口，导致客户无法确认已发货事件。需要检查链路是否存在超时重试但未最终落库。",
+    "department": "平台运维",
+    "priority": "high",
+    "status": "open",
+    "category": "notification_delay",
+    "product": "packaging_service",
+    "customer_id": "CUS-401",
+    "created_at": "2026-02-27T21:20:00+08:00",
+    "assigned_to": "交付工程",
+    "updated_at": "2026-03-01T08:55:00+08:00",
+    "reporter": "交付协调",
+    "related_integration_ids": [
+      "INT-202",
+      "INT-203"
+    ]
+  },
+  {
+    "ticket_id": "TK-2409",
+    "title": "接口重试风暴后恢复（影响短时订单）",
+    "description": "监控显示存在短时超时重试风暴，随后恢复。部分工单客户仍反馈“查询交付状态偏慢”，需评估是否存在缓存未刷新。",
+    "department": "平台运维",
+    "priority": "medium",
+    "status": "closed",
+    "category": "service_unavailable",
+    "product": "delivery_support_api",
+    "created_at": "2026-02-28T12:00:00+08:00",
+    "assigned_to": "运维值班-API",
+    "updated_at": "2026-02-28T14:10:00+08:00",
+    "reporter": "值班工程师",
+    "resolution": "服务在14:05恢复；建议排查重试后缓存刷新策略。"
+  },
+  {
+    "ticket_id": "TK-2410",
+    "title": "物料准备不足：配件短缺导致局部发货推迟",
+    "description": "部分配件SKU接近或低于安全线，导致局部批次发货推迟。需与库存低库存数据对齐验证，避免误判为主因。",
+    "department": "供应链",
+    "priority": "low",
+    "status": "open",
+    "category": "material_shortage",
+    "product": "配件补齐（packing supplies）",
+    "customer_id": "CUS-402",
+    "created_at": "2026-02-27T11:25:00+08:00",
+    "assigned_to": "仓储调度",
+    "updated_at": "2026-02-28T09:30:00+08:00",
+    "reporter": "仓储组"
+  }
+]

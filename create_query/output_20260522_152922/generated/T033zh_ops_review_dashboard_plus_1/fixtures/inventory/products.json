@@ -1,0 +1,57 @@
+[
+  {
+    "product_id": "PRD-501",
+    "name": "数据采集网关G2",
+    "category": "网络与边缘",
+    "current_stock": 920,
+    "min_stock": 400,
+    "status": "normal",
+    "return_rate": 1.2,
+    "return_count": 7,
+    "units_sold_this_month": 2600,
+    "supplier": "长河电子",
+    "last_restock_date": "2026-04-10",
+    "notes": "库存充足，无明显异常"
+  },
+  {
+    "product_id": "PRD-502",
+    "name": "订单履约服务包S3",
+    "category": "服务包",
+    "current_stock": 140,
+    "min_stock": 120,
+    "status": "normal",
+    "return_rate": 2.8,
+    "return_count": 3,
+    "units_sold_this_month": 96,
+    "supplier": "云速运维",
+    "last_restock_date": "2026-04-18",
+    "notes": "服务包资源略紧，但未达到影响支付链路的规模；仅能作为少量履约延迟干扰项"
+  },
+  {
+    "product_id": "PRD-503",
+    "name": "商户结算对账设备D1",
+    "category": "对账设备",
+    "current_stock": 55,
+    "min_stock": 60,
+    "status": "low_stock",
+    "return_rate": 0.9,
+    "return_count": 1,
+    "units_sold_this_month": 38,
+    "supplier": "汇通硬件",
+    "last_restock_date": "2026-04-06",
+    "notes": "库存略低，可能导致部分线下商户履约延迟，但与回调超时/写回失败的主因不一致"
+  },
+  {
+    "product_id": "PRD-504",
+    "name": "支付风控策略插件V4",
+    "category": "软件组件",
+    "current_stock": 300,
+    "min_stock": 100,
+    "status": "normal",
+    "return_rate": 0.6,
+    "return_count": 2,
+    "units_sold_this_month": 1800,
+    "supplier": "安全算法工坊",
+    "last_restock_date": "2026-04-20"
+  }
+]

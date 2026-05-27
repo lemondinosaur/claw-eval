@@ -1,0 +1,198 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T013zh_meeting_notes_plus_5",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/notes/meetings.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 5,
+  "new_task_id": "T013zh_meeting_notes_plus_5",
+  "new_task_name": "应急响应复盘行动项",
+  "task_goal": "整理一次“应急响应复盘会”的行动项，重点包括：根因分析后的改进措施、需要补齐的监控/告警、以及演练计划；并分享给应急小组参会人。对跨工具/跨团队的依赖要明确标注。",
+  "user_request": "帮我把“应急响应复盘会”的改进措施、监控告警与演练计划整理成行动项，并发给应急小组参会人。",
+  "scenario": "该纪要强调的是事后复盘：包含事件时间线、参与角色、以及改进措施。干扰信息包括：事故描述的细节段落、以及与行动项无关的合规口径讨论。行动项需要覆盖三个方向：1）流程改进（谁要更新SOP/谁要完成制度变更）；2）可观测性（谁要配置告警阈值/告警路由/仪表盘）；3）演练（谁要安排演练脚本与复盘复测）。存在边界条件：有些行动项写为“跟供应商对接确认”，但供应商名称在participants之外；输出应只保留内部负责人和“对接对象类型”（例如“供应商/第三方”）而不要求具体供应商实体。分享收件人应为participants内的应急小组成员，且必须排除participants中标注为“列席但非执行”的人（fixtures中通过participants名集合实现）。",
+  "difference_from_source": "原题是常规周会要点整理，本题是应急复盘，行动项覆盖流程/可观测性/演练三大类，并要求对第三方对接这种依赖做“内部责任表述”（不追求具体外部实体），且分享范围存在“执行者子集”筛选。",
+  "service_and_tool_plan": "notes_list 查找标题包含“应急响应复盘会”的记录；notes_get 获取主纪要内容；若纪要中提到“演练脚本在另一份note”，则再 notes_get 获取该note以补全演练行动；最后 notes_share 分享给应急小组执行者集合。",
+  "fixture_generation_plan": "在 fixtures/notes/meetings.json 中加入至少8条记录：主纪要1条（应急响应复盘会，participants包含执行者与列席者两类，执行者用更明确命名集合体现）、演练脚本或后续跟进纪要1条（可选但建议做以提高多note处理）、无关纪要3-4条（如“运营周会”“团队闲聊”）。content中至少包含9条行动项：流程改进3条、监控告警4条、演练2条；其中至少2条是第三方/外部对接依赖，输出需用“对接对象：第三方/供应商”而非具体名称；至少1条行动项没有明确截止日期，仅给出“下次演练前/下个迭代窗口”，也要保留并标注为区间/节点。不要复用原题任何实体名、日期、SKU、工单ID或数值。",
+  "expected_behavior": "代理应：1）找到并读取主纪要与必要的补充纪要；2）抽取行动项并按“流程改进/监控告警/演练计划”分组；3）每条包含内部负责人、行动内容、依赖/协作对象类型（如第三方对接则写“第三方确认后执行”）、截止节点或状态（日期/迭代窗口/待定）；4）忽略纯事故叙述与合规口径讨论段落中不构成行动承诺的内容；5）调用 notes_share 将对应note_id 分享给应急执行者集合（排除列席非执行者）。",
+  "grading_plan": "grader.py 检查：1）notes_get 至少覆盖主纪要且如存在脚本引用则覆盖补充note；2）输出必须包含三大分组标签且每组条目数量不少于fixtures设定的下限；3）第三方依赖项必须以“对接对象类型”呈现且仍包含内部负责人；4）截止信息若为区间/节点需在输出中体现为节点而非杜撰日期；5）notes_share recipients 与执行者子集匹配，且不包含列席非执行者。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T013zh_meeting_notes",
+  "task_name": "Meeting Notes Action Items",
+  "task_type": "productivity",
+  "category": "productivity",
+  "difficulty": "easy",
+  "tags": [
+    "general"
+  ],
+  "language": "zh",
+  "services": [
+    "notes"
+  ],
+  "tools": [
+    "notes_list",
+    "notes_get",
+    "notes_share"
+  ],
+  "fixture_paths": [
+    "fixtures/notes/meetings.json"
+  ],
+  "sandbox_files": [
+    "fixtures/notes/meetings.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "productivity"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T013zh_meeting_notes
+task_name: Meeting Notes Action Items
+version: '1.0'
+category: productivity
+difficulty: easy
+tags:
+- general
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+prompt:
+  text: 帮我把2026年2月23日周会的要点整理出来，发给参会的人。
+  language: zh
+tools:
+- name: notes_list
+  description: 获取会议记录列表
+  input_schema:
+    type: object
+    properties:
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 10
+    required: []
+- name: notes_get
+  description: 根据ID获取会议记录详细内容
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 会议记录ID
+    required:
+    - note_id
+- name: notes_share
+  description: 将会议记录分享给其他人
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 会议记录ID
+      recipients:
+        type: array
+        items:
+          type: string
+        description: 接收人列表
+    required:
+    - note_id
+    - recipients
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: notes_share
+  url: http://localhost:9105/notes/share
+  method: POST
+sandbox_files:
+- fixtures/notes/meetings.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/notes/meetings.json ---
+[
+  {
+    "note_id": "note_001",
+    "title": "产品规划周会 - 2026-02-23",
+    "created_at": "2026-02-23T10:00:00Z",
+    "participants": ["张经理", "李明", "王芳", "赵强"],
+    "content": "会议开始，张经理介绍了本周的议题。\n\n首先讨论了新版本的发布时间表。李明提到后端API还需要两周才能完成，主要是支付模块的集成比预期复杂。王芳说设计稿已经全部完成，前端可以先开始开发非支付相关的页面。\n\n然后讨论了客户反馈的问题。赵强说他已经处理完了上周的首页性能问题（见上周会议记录note_004），现在可以专注处理新的bug了。赵强说有三个高优先级的bug需要在发布前修复：1）搜索结果排序不正确；2）移动端页面加载过慢；3）导出PDF功能偶尔crash。李明说他这周会先处理搜索排序的bug，王芳会配合优化移动端性能。\n\n张经理要求赵强在周五之前完成所有bug的修复方案评估，并发邮件给团队。另外，张经理让李明准备下周三的技术评审材料，重点是支付模块的架构设计。\n\n王芳提出需要更新UI组件库的版本，可能会影响部分页面的样式。张经理同意了，但要求王芳先做一个影响范围评估，下周一之前提交。\n\n会议结束前，张经理提醒大家下周五是季度评审，每个人需要准备自己的工作总结PPT。\n\n张经理最后说：'这些待办事项请助手整理好后直接分享给所有参会人。'",
+    "duration_minutes": 45
+  },
+  {
+    "note_id": "note_002",
+    "title": "客户需求沟通 - ABC公司",
+    "created_at": "2026-02-24T14:00:00Z",
+    "participants": ["张经理", "陈客户", "李明"],
+    "content": "与ABC公司的陈总进行了需求沟通。\n\n陈总提出了几个新需求：第一是希望增加数据导出功能，支持Excel和CSV格式，这个比较紧急，希望下个月就能上线。第二是希望有一个管理后台的仪表盘，可以实时看到关键指标。第三是想要接入他们的ERP系统，做数据同步。\n\n李明解释了技术方案。关于数据导出，可以在两周内完成基础功能。关于仪表盘，需要先确认他们想看哪些指标，李明会准备一份指标清单让陈总选择。ERP集成比较复杂，需要先做技术调研。\n\n张经理承诺下周会发一份正式的需求评估文档给ABC公司，包含时间表和报价。另外，张经理让李明本周内完成ERP集成的技术可行性分析。\n\n陈总还提到他们的合同下个月到期，希望讨论续约的事宜。张经理说会安排商务团队联系他。",
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "note_003",
+    "title": "团队午餐闲聊记录",
+    "created_at": "2026-02-25T12:00:00Z",
+    "participants": ["李明", "王芳", "赵强"],
+    "content": "午餐时大家聊了聊近况。李明说最近在学Rust，觉得挺有意思的。王芳分享了她周末去爬山的照片。赵强说他家的猫又把花瓶打碎了。\n\n后来聊到了公司的年会，大家都很期待。王芳建议今年可以搞一个才艺表演环节。",
+    "duration_minutes": 30
+  },
+  {
+    "note_id": "note_004",
+    "title": "产品规划周会 - 2026-02-16",
+    "created_at": "2026-02-16T10:00:00Z",
+    "participants": ["张经理", "李明", "王芳", "赵强"],
+    "content": "上周会议纪要：\n\n1. 李明负责完成支付模块的技术方案文档 — 状态：已完成\n2. 赵强负责修复首页性能问题 — 状态：已完成\n3. 王芳负责更新用户画像文档 — 状态：进行中，预计本周完成\n4. 张经理负责与ABC公司确认合作意向 — 状态：已安排会议（见note_002）\n\n本周重点：\n- 继续推进新版本开发\n- 关注支付模块集成进度",
+    "duration_minutes": 40
+  }
+]
+
+--- END FILE: fixtures/notes/meetings.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

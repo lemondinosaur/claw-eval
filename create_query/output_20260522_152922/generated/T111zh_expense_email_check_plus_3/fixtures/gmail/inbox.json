@@ -1,0 +1,86 @@
+[
+  {
+    "message_id": "msg_c01",
+    "from": "sunwei@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：差旅费（审批中）",
+    "date": "2026-03-24T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "财务部您好，我本次出差上海的差旅费用申请报销。\n当次发票号：INV-C401\n费用合计：2,480.00元（含交通与住宿）。\n另外，历史发票号 INV-C399 仅供参考，不用于本次核对。请审核并入账。"
+  },
+  {
+    "message_id": "msg_c02",
+    "from": "zhaoqian@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：会议餐费与服务费",
+    "date": "2026-03-24T10:45:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "请协助报销本次会议相关费用。\n当次发票号INV-C402\n金额：约3,300元（含税），烦请以最终财务入账为准。\n邮件内可能出现旧信息：发票号 INV-C317（历史）仅为背景描述。以上当次发票号请以最后出现的INV-C402为准。"
+  },
+  {
+    "message_id": "msg_c03",
+    "from": "chenrui@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：办公杂项费用",
+    "date": "2026-03-24T12:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，我提交办公杂项费用报销。\n当次发票号：INV-C403\n人民币 1200 元整（包含打印耗材与邮寄）。\n同时正文提到的旧发票号 INV-C012 不属于本次报销，请以最后出现的 INV-C403 为准。谢谢。"
+  },
+  {
+    "message_id": "msg_c04",
+    "from": "qiyu@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：软件订阅费",
+    "date": "2026-03-24T15:05:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "财务部好，软件订阅费申请报销。\n历史发票号 INV-C405（已作废，仅说明）。\n当次发票号：INV-C404\n费用：费用合计：1,950.5 元（请按规则核对到两位小数）。"
+  },
+  {
+    "message_id": "msg_c05",
+    "from": "vendor-ops@suppliers.com",
+    "to": "finance@company.com",
+    "subject": "供应商回函：已开票（非报销申请）",
+    "date": "2026-03-24T13:10:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，我们确认已开具发票。\n发票号：INV-C999\n本邮件仅用于供应商回函，不对应报销申请流程。谢谢。"
+  },
+  {
+    "message_id": "msg_c06",
+    "from": "lihua@company.com",
+    "to": "hr@company.com",
+    "subject": "员工请假说明（非财务报销）",
+    "date": "2026-03-24T11:55:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "我因个人事务需要请假，期间产生的相关支出为 980元（不属于报销申请）。请假时间：3月30日至4月1日。"
+  },
+  {
+    "message_id": "msg_c07",
+    "from": "meeting-room@company.com",
+    "to": "zhangwei@company.com",
+    "subject": "会议邀请：季度复盘会（无发票）",
+    "date": "2026-03-24T17:30:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您已被邀请参加会议：季度复盘会。\n时间：4月1日 14:00。\n此邀请不涉及任何发票号或报销申请。"
+  }
+]

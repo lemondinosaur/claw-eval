@@ -1,0 +1,482 @@
+{
+  "task_id": "T031zh_escalation_budget_triage_plus_5",
+  "task_name": "跨区域客服风控：多重升级与重复客户去重",
+  "prompt_text": "收件箱里存在来自不同区域（华东/华南/海外）的客户升级邮件。请处理并在末尾输出“按客户维度”的处理摘要。\n\n要求：\n1）读取收件箱中所有升级邮件并逐封解析：客户编号、客户名称（如有）、补偿金额、区域标识，以及是否包含“已停用账户/账户已停用”等停用线索。\n2）对每个客户，在CRM中查找该客户的 tier、annual_revenue、status。\n3）在帮助台工单系统中检索该客户的升级相关工单（可能多条）。\n4）去重：如果同一客户出现多封升级邮件，只保留该客户“最高要求补偿金额”的那封作为本次决策依据；其余邮件标记为“重复升级无需再发”，不得触发任何 send/draft 动作，但需在摘要说明。\n5）重复已处理识别：如果某客户在帮助台已有 tag='已提交审批'，且finance中存在 status='completed' 的已完成补偿记录，则该客户本轮跳过任何 send/draft 动作，仅对其相关工单更新 tag='无需重复'（并在摘要体现动作=skip-repeat）。\n6）决策规则（仅对未被重复跳过且状态有效的客户执行）：\n   - active 且未满足重复已处理：\n     * 补偿金额 / annual_revenue <= 5% ：向该客户服务联络人发送“处理通知”（gmail_send_message）。\n     * 补偿金额 / annual_revenue > 5% ：保存草稿给该客户服务联络人（gmail_save_draft），标注需上级审批。\n   - churned 或邮件含“已停用账户/账户已停用”：通知法务并更新工单异常标签（tag='异常-法务'），不做客户承诺（动作=legal）。\n7）对于同一客户的非最高金额邮件：在摘要标注“重复升级无需再发”，但不得发送/保存草稿。\n\n输出摘要（必须按客户汇总，不按邮件逐封输出）：每个客户至少包含：\n- 客户编号\n- 保留的那封邮件ID（最高金额那封；若因无效/无编号则无需参与决策）\n- 最高金额/年收入比率（百分比形式即可）\n- 动作（sent/draft/legal/skip-repeat/skip-invalid 等）\n- 处理到的工单ID列表（哪些工单被更新或用于决策）。\n\n额外说明：若发现无客户编号或补偿金额为负数/明显无效的邮件，请跳过对该封邮件的决策，但仍需在摘要体现对应原因。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-401",
+        "name": "陈思妍",
+        "department": "客户服务部",
+        "title": "客服运营负责人",
+        "email": "siyanch@companymail.com",
+        "phone": "13901110001",
+        "location": "上海"
+      },
+      {
+        "contact_id": "CT-404",
+        "name": "何子航",
+        "department": "法务部",
+        "title": "法务顾问",
+        "email": "zihang.he@companymail.com",
+        "phone": "13901110004",
+        "location": "深圳"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-101",
+        "name": "北辰云联",
+        "contact_person": "周牧",
+        "email": "mzhou@beichen-cloud.com",
+        "phone": "13810101001",
+        "industry": "云计算",
+        "tier": "vip",
+        "annual_revenue": 8000000,
+        "last_contact_date": "2026-02-25",
+        "status": "active",
+        "notes": "近半年多次触发升级，需确保风控留痕"
+      },
+      {
+        "customer_id": "CUS-102",
+        "name": "澄海工业",
+        "contact_person": "赵彬",
+        "email": "zhaobin@chenghai-ind.com",
+        "phone": "13810101002",
+        "industry": "制造",
+        "tier": "standard",
+        "annual_revenue": 2000000,
+        "last_contact_date": "2026-02-22",
+        "status": "active",
+        "notes": "对交付节奏敏感，补偿门槛容易超出"
+      },
+      {
+        "customer_id": "CUS-103",
+        "name": "青橙数据",
+        "contact_person": "孙雅",
+        "email": "sunya@qingcheng-data.com",
+        "phone": "13810101003",
+        "industry": "数据服务",
+        "tier": "vip",
+        "annual_revenue": 9500000,
+        "last_contact_date": "2026-02-26",
+        "status": "active",
+        "notes": "VIP客户，升级响应需更快"
+      },
+      {
+        "customer_id": "CUS-104",
+        "name": "金穗零售",
+        "contact_person": "李婉",
+        "email": "liwan@jinsui-retail.cn",
+        "phone": "13810101004",
+        "industry": "零售",
+        "tier": "standard",
+        "annual_revenue": 3000000,
+        "last_contact_date": "2026-02-20",
+        "status": "active",
+        "notes": "客户服务体验要求高"
+      },
+      {
+        "customer_id": "CUS-105",
+        "name": "蓝桥健康",
+        "contact_person": "林然",
+        "email": "linran@lanqiao-health.cn",
+        "phone": "13810101005",
+        "industry": "健康科技",
+        "tier": "standard",
+        "annual_revenue": 1700000,
+        "last_contact_date": "2026-01-30",
+        "status": "active",
+        "notes": "历史投诉较少，本次升级为异常提醒"
+      },
+      {
+        "customer_id": "CUS-106",
+        "name": "星港通信",
+        "contact_person": "陈瑜",
+        "email": "chenyu@xinggang-comm.com",
+        "phone": "13810101006",
+        "industry": "通信",
+        "tier": "vip",
+        "annual_revenue": 4200000,
+        "last_contact_date": "2026-02-10",
+        "status": "active",
+        "notes": "多区域并行交付，需按区域优先匹配工单"
+      },
+      {
+        "customer_id": "CUS-107",
+        "name": "红杉贸易",
+        "contact_person": "王磊",
+        "email": "wanglei@hongshang-trade.com",
+        "phone": "13810101007",
+        "industry": "贸易",
+        "tier": "standard",
+        "annual_revenue": 1500000,
+        "last_contact_date": "2025-12-01",
+        "status": "churned",
+        "churn_date": "2025-12-01",
+        "churn_reason": "合同到期未续约",
+        "notes": "已流失"
+      },
+      {
+        "customer_id": "CUS-108",
+        "name": "银桦物流",
+        "contact_person": "周凯",
+        "email": "zhoukai@yinhua-logistics.cn",
+        "phone": "13810101008",
+        "industry": "物流",
+        "tier": "vip",
+        "annual_revenue": 5200000,
+        "last_contact_date": "2025-11-20",
+        "status": "churned",
+        "churn_date": "2025-11-20",
+        "churn_reason": "长期服务争议导致终止",
+        "notes": "已流失"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2401",
+        "date": "2025-12-12",
+        "amount": 260000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-103",
+        "customer_name": "青橙数据",
+        "type": "客户补偿",
+        "category": "补偿支出",
+        "description": "青橙数据历史服务升级补偿（已完成）",
+        "approved_by": "siyanch@companymail.com",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-2402",
+        "date": "2026-01-05",
+        "amount": 90000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-101",
+        "customer_name": "北辰云联",
+        "type": "客户补偿",
+        "category": "补偿支出",
+        "description": "北辰云联上期问题修复补偿（已完成）",
+        "approved_by": "zihang.he@companymail.com",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-2403",
+        "date": "2025-10-18",
+        "amount": 120000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-102",
+        "customer_name": "澄海工业",
+        "type": "客户补偿",
+        "category": "补偿支出",
+        "description": "澄海工业交付延迟补偿（已完成）",
+        "approved_by": "siyanch@companymail.com",
+        "status": "completed"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_24001",
+        "from": "escalation@beichen-cloud.com",
+        "to": "me@company.com",
+        "subject": "【华东升级】北辰云联 要求 40万补偿（影响交付SLA）",
+        "date": "2026-02-28T09:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "east"
+        ],
+        "body": "客户升级通知：\n\n客户编号：CUS-101\n客户名称：北辰云联\n区域：华东\n\n我们由于交付节奏与SLA偏差，要求书面补偿金额：补偿金额=400000。\n\n诉求：\n- 立即安排处理与书面回复\n- 指定对接负责人\n\n请尽快。\n\n华东运营负责人 张先生"
+      },
+      {
+        "message_id": "msg_24002",
+        "from": "escalation@beichen-cloud.com",
+        "to": "me@company.com",
+        "subject": "【华南升级】北辰云联 要求 52万补偿（升级二次）",
+        "date": "2026-02-28T10:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "south"
+        ],
+        "body": "你好，\n\n再次升级：\n客户编号：CUS-101\n客户名称：北辰云联\n区域：华南\n\n由于前次承诺未完全兑现，我们提出更高补偿：补偿金额=520000。\n\n要求：\n- 书面道歉与处理通知\n\n谢谢。\n\n华南客户经理 马女士"
+      },
+      {
+        "message_id": "msg_24003",
+        "from": "alerts@qingcheng-data.com",
+        "to": "me@company.com",
+        "subject": "【海外升级】青橙数据 要求 48万补偿（待审批后再次催促）",
+        "date": "2026-02-28T11:25:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "overseas"
+        ],
+        "body": "客户升级：\n\n客户编号：CUS-103\n客户名称：青橙数据\n区域：海外\n\n我们要求补偿金额：补偿金额=480000。\n同时提醒：如无法尽快推进，我们将启动后续法务流程。\n\n联系人：孙雅\n\n请尽快处理。\n"
+      },
+      {
+        "message_id": "msg_24004",
+        "from": "alerts@qingcheng-data.com",
+        "to": "me@company.com",
+        "subject": "Re: 【海外升级】青橙数据 要求 35万补偿（来自不同区域的重复升级）",
+        "date": "2026-02-28T12:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "overseas"
+        ],
+        "body": "补充通知：\n\n客户编号：CUS-103\n区域：海外\n\n基于阶段性沟通，我们要求补偿金额：补偿金额=350000。\n（此邮件为之前升级的补充版本）\n\n孙雅"
+      },
+      {
+        "message_id": "msg_24005",
+        "from": "support@chenghai-ind.com",
+        "to": "me@company.com",
+        "subject": "【华东升级】澄海工业 申请 -5万补偿（无效金额测试）",
+        "date": "2026-02-28T13:15:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "east"
+        ],
+        "body": "客户升级通知：\n\n客户编号：CUS-102\n客户名称：澄海工业\n区域：华东\n\n我们提出补偿金额：补偿金额=-50000（请注意：金额为负数，可能是误填）。\n\n联系人：赵彬"
+      },
+      {
+        "message_id": "msg_24006",
+        "from": "support@chenghai-ind.com",
+        "to": "me@company.com",
+        "subject": "【华南升级】澄海工业 要求 20万补偿（交付延迟）",
+        "date": "2026-02-28T14:00:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "south"
+        ],
+        "body": "客户投诉升级：\n\n客户编号：CUS-102\n客户名称：澄海工业\n区域：华南\n\n交付延迟导致额外成本，我们要求补偿金额：补偿金额=200000。\n\n诉求：\n- 处理通知\n- 给出补救计划\n\n赵彬"
+      },
+      {
+        "message_id": "msg_24007",
+        "from": "escalation@unknown.example",
+        "to": "me@company.com",
+        "subject": "【干扰】没有客户编号的升级邮件（请忽略）",
+        "date": "2026-02-28T15:20:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "这是一封干扰邮件：\n\n我们没有提供客户编号，但声称要求补偿金额=123000。\n\n请不要按客户维度执行发送动作。"
+      },
+      {
+        "message_id": "msg_24008",
+        "from": "legal@jinsui-retail.cn",
+        "to": "me@company.com",
+        "subject": "【华东升级】金穗零售 已停用账户 - 要求 18万补偿",
+        "date": "2026-02-28T16:10:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "east"
+        ],
+        "body": "紧急通知：\n\n客户编号：CUS-104\n客户名称：金穗零售\n区域：华东\n\n由于我们的账户已停用（已停用账户），现提出补偿要求：补偿金额=180000。\n\n请法务介入。\n\n李婉"
+      },
+      {
+        "message_id": "msg_24009",
+        "from": "alerts@lanqiao-health.cn",
+        "to": "me@company.com",
+        "subject": "【海外升级】蓝桥健康 要求 6.5万补偿（SLA超时）",
+        "date": "2026-02-28T17:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "overseas"
+        ],
+        "body": "客户升级通知：\n\n客户编号：CUS-105\n客户名称：蓝桥健康\n区域：海外\n\n我们要求补偿金额：补偿金额=65000。\n原因：多次SLA超时。\n\n联系人：林然"
+      },
+      {
+        "message_id": "msg_24010",
+        "from": "alerts@xinggang-comm.com",
+        "to": "me@company.com",
+        "subject": "【华南升级】星港通信 要求 2.8万补偿（重复区域同客户）",
+        "date": "2026-02-28T18:00:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "escalation",
+          "south"
+        ],
+        "body": "升级邮件：\n\n客户编号：CUS-106\n客户名称：星港通信\n区域：华南\n\n我们提出补偿金额：补偿金额=28000。\n诉求：处理通知。\n\n陈瑜"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-24010",
+        "title": "北辰云联（CUS-101）华东：交付SLA偏差投诉",
+        "description": "客户在华东区域反馈交付节奏与SLA偏差，要求补偿并得到书面处理通知。",
+        "customer_id": "CUS-101",
+        "reporter": "客户服务-区域值班",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-02-28T09:35:00Z",
+        "tags": [
+          "east",
+          "升级",
+          "SLA偏差"
+        ]
+      },
+      {
+        "ticket_id": "TK-24011",
+        "title": "北辰云联（CUS-101）华南：升级二次补偿诉求",
+        "description": "客户在华南区域再次升级，要求更高补偿金额，并要求书面回复。",
+        "customer_id": "CUS-101",
+        "reporter": "客户服务-华南",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-02-28T10:20:00Z",
+        "tags": [
+          "south",
+          "升级二次"
+        ]
+      },
+      {
+        "ticket_id": "TK-24020",
+        "title": "青橙数据（CUS-103）海外：服务升级审批中",
+        "description": "青橙数据海外区域升级事件，当前存在审批流，要求更新后续动作并与财务记录核对。",
+        "customer_id": "CUS-103",
+        "reporter": "客户服务-海外",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-02-25T08:00:00Z",
+        "tags": [
+          "overseas",
+          "已提交审批",
+          "服务升级"
+        ]
+      },
+      {
+        "ticket_id": "TK-24021",
+        "title": "青橙数据（CUS-103）海外：补充诉求跟进工单",
+        "description": "用于承接补充邮件的内部跟进，后续需判断是否重复升级无需再发。",
+        "customer_id": "CUS-103",
+        "reporter": "客户服务-海外",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-02-26T10:00:00Z",
+        "tags": [
+          "overseas",
+          "补充跟进"
+        ]
+      },
+      {
+        "ticket_id": "TK-24030",
+        "title": "澄海工业（CUS-102）华东：补偿金额异常校验",
+        "description": "收到含负数补偿金额的升级邮件（疑似填报错误），需标记无效并不执行发送动作。",
+        "customer_id": "CUS-102",
+        "reporter": "客户服务-华东",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-02-28T13:30:00Z",
+        "tags": [
+          "east",
+          "金额异常"
+        ]
+      },
+      {
+        "ticket_id": "TK-24031",
+        "title": "澄海工业（CUS-102）华南：交付延迟升级工单",
+        "description": "客户在华南区域反馈交付延迟并要求补偿金额。",
+        "customer_id": "CUS-102",
+        "reporter": "客户服务-华南",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-02-28T14:20:00Z",
+        "tags": [
+          "south",
+          "交付延迟"
+        ]
+      },
+      {
+        "ticket_id": "TK-24040",
+        "title": "金穗零售（CUS-104）华东：账户已停用异常升级",
+        "description": "客户邮件含“已停用账户”线索，需走法务介入并更新异常标签，不做客户承诺。",
+        "customer_id": "CUS-104",
+        "reporter": "客户服务-华东",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-02-28T16:25:00Z",
+        "tags": [
+          "east",
+          "异常-待法务"
+        ]
+      },
+      {
+        "ticket_id": "TK-24050",
+        "title": "蓝桥健康（CUS-105）海外：SLA超时补偿诉求",
+        "description": "客户海外区域升级，要求较小补偿并希望尽快得到处理通知。",
+        "customer_id": "CUS-105",
+        "reporter": "客户服务-海外",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-02-28T17:15:00Z",
+        "tags": [
+          "overseas",
+          "SLA超时"
+        ]
+      },
+      {
+        "ticket_id": "TK-24060",
+        "title": "星港通信（CUS-106）华南：升级预算内处理",
+        "description": "华南区域升级，客户提出补偿并要求处理通知，需按比率判断 sent/draft。",
+        "customer_id": "CUS-106",
+        "reporter": "客户服务-华南",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-02-28T18:10:00Z",
+        "tags": [
+          "south",
+          "预算判断"
+        ]
+      },
+      {
+        "ticket_id": "TK-24061",
+        "title": "星港通信（CUS-106）华南：补充升级（用于去重验证）",
+        "description": "用于承接同客户不同区域/不同邮件的去重逻辑（应根据最高金额保留）。",
+        "customer_id": "CUS-106",
+        "reporter": "客户服务-华南",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-02-28T18:25:00Z",
+        "tags": [
+          "south",
+          "补充升级"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在逐邮件处理基础上加入跨区域同客户去重（只保留最高补偿金额）与“已提交审批+completed历史”触发的重复跳过/工单打标逻辑，并将输出改为按客户汇总的决策摘要。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 共10封：覆盖6个客户（其中2个客户各2封）、1封无客户编号干扰、1封负数金额无效、其余为停用线索与正常升级",
+      "crm/customers.json 新增8个全新客户ID：包含2个churned客户（用于异常-法务分支），其余active且提供annual_revenue与tier",
+      "helpdesk/tickets.json 为主要客户提供多条工单，并对CUS-103预置tag='已提交审批'以触发skip-repeat",
+      "finance/transactions.json 为CUS-103提供completed补偿记录以满足重复已处理识别条件；为其他客户提供可选历史记录",
+      "跨fixture实体引用一致：客户编号CUS-101~CUS-106与对应工单customer_id、邮件正文中的客户编号保持一致；contacts.json提供客户服务与法务邮箱用于sent/legal动作"
+    ]
+  }
+}

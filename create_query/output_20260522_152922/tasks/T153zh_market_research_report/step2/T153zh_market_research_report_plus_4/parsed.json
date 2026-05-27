@@ -1,0 +1,645 @@
+{
+  "task_id": "T153zh_market_research_report_plus_4",
+  "task_name": "产品竞争对抗分析（替代威胁）",
+  "prompt_text": "你是市场研究与产品竞争分析团队的分析师。请完成《竞争对抗分析与产品替代威胁报告》，并保存给产品与销售协作委员会的邮件草稿（不要发送）。\n\n要求：\n1) 先查看收件箱邮件，提取对报告的具体要求、以及销售侧对“竞品更容易替代”的线索与干扰提示。\n2) 从RSS抓取竞品能力升级与采用趋势，并过滤掉与“竞品替代威胁”无关的噪声内容；聚焦竞品的功能升级、定价/交付变化（如部署周期/服务交付承诺）、以及行业采用趋势。\n3) 从知识库获取：我司相对竞品的差距、补强计划，以及对策/沟通策略模板（可用于后续对客户与销售话术的落点）。\n4) 从CRM按客户分层（VIP / standard）列出客户，再结合每个关键客户的notes（如：正在评估竞品、对集成敏感、合规顾虑、部署周期敏感等）判断最可能被替代的客户群。\n5) 输出“威胁-机会-对策”矩阵：至少4行。每一行必须包含：\n   - 威胁描述（来自RSS/KB/CRM证据）\n   - 受影响客户群（明确VIP或standard及行业/特征）\n   - 机会点（为什么我们还能抢回）\n   - 对策（我们做什么）\n   - 证据来源（至少引用RSS/KB/CRM其中一类线索，且要能看出对应关系）\n6) 给出“优先对策路线”，按季度拆分为“本季度 / 下季度”，并按优先级排序（至少各2条）。\n7) 保存邮件草稿：收件人必须分别来自通讯录中 department=“产品委员会”和 query=“销售委员会”的检索结果；邮件subject清晰包含“替代威胁”，正文包含矩阵摘要与季度路线图要点。只保存草稿，不调用发送。\n\n注意：RSS中可能夹杂与竞争无关的行业新闻，请优先保留与竞品升级/定价与交付变化/采用趋势直接相关的内容。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CON-2101",
+        "name": "陈昱主任",
+        "email": "chenyuzhu@company.com",
+        "phone": "13910002101",
+        "department": "产品委员会",
+        "title": "产品委员会主任",
+        "responsibilities": [
+          "产品路线评审",
+          "竞品评估协同",
+          "跨部门资源调度"
+        ]
+      },
+      {
+        "contact_id": "CON-2102",
+        "name": "孙琳副主任",
+        "email": "sunlinvice@company.com",
+        "phone": "13910002102",
+        "department": "产品委员会",
+        "title": "产品战略副主任",
+        "responsibilities": [
+          "竞品对抗分析",
+          "行业化方案审批",
+          "发布节奏管理"
+        ]
+      },
+      {
+        "contact_id": "CON-2103",
+        "name": "周杰",
+        "email": "zj_salesops@company.com",
+        "phone": "13910002103",
+        "department": "销售委员会-运营",
+        "title": "销售委员会运营负责人",
+        "responsibilities": [
+          "销售节奏与赋能",
+          "客户分层运营",
+          "对外交付协同"
+        ]
+      },
+      {
+        "contact_id": "CON-2104",
+        "name": "赵思远",
+        "email": "zhaosy@company.com",
+        "phone": "13910002104",
+        "department": "区域销售",
+        "title": "大客户销售总监",
+        "responsibilities": [
+          "VIP客户续约",
+          "竞品替代谈判",
+          "集成项目推进"
+        ]
+      },
+      {
+        "contact_id": "CON-2105",
+        "name": "高若蓝",
+        "email": "gaorulan@company.com",
+        "phone": "13910002105",
+        "department": "市场部",
+        "title": "行业市场经理",
+        "responsibilities": [
+          "行业内容与活动",
+          "竞争信息收集",
+          "线索支持"
+        ]
+      },
+      {
+        "contact_id": "CON-2106",
+        "name": "郑明哲",
+        "email": "zhengmingzhe@company.com",
+        "phone": "13910002106",
+        "department": "工程团队",
+        "title": "交付负责人",
+        "responsibilities": [
+          "部署周期优化",
+          "交付SLA定义",
+          "集成测试管理"
+        ]
+      },
+      {
+        "contact_id": "CON-2107",
+        "name": "汪晓薇",
+        "email": "wangxiaowei@company.com",
+        "phone": "13910002107",
+        "department": "合规与安全",
+        "title": "合规官",
+        "responsibilities": [
+          "合规路径审核",
+          "安全评估对接",
+          "认证进度跟踪"
+        ]
+      },
+      {
+        "contact_id": "CON-2108",
+        "name": "刘子航",
+        "email": "liuzihang@company.com",
+        "phone": "13910002108",
+        "department": "产品委员会-用户体验",
+        "title": "产品体验负责人",
+        "responsibilities": [
+          "集成体验评估",
+          "部署引导体验",
+          "产品体验度量"
+        ]
+      },
+      {
+        "contact_id": "CON-2109",
+        "name": "孙雨彤",
+        "email": "sunyutong_hr@company.com",
+        "phone": "13910002109",
+        "department": "人力资源",
+        "title": "招聘与雇主品牌",
+        "responsibilities": [
+          "人才引进",
+          "雇主品牌"
+        ]
+      },
+      {
+        "contact_id": "CON-2110",
+        "name": "许佳敏",
+        "email": "xujiamin_support@company.com",
+        "phone": "13910002110",
+        "department": "客户成功",
+        "title": "客户成功经理",
+        "responsibilities": [
+          "续约风险预警",
+          "部署跟踪",
+          "客户沟通支持"
+        ]
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2101",
+        "name": "北港新材料集团",
+        "industry": "制造业",
+        "tier": "vip",
+        "annual_revenue": 1600000,
+        "status": "active",
+        "contract_end": "2027-02-15",
+        "sales_rep": "赵思远",
+        "notes": "VIP，正在评估竞品X的行业化能力；对集成便利度敏感（希望2周内完成系统对接）；合规顾虑较低但部署周期敏感。",
+        "contact_person": "赵思远"
+      },
+      {
+        "customer_id": "CUS-2102",
+        "name": "恒科工程技术有限公司",
+        "industry": "制造业",
+        "tier": "standard",
+        "annual_revenue": 320000,
+        "status": "active",
+        "contract_end": "2026-10-20",
+        "sales_rep": "赵思远",
+        "notes": "Standard，采购更看重交付SLA与实施成本；notes提到竞品X提供“快速上线价保”条款，担心我们报价不够灵活。",
+        "contact_person": "赵思远"
+      },
+      {
+        "customer_id": "CUS-2103",
+        "name": "星澜智能工厂股份",
+        "industry": "制造业",
+        "tier": "vip",
+        "annual_revenue": 980000,
+        "status": "active",
+        "contract_end": "2026-12-05",
+        "sales_rep": "赵思远",
+        "notes": "VIP，正在评估竞品Y的定价/交付变化；对部署周期敏感（要求4-6周完成试点）；集成测试资源有限。",
+        "contact_person": "赵思远"
+      },
+      {
+        "customer_id": "CUS-2104",
+        "name": "金岳医院管理集团",
+        "industry": "医疗",
+        "tier": "vip",
+        "annual_revenue": 1440000,
+        "status": "active",
+        "contract_end": "2027-05-30",
+        "sales_rep": "陈昱主任",
+        "notes": "VIP，合规顾虑主要在“数据跨域与审计留存”；正在评估竞品Y强调更低的合规成本与更快认证节奏；部署周期敏感。",
+        "contact_person": "陈昱主任"
+      },
+      {
+        "customer_id": "CUS-2105",
+        "name": "青橙社区健康服务中心",
+        "industry": "医疗",
+        "tier": "standard",
+        "annual_revenue": 260000,
+        "status": "active",
+        "contract_end": "2026-09-14",
+        "sales_rep": "陈昱主任",
+        "notes": "Standard，合规顾虑温和但对集成便利度敏感（希望与既有HIS/EMR对接更省工）；notes提到竞品Y提供模板化迁移服务。",
+        "contact_person": "陈昱主任"
+      },
+      {
+        "customer_id": "CUS-2106",
+        "name": "明桥教育科技集团",
+        "industry": "教育",
+        "tier": "vip",
+        "annual_revenue": 720000,
+        "status": "active",
+        "contract_end": "2027-01-08",
+        "sales_rep": "孙琳副主任",
+        "notes": "VIP，正在评估竞品X的“行业教研工作台”；对集成便利度敏感（希望与教务系统低成本接入）；部署周期敏感。",
+        "contact_person": "孙琳副主任"
+      },
+      {
+        "customer_id": "CUS-2107",
+        "name": "启程职业培训学校联盟",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 190000,
+        "status": "active",
+        "contract_end": "2026-08-22",
+        "sales_rep": "孙琳副主任",
+        "notes": "Standard，预算敏感，关注竞品Z的灵活定价；notes提到对方按学期计费且交付承诺更短。",
+        "contact_person": "孙琳副主任"
+      },
+      {
+        "customer_id": "CUS-2108",
+        "name": "云帆金融服务有限公司",
+        "industry": "金融",
+        "tier": "vip",
+        "annual_revenue": 1820000,
+        "status": "active",
+        "contract_end": "2027-11-16",
+        "sales_rep": "周杰",
+        "notes": "VIP，合规顾虑强（等保/审计流程）；竞品Y宣传合规路径更省成本；但我们已通过认证，客户更在意落地节奏。",
+        "contact_person": "周杰"
+      },
+      {
+        "customer_id": "CUS-2109",
+        "name": "蓝桥支付科技（备选）",
+        "industry": "金融",
+        "tier": "standard",
+        "annual_revenue": 340000,
+        "status": "active",
+        "contract_end": "2026-12-28",
+        "sales_rep": "周杰",
+        "notes": "Standard，正在评估竞品Y；对部署周期敏感（希望更快完成审计联调）；集成便利度为主要决策因素之一。",
+        "contact_person": "周杰"
+      },
+      {
+        "customer_id": "CUS-2110",
+        "name": "桂林智造供应链公司",
+        "industry": "制造业",
+        "tier": "standard",
+        "annual_revenue": 210000,
+        "status": "churned",
+        "contract_end": "2026-02-05",
+        "sales_rep": "赵思远",
+        "notes": "已流失：原因是竞品X在notes中承诺“2周完成集成+首月价保”，客户担心我们交付周期更长与报价不灵活。",
+        "contact_person": "赵思远"
+      },
+      {
+        "customer_id": "CUS-2111",
+        "name": "和安医学检验集团",
+        "industry": "医疗",
+        "tier": "standard",
+        "annual_revenue": 310000,
+        "status": "active",
+        "contract_end": "2026-11-02",
+        "sales_rep": "陈昱主任",
+        "notes": "Standard，notes提到竞品Y更强调数据审计与合规成本透明；我们需要在沟通中给出更清晰的合规路径与时间表。",
+        "contact_person": "陈昱主任"
+      },
+      {
+        "customer_id": "CUS-2112",
+        "name": "海星教育云平台",
+        "industry": "教育",
+        "tier": "standard",
+        "annual_revenue": 160000,
+        "status": "active",
+        "contract_end": "2026-07-19",
+        "sales_rep": "孙琳副主任",
+        "notes": "Standard，对集成便利度敏感；喜欢“即插即用/模板迁移”；notes中出现竞品Z“低门槛试用期”诱因。",
+        "contact_person": "孙琳副主任"
+      },
+      {
+        "customer_id": "CUS-2113",
+        "name": "银桥科技咨询（替代案例）",
+        "industry": "金融",
+        "tier": "vip",
+        "annual_revenue": 880000,
+        "status": "active",
+        "contract_end": "2027-04-23",
+        "sales_rep": "周杰",
+        "notes": "VIP，曾短期评估竞品X后回到我们；notes显示：客户最终因“合规落地节奏+实施指导”留下。可作为对策有效性的证据点。",
+        "contact_person": "周杰"
+      },
+      {
+        "customer_id": "CUS-2114",
+        "name": "卓越生物技术服务",
+        "industry": "医疗",
+        "tier": "vip",
+        "annual_revenue": 1040000,
+        "status": "active",
+        "contract_end": "2026-12-15",
+        "sales_rep": "陈昱主任",
+        "notes": "VIP，部署周期敏感且合规顾虑中等；正在关注竞品Y的“更低合规成本宣传”；希望我们给出可验证的认证进度与交付里程碑。",
+        "contact_person": "陈昱主任"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_3101",
+        "from": "sunlinvice@company.com",
+        "to": "me@company.com",
+        "subject": "竞争对抗报告框架确认：必须矩阵+季度路线图",
+        "date": "2026-04-02T10:30:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "各位好，下一步要交付《竞争对抗分析与产品替代威胁报告》。请按以下要求输出：\n\n1）必须是“威胁-机会-对策”矩阵，至少4项；每项要写明：受影响客户群（VIP/standard + 行业/特征）、证据来源（RSS/KB/CRM任一类线索即可但要可对应）。\n2）对策路线必须按季度拆分：本季度优先做“最快止损/最快验证”，下季度做“补强能力/扩大覆盖”。\n3）收件人不需要管理层全体，只给两类委员会：产品委员会（department=产品委员会）+销售委员会（query=销售委员会）。不要发送，只保存草稿。\n\n干扰线索：RSS里可能会出现不相关的行业政策或消费新闻；不要把它们写进矩阵证据。\n\n孙琳副主任"
+      },
+      {
+        "message_id": "msg_3102",
+        "from": "zj_salesops@company.com",
+        "to": "me@company.com",
+        "subject": "竞品宣传要点提醒：更快交付+更低合规摩擦（用于过滤与对策）",
+        "date": "2026-04-03T15:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "补充两条竞品宣传口径，务必在报告中用作“证据筛选”的关键词：\n- “更快交付/部署周期更短/首批试点更快上线”\n- “更低合规摩擦/合规路径更省成本/认证节奏更快”\n\n这些口径会被我们CRM notes里反复提到（正在评估竞品、对集成敏感、合规顾虑等）。矩阵的对策要能落到“本季度如何抢回 + 下季度如何形成能力壁垒”。\n\n周杰"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-3101",
+        "title": "竞品替代风险差距：我们在“行业化+交付节奏”上的短板",
+        "category": "竞品差距",
+        "tags": [
+          "替代威胁",
+          "交付周期",
+          "行业化"
+        ],
+        "content": "## 差距概览\n\n### 竞品X的优势（客户notes常提到）\n- 行业化能力更“装得快”：提供更细的行业工作台与模板化流程\n- 交付节奏更短：常见承诺为2-4周完成试点并进入评估\n- 定价/条款更灵活：出现“价保/里程碑折扣”等表述\n\n### 我司当前差距\n- 行业模板覆盖不够密，导致集成需要更多项目化工作\n- 部署里程碑对外叙事不够清晰，客户拿不到可验证的时间表\n- 销售在讨论“试点成功条件”时缺少统一话术\n\n### 建议补强方向（可映射季度）\n- 本季度：统一“2-4周试点路线图”对外材料；强化集成便利度演示包\n- 下季度：扩展行业工作台模板库并与交付SLA绑定\n",
+        "last_updated": "2026-03-30",
+        "views": 2100
+      },
+      {
+        "article_id": "KB-3102",
+        "title": "合规成本叙事与落地路径：如何回应“更低合规摩擦”宣传",
+        "category": "合规沟通",
+        "tags": [
+          "合规顾虑",
+          "认证节奏",
+          "客户沟通"
+        ],
+        "content": "## 核心结论\n竞品Y常用“更低合规成本/更省摩擦”叙事。客户的真实需求是：\n1) 认证/审计流程的时间可预期（可验证里程碑）\n2) 数据跨域/审计留存的技术解释更直观\n3) 与现有系统的联调成本更可控\n\n## 对策框架\n### 1. 先给时间表，再给证据\n- 输出“合规路径甘特图（高层版）+ 逐步清单（实施版）”\n- 将认证节点与交付里程碑绑定\n\n### 2. 用“对比表”替代口头承诺\n- 列出：我们已具备的认证/能力 vs 客户需补齐的事项\n\n### 3. 本季度可做的最小行动\n- 把合规材料模板化，给销售一套可直接用于客户评估的包\n\n### 4. 下季度能力补强\n- 扩展审计留存与数据跨域的演示场景，形成可复制方案\n",
+        "last_updated": "2026-04-01",
+        "views": 1850
+      },
+      {
+        "article_id": "KB-3103",
+        "title": "补强计划：季度能力地图（行业化/集成/交付）",
+        "category": "补强计划",
+        "tags": [
+          "季度",
+          "能力地图",
+          "集成"
+        ],
+        "content": "## 本季度（Q2）\n1) 行业模板演示包：至少覆盖制造/医疗/教育三类行业的关键工作流\n2) 集成便利套件：提供常见系统对接的配置向导与示例数据\n3) 交付里程碑叙事：形成“试点-评估-上线”三阶段话术\n\n## 下季度（Q3）\n1) 扩展模板库到更多子行业，并将模板与权限/审计联动\n2) 部署周期优化：把关键路径从“项目化”转成“流程化”\n3) 对客户的风险分层：VIP/standard分别给出不同试点方案与价格策略\n",
+        "last_updated": "2026-04-02",
+        "views": 2600
+      },
+      {
+        "article_id": "KB-3104",
+        "title": "客户沟通话术：针对“集成敏感/部署周期敏感”的3步引导",
+        "category": "销售对策模板",
+        "tags": [
+          "话术",
+          "集成",
+          "部署周期"
+        ],
+        "content": "## 目标\n减少客户对“集成麻烦/部署慢”的不确定性，降低替代动机。\n\n## 3步引导\n1) 先对齐“试点成功条件”（3-5条可量化指标）\n2) 用“配置向导+示例数据”展示集成成本（用对比：有/无模板差异）\n3) 交付承诺以里程碑呈现：第1周准备/第2周联调/第3-4周评估\n\n## 适用对象\n- notes里出现“对集成敏感”“部署周期敏感”的客户（通常是VIP或关键standard）\n",
+        "last_updated": "2026-03-28",
+        "views": 1700
+      },
+      {
+        "article_id": "KB-3105",
+        "title": "行业化差异化路径：制造/医疗/教育三条对抗线",
+        "category": "行业策略",
+        "tags": [
+          "制造业",
+          "医疗",
+          "教育",
+          "对抗"
+        ],
+        "content": "## 制造业对抗线\n- 重点：智能质检/预测性维护的“可落地工作台”\n- 关键承诺：试点2-4周可见业务指标\n\n## 医疗对抗线\n- 重点：合规路径清晰 + 与EMR/HIS的模板化迁移\n- 关键承诺：认证节点与交付里程碑对齐\n\n## 教育对抗线\n- 重点：教研/在线考试/学生数据分析的快速接入\n- 关键承诺：模板化迁移，降低采购与上线阻力\n",
+        "last_updated": "2026-04-03",
+        "views": 1500
+      },
+      {
+        "article_id": "KB-3106",
+        "title": "对客户分层的替代风险处置：VIP vs standard",
+        "category": "客户分层策略",
+        "tags": [
+          "VIP",
+          "standard",
+          "风险处置"
+        ],
+        "content": "## VIP处置（止损+抢回）\n- 目标：降低替代窗口期（通常在评估期）\n- 手段：提供更强的试点路线图、专属里程碑、对比表与决策支持\n\n## standard处置（规模化推进）\n- 目标：通过更快部署与更清晰价格/条款减少流失\n- 手段：模板化试点包、分层定价与里程碑折扣叙事\n\n## 共同点\n- 必须将RSS里出现的竞品“更快交付+更低合规摩擦”要点映射到我们的对外材料\n",
+        "last_updated": "2026-03-29",
+        "views": 2050
+      },
+      {
+        "article_id": "KB-3107",
+        "title": "季度评估指标建议：用于矩阵证据落地",
+        "category": "度量指标",
+        "tags": [
+          "证据",
+          "指标",
+          "评估"
+        ],
+        "content": "建议在矩阵中使用以下证据类型：\n- RSS：竞品能力升级/部署周期/定价与交付承诺/行业采用趋势关键词\n- KB：差距与补强计划（本季度/下季度映射）\n- CRM notes：正在评估竞品、集成敏感、合规顾虑、部署周期敏感\n\n用于对策验证的简易指标：\n- 试点按期完成率\n- 集成联调所需天数\n- 合规材料一次通过率/客户接受度\n",
+        "last_updated": "2026-04-04",
+        "views": 980
+      },
+      {
+        "article_id": "KB-3108",
+        "title": "客户替代案例库：已流失原因与可复用对策",
+        "category": "案例",
+        "tags": [
+          "流失原因",
+          "复盘"
+        ],
+        "content": "## 流失共同原因\n1) 客户被竞品的“2周集成+价保/里程碑折扣”吸引\n2) 客户拿不到可验证的部署时间表\n3) 合规路径解释不够直观（缺少对比与时间表）\n\n## 可复用对策\n- 提供“2-4周试点路线图”+“配置向导演示包”\n- 合规材料使用“时间表+对比表”双结构\n- 对VIP与关键standard提供不同层级的里程碑支持\n",
+        "last_updated": "2026-03-27",
+        "views": 1400
+      }
+    ],
+    "fixtures/rss/feeds.json": [
+      {
+        "article_id": "RSS-4101",
+        "title": "竞品X行业工作台升级：更短部署承诺与模板化流程",
+        "category": "竞品升级",
+        "content": "有行业报告指出，竞品X在本季度集中升级“行业工作台”和模板化流程，新增部署向导与行业配置包。多家采用案例表明从项目立项到试点可见结果平均缩短至2-4周；竞品在宣传中强调“更快交付与低集成成本”。",
+        "url": "https://compete.example.com/x-industry-workbench",
+        "tags": [
+          "竞品X",
+          "部署周期",
+          "行业化",
+          "集成便利"
+        ],
+        "source": "竞品情报快报",
+        "published_at": "2026-04-01T01:10:00Z",
+        "summary": "竞品X升级行业工作台与模板化流程，部署向导与配置包使试点从立项到可见结果平均缩短至2-4周，重点宣传低集成成本与更快交付。",
+        "word_count": 128
+      },
+      {
+        "article_id": "RSS-4102",
+        "title": "竞品X定价与交付条款变化：里程碑折扣与价保口径出现",
+        "category": "定价与交付",
+        "content": "市场观察显示，竞品X在新合同中引入里程碑折扣与价保条款叙事：若试点未达到约定评估节点，可触发价格调整或延期交付方案。该策略正被多个中型客户作为对比因素，尤其是预算更敏感的standard客户群。",
+        "url": "https://compete.example.com/x-pricing-milestone",
+        "tags": [
+          "定价",
+          "里程碑折扣",
+          "价保",
+          "交付"
+        ],
+        "source": "SaaS交易情报",
+        "published_at": "2026-04-02T06:45:00Z",
+        "summary": "竞品X在新合同使用里程碑折扣与价保叙事，若试点未达评估节点触发价格调整或延期交付方案，成为standard客户对比因素。",
+        "word_count": 103
+      },
+      {
+        "article_id": "RSS-4103",
+        "title": "竞品Y合规路径宣称升级：更低合规摩擦与认证节奏更快",
+        "category": "合规与认证",
+        "content": "报道指出，竞品Y在合规相关模块上强化“合规路径可预期性”的产品叙事：提供认证准备清单、审计留存说明和联调时间线。其营销口径强调更低合规摩擦与更快的认证节奏，尤其吸引合规顾虑较强的金融与医疗客户在评估阶段迁移。",
+        "url": "https://compete.example.com/y-compliance-path",
+        "tags": [
+          "竞品Y",
+          "合规成本",
+          "认证节奏",
+          "审计留存"
+        ],
+        "source": "监管与合规观察",
+        "published_at": "2026-04-02T12:20:00Z",
+        "summary": "竞品Y强化合规路径的可预期性叙事，提供认证准备清单与审计留存说明，并用联调时间线吸引合规顾虑客户在评估阶段迁移。",
+        "word_count": 121
+      },
+      {
+        "article_id": "RSS-4104",
+        "title": "行业采用趋势：企业开始把评估转向规模部署（试点更快见效）",
+        "category": "采用趋势",
+        "content": "行业研究表明，企业正在从“概念验证”转向“规模部署”。在采用趋势中，企业更强调试点的可衡量指标与更短的部署周期，尤其在制造与医疗行业。多份案例都显示：当方案能在2-4周形成可见结果，客户转化显著提高。",
+        "url": "https://market.example.com/adoption-fast-pilot",
+        "tags": [
+          "采用趋势",
+          "部署周期",
+          "试点指标"
+        ],
+        "source": "行业研究周报",
+        "published_at": "2026-04-01T04:30:00Z",
+        "summary": "企业从概念验证转向规模部署，更强调可衡量试点指标与更短部署周期；制造与医疗尤其在2-4周形成可见结果时转化更高。",
+        "word_count": 113
+      },
+      {
+        "article_id": "RSS-4105",
+        "title": "医疗信息化扩展：合规与审计留存成为采购关键条件",
+        "category": "医疗行业",
+        "content": "多地医疗信息化扩展中，合规与审计留存被列为采购关键条件。医院管理方要求供应商给出跨域数据访问说明、审计留存机制以及与现有EMR/HIS的联调时间线。具备可验证时间表的供应商更容易进入后续评估与试点。",
+        "url": "https://market.example.com/healthcare-audit-storage",
+        "tags": [
+          "医疗",
+          "审计留存",
+          "合规路径",
+          "联调"
+        ],
+        "source": "医疗IT市场观察",
+        "published_at": "2026-04-03T09:00:00Z",
+        "summary": "医疗采购将合规与审计留存列为关键条件，要求跨域访问说明与审计留存机制，并给出与EMR/HIS的联调时间线。",
+        "word_count": 116
+      },
+      {
+        "article_id": "RSS-4106",
+        "title": "制造业数字化投资：企业优先选择“交付周期更短”的供应商",
+        "category": "制造业",
+        "content": "报告显示，本季度制造业数字化投资中，企业更倾向选择能够提供明确交付SLA与更短部署周期的供应商。AI质检与预测性维护成为重点方向，但采购评估同样围绕“上线速度、试点指标可验证”展开。",
+        "url": "https://market.example.com/manufacturing-short-sla",
+        "tags": [
+          "制造业",
+          "AI质检",
+          "部署周期",
+          "SLA"
+        ],
+        "source": "制造业数字化简报",
+        "published_at": "2026-04-03T01:50:00Z",
+        "summary": "制造业数字化投资中，企业更偏好明确交付SLA与更短部署周期；AI质检与预测性维护成为重点，评估围绕上线速度和可验证试点指标。",
+        "word_count": 106
+      },
+      {
+        "article_id": "RSS-4111",
+        "title": "教育信息化热点：教研与考试系统升级带动快速接入需求",
+        "category": "教育行业",
+        "content": "教育信息化升级中，教研工作台与在线考试相关模块成为热点，学校更关注与现有教务系统的低成本接入。供应商若能提供模板迁移与部署向导，更易在预算有限且采购流程较长的前提下通过评估。",
+        "url": "https://market.example.com/education-quick-integration",
+        "tags": [
+          "教育",
+          "模板迁移",
+          "低成本接入"
+        ],
+        "source": "教育科技观察",
+        "published_at": "2026-04-02T19:25:00Z",
+        "summary": "教育升级中教研与考试系统成为热点，学校更关注与教务系统低成本接入；提供模板迁移与部署向导的供应商更易通过评估。",
+        "word_count": 101
+      },
+      {
+        "article_id": "RSS-4112",
+        "title": "合规监管快讯（噪声）：短期税务调整对SaaS定价的影响",
+        "category": "政策噪声",
+        "content": "有媒体称短期税务调整可能影响部分行业的SaaS成本结构，但并未提供与竞品交付周期、合规路径或产品能力升级直接相关的证据。该条信息仅作背景噪声，应在竞争对抗分析中剔除。",
+        "url": "https://news.example.com/tax-adjustment-noise",
+        "tags": [
+          "政策",
+          "税务"
+        ],
+        "source": "综合新闻",
+        "published_at": "2026-04-01T08:00:00Z",
+        "summary": "短期税务调整的新闻属于背景信息噪声，缺乏与竞品升级/交付周期/合规路径的直接关联证据。",
+        "word_count": 62
+      },
+      {
+        "article_id": "RSS-4113",
+        "title": "金融利率变化（噪声）：市场波动与理财收益预测",
+        "category": "金融噪声",
+        "content": "该新闻聚焦宏观市场利率变化与理财收益预测，未涉及金融SaaS合规认证节奏或竞品产品能力升级，不应进入替代威胁证据链。",
+        "url": "https://news.example.com/interest-rate-noise",
+        "tags": [
+          "宏观",
+          "利率"
+        ],
+        "source": "宏观市场快讯",
+        "published_at": "2026-04-02T03:15:00Z",
+        "summary": "宏观利率变化与收益预测，未涉及竞品升级/合规路径/部署周期，属于噪声。",
+        "word_count": 38
+      },
+      {
+        "article_id": "RSS-4114",
+        "title": "消费电子发布会（噪声）：新硬件销量与渠道报道",
+        "category": "消费噪声",
+        "content": "该条为消费电子发布会信息，内容与企业软件的竞品能力升级、定价/交付变化、行业采用趋势无直接关联，作为噪声过滤。",
+        "url": "https://news.example.com/consumer-gadget-noise",
+        "tags": [
+          "消费电子"
+        ],
+        "source": "科技生活",
+        "published_at": "2026-04-03T12:30:00Z",
+        "summary": "消费电子发布会报道，与企业软件竞品替代威胁无直接关联，需过滤。",
+        "word_count": 41
+      },
+      {
+        "article_id": "RSS-4115",
+        "title": "新能源市场走势（噪声）：产业链价格波动",
+        "category": "行业噪声",
+        "content": "新能源产业链价格波动的新闻，不包含与竞品产品能力升级、交付承诺、或合规成本叙事相关信息，建议剔除。",
+        "url": "https://news.example.com/energy-price-noise",
+        "tags": [
+          "新能源",
+          "价格波动"
+        ],
+        "source": "产业观察",
+        "published_at": "2026-04-01T20:10:00Z",
+        "summary": "新能源价格波动新闻，与竞品替代威胁证据链无直接关联，作为噪声过滤。",
+        "word_count": 44
+      },
+      {
+        "article_id": "RSS-4107",
+        "title": "部署周期加速趋势：首批试点从“数月”降到“几周”",
+        "category": "交付趋势",
+        "content": "多个企业在评估报告中提到，供应商若能把试点周期从数月压缩到几周，将显著降低决策风险。采购方希望在试点阶段就能拿到集成结果、审计/合规材料与可量化业务指标。",
+        "url": "https://market.example.com/pilot-cycle-weeks",
+        "tags": [
+          "部署周期",
+          "试点",
+          "决策风险"
+        ],
+        "source": "交付趋势观察",
+        "published_at": "2026-04-02T05:40:00Z",
+        "summary": "试点周期从数月压缩到几周的趋势增强；采购方要求试点阶段拿到集成结果、合规材料与可量化指标。",
+        "word_count": 100
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新任务从“宏观行业趋势与管理层建议”转为“竞品能力升级与替代威胁”导向，要求输出威胁-机会-对策矩阵并按季度拆分对策路线，同时只邮件草稿给两委员会。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 提供2封邮件：明确矩阵与季度拆分要求，并给出用于过滤RSS的干扰提示关键词（更快交付/更低合规摩擦）。",
+      "contacts/contacts.json 至少10位联系人，其中department=“产品委员会”覆盖2人；并加入可被query=“销售委员会”命中的组/个人（销售委员会-运营等）。同时包含若干干扰部门联系人。",
+      "rss/feeds.json 共12+条，竞品相关内容≥7条（竞品X能力升级与部署周期、定价条款；竞品Y合规路径与认证节奏；行业采用趋势与行业化采用要求），另含≥4条明确噪声类别新闻用于过滤。",
+      "kb/articles.json 共8条：至少4条围绕竞品差距与补强计划/季度能力地图/合规沟通框架/客户沟通话术，支撑矩阵与季度路线图组织结构。",
+      "crm/customers.json 共14条：覆盖制造/医疗/教育/金融至少3类行业；tier含vip与standard，并包含至少1条churned替代案例；notes字段明确包含“正在评估竞品/对集成敏感/合规顾虑/部署周期敏感”等线索以便构建最可能被替代客户群。"
+    ]
+  }
+}

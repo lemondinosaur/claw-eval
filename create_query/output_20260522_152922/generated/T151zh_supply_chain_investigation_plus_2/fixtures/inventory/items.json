@@ -1,0 +1,93 @@
+[
+  {
+    "product_id": "PD-3101",
+    "name": "低压配电柜CDQ-20B",
+    "category": "配电/电力设备",
+    "quantity": 10,
+    "unit": "台",
+    "unit_cost": 5900.0,
+    "location": "仓库G-01",
+    "reorder_level": 20,
+    "supplier": "北能电工",
+    "last_restock_date": "2026-05-01",
+    "notes": "当前仅有10台，低于安全阈值20；非清零，触发补货但到货预计延后"
+  },
+  {
+    "product_id": "PD-3102",
+    "name": "母线模块MB-40",
+    "category": "配电/电力设备",
+    "quantity": 6,
+    "unit": "套",
+    "unit_cost": 4500.0,
+    "location": "仓库G-02",
+    "reorder_level": 12,
+    "supplier": "北能电工",
+    "last_restock_date": "2026-05-02",
+    "notes": "库存偏低（6套<安全12套），需要启动补货；供应商排期调整导致到货时间顺延"
+  },
+  {
+    "product_id": "PD-3103",
+    "name": "配电测控MC-2",
+    "category": "配电/电力设备",
+    "quantity": 2,
+    "unit": "套",
+    "unit_cost": 3600.0,
+    "location": "仓库G-03",
+    "reorder_level": 8,
+    "supplier": "北能电工",
+    "last_restock_date": "2026-04-30",
+    "notes": "MC-2当前2套，接近低库存断点但未为0；已下补货单，预计分批到货"
+  },
+  {
+    "product_id": "PD-3104",
+    "name": "备用导轨KIT-GL",
+    "category": "配电/电力设备",
+    "quantity": 260,
+    "unit": "套",
+    "unit_cost": 120.0,
+    "location": "仓库H-01",
+    "reorder_level": 80,
+    "supplier": "华达电力配件",
+    "last_restock_date": "2026-05-04",
+    "notes": "库存充足，可用于替代临时安装，但不替代主料CDQ/MB"
+  },
+  {
+    "product_id": "PD-3105",
+    "name": "替代模块AM-5",
+    "category": "配电/电力设备",
+    "quantity": 45,
+    "unit": "套",
+    "unit_cost": 980.0,
+    "location": "仓库H-02",
+    "reorder_level": 30,
+    "supplier": "南方机电材料",
+    "last_restock_date": "2026-05-02",
+    "notes": "替代料库存充足；可作为应急启用条件（需与客户确认验收规则）"
+  },
+  {
+    "product_id": "PD-3106",
+    "name": "线缆组件LC-18",
+    "category": "配电/电力设备",
+    "quantity": 180,
+    "unit": "卷",
+    "unit_cost": 65.0,
+    "location": "仓库H-03",
+    "reorder_level": 90,
+    "supplier": "南方机电材料",
+    "last_restock_date": "2026-05-03",
+    "notes": "库存正常，不是断点来源"
+  },
+  {
+    "product_id": "PD-3107",
+    "name": "安装辅料盒AB-9",
+    "category": "配电/电力设备",
+    "quantity": 70,
+    "unit": "个",
+    "unit_cost": 18.0,
+    "location": "仓库H-04",
+    "reorder_level": 50,
+    "supplier": "华达电力配件",
+    "last_restock_date": "2026-05-05",
+    "notes": "库存充足，用于干扰工单的现场安装支持"
+  }
+]

@@ -1,0 +1,717 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T163zh_quarterly_customer_review_plus_4",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/contacts/contacts.json",
+  "fixtures/crm/customers.json",
+  "fixtures/finance/transactions.json",
+  "fixtures/gmail/inbox.json",
+  "fixtures/rss/feeds.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 4,
+  "new_task_id": "T163zh_quarterly_customer_review_plus_4",
+  "new_task_name": "按行业细分的季度联合洞察报告（行业经理视角）",
+  "task_goal": "从行业视角为6个客户输出季度联合洞察：先用RSS与客户行业映射确定3个行业主题，再分别汇总落到客户的表现（财务趋势/CRM健康度/邮件活跃度），最后输出每个行业主题下的“共性风险/共性机会”。",
+  "user_request": "请做一份“行业经理视角”的季度联合洞察：我有6个重点客户。你需要先阅读RSS行业动态，提炼出3个行业主题；再把每个客户映射到最合适的主题，说明映射依据。对每个客户写：季度收入趋势、CRM满意度与续约节点、邮件沟通活跃度（活跃/一般/沉默）与关键话题。最后对3个行业主题分别总结共性风险与共性机会，并给出每个主题一条跨客户可复用的建议。",
+  "scenario": "时间为2026年9月下旬，回顾Q3（7/1-9/30）。RSS提供6篇行业文章，覆盖“能源转型IT”“医疗数字化”“零售供应链”“教育内容平台”等多主题；但客户行业在CRM中只标注到5类较粗粒度（例如“医疗健康”“零售”“教育信息化”等）。映射需要通过RSS文章tags与summary关键词进行跨粒度对齐。邮件中存在客户沉默与异常活跃：同一客户在9月突然出现多封邮件但均来自内部群发（干扰），需要通过from域或labels排除。联系人部分要求输出“行业经理”联系方式：contacts中存在title包含“行业经理”的联系人，且并非客户sales_owner本人。",
+  "difference_from_source": "从客户维度报告改为“先行业主题再客户映射”的联合洞察；最终输出重点转为跨客户共性风险/机会与可复用建议；联系人输出对象从客户经理切换为行业经理（title驱动）。并引入“内部群发导致异常活跃”的邮件干扰识别。",
+  "service_and_tool_plan": "rss_list_feeds与rss_get_feed/rss_get_article用于提炼3个行业主题并形成标签关键词库；crm_list_customers与crm_get_customer获取6个客户的行业与满意度/合同节点；finance_list_transactions用于计算Q3收入趋势；gmail_list_messages与gmail_get_message用于判定活跃度并提取关键话题，同时过滤内部群发干扰；contacts_search与contacts_get用于查找title包含“行业经理”的联系人，并在输出中附上其联系方式。contacts不必再按客户sales_owner逐一找，但可以作为映射补充（若需要）。",
+  "fixture_generation_plan": "新fixtures：1）crm/customers.json：6条客户，行业粗粒度覆盖至少3类；满意度覆盖高/中/低；合同到期分布在10月/11月/12月；sales_owner可存在但报告重点联系人为行业经理。2）finance/transactions.json：Q3期间约20-30笔；保证至少2个客户有明显上升趋势、1个下降、1个横盘；不复用原题交易ID与数值。3）gmail/inbox.json：Q3窗口约15-25封；至少1个客户沉默（无有效客户邮件）；至少1个客户在9月有异常活跃但邮件来自内部群发（labels含通知/来自company域），需被排除；其他邮件包含项目讨论、续约沟通或技术咨询等关键词。4）rss/feeds.json：2-3个feeds、共6-8篇文章；每篇tags要足够让映射到客户行业主题成为可判定依据；文章summary包含明确趋势（如投入增加/竞争加剧/监管合规）。5）contacts/contacts.json：至少4位联系人，至少2位title包含“行业经理”但不同行业；同时包含title含“客户经理”的干扰联系人；确保能用title/department在contacts_search中定位正确行业经理。避免原题姓名邮箱/客户ID复用。",
+  "expected_behavior": "代理应：先通过rss获取足够文章并提炼3个行业主题（例如“合规与数据治理加速”“零售供应链降本”“教育内容智能化”等），说明主题形成依据（引用tags/summary关键点）；随后对6个客户用crm_get_customer得到行业字段，并基于客户行业与主题关键词匹配到最合适主题，输出映射依据；对每客户用finance计算Q3收入趋势；用gmail判定沟通活跃度（活跃/一般/沉默）并提取关键话题，同时识别并排除内部群发干扰；最后用contacts_search定位title为“行业经理”的联系人，按主题给出相应行业经理联系方式（至少每个主题1个），并对3个主题分别输出共性风险/共性机会与可复用建议。",
+  "grading_plan": "grader应检查：1）行业主题是否真实从RSS文章tags/summary中提炼且数量=3；2）客户-主题映射依据是否具体且可从CRM行业与RSS关键词对应；3）每客户是否包含收入趋势、满意度与续约节点、邮件活跃度与关键话题；4）内部群发干扰是否被正确过滤（不应把通知当作客户沟通）；5）行业经理联系人匹配是否正确（title驱动而非客户sales_owner）。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T163zh_quarterly_customer_review",
+  "task_name": "Q1重点客户季度回顾报告",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "hard",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "gmail",
+    "contacts",
+    "finance",
+    "rss",
+    "crm"
+  ],
+  "tools": [
+    "finance_list_transactions",
+    "finance_get_transaction",
+    "crm_list_customers",
+    "crm_get_customer",
+    "gmail_list_messages",
+    "gmail_get_message",
+    "rss_list_feeds",
+    "rss_get_feed",
+    "rss_get_article",
+    "contacts_search",
+    "contacts_get"
+  ],
+  "fixture_paths": [
+    "fixtures/contacts/contacts.json",
+    "fixtures/crm/customers.json",
+    "fixtures/finance/transactions.json",
+    "fixtures/gmail/inbox.json",
+    "fixtures/rss/feeds.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T163zh_quarterly_customer_review
+task_name: Q1重点客户季度回顾报告
+version: '1.0'
+category: workflow
+difficulty: hard
+tags:
+- general
+- multi_service
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T163zh_quarterly_customer_review/fixtures/gmail/inbox.json
+- name: contacts
+  command: python mock_services/contacts/server.py
+  port: 9103
+  health_check: http://localhost:9103/contacts/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9103/contacts/reset
+  env:
+    CONTACTS_FIXTURES: tasks/T163zh_quarterly_customer_review/fixtures/contacts/contacts.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: tasks/T163zh_quarterly_customer_review/fixtures/finance/transactions.json
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/feeds
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: tasks/T163zh_quarterly_customer_review/fixtures/rss/feeds.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: tasks/T163zh_quarterly_customer_review/fixtures/crm/customers.json
+prompt:
+  text: 'Q1结束了，请帮我为6个重点客户做季度回顾：
+
+    1. 查看每个客户的Q1财务数据
+
+    2. 查看CRM中的客户信息和满意度
+
+    3. 检查邮件中的沟通记录
+
+    4. 浏览行业动态了解客户所在行业趋势
+
+    5. 查找对应客户经理联系方式
+
+    6. 输出客户回顾报告，标注风险和增长机会
+
+    '
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态筛选
+      tier:
+        type: string
+        description: 客户等级筛选(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 30
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: rss_list_feeds
+  description: 列出RSS订阅源
+  input_schema:
+    type: object
+    properties: {}
+    required: []
+- name: rss_get_feed
+  description: 获取RSS源文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_id:
+        type: string
+        description: 订阅源ID
+    required:
+    - feed_id
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: contacts_search
+  description: 搜索内部通讯录
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      department:
+        type: string
+        description: 按部门筛选
+    required:
+    - query
+- name: contacts_get
+  description: 获取联系人详情
+  input_schema:
+    type: object
+    properties:
+      contact_id:
+        type: string
+        description: 联系人ID
+    required:
+    - contact_id
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: rss_list_feeds
+  url: http://localhost:9109/rss/feeds
+  method: POST
+- tool_name: rss_get_feed
+  url: http://localhost:9109/rss/feeds/get
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: contacts_search
+  url: http://localhost:9103/contacts/search
+  method: POST
+- tool_name: contacts_get
+  url: http://localhost:9103/contacts/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 40
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/contacts/contacts.json ---
+[
+  {"contact_id":"CON-1601","name":"赵蕾","email":"zhaolei@company.com","phone":"13800161001","department":"销售部","title":"高级客户经理","responsibilities":["VIP客户维护","合同续约","CUS-1601鼎新软件","CUS-1603万通物流","CUS-1605阳光传媒"]},
+  {"contact_id":"CON-1602","name":"张伟","email":"zhangwei@company.com","phone":"13800161002","department":"销售部","title":"客户经理","responsibilities":["标准客户维护","新客户开发","CUS-1602瀚海电商","CUS-1604前锋科技","CUS-1606公共机构"]},
+  {"contact_id":"CON-1603","name":"王明","email":"wangming@company.com","phone":"13800161003","department":"客户成功部","title":"客户成功经理","responsibilities":["客户健康度监控","续约支持","所有客户满意度跟踪"]},
+  {"contact_id":"CON-1604","name":"李华","email":"lihua@company.com","phone":"13800161004","department":"技术部","title":"技术支持工程师","responsibilities":["技术支持","故障处理","系统维护"]},
+  {"contact_id":"CON-1605","name":"马强","email":"maqiang@company.com","phone":"13800161005","department":"运维部","title":"运维主管","responsibilities":["系统运维","服务器管理","部署发布"]},
+  {"contact_id":"CON-1606","name":"刘洋","email":"liuyang@company.com","phone":"13800161006","department":"财务部","title":"财务主管","responsibilities":["合同审核","应收管理","财务报表"]}
+]
+
+--- END FILE: fixtures/contacts/contacts.json ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-1601",
+    "name": "鼎新软件",
+    "tier": "vip",
+    "status": "active",
+    "industry": "软件开发",
+    "satisfaction": 4.5,
+    "contract_end": "2026-09-30",
+    "sales_owner": "赵蕾",
+    "notes": "核心VIP客户，持续增购中，续约意向积极",
+    "contact_person": "赵蕾",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-1602",
+    "name": "瀚海电商",
+    "tier": "standard",
+    "status": "active",
+    "industry": "电子商务",
+    "satisfaction": 3.2,
+    "contract_end": "2026-06-30",
+    "sales_owner": "张伟",
+    "notes": "近期有投诉，满意度偏低，合同6月底到期需关注",
+    "contact_person": "张伟",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-1603",
+    "name": "万通物流",
+    "tier": "vip",
+    "status": "active",
+    "industry": "物流运输",
+    "satisfaction": 4.8,
+    "contract_end": "2026-12-31",
+    "sales_owner": "赵蕾",
+    "notes": "最大客户，满意度极高，正在讨论扩展方案",
+    "contact_person": "赵蕾",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-1604",
+    "name": "前锋科技",
+    "tier": "standard",
+    "status": "active",
+    "industry": "科技制造",
+    "satisfaction": 2.5,
+    "contract_end": "2026-04-15",
+    "sales_owner": "张伟",
+    "notes": "满意度低，3月无续费记录，1月后无沟通，合同4月中旬到期，高流失风险",
+    "contact_person": "张伟",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-1605",
+    "name": "阳光传媒",
+    "tier": "vip",
+    "status": "active",
+    "industry": "传媒广告",
+    "satisfaction": 4.2,
+    "contract_end": "2026-11-30",
+    "sales_owner": "赵蕾",
+    "notes": "新晋VIP客户，增长势头强劲，AI应用效果显著",
+    "contact_person": "赵蕾",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-1606",
+    "name": "公共机构",
+    "tier": "standard",
+    "status": "active",
+    "industry": "政府机关",
+    "satisfaction": 3.8,
+    "contract_end": "2026-07-31",
+    "sales_owner": "张伟",
+    "notes": "收入稳定，无明显增长也无风险，按预算执行",
+    "contact_person": "张伟",
+    "annual_revenue": 0
+  }
+]
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/finance/transactions.json ---
+[
+  {"transaction_id":"TXN-1601","customer_id":"CUS-1601","amount":80000,"type":"subscription","date":"2026-01-15","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-1602","customer_id":"CUS-1601","amount":85000,"type":"subscription","date":"2026-02-15","status":"completed","description":"2月订阅费"},
+  {"transaction_id":"TXN-1603","customer_id":"CUS-1601","amount":90000,"type":"subscription","date":"2026-03-15","status":"completed","description":"3月订阅费+新模块"},
+  {"transaction_id":"TXN-1604","customer_id":"CUS-1602","amount":50000,"type":"subscription","date":"2026-01-10","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-1605","customer_id":"CUS-1602","amount":50000,"type":"subscription","date":"2026-02-10","status":"completed","description":"2月订阅费"},
+  {"transaction_id":"TXN-1606","customer_id":"CUS-1602","amount":45000,"type":"subscription","date":"2026-03-10","status":"completed","description":"3月订阅费(部分功能未续)"},
+  {"transaction_id":"TXN-1607","customer_id":"CUS-1603","amount":120000,"type":"subscription","date":"2026-01-20","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-1608","customer_id":"CUS-1603","amount":125000,"type":"subscription","date":"2026-02-20","status":"completed","description":"2月订阅费+华东分公司"},
+  {"transaction_id":"TXN-1609","customer_id":"CUS-1603","amount":130000,"type":"subscription","date":"2026-03-20","status":"completed","description":"3月订阅费+定制开发"},
+  {"transaction_id":"TXN-1610","customer_id":"CUS-1604","amount":35000,"type":"subscription","date":"2026-01-05","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-1611","customer_id":"CUS-1604","amount":30000,"type":"subscription","date":"2026-02-05","status":"completed","description":"2月订阅费(降级基础版)"},
+  {"transaction_id":"TXN-1612","customer_id":"CUS-1605","amount":60000,"type":"subscription","date":"2026-01-25","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-1613","customer_id":"CUS-1605","amount":65000,"type":"subscription","date":"2026-02-25","status":"completed","description":"2月订阅费+AI模块"},
+  {"transaction_id":"TXN-1614","customer_id":"CUS-1605","amount":70000,"type":"subscription","date":"2026-03-25","status":"completed","description":"3月订阅费+增值服务"},
+  {"transaction_id":"TXN-1615","customer_id":"CUS-1606","amount":40000,"type":"subscription","date":"2026-01-08","status":"completed","description":"1月订阅费"},
+  {"transaction_id":"TXN-1616","customer_id":"CUS-1606","amount":40000,"type":"subscription","date":"2026-02-08","status":"completed","description":"2月订阅费"},
+  {"transaction_id":"TXN-1617","customer_id":"CUS-1606","amount":40000,"type":"subscription","date":"2026-03-08","status":"completed","description":"3月订阅费"}
+]
+
+--- END FILE: fixtures/finance/transactions.json ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_1601",
+    "from": "dingxin_lina@dingxin.com",
+    "to": "me@company.com",
+    "subject": "关于续约条款的讨论",
+    "date": "2026-03-20T09:00:00Z",
+    "body": "您好，我们当前的合同将在9月底到期，想提前沟通一下续约事宜。鼎新软件今年业务增长不错，我们希望在续约时能扩展更多模块。请安排时间面谈。——李娜，鼎新软件",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1602",
+    "from": "dingxin_lina@dingxin.com",
+    "to": "me@company.com",
+    "subject": "Q1项目进展汇报",
+    "date": "2026-02-15T09:00:00Z",
+    "body": "您好，就1月份上线的新模块使用情况做个汇报：系统运行稳定，用户反馈良好，日活提升了15%。我们对后续合作充满信心。——李娜，鼎新软件",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1603",
+    "from": "hanhai_zhangqiang@hanhai.com",
+    "to": "me@company.com",
+    "subject": "关于服务响应速度的投诉",
+    "date": "2026-03-18T09:00:00Z",
+    "body": "你好，我必须反映一个问题：最近两周我们提了3个工单，平均响应时间超过48小时，严重影响了我们的业务。瀚海电商对目前的服务质量非常不满，希望尽快改善。——张强，瀚海电商",
+    "labels": [
+      "inbox",
+      "客户",
+      "投诉"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1604",
+    "from": "hanhai_zhangqiang@hanhai.com",
+    "to": "me@company.com",
+    "subject": "咨询数据分析新功能",
+    "date": "2026-03-05T09:00:00Z",
+    "body": "你好，听说你们最近上线了数据分析模块，我们很感兴趣。能否安排一个demo？虽然预算有限，但如果效果好我们会考虑升级。——张强，瀚海电商",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1605",
+    "from": "wantong_liuwei@wantong.com",
+    "to": "me@company.com",
+    "subject": "感谢贵公司优质服务",
+    "date": "2026-03-22T09:00:00Z",
+    "body": "你好，万通物流使用贵公司系统已经两年了，Q1的运营效率提升了20%。特别感谢技术团队快速响应我们的定制需求。我们计划在Q2进一步扩大合作范围。——刘卫，万通物流",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1606",
+    "from": "wantong_liuwei@wantong.com",
+    "to": "me@company.com",
+    "subject": "讨论Q2扩展方案",
+    "date": "2026-02-28T09:00:00Z",
+    "body": "你好，我们正在规划Q2的IT投入，希望能将贵公司的系统扩展到华南分公司。请提供一份扩展方案和报价。——刘卫，万通物流",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1607",
+    "from": "qianfeng_wangli@qianfeng.com",
+    "to": "me@company.com",
+    "subject": "系统使用问题咨询",
+    "date": "2026-01-20T09:00:00Z",
+    "body": "你好，我们在使用过程中遇到了一些问题，系统偶尔出现卡顿。另外，我们内部在重新评估IT支出，可能需要调整合作方案。——王力，前锋科技",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1608",
+    "from": "yangguang_chenyu@yangguang.com",
+    "to": "me@company.com",
+    "subject": "Q1季度业务复盘与Q2规划",
+    "date": "2026-03-15T09:00:00Z",
+    "body": "你好，阳光传媒Q1业绩超预期，AI内容工具的应用效果显著。我们计划Q2进一步加大投入，希望能获得更多技术支持和定制化方案。——陈宇，阳光传媒",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1609",
+    "from": "gonggong_liujian@gov-agency.cn",
+    "to": "me@company.com",
+    "subject": "关于2026年度预算方案的询问",
+    "date": "2026-02-10T09:00:00Z",
+    "body": "你好，我单位正在编制2026年度信息化预算，需要贵公司提供不同配置方案的报价。请在2月底前发送。——刘建，公共机构信息科",
+    "labels": [
+      "inbox",
+      "客户"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_1610",
+    "from": "admin@company.com",
+    "to": "all@company.com",
+    "subject": "关于Q2团建活动的通知",
+    "date": "2026-03-25T09:00:00Z",
+    "body": "全体同事：Q2团建活动定于4月中旬，请各部门提前安排好工作。详细方案将于下周公布。——行政部",
+    "labels": [
+      "inbox",
+      "通知"
+    ],
+    "is_read": true
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+--- FILE: fixtures/rss/feeds.json ---
+[
+  {
+    "article_id": "RSS-1601",
+    "title": "2026年Q1软件行业持续高增长",
+    "summary": "软件开发行业Q1整体增长15%，企业SaaS订阅模式渗透率突破60%，头部软件企业纷纷加大研发投入。",
+    "tags": [
+      "软件",
+      "SaaS",
+      "增长"
+    ],
+    "url": "https://tech-observer.example.com/1601",
+    "content": "软件开发行业Q1整体增长15%，企业SaaS订阅模式渗透率突破60%，头部软件企业纷纷加大研发投入。",
+    "category": "软件, SaaS, 增长",
+    "source": "科技行业观察",
+    "published_at": "2026-03-20T00:00:00Z",
+    "word_count": 50
+  },
+  {
+    "article_id": "RSS-1602",
+    "title": "电商行业竞争加剧利润承压",
+    "summary": "Q1电商行业增速放缓至5%，中小电商平台面临激烈竞争，多家企业开始缩减IT支出以控制成本。",
+    "tags": [
+      "电商",
+      "竞争",
+      "成本"
+    ],
+    "url": "https://tech-observer.example.com/1602",
+    "content": "Q1电商行业增速放缓至5%，中小电商平台面临激烈竞争，多家企业开始缩减IT支出以控制成本。",
+    "category": "电商, 竞争, 成本",
+    "source": "科技行业观察",
+    "published_at": "2026-03-18T00:00:00Z",
+    "word_count": 45
+  },
+  {
+    "article_id": "RSS-1603",
+    "title": "物流行业数字化投入持续增加",
+    "summary": "物流企业Q1数字化投入同比增长25%，头部物流公司纷纷扩大系统覆盖范围，IT服务需求旺盛。",
+    "tags": [
+      "物流",
+      "数字化",
+      "增长"
+    ],
+    "url": "https://tech-observer.example.com/1603",
+    "content": "物流企业Q1数字化投入同比增长25%，头部物流公司纷纷扩大系统覆盖范围，IT服务需求旺盛。",
+    "category": "物流, 数字化, 增长",
+    "source": "科技行业观察",
+    "published_at": "2026-03-22T00:00:00Z",
+    "word_count": 45
+  },
+  {
+    "article_id": "RSS-1604",
+    "title": "制造业IT预算大幅缩减",
+    "summary": "受全球经济放缓影响，制造业企业普遍收紧IT预算，SaaS续约率下降8个百分点，部分企业开始降级或退订。",
+    "tags": [
+      "制造",
+      "预算缩减",
+      "风险"
+    ],
+    "url": "https://tech-observer.example.com/1604",
+    "content": "受全球经济放缓影响，制造业企业普遍收紧IT预算，SaaS续约率下降8个百分点，部分企业开始降级或退订。",
+    "category": "制造, 预算缩减, 风险",
+    "source": "科技行业观察",
+    "published_at": "2026-03-15T00:00:00Z",
+    "word_count": 51
+  },
+  {
+    "article_id": "RSS-1605",
+    "title": "传媒行业迎来AI驱动的黄金期",
+    "summary": "AI内容生成和智能分发技术推动传媒行业降本增效，广告主数字化支出Q1增长22%，行业景气度持续上升。",
+    "tags": [
+      "传媒",
+      "AI",
+      "增长"
+    ],
+    "url": "https://market-weekly.example.com/1605",
+    "content": "AI内容生成和智能分发技术推动传媒行业降本增效，广告主数字化支出Q1增长22%，行业景气度持续上升。",
+    "category": "传媒, AI, 增长",
+    "source": "市场动态周刊",
+    "published_at": "2026-03-21T00:00:00Z",
+    "word_count": 50
+  },
+  {
+    "article_id": "RSS-1606",
+    "title": "政府信息化建设稳步推进",
+    "summary": "多地政府部门2026年信息化预算保持稳定，重点投入数据治理和安全合规，SaaS采购维持上年水平。",
+    "tags": [
+      "政府",
+      "信息化",
+      "稳定"
+    ],
+    "url": "https://market-weekly.example.com/1606",
+    "content": "多地政府部门2026年信息化预算保持稳定，重点投入数据治理和安全合规，SaaS采购维持上年水平。",
+    "category": "政府, 信息化, 稳定",
+    "source": "市场动态周刊",
+    "published_at": "2026-03-19T00:00:00Z",
+    "word_count": 48
+  },
+  {
+    "article_id": "RSS-1607",
+    "title": "企业服务赛道Q1投融资盘点",
+    "summary": "Q1企业服务领域完成融资58笔，AI相关项目占比超65%。",
+    "tags": [
+      "投融资",
+      "AI"
+    ],
+    "url": "https://market-weekly.example.com/1607",
+    "content": "Q1企业服务领域完成融资58笔，AI相关项目占比超65%。",
+    "category": "投融资, AI",
+    "source": "市场动态周刊",
+    "published_at": "2026-03-23T00:00:00Z",
+    "word_count": 29
+  },
+  {
+    "article_id": "RSS-1608",
+    "title": "半导体行业产能持续扩张",
+    "summary": "全球半导体产能Q1扩张12%，国内厂商加速追赶。",
+    "tags": [
+      "半导体",
+      "产能"
+    ],
+    "url": "https://market-weekly.example.com/1608",
+    "content": "全球半导体产能Q1扩张12%，国内厂商加速追赶。",
+    "category": "半导体, 产能",
+    "source": "市场动态周刊",
+    "published_at": "2026-03-24T00:00:00Z",
+    "word_count": 24
+  }
+]
+--- END FILE: fixtures/rss/feeds.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

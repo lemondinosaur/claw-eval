@@ -1,0 +1,56 @@
+task_id: T095_pinbench_apm_market_research_plus_1
+task_name: APM競争版图（OTel与AI驱动）
+version: '1.0'
+category: research
+difficulty: easy
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T095_pinbench_apm_market_research_plus_1/fixtures/kb/articles.json
+prompt:
+  text: 请基于知识库为一家中型SaaS团队的APM选型做竞争格局分析。要求至少5家APM/可观测领域厂商，说明它们的核心差异化能力、常见定价模式（仅描述性、不得给出具体报价数字），并提炼至少3条与OpenTelemetry标准化、AI辅助可观测定位（如AI辅助根因分析）相关的市场趋势。输出：1）比较表（至少5家厂商行；列至少包含：差异化、定价模式、适配场景侧重点、与OpenTelemetry/AI相关要点）；2）不超过200字的执行摘要（聚焦OTel、AI与成本治理/摄入消费成本可预测性）；3）每家厂商1-2句简要画像（中文）。
+  language: en
+tools:
+- name: kb_search
+  description: Search the KB
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+      category:
+        type: string
+      max_results:
+        type: integer
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: Get one KB article
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+sandbox_files:
+- fixtures/kb/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 16

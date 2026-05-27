@@ -1,0 +1,88 @@
+task_id: T125zh_meeting_action_items_plus_3
+task_name: 客服热线升级行动项校对
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T125zh_meeting_action_items_plus_3/fixtures/notes/meetings.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T125zh_meeting_action_items_plus_3/fixtures/todo/tasks.json
+prompt:
+  text: "请帮我整理客服热线升级相关会议的行动项：\n1. 查看所有会议纪要，提取其中的行动项（仅保留明确包含截止日期的行动；不把“同步窗口/等待确认”之类无截止内容当作行动项）。\n\
+    2. 查看当前待办事项列表。\n3. 将会议行动项与现有待办对比：\n   - 需要对行动项进行去重匹配。\n   - 若某条会议行动项同时包含两个可交付物/子动作（例如“更新话术+录制示例”），则应进行“拆分式部分覆盖”匹配：为已存在的最接近子动作标注对应待办ID，未覆盖的子动作作为需要新建的独立待办输出。\n\
+    4. 列出需要新建的待办事项（包含负责人、截止日期）。\n5. 最终输出行动项追踪表（至少包含：来源会议、负责人、截止日期、会议行动项/拆分后的子动作、是否已有待办、匹配待办ID如有）。"
+  language: zh
+tools:
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: all
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

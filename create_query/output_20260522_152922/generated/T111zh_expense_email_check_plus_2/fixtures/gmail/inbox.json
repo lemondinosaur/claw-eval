@@ -1,0 +1,62 @@
+[
+  {
+    "message_id": "msg_b01",
+    "from": "chaodayi@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：差旅费 2379.50元（上海）",
+    "date": "2026-03-26T09:10:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "财务部您好，我是赵晨。本次出差上海发生差旅费用共计2379.50元，发票号INV-B401（交通+住宿合计）。请审核并走账。附件：行程单与费用明细。"
+  },
+  {
+    "message_id": "msg_b02",
+    "from": "zhouning@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：客户招待餐费 1680.00元（发票）",
+    "date": "2026-03-26T10:45:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "你好，周宁申请报销客户招待餐费，金额为1680.00元，发票号INV-B402。包含参与人员与餐饮明细。请核对并完成报销。"
+  },
+  {
+    "message_id": "msg_b03",
+    "from": "chenlei@company.com",
+    "to": "finance@company.com",
+    "subject": "报销申请：办公用品 299.80元（补录）",
+    "date": "2026-03-26T13:20:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "财务同事您好，补录本月办公用品报销：共计299.80元，发票号INV-B403。请尽快处理。"
+  },
+  {
+    "message_id": "msg_b04",
+    "from": "itops@company.com",
+    "to": "all@company.com",
+    "subject": "差旅政策更新：报销材料清单调整（请勿回复）",
+    "date": "2026-03-26T15:30:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "各位同学注意：差旅政策更新，新增报销材料清单与审批流程。内容仅为制度通知，不涉及任何发票号或报销金额。"
+  },
+  {
+    "message_id": "msg_b05",
+    "from": "forwarder@partner.com",
+    "to": "finance@company.com",
+    "subject": "转发提醒：本周费用报销待处理",
+    "date": "2026-03-26T16:05:00+08:00",
+    "is_read": true,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，转发一条内部提醒：有同事提交了费用报销（金额约三百元），请留意系统待办。该邮件内容未包含发票号，无法直接核对。"
+  }
+]

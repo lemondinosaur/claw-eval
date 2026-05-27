@@ -1,0 +1,65 @@
+task_id: T095_pinbench_apm_market_research_plus_5
+task_name: 对比表增强：按场景推荐的竞品矩阵
+version: '1.0'
+category: research
+difficulty: easy
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T095_pinbench_apm_market_research_plus_5/fixtures/kb/articles.json
+prompt:
+  text: '请为准备 APM 供应商评估矩阵的团队做一份竞争研究。要求至少 5 家厂商，并输出：
+
+    1）增强版比较表：至少包含“厂商、差异化、定价/计费维度（仅描述计费方式，不出现具体金额或具体报价）、适配场景标签”。并在表格中为每家厂商标注与 3 条市场趋势中的哪些点存在对应关系（用简短关联说明即可）。
+
+    2）给出 3 个典型评估场景（例如：企业级自动化优先；开源自治与 OTel 兼容优先；已有企业生态协同/平台整合与安全联动优先）。每个场景至少推荐 2 家厂商，并说明
+    1-2 句推荐理由（推荐依据来自 KB 内容）。
+
+    3）总结 3 条市场趋势，并与表格中的“趋势关联点”和场景推荐逻辑保持一致。
+
+    注意：不要出现具体金额或具体报价数字；输出为中文；结构清晰，方便利益相关方快速对齐选择逻辑。'
+  language: en
+tools:
+- name: kb_search
+  description: Search the KB
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+      category:
+        type: string
+      max_results:
+        type: integer
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: Get one KB article
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+    required:
+    - article_id
+tool_endpoints:
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+sandbox_files:
+- fixtures/kb/articles.json
+environment:
+  timeout_seconds: 300
+  max_turns: 16

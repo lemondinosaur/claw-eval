@@ -1,0 +1,57 @@
+[
+  {
+    "transaction_id": "TXD-401",
+    "date": "2026-04-10",
+    "amount": 2560.0,
+    "currency": "CNY",
+    "type": "差旅费报销",
+    "category": "费用报销",
+    "description": "赵敏差旅报销，发票号INV-D112",
+    "status": "completed",
+    "approved_by": "财务经理"
+  },
+  {
+    "transaction_id": "TXD-402",
+    "date": "2026-04-10",
+    "amount": 1399.0,
+    "currency": "CNY",
+    "type": "办公用品报销",
+    "category": "费用报销",
+    "description": "周涛办公用品采购，发票号INV-D205",
+    "status": "completed",
+    "approved_by": "财务经理"
+  },
+  {
+    "transaction_id": "TXD-403",
+    "date": "2026-04-09",
+    "amount": 9800.0,
+    "currency": "CNY",
+    "type": "服务费",
+    "category": "外包成本",
+    "description": "第三方服务费结算（不含INV-发票）",
+    "status": "completed",
+    "approved_by": "采购负责人"
+  },
+  {
+    "transaction_id": "TXD-404",
+    "date": "2026-04-11",
+    "amount": 620.0,
+    "currency": "CNY",
+    "type": "通讯费",
+    "category": "运营成本",
+    "description": "通信费用对账单（发票编号疑似为D-620但非INV-格式）",
+    "status": "completed",
+    "approved_by": "行政主管"
+  },
+  {
+    "transaction_id": "TXD-405",
+    "date": "2026-04-08",
+    "amount": 4100.0,
+    "currency": "CNY",
+    "type": "交通补贴",
+    "category": "人力成本",
+    "description": "交通补贴发放（不含INV-）",
+    "status": "completed",
+    "approved_by": "人事经理"
+  }
+]

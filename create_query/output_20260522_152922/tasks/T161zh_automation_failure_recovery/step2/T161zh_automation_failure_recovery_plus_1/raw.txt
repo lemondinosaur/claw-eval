@@ -1,0 +1,503 @@
+{
+  "task_id": "T161zh_automation_failure_recovery_plus_1",
+  "task_name": "多站点同步失败恢复",
+  "prompt_text": "你负责运维值班：发现多个自动化任务连续失败，客服集中上报“部分站点库存错配/发货延迟”。请你排查并给出可执行的恢复步骤（按顺序），要求引用知识库文章中的要点：\n\n1）找出失败的定时任务及其依赖关系（需覆盖连锁链路）；\n2）检查相关API集成配置，定位401/404的根因（如旧密钥仍active、待切换密钥未启用等）；\n3）评估对库存数据的影响：哪些产品/状态可能stale/unknown并可能影响“可发货库存/发货资格检查”；\n4）关联并筛出正确的客服工单，明确排除与该链路无关的硬件噪声任务/工单；\n5）在知识库搜索匹配的修复方案并引用KB文章内容；\n6）输出结构化故障分析与恢复计划：包含依赖链、根因、影响范围、相关工单归因，以及基于KB的具体操作顺序（在真实解决前不要直接关闭工单）。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-2401",
+        "name": "门店库存同步-旧密钥",
+        "service": "store_inventory_sync",
+        "status": "active",
+        "endpoint": "https://store-inventory.example.com/api/v1/stores/sync",
+        "api_key": "sk-old-store-sync-2401-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-10T09:20:00Z",
+        "monthly_calls": 9800,
+        "error_rate": 0.93,
+        "notes": "令牌已过期但配置仍保持active；连续产生401/403/404。与新密钥INT-2402需完成状态切换与验证。"
+      },
+      {
+        "integration_id": "INT-2402",
+        "name": "门店库存同步-新密钥",
+        "service": "store_inventory_sync",
+        "status": "inactive",
+        "endpoint": "https://store-inventory.example.com/api/v1/stores/sync",
+        "api_key": "sk-new-store-sync-2402-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-18T15:05:00Z",
+        "monthly_calls": 0,
+        "error_rate": 0.0,
+        "notes": "新密钥已完成离线验证，但尚未激活到生产配置；需要切换触发链路恢复。"
+      },
+      {
+        "integration_id": "INT-2403",
+        "name": "发货资格校验服务",
+        "service": "fulfillment_eligibility",
+        "status": "active",
+        "endpoint": "https://eligibility.example.com/api/v2/check",
+        "api_key": "sk-eligibility-2403-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-20T11:40:00Z",
+        "monthly_calls": 42100,
+        "error_rate": 0.006,
+        "notes": "服务运行正常。拒绝执行原因应来自上游可发货库存数据过期/不达阈值。"
+      },
+      {
+        "integration_id": "INT-2404",
+        "name": "监控告警聚合服务",
+        "service": "monitoring_aggregator",
+        "status": "active",
+        "endpoint": "https://monitoring.example.com/api/v1/alerts/aggregate",
+        "api_key": "sk-monitor-2404-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-21T18:00:00Z",
+        "monthly_calls": 7600,
+        "error_rate": 0.01,
+        "notes": "存在磁盘空间接近阈值的噪声告警，但不依赖本次门店库存同步链路。"
+      },
+      {
+        "integration_id": "INT-2405",
+        "name": "站点元数据服务",
+        "service": "site_metadata",
+        "status": "active",
+        "endpoint": "https://sites.example.com/api/v1/sites",
+        "api_key": "sk-site-meta-2405-REDACTED",
+        "api_secret": null,
+        "webhook_url": null,
+        "last_verified": "2026-05-19T08:12:00Z",
+        "monthly_calls": 12000,
+        "error_rate": 0.001,
+        "notes": "运行正常，用于站点维度映射。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2411",
+        "title": "A站点库存错配导致发货延迟",
+        "description": "A站点热销SKU出现“可发货库存”与实际门店盘点不一致，触发发货资格检查拒绝。希望确认门店库存同步是否因认证失败未更新。",
+        "reporter": "运营支持-林柚",
+        "department": "运营支持",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-05-22T03:10:00Z",
+        "tags": [
+          "库存错配",
+          "发货延迟",
+          "A站点",
+          "可发货状态异常"
+        ],
+        "category": "库存与发货异常"
+      },
+      {
+        "ticket_id": "TK-2412",
+        "title": "B站点冷启动SKU数据为unknown",
+        "description": "B站点冷启动SKU的库存状态显示unknown，导致下游“发货资格检查”长期拒绝执行。请排查同步失败原因并重算资格。",
+        "reporter": "客户成功-周屿",
+        "department": "客户成功",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-22T02:45:00Z",
+        "tags": [
+          "B站点",
+          "库存状态unknown",
+          "发货资格检查",
+          "自动化失败"
+        ],
+        "category": "可发货状态异常"
+      },
+      {
+        "ticket_id": "TK-2413",
+        "title": "多站点同步失败影响部分订单履约",
+        "description": "客服反馈部分订单因“可发货库存更新”未完成而延迟。希望根据任务依赖链定位根因（401/404）并制定恢复步骤。",
+        "reporter": "履约运维-薛岚",
+        "department": "履约运维",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-22T04:05:00Z",
+        "tags": [
+          "部分站点",
+          "可发货库存",
+          "依赖链",
+          "401/404"
+        ],
+        "category": "发货延迟"
+      },
+      {
+        "ticket_id": "TK-2414",
+        "title": "打印机服务噪声告警（无关）",
+        "description": "办公区打印机显示缺纸告警，影响少量内部打印。与库存同步无明显关联，请确认是否需要派单给硬件团队。",
+        "reporter": "行政服务-唐芷",
+        "department": "行政服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-22T01:20:00Z",
+        "tags": [
+          "硬件",
+          "打印机",
+          "噪声"
+        ],
+        "category": "硬件打印"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "SKU-A101",
+        "name": "A站点热销电源适配器-65W",
+        "category": "数码配件",
+        "quantity": 18,
+        "unit": "个",
+        "reorder_level": 25,
+        "site": "A",
+        "sync_source": "INT-2401",
+        "last_sync": "2026-05-19T08:00:00Z",
+        "sync_status": "stale",
+        "notes": "last_sync超过阈值，疑似影响可发货库存与资格检查。"
+      },
+      {
+        "product_id": "SKU-A102",
+        "name": "A站点热销USB-C数据线-1m",
+        "category": "数码配件",
+        "quantity": 0,
+        "unit": "根",
+        "reorder_level": 40,
+        "site": "A",
+        "sync_source": "INT-2401",
+        "last_sync": "2026-05-19T08:00:00Z",
+        "sync_status": "unknown",
+        "notes": "显示为unknown，可能因401/404导致同步中断。"
+      },
+      {
+        "product_id": "SKU-B201",
+        "name": "B站点冷启动无线充电座",
+        "category": "充电设备",
+        "quantity": 7,
+        "unit": "个",
+        "reorder_level": 10,
+        "site": "B",
+        "sync_source": "INT-2401",
+        "last_sync": "2026-05-19T08:00:00Z",
+        "sync_status": "stale",
+        "notes": "冷启动SKU库存长时间未更新，可能触发资格检查拒绝。"
+      },
+      {
+        "product_id": "SKU-B202",
+        "name": "B站点冷启动Type-C扩展底座",
+        "category": "数码配件",
+        "quantity": 3,
+        "unit": "个",
+        "reorder_level": 8,
+        "site": "B",
+        "sync_source": "INT-2401",
+        "last_sync": "2026-05-19T08:00:00Z",
+        "sync_status": "unknown",
+        "notes": "状态unknown，需以同步恢复与全量校正后重算资格。"
+      },
+      {
+        "product_id": "SKU-A103",
+        "name": "A站点办公鼠标",
+        "category": "外设",
+        "quantity": 46,
+        "unit": "个",
+        "reorder_level": 20,
+        "site": "A",
+        "sync_source": "INT-2405",
+        "last_sync": "2026-05-22T02:30:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "SKU-B203",
+        "name": "B站点办公键盘",
+        "category": "外设",
+        "quantity": 33,
+        "unit": "个",
+        "reorder_level": 18,
+        "site": "B",
+        "sync_source": "INT-2405",
+        "last_sync": "2026-05-22T02:31:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "SKU-A104",
+        "name": "A站点桌面支架",
+        "category": "办公家具",
+        "quantity": 12,
+        "unit": "个",
+        "reorder_level": 15,
+        "site": "A",
+        "sync_source": "INT-2405",
+        "last_sync": "2026-05-22T02:32:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      },
+      {
+        "product_id": "SKU-B204",
+        "name": "B站点显示器挂架",
+        "category": "办公家具",
+        "quantity": 9,
+        "unit": "个",
+        "reorder_level": 12,
+        "site": "B",
+        "sync_source": "INT-2405",
+        "last_sync": "2026-05-22T02:33:00Z",
+        "sync_status": "ok",
+        "notes": ""
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-24101",
+        "title": "门店库存同步401/403：旧密钥仍active的切换与验证",
+        "category": "运维手册",
+        "tags": [
+          "门店库存同步",
+          "认证",
+          "密钥轮换",
+          "401",
+          "403",
+          "集成配置"
+        ],
+        "content": "## 门店库存同步401/403：旧密钥仍active的切换与验证\n\n### 现象\n- 同步接口返回401/403/404\n- 集成配置中“旧密钥”仍处于active，而“新密钥”处于inactive/未启用\n\n### 关键恢复步骤（按顺序执行）\n1. 在配置管理系统中：将旧密钥集成（status=active）切换为inactive/deprecated；将新密钥集成切换为active。\n   - 目标：确保后续同步请求使用新Key。\n2. 验证集成健康度：观察错误率指标，确认401/403显著下降（例如从接近1.0降到<0.01）。\n3. 触发一次手动同步/等待下一次调度：确认“门店库存同步”链路不再失败。\n4. 复核下游任务的依赖状态：当上游恢复后，下游应从依赖错误转为可执行。\n",
+        "last_updated": "2026-05-20",
+        "views": 312
+      },
+      {
+        "article_id": "KB-24102",
+        "title": "可发货库存/发货资格检查因数据过期而拒绝：恢复与重算资格",
+        "category": "运维手册",
+        "tags": [
+          "数据过期",
+          "资格检查",
+          "可发货库存",
+          "stale",
+          "重算"
+        ],
+        "content": "## 可发货库存/发货资格检查因数据过期而拒绝：恢复与重算资格\n\n### 现象\n- 下游“发货资格检查”因可发货库存超过阈值（数据过期）而拒绝执行\n- 库存产品状态可能为stale/unknown\n\n### 恢复步骤\n1. 先恢复上游同步：确保门店库存同步任务已成功运行（避免先重算造成基于过期数据的错误资格）。\n2. 触发可发货库存更新的全量/重建流程（若存在手动入口，则优先执行一次全量更新）。\n3. 运行资格检查重算：对受影响站点与相关SKU执行资格重算，直至资格检查通过。\n4. 只在确认库存数据完成刷新且资格状态回归正常后，再关注自动化任务后续调度。\n\n### 建议关注的SKU范围\n- last_sync明显早于当前阈值的产品\n- sync_status为stale或unknown的站点SKU\n",
+        "last_updated": "2026-05-21",
+        "views": 198
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-A001",
+        "name": "门店库存同步（A/B站点）",
+        "cron_expression": "0 */2 * * *",
+        "action": "sync_store_inventory",
+        "enabled": true,
+        "last_run": "2026-05-22T04:00:00Z",
+        "next_run": "2026-05-22T06:00:00Z",
+        "last_status": "failed",
+        "created_by": "ops_watcher",
+        "tags": [
+          "store",
+          "inventory",
+          "sync",
+          "401/403"
+        ],
+        "created_at": "2026-02-10T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T04:00:00Z",
+            "status": "failed",
+            "duration_s": 4,
+            "error": "HTTP 401: Unauthorized — token expired (old key INT-2401 active)"
+          },
+          {
+            "run_at": "2026-05-22T02:00:00Z",
+            "status": "failed",
+            "duration_s": 4,
+            "error": "HTTP 403: Forbidden — signature invalid (old key INT-2401 active)"
+          },
+          {
+            "run_at": "2026-05-22T00:00:00Z",
+            "status": "failed",
+            "duration_s": 4,
+            "error": "HTTP 404: Not Found — endpoint rejected for expired credentials"
+          },
+          {
+            "run_at": "2026-05-21T22:00:00Z",
+            "status": "success",
+            "duration_s": 38
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-A002",
+        "name": "可发货库存更新",
+        "cron_expression": "30 */2 * * *",
+        "action": "update_sellable_inventory",
+        "enabled": true,
+        "last_run": "2026-05-22T04:30:00Z",
+        "next_run": "2026-05-22T06:30:00Z",
+        "last_status": "failed",
+        "created_by": "ops_watcher",
+        "tags": [
+          "inventory",
+          "sellable",
+          "dependency"
+        ],
+        "created_at": "2026-02-16T00:00:00Z",
+        "depends_on": [
+          "JOB-A001"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T04:30:00Z",
+            "status": "failed",
+            "duration_s": 2,
+            "error": "DependencyError: 上游门店库存同步失败 — 无法更新可发货库存快照"
+          },
+          {
+            "run_at": "2026-05-22T02:30:00Z",
+            "status": "failed",
+            "duration_s": 2,
+            "error": "DependencyError: 上游门店库存同步失败 — 数据源不可用"
+          },
+          {
+            "run_at": "2026-05-22T00:30:00Z",
+            "status": "failed",
+            "duration_s": 2,
+            "error": "DependencyError: 上游门店库存同步失败 — 使用过期/unknown库存可能触发阈值"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-A003",
+        "name": "发货资格检查",
+        "cron_expression": "10 */2 * * *",
+        "action": "check_fulfillment_eligibility",
+        "enabled": true,
+        "last_run": "2026-05-22T04:10:00Z",
+        "next_run": "2026-05-22T06:10:00Z",
+        "last_status": "failed",
+        "created_by": "ops_watcher",
+        "tags": [
+          "fulfillment",
+          "eligibility",
+          "threshold"
+        ],
+        "created_at": "2026-02-20T00:00:00Z",
+        "depends_on": [
+          "JOB-A002"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T04:10:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "error": "StaleDataError: 数据过期阈值拒绝 — 可发货库存更新时间超阈值（stale/unknown）"
+          },
+          {
+            "run_at": "2026-05-22T02:10:00Z",
+            "status": "failed",
+            "duration_s": 3,
+            "error": "StaleDataError: 数据过期阈值拒绝 — 资格检查基于过期快照"
+          },
+          {
+            "run_at": "2026-05-21T22:10:00Z",
+            "status": "success",
+            "duration_s": 28
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-N001",
+        "name": "监控磁盘告警聚合",
+        "cron_expression": "*/5 * * * *",
+        "action": "aggregate_monitoring_alerts",
+        "enabled": true,
+        "last_run": "2026-05-22T04:15:00Z",
+        "next_run": "2026-05-22T04:20:00Z",
+        "last_status": "success",
+        "created_by": "monitor_bot",
+        "tags": [
+          "monitoring",
+          "noise"
+        ],
+        "created_at": "2026-01-12T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T04:15:00Z",
+            "status": "success",
+            "duration_s": 6
+          },
+          {
+            "run_at": "2026-05-22T04:10:00Z",
+            "status": "success",
+            "duration_s": 5
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-N002",
+        "name": "日志清理与归档",
+        "cron_expression": "0 3 * * *",
+        "action": "cleanup_and_archive_logs",
+        "enabled": true,
+        "last_run": "2026-05-22T03:00:00Z",
+        "next_run": "2026-05-23T03:00:00Z",
+        "last_status": "success",
+        "created_by": "admin_ops",
+        "tags": [
+          "infrastructure",
+          "logs"
+        ],
+        "created_at": "2026-01-18T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T03:00:00Z",
+            "status": "success",
+            "duration_s": 140
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-N003",
+        "name": "订单处理（核心链路健康）",
+        "cron_expression": "*/15 * * * *",
+        "action": "process_orders",
+        "enabled": true,
+        "last_run": "2026-05-22T04:14:00Z",
+        "next_run": "2026-05-22T04:29:00Z",
+        "last_status": "success",
+        "created_by": "order_admin",
+        "tags": [
+          "orders",
+          "core"
+        ],
+        "created_at": "2026-01-05T00:00:00Z",
+        "depends_on": [],
+        "execution_history": [
+          {
+            "run_at": "2026-05-22T04:14:00Z",
+            "status": "success",
+            "duration_s": 9
+          },
+          {
+            "run_at": "2026-05-22T03:59:00Z",
+            "status": "success",
+            "duration_s": 10
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将根因从供应商API迁移未启用改为门店库存同步认证/令牌过期但旧密钥仍active，连锁链路聚焦A/B站点可发货与资格检查拒绝，并加入与本链路无关的监控磁盘告警噪声与无关打印工单。",
+    "fixture_design_summary": [
+      "scheduler 以 JOB-A001→JOB-A002→JOB-A003 构造三段依赖失败链；同时保留2个成功噪声任务验证排除能力",
+      "config 至少4条集成：旧密钥active且错误率高、新密钥inactive未启用、资格校验active正常、监控告警active作为干扰",
+      "inventory 覆盖A热销与B冷启动SKU，至少4个产品 sync_status 为 stale/unknown，并包含可能影响资格阈值的品项（如数量0/低于reorder_level）",
+      "helpdesk 提供4条工单，其中3条与库存错配/发货延迟相关、1条硬件打印无关；确保跨fixture可通过站点/关键词关联到依赖链与受影响SKU"
+    ]
+  }
+}

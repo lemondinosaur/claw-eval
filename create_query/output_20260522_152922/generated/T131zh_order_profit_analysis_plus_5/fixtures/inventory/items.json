@@ -1,0 +1,191 @@
+[
+  {
+    "product_id": "SKU-110",
+    "name": "企业云许可-A",
+    "category": "软件许可",
+    "quantity": 1200,
+    "unit": "个",
+    "selling_price": 52000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研",
+    "cost_history": [
+      {
+        "effective_date": "2026-02-01",
+        "unit_cost": 21000.0
+      },
+      {
+        "effective_date": "2026-04-10",
+        "unit_cost": 33000.0
+      }
+    ]
+  },
+  {
+    "product_id": "SKU-120",
+    "name": "企业云许可-B",
+    "category": "软件许可",
+    "quantity": 800,
+    "unit": "个",
+    "selling_price": 62000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研",
+    "cost_history": [
+      {
+        "effective_date": "2026-01-15",
+        "unit_cost": 26000.0
+      },
+      {
+        "effective_date": "2026-03-05",
+        "unit_cost": 18000.0
+      }
+    ]
+  },
+  {
+    "product_id": "SKU-140",
+    "name": "基础运维包",
+    "category": "服务",
+    "quantity": 300,
+    "unit": "套",
+    "selling_price": 42000.0,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "内部团队",
+    "cost_history": [
+      {
+        "effective_date": "2026-02-20",
+        "unit_cost": 16000.0
+      },
+      {
+        "effective_date": "2026-03-30",
+        "unit_cost": 19000.0
+      }
+    ]
+  },
+  {
+    "product_id": "SKU-210",
+    "name": "高级分析模块-A",
+    "category": "增值模块",
+    "quantity": 500,
+    "unit": "个",
+    "selling_price": 38000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研",
+    "cost_history": [
+      {
+        "effective_date": "2026-03-01",
+        "unit_cost": 14000.0
+      },
+      {
+        "effective_date": "2026-04-25",
+        "unit_cost": 80000.0
+      }
+    ]
+  },
+  {
+    "product_id": "SKU-220",
+    "name": "高级分析模块-B",
+    "category": "增值模块",
+    "quantity": 420,
+    "unit": "个",
+    "selling_price": 62000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研",
+    "cost_history": [
+      {
+        "effective_date": "2026-02-10",
+        "unit_cost": 36000.0
+      },
+      {
+        "effective_date": "2026-03-20",
+        "unit_cost": 30000.0
+      }
+    ]
+  },
+  {
+    "product_id": "SKU-230",
+    "name": "数据治理套件",
+    "category": "增值模块",
+    "quantity": 260,
+    "unit": "个",
+    "selling_price": 68000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研",
+    "cost_history": [
+      {
+        "effective_date": "2026-01-28",
+        "unit_cost": 41000.0
+      },
+      {
+        "effective_date": "2026-04-05",
+        "unit_cost": 45500.0
+      }
+    ]
+  },
+  {
+    "product_id": "SKU-310",
+    "name": "实施服务-交付型",
+    "category": "服务",
+    "quantity": 90,
+    "unit": "人天",
+    "selling_price": 19000.0,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "内部团队",
+    "cost_history": [
+      {
+        "effective_date": "2026-02-08",
+        "unit_cost": 7200.0
+      },
+      {
+        "effective_date": "2026-04-12",
+        "unit_cost": 8200.0
+      }
+    ]
+  },
+  {
+    "product_id": "SKU-330",
+    "name": "年度技术支持-进阶",
+    "category": "服务",
+    "quantity": 150,
+    "unit": "个",
+    "selling_price": 52000.0,
+    "location": "",
+    "reorder_level": 0,
+    "supplier": "内部团队",
+    "cost_history": [
+      {
+        "effective_date": "2026-03-01",
+        "unit_cost": 25000.0
+      },
+      {
+        "effective_date": "2026-04-18",
+        "unit_cost": 17500.0
+      }
+    ]
+  },
+  {
+    "product_id": "SKU-410",
+    "name": "预置集成包",
+    "category": "增值模块",
+    "quantity": 180,
+    "unit": "个",
+    "selling_price": 29000.0,
+    "location": "虚拟",
+    "reorder_level": 0,
+    "supplier": "自研",
+    "cost_history": [
+      {
+        "effective_date": "2026-02-25",
+        "unit_cost": 12000.0
+      },
+      {
+        "effective_date": "2026-04-02",
+        "unit_cost": 999999.0
+      }
+    ]
+  }
+]

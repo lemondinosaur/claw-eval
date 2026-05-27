@@ -1,0 +1,102 @@
+[
+  {
+    "customer_id": "CUS-901",
+    "name": "海纳创联",
+    "contact_person": "陈总监",
+    "email": "chen@hainachl.com",
+    "phone": "13901112233",
+    "industry": "制造",
+    "tier": "vip",
+    "annual_revenue": 6200000,
+    "last_contact_date": "2026-04-16",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-901",
+        "products": [
+          "SKU-101",
+          "SKU-102",
+          "SKU-106"
+        ],
+        "total_price": 165000,
+        "date": "2026-04-10"
+      }
+    ],
+    "notes": "长期战略客户"
+  },
+  {
+    "customer_id": "CUS-902",
+    "name": "北辰零售",
+    "contact_person": "李经理",
+    "email": "li@beichenretail.cn",
+    "phone": "13904445566",
+    "industry": "零售",
+    "tier": "standard",
+    "annual_revenue": 1400000,
+    "last_contact_date": "2026-04-18",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-902",
+        "products": [
+          "SKU-103",
+          "SKU-107"
+        ],
+        "total_price": 92000,
+        "date": "2026-04-12"
+      }
+    ],
+    "notes": "试点推广期"
+  },
+  {
+    "customer_id": "CUS-903",
+    "name": "天桥科技",
+    "contact_person": "孙总",
+    "email": "sun@tqtech.io",
+    "phone": "13905556677",
+    "industry": "科技",
+    "tier": "vip",
+    "annual_revenue": 3100000,
+    "last_contact_date": "2026-04-22",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-903",
+        "products": [
+          "SKU-101",
+          "SKU-104",
+          "SKU-108"
+        ],
+        "total_price": 238000,
+        "date": "2026-04-13"
+      }
+    ],
+    "notes": "高频迭代客户"
+  },
+  {
+    "customer_id": "CUS-904",
+    "name": "云港物流",
+    "contact_person": "周采购",
+    "email": "zhou@yunganglog.com",
+    "phone": "13906667788",
+    "industry": "物流",
+    "tier": "standard",
+    "annual_revenue": 950000,
+    "last_contact_date": "2026-04-25",
+    "status": "active",
+    "recent_orders": [
+      {
+        "order_id": "ORD-904",
+        "products": [
+          "SKU-105",
+          "SKU-102",
+          "SKU-106",
+          "SKU-109"
+        ],
+        "total_price": 142000,
+        "date": "2026-04-17"
+      }
+    ],
+    "notes": "项目制交付"
+  }
+]

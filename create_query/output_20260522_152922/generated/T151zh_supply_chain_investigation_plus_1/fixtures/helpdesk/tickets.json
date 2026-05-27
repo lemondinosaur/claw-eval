@@ -1,0 +1,177 @@
+[
+  {
+    "ticket_id": "TK-2101",
+    "title": "冷链试剂A配送延迟（批次CL-A-24Q2-19）",
+    "description": "北辰肿瘤医院（CUS-2101）曹主任反馈：订单#H-4401含冷链检测试剂A 批次CL-A-24Q2-19，原定4/20到货，现仍未到，冷链温控记录无法提交。请紧急核查上游供货与合规放行情况。",
+    "customer_id": "CUS-2101",
+    "reporter": "曹主任",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-17T07:45:00Z",
+    "tags": [
+      "配送延迟",
+      "冷链",
+      "试剂A",
+      "CL-A-24Q2-19"
+    ],
+    "category": "冷链到货异常"
+  },
+  {
+    "ticket_id": "TK-2102",
+    "title": "冷链试剂B延迟到货（批次CL-B-24Q2-07）",
+    "description": "澄江疾控中心（CUS-2102）沈科长报：订单#H-4402含冷链检测试剂B 批次CL-B-24Q2-07，计划4/21到达，现出现配送延期，影响本周采样检测。",
+    "customer_id": "CUS-2102",
+    "reporter": "沈科长",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-18T03:20:00Z",
+    "tags": [
+      "配送延迟",
+      "冷链",
+      "试剂B",
+      "CL-B-24Q2-07"
+    ],
+    "category": "冷链到货异常"
+  },
+  {
+    "ticket_id": "TK-2103",
+    "title": "周一冷链时效异常：两类试剂均未装车",
+    "description": "星港检验所（CUS-2103）周检验长：周一早晨发现冷链运输时效受阻，系统显示试剂A与试剂B均未完成装车；要求在48小时内给出明确到货时间与缺货原因。重点关注供应商合规/质检放行。",
+    "customer_id": "CUS-2103",
+    "reporter": "周检验长",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "in_progress",
+    "created_at": "2026-04-19T01:10:00Z",
+    "tags": [
+      "配送延迟",
+      "装车失败",
+      "冷链",
+      "缺货"
+    ],
+    "category": "冷链到货异常"
+  },
+  {
+    "ticket_id": "TK-2104",
+    "title": "订单#H-4401 温控异常导致无法开检",
+    "description": "北辰肿瘤医院（CUS-2101）曹主任：因冷链检测试剂A未按承诺时间到达，导致检测窗口错过；请说明是否存在供应商暂停出货/等待放行，给出替代批次方案。",
+    "customer_id": "CUS-2101",
+    "reporter": "曹主任",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-19T06:30:00Z",
+    "tags": [
+      "温控异常",
+      "冷链",
+      "试剂A"
+    ],
+    "category": "冷链到货异常"
+  },
+  {
+    "ticket_id": "TK-2105",
+    "title": "包装破损索赔：外箱变形（与冷链供货无关）",
+    "description": "鹭桥骨科医院（CUS-2104）刘院办：外箱破损需走索赔流程。该工单仅涉及外包装材料，不涉及冷链检测试剂A/B批次到货问题。请确认我们不要把它当作冷链断供根因。",
+    "customer_id": "CUS-2104",
+    "reporter": "刘院办",
+    "department": "售后索赔",
+    "priority": "medium",
+    "status": "open",
+    "tags": [
+      "包装破损",
+      "索赔",
+      "干扰"
+    ],
+    "category": "售后索赔"
+  },
+  {
+    "ticket_id": "TK-2106",
+    "title": "配送延迟：预计4/22到货但多次延期",
+    "description": "澄江疾控中心（CUS-2102）沈科长：同批次冷链试剂B（批次CL-B-24Q2-07）显示“待放行”导致延迟，要求提供采购取消/延期原因，并给出短期应急方案。",
+    "customer_id": "CUS-2102",
+    "reporter": "沈科长",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "in_progress",
+    "created_at": "2026-04-19T10:05:00Z",
+    "tags": [
+      "配送延迟",
+      "冷链",
+      "CL-B-24Q2-07",
+      "待放行"
+    ],
+    "category": "冷链到货异常"
+  },
+  {
+    "ticket_id": "TK-2107",
+    "title": "已排产但仍未到货：试剂A预计延后",
+    "description": "北辰肿瘤医院（CUS-2101）曹主任：仓库显示试剂A已排产，但实际未到货；要求追问是否为供应商整改导致采购被取消/延期。",
+    "customer_id": "CUS-2101",
+    "reporter": "曹主任",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-16T15:40:00Z",
+    "tags": [
+      "已排产",
+      "仍未到货",
+      "冷链",
+      "试剂A"
+    ],
+    "category": "冷链到货异常"
+  },
+  {
+    "ticket_id": "TK-2108",
+    "title": "冷链试剂B：供应链边界确认（非包装问题）",
+    "description": "星港检验所（CUS-2103）周检验长：请确认本次问题是否确认为冷链试剂B短供，而不是包装破损或运输车辆故障。我们需要供应商与批次对应证据。",
+    "customer_id": "CUS-2103",
+    "reporter": "周检验长",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-18T21:00:00Z",
+    "tags": [
+      "边界确认",
+      "冷链",
+      "试剂B"
+    ],
+    "category": "冷链到货异常"
+  },
+  {
+    "ticket_id": "TK-2109",
+    "title": "包装破损索赔：冷媒袋泄漏（非试剂A/B缺货链）",
+    "description": "鹭桥骨科医院（CUS-2104）刘院办：冷媒袋泄漏导致局部潮湿需索赔。与冷链检测试剂A/B库存清零及采购取消/延期无直接关联，属于物流包装问题。",
+    "customer_id": "CUS-2104",
+    "reporter": "刘院办",
+    "department": "售后索赔",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-17T12:25:00Z",
+    "tags": [
+      "包装破损",
+      "物流包装",
+      "干扰"
+    ],
+    "category": "售后索赔"
+  },
+  {
+    "ticket_id": "TK-2110",
+    "title": "已排产但未装车：试剂B预计再延期48小时",
+    "description": "澄江疾控中心（CUS-2102）沈科长：系统显示试剂B已排产但仍未到仓；预计再延期48小时。请给出是否与供应商“合规暂停/等待放行”有关，以及最新预计到货窗口。",
+    "customer_id": "CUS-2102",
+    "reporter": "沈科长",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-15T18:10:00Z",
+    "tags": [
+      "已排产",
+      "仍未到货",
+      "冷链",
+      "试剂B"
+    ],
+    "category": "冷链到货异常"
+  }
+]

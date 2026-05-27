@@ -1,0 +1,156 @@
+{
+  "task_id": "T094_pinbench_project_alpha_summary_plus_1",
+  "task_name": "Alpha Data Migration & Security Brief",
+  "prompt_text": "Search the Gmail inbox for all messages explicitly related to “Project Alpha” and produce a structured brief in English with exactly these sections:\n\n1) Project Overview\n2) Migration & Switch Timeline\n3) Migration & Security (Risks and Findings)\n4) Business Impact (Customer delivery and Operations)\n5) Current Status (including blockers)\n\nInclude a clear ordered timeline extracted across multiple emails, covering: migration phases (prep, dry-run, cutover, post-cutover), the weekend switch window date range, rollback strategy key points, and security/audit chain gaps with proposed remediation. Ignore unrelated promo/meeting content and also ignore similar but not related items (e.g., “AlphaScope” or training).\n",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "adms_101",
+        "from": "pm.adele.wong@mycompany.com",
+        "to": "data-platform@mycompany.com",
+        "subject": "Project Alpha Migration Plan v3 (Draft -> Approved)",
+        "date": "2026-03-02T10:12:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "migration"
+        ],
+        "body": "Project Alpha is moving from the legacy “OldReport Platform” to the “New Analysis Dashboard.” Migration phases: (1) Prep: schema mapping + data validation, (2) Dry-run: weekend replay with read-only mode, (3) Cutover: switch dashboard queries, (4) Post-cutover: reconcile metrics + monitor.\nSwitch window request: Sat 2026-03-14 22:00 UTC to Sun 2026-03-15 06:00 UTC.\nStatus: This plan is now Approved (was Draft)."
+      },
+      {
+        "message_id": "adms_102",
+        "from": "ops.michael.rios@mycompany.com",
+        "to": "data-platform@mycompany.com",
+        "subject": "Re: Project Alpha Weekend Cutover Window Adjusted (Delayed)",
+        "date": "2026-03-06T18:05:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "ops"
+        ],
+        "body": "Due to a failed load test on the cutover pathway, we’re delaying the weekend switch. Proposed window becomes Sat 2026-03-21 23:00 UTC to Sun 2026-03-22 05:30 UTC.\nWe will still run the dry-run on Fri 2026-03-20 20:00 UTC. Please ensure rollback readiness before the cutover freeze."
+      },
+      {
+        "message_id": "adms_103",
+        "from": "security.naomi.kim@mycompany.com",
+        "to": "data-platform@mycompany.com",
+        "subject": "Project Alpha Security Review: Audit Chain Gap & Encryption Coverage",
+        "date": "2026-03-09T09:40:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "security"
+        ],
+        "body": "Findings: 1) Transport encryption is present for dashboard API calls, but internal migration traffic lacks end-to-end encryption when jobs traverse the analytics message bus. 2) Audit chain continuity is broken: during cutover, audit events from the old platform do not correlate to the new platform identifiers, and some rollback actions are not recorded.\nProposed remediation: add E2E encryption for migration job transport + enforce signed audit events with a shared correlation id across old/new/rollback."
+      },
+      {
+        "message_id": "adms_104",
+        "from": "eng.sofia.martinez@mycompany.com",
+        "to": "data-platform@mycompany.com",
+        "subject": "Project Alpha Rollback Drill Results (Pass, but Defect Found)",
+        "date": "2026-03-10T16:22:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "migration"
+        ],
+        "body": "Rollback drill: PASS. We successfully reverted dashboard query routing back to the legacy platform after the simulated cutover.\nDefect discovered: rollback used a stale feature flag snapshot in one environment, causing a temporary mismatch in data version labels. Mitigation: re-fetch feature flags at rollback start and add a pre-rollback “version label sanity check.”\nRollback strategy points: route switch back + restore last known good data snapshot + continuous post-rollback monitoring."
+      },
+      {
+        "message_id": "adms_105",
+        "from": "compliance.elijah.turner@mycompany.com",
+        "to": "data-platform@mycompany.com",
+        "subject": "Project Alpha Compliance: Minimal Privilege Patch Progress (Mitigating)",
+        "date": "2026-03-12T12:08:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "security",
+          "compliance"
+        ],
+        "body": "We’re tracking the “least privilege” patch rollout for the migration service role. Current state: open items are in mitigating.\nRemaining gaps: 1) Migration workers still have broader read scopes than required for one dataset family. 2) Audit logging must capture who initiated the cutover/rollback and from which service identity.\nOwners: access scope tightening by EOW, audit correlation work follows immediately after the encryption fix."
+      },
+      {
+        "message_id": "adms_106",
+        "from": "ops.leila.brown@mycompany.com",
+        "to": "customer-ops@mycompany.com",
+        "subject": "Project Alpha External Comms Template (Pending Review)",
+        "date": "2026-03-15T08:35:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "ops"
+        ],
+        "body": "External update template for customer delivery: describes the planned weekend switch, expected downtime window, and the rollback commitment.\nTemplate status: Pending review by Legal + Security.\nInclude: clear timeline (new proposed cutover window), reassurance about end-to-end encryption for migration traffic, and how audit records will be retained for incident investigations."
+      },
+      {
+        "message_id": "adms_107",
+        "from": "sre.tony.nguyen@mycompany.com",
+        "to": "data-platform@mycompany.com",
+        "subject": "Project Alpha Current Status Update (Blocked by Audit Correlation)",
+        "date": "2026-03-19T21:11:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "project-alpha",
+          "security",
+          "status"
+        ],
+        "body": "Latest status: Blocked. Cutover readiness is on hold because audit correlation work for old->new identifiers is not fully deployed.\nWhat’s unblocked: encryption fix is merged; rollback drill enhancements are in CI.\nBlocker: shared correlation id + signed audit event pipeline must pass end-to-end verification in the staging cutover simulation.\nNext action: run staging cutover replay and confirm audit events for both cutover and rollback are linked."
+      },
+      {
+        "message_id": "adms_201",
+        "from": "promotions@newsletter.example.com",
+        "to": "pm.adele.wong@mycompany.com",
+        "subject": "Alpha Training Webinar: How to Think Like an Analyst",
+        "date": "2026-03-07T13:26:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "promo"
+        ],
+        "body": "A webinar about “Alpha” analytics thinking. No relation to Project Alpha migration or security."
+      },
+      {
+        "message_id": "adms_202",
+        "from": "meeting-room@mycompany.com",
+        "to": "data-platform@mycompany.com",
+        "subject": "Meeting: QBR Discussion for AlphaScope Analytics Tool",
+        "date": "2026-03-11T15:00:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "meeting"
+        ],
+        "body": "QBR meeting invite for AlphaScope. Not part of Project Alpha."
+      },
+      {
+        "message_id": "adms_301",
+        "from": "lead.finance@mycompany.com",
+        "to": "pm.adele.wong@mycompany.com",
+        "subject": "Question about unrelated procurement estimates",
+        "date": "2026-03-18T09:12:00+00:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "General procurement question with no Project Alpha references."
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新任务聚焦于 Project Alpha 的数据迁移/周末切换窗口/回滚策略/安全与审计链路合规证据，并加入对外沟通与运营影响，输出英文结构化简报。",
+    "fixture_design_summary": [
+      "10条消息：7条明确带 project-alpha 标签（migration/security/ops/status），2条噪声（promo/meeting），1条无关",
+      "相关邮件时间范围覆盖 2026-03-01 到 2026-03-20，且包含：计划批准、切换窗口延后、回滚演练结果（pass但有缺陷）、两类安全/合规发现与整改跟踪、对外沟通模板待审、最新blocked状态与阻塞项",
+      "确保关键实体与引用一致：同一收件人组 data-platform@mycompany.com 贯穿；切换窗口与阻塞原因在最新邮件中可被前文时间线所支撑",
+      "所有 message_id/主题/数值/内容均为全新生成，避免与原 source fixture 重用"
+    ]
+  }
+}

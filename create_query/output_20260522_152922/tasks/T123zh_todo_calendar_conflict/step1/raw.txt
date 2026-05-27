@@ -1,0 +1,77 @@
+{
+  "source_task_id": "T123zh_todo_calendar_conflict",
+  "source_summary": {
+    "task_type": "跨服务的待办与日历时间冲突检测并给出重排建议的workflow",
+    "services": ["todo", "calendar"],
+    "tools": ["todo_list_tasks", "todo_get_task", "calendar_list_events", "calendar_get_event"],
+    "fixture_paths": ["fixtures/calendar/events.json", "fixtures/todo/tasks.json"],
+    "core_capability": "workflow：从待办与日历中识别时间冲突并提出可行的重排方案"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T123zh_todo_calendar_conflict_plus_1",
+      "new_task_name": "冲突重排：审计周",
+      "task_goal": "识别未来一周内哪些高优先级待办会与“非工作时段”或“长时段会议”冲突，并输出按优先级重排到可用时间窗的建议。",
+      "user_request": "请帮我排查本周的待办与日历是否冲突：找出会被“全天/半天占用”的待办、说明冲突原因，并给出具体重排建议（哪些提前/延后到哪一天哪一段）。同时覆盖低优先级任务的次级安排思路。",
+      "scenario": "mock_today 为 2026-04-10。日历里有：4/12 全天合规审计现场走访（confirmed）、4/14 下午不可改期的客户联调会（confirmed）、4/15 上午电话会议但会占用关键工作时段（confirmed，12:00前结束）。待办列表包含：需要在 4/12 前提交的“合规材料包”，需要在 4/14 当天下午前完成的“接口联调记录”，以及两个中低优先级的“流程图补全”和“周边培训学习”。此外包含一个已完成状态待办，干扰项要求不要纳入冲突判断。",
+      "difference_from_source": "冲突类型从“会议占用工作时段”升级为同时包含“合规审计现场全天占用”和“半天精确到上午/下午的不可改期窗口”；并引入已完成状态待办作为干扰项，要求筛除。",
+      "service_and_tool_plan": "使用 todo_list_tasks 获取待办（先过滤 pending），再对冲突候选调用 todo_get_task 获取任务的估时与优先级细节；使用 calendar_list_events 拉取 mock_today 到未来 7 天的事件，再对命中时间窗的事件调用 calendar_get_event 获取事件时间边界与占用描述。这样可精准匹配待办 due_date 与事件占用时段，并给出重排到具体可用段。",
+      "fixture_generation_plan": "生成 fixtures/calendar/events.json：5 条事件，包含2条长时段（1条全天、1条下午、1条上午）、1条与重排无关但与日期重叠的干扰事件（短时、例如午间简会）、1条事件状态为 canceled（用于验证是否应忽略）。生成 fixtures/todo/tasks.json：8-10 条待办，其中至少4条 pending 需要检查冲突（含2条 high、1条 medium、1条 low），再额外加入1-2条 completed 状态作为干扰；确保 due_date 覆盖 4/12、4/14、4/15，并让其中至少3个 pending 形成不同程度冲突（全天冲突/半天冲突/边界冲突）。关键字段包括 task_id、title、description（避免复用原文）、status、priority、due_date（YYYY-MM-DD）、estimated_hours（用于判断是否可挤入空窗）。",
+      "expected_behavior": "1) 调用 todo_list_tasks 获取 pending 待办；2) 调用 calendar_list_events 获取本周事件；3) 将每个待办的 due_date 与事件占用时段（全天/上午/下午）对齐，判定哪些待办无法在 due_date 当天完成；4) 对至少命中的事件与任务调用 calendar_get_event 和 todo_get_task 以获得精确边界；5) 输出：按日期列出冲突点、指出冲突原因（占用时段/不可改期）、并给出可行的重排建议：例如将“4/12 前提交”的材料包安排到 4/11 的可用时段或提前到 4/10 晚上；将“4/14 下午前完成”的内容安排到 4/14 上午或 4/13；对 low 任务给出“插入下午轻任务/改到无占用上午”的建议；6) 明确说明已完成状态待办不参与冲突判断。",
+      "grading_plan": "grader.py 需要检查：是否识别出至少3个有效冲突点（排除 canceled 事件与 completed 待办）；是否给出了针对冲突待办的重排到具体日期与时段（上午/下午/全天）；优先级是否体现在建议顺序与可行性中（high 优先、medium 次之、low 给次级安排）；判断的边界（例如上午12:00前结束）是否正确导致重排落点合理。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T123zh_todo_calendar_conflict_plus_2",
+      "new_task_name": "双时区会议冲突",
+      "task_goal": "在存在跨时区日历事件的情况下，识别待办截止日当天可能因“本地时间折算后占用”而无法完成的任务，并给出按本地时区重排建议。",
+      "user_request": "请帮我检查待办截止日当天与日历事件是否冲突。注意：有些会议是用不同城市时区录入的，我需要你按我的本地时间判断可用时间段。输出冲突分析，并给出需要提前/延后的具体安排。",
+      "scenario": "mock_today 为 2026-05-03。日历事件包含时区混合：5/4TAM 的“产品发布彩排”录入为 UTC（例如 09:00Z-11:00Z），在本地时间变成午后占用；还有 5/5 上午“安全评审委员会”录入为 +08:00（confirmed）；5/6 全天“跨部门训练营”录入为 +08:00（confirmed）。待办包含：一个 due_date 为 5/4 的 high 任务“撰写发布说明草稿（共4小时）”，一个 due_date 为 5/5 的 medium 任务“整理评审问答（共3小时）”，以及一个 due_date 为 5/6 的 low 任务“补充FAQ示例（共2小时）”。同时加入一个 due_date 为 5/4 但估时 1 小时的 pending 任务作为边界可挤入干扰（允许落在非占用的早段），并加入一个 status 为 pending 但 estimated_hours 为 0 的异常干扰（要求合理处理，不应当导致冲突误判）。",
+      "difference_from_source": "新增跨时区折算要求：同一事件在本地时间可能落在待办截止日的不同半天；并引入边界挤入任务与估时异常（estimated_hours=0）考察鲁棒性。",
+      "service_and_tool_plan": "使用 todo_list_tasks 获取所有 pending 待办（含估时异常需记录），对疑似冲突任务调用 todo_get_task；使用 calendar_list_events 拉取 mock_today 到 5/6 范围内事件，然后对所有涉及时区信息的事件调用 calendar_get_event 获取 start_time/end_time 与时区偏移。通过本地时间对齐后判定冲突并给出具体重排建议。",
+      "fixture_generation_plan": "生成 fixtures/calendar/events.json：至少4条事件，其中1条使用以 UTC 方式表示的时间串（仍存为 ISO 且带Z），1条+08:00 的半天占用、1条全天占用、1条短时干扰事件（例如 5/4 上午 20 分电话同步）。所有事件 status 设置为 confirmed（除非需要一个 canceled 作为额外干扰，可选）。生成 fixtures/todo/tasks.json：9条左右，至少3条分别 due_date=5/4/5/5/5/6（其中每个日期至少1条 pending 为高/中/低），再额外加入1条 due_date=5/4 且 estimated_hours=1 的可挤入任务，以及1条 estimated_hours=0 的 pending 异常任务。避免复用原任务标题与ID；task_id 用新格式（例如 TK-...），数值不要与原题一致。",
+      "expected_behavior": "1) todo_list_tasks 得到 pending 列表并记录 due_date/priority/estimated_hours；2) calendar_list_events 获取事件；3) 对每个事件根据 start_time/end_time 的时区信息折算为本地时间判断它占用截止日的哪个时段；4) 判定：5/4 的高优先级“发布说明草稿”是否被午后占用导致当天无法完成（结合4小时估时与空窗计算）；5/5 的“评审问答”是否与上午安全评审委员会冲突导致需要移到下午或 5/4 晚；5/6 全天训练营是否导致低优先级任务必须前置；6) 对可挤入的 1 小时任务给出允许完成的理由或给出挤入时段；7) 对 estimated_hours=0 的异常任务，说明按规则无法据此判断工期，应要求其以最小工作量处理或不作为冲突核心，并给出不影响主重排的建议；8) 输出必须包含：冲突点列表 + 每个冲突待办的重排到具体日期与上午/下午/前一天的建议。",
+      "grading_plan": "grader.py 应检查：是否正确识别因时区折算造成的冲突（至少2个关键冲突点）；是否在输出中给出明确的本地时间重排落点；是否考虑估时与优先级（high 必须优先保证可完成）；是否对估时=0 的任务给出合理处理说明且不误判为必然冲突；是否处理边界挤入任务时结果与可用时段匹配。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T123zh_todo_calendar_conflict_plus_3",
+      "new_task_name": "候选会议可替换冲突",
+      "task_goal": "在日历中存在“可替换/可改期但仍占用”的会议事件时，区分硬冲突与软冲突：对硬冲突给出必须重排方案，对软冲突给出协商优先级与备选路径。",
+      "user_request": "请判断我的待办和日历是否冲突：对“不可改期”的会议要直接重排；对“可改期但会占用”的会议给出两套方案（不改期的重排 vs 申请改期后的替代安排）。输出包含冲突原因与最终推荐方案。",
+      "scenario": "mock_today 为 2026-01-18（跨月边界但仍在查询范围内）。日历事件：1/19 全天“合规访谈”但标注为 confirmed 且描述含“不可改期”；1/20 上午“需求澄清会（可改期）”标注描述含“可联系对方调整”；1/20 下午有短会；1/21 下午“系统上线演练（确认后不可随意调整）”。待办包括：1/19 due_date 的 high 任务“回填审计证据（6小时）”，1/20 due_date 的 medium 任务“需求规格补齐（3小时）”，1/21 due_date 的 high 任务“上线演练检查清单（2小时）”，以及一个 low 任务 1/20 due_date “整理会议纪要草稿（1小时）”。加入干扰：一个 due_date=1/20 的 pending 任务估时 5 小时，但其状态为 pending 且 tags 显示“跟随型”，要求将其作为软任务处理（不把它当硬冲突）。",
+      "difference_from_source": "引入“硬冲突/软冲突”分类与双路径建议：对可改期会议提出替代方案；并通过任务标签模拟“跟随型”软任务干扰，而非仅根据占用时间盲目重排。",
+      "service_and_tool_plan": "先用 todo_list_tasks 拉取 pending 并据 tags/priority 找出冲突候选；对每个疑似冲突待办用 todo_get_task 获取估时与描述线索；随后调用 calendar_list_events 获取覆盖 1/19-1/21 的事件，再用 calendar_get_event 读取事件描述以区分不可改期与可改期。最后生成两套重排建议并给出推荐方案。",
+      "fixture_generation_plan": "生成 fixtures/calendar/events.json：4-5条事件，其中至少2条关键事件覆盖 1/19 全天与 1/20 上午，并在 description 字段明确写“不可改期/可改期”；另外1条覆盖 1/21 下午；可加1条短时干扰事件。生成 fixtures/todo/tasks.json：8条左右，至少4条 pending（high/medium/high/low 各一），再加1条 pending 且估时较长但通过 tags 或 description 表达“跟随型”干扰；确保 due_date 覆盖 1/19、1/20、1/21；estimated_hours 让部分任务在同日是否可挤入成为关键（例如 1/20 下午短会不影响 1 小时 low）。",
+      "expected_behavior": "1) 判定硬冲突：遇到“不可改期”全天事件时，相关 due_date 的高优先级任务直接标为无法完成，给出必须前置到前一日或提前时段的方案；2) 判定软冲突：对于“可改期”会议，输出两套：A方案假设不改期，则把中优先级任务拆到上午会前/下午后可用时段；B方案建议申请改期，则给出更集中、更理想的完成时间；3) 对“跟随型”任务给出软处理：即便存在占用也不作为硬冲突主线，只在推荐方案后给出次要插入/延后建议；4) 最终输出：冲突分类 + 每个任务的建议（包含具体日期与上午/下午拆分）。",
+      "grading_plan": "grader.py 应检查：是否区分硬冲突与软冲突并输出两套方案（至少1个可改期会议对应的双路径）；硬冲突任务是否给出必须重排且合理前置；软冲突任务的建议是否体现“申请改期”备选；对跟随型干扰任务是否不压倒主推荐方案且逻辑一致；输出是否覆盖所有识别到的冲突任务（含低优先级的次级安排）。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T123zh_todo_calendar_conflict_plus_4",
+      "new_task_name": "周边任务引发的串联冲突",
+      "task_goal": "考虑待办之间的串联依赖：当关键任务受日历占用导致延期时，后续依赖任务应同步调整并给出连锁重排建议。",
+      "user_request": "请帮我做串联冲突分析：先找出日历占用导致无法按期完成的关键待办；再根据任务之间的依赖关系（例如A完成后才能开始B）给出连锁重排建议，最终输出一个可执行的重排链路。",
+      "scenario": "mock_today 为 2026-06-06。日历事件：6/7 下午“外部演示预约（确认）”（占用14:30-17:30）、6/8 上午“安全培训补考”（占用9:00-11:30）、6/9 全天“维护窗口（不可操作）”（占用全日）。待办包含依赖链：任务B依赖任务A输出，任务C依赖任务B。具体：6/7 due_date 的 high 任务“A: 产出演示脚本（4小时）”，6/8 due_date 的 medium 任务“B: 生成演示素材包（3小时）”，6/10 due_date 的 low 任务“C: 做复盘文档（2小时）”。另加入干扰：一个 due_date=6/8 的 high 任务“独立审批单（1小时）”但它不依赖 A/B；以及一个 due_date=6/7 的 pending 任务“准备背景数据（2小时）”不被标注依赖但会在时间上与 A 冲突。所有依赖信息需通过 description 中的关键词体现（例如“需要A完成后才能开始B”），不走多轮澄清。",
+      "difference_from_source": "原题只做单层“待办-日历冲突”；此题要求从任务描述中提取依赖关系，进行连锁延期与链路重排，而不仅是简单日期搬移。",
+      "service_and_tool_plan": "使用 todo_list_tasks 获取 pending 待办；对与冲突候选相关的任务（A/B/C及其冲突干扰项）调用 todo_get_task 读取 description 中依赖关键词；用 calendar_list_events 获取 6/7-6/10 范围内事件，并对关键事件调用 calendar_get_event 获取精确占用段。最终在输出中构建A->B->C链路并根据A被占用后的可用窗口更新B与C的完成时间。",
+      "fixture_generation_plan": "生成 fixtures/calendar/events.json：3-4条事件（外部演示预约、培训补考、维护窗口、可选一条短会干扰）。生成 fixtures/todo/tasks.json：10条左右，至少3条形成依赖链（A/B/C），其中A与B due_date 分别落在被占用的下午/上午；再加2-3条干扰任务（一个独立高任务、一个与A同日但独立任务、一个已完成任务不参与判断）。确保 estimated_hours 与占用窗口使得至少一个依赖传导延期（例如A无法在6/7完成会迫使B至少推到6/9或6/8下午，进而影响C）。",
+      "expected_behavior": "1) 从日历识别出 A（6/7下午演示预约占用）是否导致无法在 due_date 前完成；2) 若 A延期，则从 B 的描述识别“依赖A”并将 B 的完成计划同步后移到可用时段；3) 同理对 C 从 B 的描述识别“依赖B”，将 C 也后移，但尽量安排在 6/10 due_date 前的可用窗（注意 6/9 全天维护窗口不可操作使得6/9不能作为衔接）；4) 输出：冲突点 + 依赖链路图式说明（A->B->C）+ 每个任务的最终建议完成日期与上午/下午/具体段；5) 独立高任务与干扰任务只做日历冲突层级处理，不参与依赖传导。",
+      "grading_plan": "grader.py 应检查：是否正确识别依赖关键词并在 A 推迟时传导到 B、再到 C；是否在重排建议中体现维护窗口的不可操作（6/9不能用于完成）；是否对独立任务不进行错误连锁调整；是否给出可执行的时间安排（不能把任务安排到被占用的时段或维护日）；输出覆盖所有识别到的冲突与至少3个链路任务（A/B/C）的重排。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T123zh_todo_calendar_conflict_plus_5",
+      "new_task_name": "跨天边界与临时取消",
+      "task_goal": "处理跨天事件与“临时取消/仅占用半天”的日历状态变化：找出真实冲突与非冲突，并对边界时刻（例如23:30开始）进行准确判断。",
+      "user_request": "请帮我检测：哪些待办会与日历事件发生真实冲突。注意有一部分事件在日历中标记为已取消或只影响部分时段。请准确处理跨天事件的边界时间，给出重排建议与冲突结论。",
+      "scenario": "mock_today 为 2026-02-20。日历事件包括：2/21 23:30-2/22 01:00 的夜间值班会议（status confirmed，跨天）、2/22 上午短时“对齐会”（status confirmed，9:30-10:00）、2/22 下午“临时面谈”（status canceled，标记取消但仍在数据中）、以及2/23 全天“内部演练”（confirmed）。待办包含：2/21 due_date 的 high 任务“撰写事故复盘初稿（3小时）”，2/22 due_date 的 medium 任务“提交改版需求（2小时）”，2/23 due_date 的 high 任务“完成演练后续工单（2小时）”，以及一个 low 任务 due_date=2/21 “整理材料备份（1小时）”。此外加入一个干扰：有一条日历事件 status 为 confirmed 但 end_time 与 start_time 相同的异常短事件（0分钟），要求不应造成影响。",
+      "difference_from_source": "新增跨天夜间事件与严格边界判断；并引入 canceled 事件与 0 分钟异常事件，要求正确排除它们对冲突的影响。",
+      "service_and_tool_plan": "用 calendar_list_events 拉取从 2/20 到 2/23 的事件；对所有时间边界敏感的事件调用 calendar_get_event 获取准确 start/end；用 todo_list_tasks 取 pending；对冲突候选任务调用 todo_get_task 获取估时并判断是否可在 2/21 白天完成，避免把跨天夜间会议误判为与同日所有待办冲突。最终输出“冲突/非冲突”结论与重排建议。",
+      "fixture_generation_plan": "生成 fixtures/calendar/events.json：4-6条事件，至少包含1条跨天夜间（confirmed）、1条正常上午短会（confirmed）、1条下午取消事件（canceled）、1条全天演练（confirmed），可再加1条0分钟异常事件（confirmed）作为干扰。生成 fixtures/todo/tasks.json：至少7条 pending/干扰，其中3条关键任务分别 due_date=2/21/2/22/2/23（high/medium/high），另有1条 low due_date=2/21；再加入1条 completed 状态待办用于干扰不计入。所有标题与描述均新建，且 estimated_hours 与占用时段组合保证：至少一个任务需要重排（例如 2/21 的高任务无法在白天留足3小时，或需要把部分拆到2/20晚/2/22上午）。",
+      "expected_behavior": "1) 先过滤 canceled 事件：确认面谈不影响任何待办；2) 对跨天夜间事件：只将其在本地时间落在 2/21 的部分视为占用（若为 2/21 23:30-24:00），其余落在 2/22 视为占用 2/22；3) 处理 0分钟异常事件：不产生有效占用，避免误判冲突；4) 判定 2/21 due_date 的 high 任务：若需要 3 小时而 2/21 晚间仅剩极短窗口，则建议提前到 2/21 白天前段或改到 2/20 晚间；5) 判定 2/22 medium：避开上午短会与夜间跨天部分占用；6) 判定 2/23 high：全天演练导致无法在 2/23完成，建议前置到 2/22 或 2/21 可用段；7) 输出必须包含：明确写出哪些事件被排除（canceled/0分钟），以及每个冲突待办的重排到具体日期与时段。",
+      "grading_plan": "grader.py 应检查：是否正确排除 canceled 事件与 0分钟异常事件；跨天事件的边界（2/21末与2/22初）是否被准确分配到对应日期；是否至少3个关键任务给出正确冲突判断并提供可行重排；重排建议是否考虑估时与占用时段，且不把任务安排到已占用时段或全天演练日。"
+    }
+  ]
+}

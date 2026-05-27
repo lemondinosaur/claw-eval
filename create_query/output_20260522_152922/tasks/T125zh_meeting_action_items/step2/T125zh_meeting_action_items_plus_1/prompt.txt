@@ -1,0 +1,303 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T125zh_meeting_action_items_plus_1",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/notes/meetings.json",
+  "fixtures/todo/tasks.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 1,
+  "new_task_id": "T125zh_meeting_action_items_plus_1",
+  "new_task_name": "发布会行动项去重",
+  "task_goal": "从多份产品发布相关会议纪要提取行动项，与现有待办进行模糊匹配去重，输出包含来源会议、负责人、截止日期、是否已有待办的完整追踪表，并给出需新建待办的建议。",
+  "user_request": "请帮我把最近几次发布会相关会议纪要里的行动项整理出来：\n1）逐份提取会议中的行动项\n2）查看当前待办清单\n3）把会议行动项与已有待办做对比，识别已存在的（避免重复新建）\n4）列出需要新增的待办事项\n5）输出行动项追踪表（包含来源会议标题、负责人、截止日期、是否已有待办；已有的要标出对应待办ID）",
+  "scenario": "公司筹备一次“旗舰终端V2”线上发布。纪要包含混合议题：发布时间确认、发布页文案与素材、应急回滚演练、数据埋点校验。三份纪要分别属于“产品/市场/技术”，其中部分行动项在待办里以不同表述出现（例如“上线发布页”与“完成发布页内容审核”）。同时包含一条干扰项：会议纪要里提到“下次复盘重点关注用户留存”，但明确不是行动项（没有负责人与截止日期）。",
+  "difference_from_source": "相比原题的功能点与时间线，本题聚焦“线上发布会”与跨角色（产品/市场/研发/运维）行动项；并引入明确干扰段（提及复盘但不构成行动项），同时去重匹配以“发布物/演练/埋点验证”等不同措辞为主，且已有待办覆盖方式不同。",
+  "service_and_tool_plan": "继续使用 notes_list 获取所有会议纪要条目，再对每份相关会议用 notes_get 抽取包含行动项的内容；同时用 todo_list_tasks(status=all) 获取全量待办，再用 todo_get_task 校验候选匹配的待办详情，最后生成需新建的待办建议。",
+  "fixture_generation_plan": "生成3条 notes 记录（meeting-1/2/3），每条纪要content里包含3个行动项（共9个行动项），并额外包含1段“非行动项干扰描述”（不含负责人/截止日期且不应被提取）。生成 todo/tasks 记录5条：其中3条与9个行动项存在模糊对应（用不同标题表述但含义相同），剩余2条为与会议无关的日常/已完成事项。关键字段分布：负责人覆盖4-5个不同角色（如市场PM、研发负责人、运维、数据分析），截止日期使用不同的YYYY-MM-DD（不与原题相同），状态分布覆盖pending、in_progress、completed（用于测试匹配时是否忽略已完成项或仍需新增）。",
+  "expected_behavior": "代理应：从notes_list得到所有纪要；逐个notes_get提取所有“有负责人+截止日期”的行动项（忽略不完整/干扰描述）；对每个行动项在todo_list_tasks结果中进行模糊匹配，必要时用todo_get_task确认细节；输出追踪表共9行，并在每行标注“已有待办ID/无对应待办”；对未覆盖的行动项给出新建待办建议（包含标题、负责人、截止日期）。不得把干扰段当成行动项。",
+  "grading_plan": "grader应检查：是否提取到全部9个有效行动项且数量正确（干扰段未被计入）；模糊匹配是否正确识别3个已有待办对应关系（标题措辞不同仍应匹配）；对另外6个需要新增的行动项，新建建议字段是否完整（负责人与截止日期非空且格式正确），并确保输出追踪表包含来源会议标题与是否已有待办标记。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T125zh_meeting_action_items",
+  "task_name": "会议行动项提取与去重",
+  "task_type": "workflow",
+  "category": "workflow",
+  "difficulty": "medium",
+  "tags": [
+    "general",
+    "multi_service"
+  ],
+  "language": "zh",
+  "services": [
+    "notes",
+    "todo"
+  ],
+  "tools": [
+    "notes_list",
+    "notes_get",
+    "todo_list_tasks",
+    "todo_get_task"
+  ],
+  "fixture_paths": [
+    "fixtures/notes/meetings.json",
+    "fixtures/todo/tasks.json"
+  ],
+  "sandbox_files": [],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "workflow"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T125zh_meeting_action_items
+task_name: 会议行动项提取与去重
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: tasks/T125zh_meeting_action_items/fixtures/notes/meetings.json
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: tasks/T125zh_meeting_action_items/fixtures/todo/tasks.json
+prompt:
+  text: '最近开了几次重要会议，请帮我：
+
+    1. 查看所有会议纪要，提取其中的行动项
+
+    2. 查看当前待办清单
+
+    3. 将会议行动项与现有待办对比，找出已有对应待办的（避免重复创建）
+
+    4. 列出需要新建的待办事项
+
+    5. 输出完整的行动项跟踪表（含来源会议、负责人、截止日期、是否已有待办）
+
+    '
+  language: zh
+tools:
+- name: notes_list
+  description: 列出会议纪要
+  input_schema:
+    type: object
+    properties:
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取纪要详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 纪要ID
+    required:
+    - note_id
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: all
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+tool_endpoints:
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/notes/meetings.json ---
+[
+  {
+    "note_id": "NOTE-301",
+    "title": "产品需求评审会议纪要",
+    "content": "## 产品需求评审 2026-03-20\n\n### 参会人：王明、李华、赵蕾、张伟\n\n### 讨论要点\n1. Q2新功能排期确认\n2. 客户反馈问题处理\n\n### 行动项\n- 【王明】完成Q2产品路线图文档，截止3/28\n- 【李华】调研竞品新功能并出报告，截止3/30\n- 【赵蕾】整理Top10客户需求清单，截止3/27\n- 【张伟】完成安全合规评估报告，截止3/31",
+    "participants": [
+      "王明",
+      "李华",
+      "赵蕾",
+      "张伟"
+    ],
+    "tags": [
+      "产品",
+      "需求",
+      "Q2"
+    ],
+    "created_at": "2026-03-20T10:00:00Z",
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-302",
+    "title": "技术架构评审会议纪要",
+    "content": "## 技术架构评审 2026-03-21\n\n### 参会人：李华、马强、周明\n\n### 讨论要点\n1. 微服务拆分方案\n2. 数据库迁移计划\n\n### 行动项\n- 【李华】编写微服务拆分技术方案，截止4/3\n- 【马强】准备数据库迁移测试环境，截止3/28\n- 【周明】前端组件库升级到v3.0，截止4/5",
+    "participants": [
+      "李华",
+      "马强",
+      "周明"
+    ],
+    "tags": [
+      "技术",
+      "架构",
+      "微服务"
+    ],
+    "created_at": "2026-03-21T10:00:00Z",
+    "duration_minutes": 60
+  },
+  {
+    "note_id": "NOTE-303",
+    "title": "管理层周会纪要",
+    "content": "## 管理层周会 2026-03-22\n\n### 参会人：总经理、王明、赵蕾\n\n### 讨论要点\n1. Q1业绩回顾\n2. 团队扩招计划\n\n### 行动项\n- 【王明】准备Q1技术团队绩效总结，截止3/29\n- 【赵蕾】提交大客户续约策略方案，截止3/30",
+    "participants": [
+      "总经理",
+      "王明",
+      "赵蕾"
+    ],
+    "tags": [
+      "管理",
+      "周会",
+      "Q1"
+    ],
+    "created_at": "2026-03-22T10:00:00Z",
+    "duration_minutes": 60
+  }
+]
+--- END FILE: fixtures/notes/meetings.json ---
+--- FILE: fixtures/todo/tasks.json ---
+[
+  {
+    "task_id": "TODO-401",
+    "title": "完成产品路线图",
+    "description": "Q2产品路线图文档，含功能排期和里程碑",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-03-28",
+    "assignee": "王明",
+    "tags": ["产品", "Q2"]
+  },
+  {
+    "task_id": "TODO-402",
+    "title": "整理客户需求",
+    "description": "Top客户需求汇总清单",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-03-27",
+    "assignee": "赵蕾",
+    "tags": ["客户", "需求"]
+  },
+  {
+    "task_id": "TODO-403",
+    "title": "DB迁移测试环境搭建",
+    "description": "搭建数据库迁移的测试环境",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-03-28",
+    "assignee": "马强",
+    "tags": ["技术", "数据库"]
+  },
+  {
+    "task_id": "TODO-404",
+    "title": "每日站会",
+    "description": "每天10:00团队站会",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-03-26",
+    "assignee": "全员",
+    "tags": ["日常"]
+  },
+  {
+    "task_id": "TODO-405",
+    "title": "更新部署文档",
+    "description": "更新k8s部署流程文档",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-03-25",
+    "assignee": "周明",
+    "tags": ["文档"]
+  }
+]
+
+--- END FILE: fixtures/todo/tasks.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

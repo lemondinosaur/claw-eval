@@ -1,0 +1,110 @@
+[
+  {
+    "event_id": "evt_AH_501",
+    "title": "安全培训",
+    "organizer": "zhouhang@acme.com",
+    "attendees": [
+      "zhouhang@acme.com"
+    ],
+    "start_time": "2026-03-05T15:00:00+08:00",
+    "end_time": "2026-03-05T16:30:00+08:00",
+    "location": "培训室1",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_AH_502",
+    "title": "跨部门同步",
+    "organizer": "zhaomin@acme.com",
+    "attendees": [
+      "zhaomin@acme.com"
+    ],
+    "start_time": "2026-03-05T16:30:00+08:00",
+    "end_time": "2026-03-05T17:00:00+08:00",
+    "location": "会议室C",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_AH_503",
+    "title": "客户电话",
+    "organizer": "maming@aurora-holdings.com",
+    "attendees": [
+      "maming@aurora-holdings.com"
+    ],
+    "start_time": "2026-03-05T14:30:00+08:00",
+    "end_time": "2026-03-05T15:30:00+08:00",
+    "location": "电话",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_AH_504",
+    "title": "头脑风暴（占用）",
+    "organizer": "zhaomin@acme.com",
+    "attendees": [
+      "zhaomin@acme.com"
+    ],
+    "start_time": "2026-03-05T17:30:00+08:00",
+    "end_time": "2026-03-05T18:00:00+08:00",
+    "location": "",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_AH_505",
+    "title": "回顾会（占用）",
+    "organizer": "zhouhang@acme.com",
+    "attendees": [
+      "zhouhang@acme.com"
+    ],
+    "start_time": "2026-03-06T09:00:00+08:00",
+    "end_time": "2026-03-06T10:00:00+08:00",
+    "location": "会议室D",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_AH_506",
+    "title": "项目对齐（占用）",
+    "organizer": "maming@aurora-holdings.com",
+    "attendees": [
+      "maming@aurora-holdings.com"
+    ],
+    "start_time": "2026-03-06T10:00:00+08:00",
+    "end_time": "2026-03-06T11:00:00+08:00",
+    "location": "线上",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_AH_507",
+    "title": "数据评审（占用）",
+    "organizer": "zhaomin@acme.com",
+    "attendees": [
+      "zhaomin@acme.com"
+    ],
+    "start_time": "2026-03-06T11:00:00+08:00",
+    "end_time": "2026-03-06T11:30:00+08:00",
+    "location": "会议室E",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_AH_508",
+    "title": "客户走查（占用，避免更早时段）",
+    "organizer": "zhouhang@acme.com",
+    "attendees": [
+      "zhouhang@acme.com"
+    ],
+    "start_time": "2026-03-06T09:30:00+08:00",
+    "end_time": "2026-03-06T10:30:00+08:00",
+    "location": "",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_AH_509",
+    "title": "备选时段占用（只影响更晚窗）",
+    "organizer": "zhaomin@acme.com",
+    "attendees": [
+      "zhaomin@acme.com"
+    ],
+    "start_time": "2026-03-06T12:00:00+08:00",
+    "end_time": "2026-03-06T13:00:00+08:00",
+    "location": "会议室F",
+    "status": "confirmed"
+  }
+]

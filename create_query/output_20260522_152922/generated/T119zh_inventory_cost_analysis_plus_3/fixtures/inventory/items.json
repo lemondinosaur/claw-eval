@@ -1,0 +1,68 @@
+[
+  {
+    "product_id": "INV-2001",
+    "name": "订书机",
+    "category": "办公用品",
+    "quantity": 20,
+    "unit": "台",
+    "unit_cost": 330.0,
+    "location": "仓库A-10",
+    "reorder_level": 10,
+    "supplier": "得力集采"
+  },
+  {
+    "product_id": "INV-2002",
+    "name": "订书针盒",
+    "category": "办公用品",
+    "quantity": 0,
+    "unit": "盒",
+    "unit_cost": 7.9,
+    "location": "仓库A-11",
+    "reorder_level": 300,
+    "supplier": "晨光采购"
+  },
+  {
+    "product_id": "INV-2003",
+    "name": "笔记本电脑",
+    "category": "IT设备",
+    "quantity": 1,
+    "unit": "台",
+    "unit_cost": 5000.0,
+    "location": "仓库B-20",
+    "reorder_level": 2,
+    "supplier": "联想商贸"
+  },
+  {
+    "product_id": "INV-2004",
+    "name": "无线网卡",
+    "category": "IT设备",
+    "quantity": 8,
+    "unit": "张",
+    "unit_cost": 220.0,
+    "location": "仓库B-21",
+    "reorder_level": 50,
+    "supplier": "华硕渠道"
+  },
+  {
+    "product_id": "INV-2005",
+    "name": "硒鼓",
+    "category": "耗材",
+    "quantity": 0,
+    "unit": "个",
+    "unit_cost": 460.0,
+    "location": "仓库C-30",
+    "reorder_level": 10,
+    "supplier": "惠彩打印"
+  },
+  {
+    "product_id": "INV-2006",
+    "name": "打印纸A3",
+    "category": "耗材",
+    "quantity": 35,
+    "unit": "卷",
+    "unit_cost": 14.0,
+    "location": "仓库C-31",
+    "reorder_level": 80,
+    "supplier": "纸品直采"
+  }
+]

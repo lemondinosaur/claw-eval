@@ -1,0 +1,296 @@
+task_id: T037zh_incident_postmortem_plus_4
+task_name: 授权风暴+令牌过期复盘
+version: '1.0'
+category: ops
+difficulty: hard
+tags:
+- general
+services:
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_4/fixtures/helpdesk/tickets.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_4/fixtures/config/integrations.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_4/fixtures/gmail/inbox.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_4/fixtures/kb/articles.json
+- name: notes
+  command: python mock_services/notes/server.py
+  port: 9105
+  health_check: http://localhost:9105/notes/list
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9105/notes/reset
+  env:
+    NOTES_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_4/fixtures/notes/meetings.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: create_query/output_20260522_152922/generated/T037zh_incident_postmortem_plus_4/fixtures/scheduler/jobs.json
+prompt:
+  text: '昨晚（请基于工单/邮件/会议/定时任务数据所给的时间戳）生产环境发生了一次重大故障。请生成一份事故复盘报告，仅做只读检索、证据整理与根因推断，不要修改、关闭、通知或更新任何内容。
+
+
+    要求：
+
+    1）收集并整理相关工单形成故障时间线（需覆盖：401激增、认证服务负载升高、刷新请求洪泛、恢复后逐步稳定/残留风险）。
+
+    2）检查系统集成状态，判断恢复与残留风险（重点：identity_provider 处于degraded，需提取error_rate与notes）。
+
+    3）从邮件中抽取关于授权/令牌刷新异常的技术细节和处置要点（重点：刷新窗口/提前量计算、失败后缺少退避/限流）。
+
+    4）检索知识库是否有类似事故（重点：令牌刷新/过期/退避，尤其是“刷新窗口计算错误”的历史文章与TODO）。
+
+    5）结合会议记录识别近期变更与评审/校验缺口（重点：鉴权压测与失败退避校验是否被跳过或未通过）。
+
+    6）核对定时任务是否在故障窗口触发了异常的刷新/轮询逻辑，并用scheduler历史验证（重点：token_refresh_harvester参数变化、异常运行耗时、短时间内重复启动或失败后重入）。
+
+
+    输出：时间线、跨系统证据链、根因（需落在“刷新提前量/刷新窗口计算错误 + 失败退避缺失（导致到期点洪泛）→ 授权风暴与401激增”）、影响范围评估、过程缺口、改进建议（至少包含：刷新提前量下限/窗口修正、指数退避、限流/互斥/幂等等概念）。'
+  language: zh
+tools:
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选：open, resolved, done, investigating
+      priority:
+        type: string
+        description: 按优先级筛选：low, medium, high, critical
+      date_from:
+        type: string
+        description: 起始日期 (ISO 8601)
+      date_to:
+        type: string
+        description: 截止日期 (ISO 8601)
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取单个工单详情
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: config_list_integrations
+  description: 获取所有第三方集成的列表（概览信息）
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选：active, degraded, expired
+    required: []
+- name: config_get_integration
+  description: 获取单个集成的完整配置信息
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: notes_list
+  description: 获取笔记/会议记录列表
+  input_schema:
+    type: object
+    properties:
+      date_from:
+        type: string
+        description: 起始日期
+      date_to:
+        type: string
+        description: 截止日期
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: notes_get
+  description: 获取笔记/会议记录详情
+  input_schema:
+    type: object
+    properties:
+      note_id:
+        type: string
+        description: 笔记ID
+    required:
+    - note_id
+- name: scheduler_list_jobs
+  description: 列出所有定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按最近运行状态筛选 (success/failed/stopped)
+      enabled:
+        type: boolean
+        description: 按启用状态筛选
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_job_history
+  description: 查看定时任务执行历史
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      limit:
+        type: integer
+        description: 返回条数
+        default: 10
+    required:
+    - job_id
+tool_endpoints:
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: notes_list
+  url: http://localhost:9105/notes/list
+  method: POST
+- tool_name: notes_get
+  url: http://localhost:9105/notes/get
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: scheduler_job_history
+  url: http://localhost:9112/scheduler/jobs/history
+  method: POST
+sandbox_files:
+- fixtures/helpdesk/tickets.json
+- fixtures/config/integrations.json
+- fixtures/gmail/inbox.json
+- fixtures/kb/articles.json
+- fixtures/notes/meetings.json
+- fixtures/scheduler/jobs.json
+environment:
+  timeout_seconds: 900
+  max_turns: 40

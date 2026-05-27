@@ -1,0 +1,95 @@
+[
+  {
+    "task_id": "TODO-21001",
+    "title": "采购合同条款最终校对（法务）",
+    "status": "in_progress",
+    "priority": "high",
+    "due_date": "2026-04-24",
+    "progress": 70,
+    "notes": "已对齐付款里程碑与违约金触发条件、保密条款例外范围；等待法务在最终校对中给出“条款已确认”回执。",
+    "created_at": "2026-04-15"
+  },
+  {
+    "task_id": "TODO-21002",
+    "title": "提交预算审批材料包（采购需求与成本拆分）",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2026-04-22",
+    "progress": 40,
+    "notes": "材料已启动整理，但财务审批卡点为附件不全：缺少《采购需求附件清单》和《成本拆分说明》两项。",
+    "blocked_by": "waiting_finance_attachments_review",
+    "created_at": "2026-04-10"
+  },
+  {
+    "task_id": "TODO-21003",
+    "title": "供应商回签回传追踪（盖章完成与回传扫描件）",
+    "status": "completed",
+    "priority": "medium",
+    "due_date": "2026-04-26",
+    "progress": 100,
+    "notes": "已发起多轮回签追踪与风险协助；当前卡点在供应商法务盖章回传，待对方回传签署件并更新系统状态。",
+    "completed_at": "2026-04-19",
+    "created_at": "2026-04-12"
+  },
+  {
+    "task_id": "TODO-21004",
+    "title": "合同归档与用印台账整理",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-04-28",
+    "progress": 20,
+    "notes": "仅在收到最终签署回传后继续推进归档与台账更新。",
+    "created_at": "2026-04-18"
+  },
+  {
+    "task_id": "TODO-21005",
+    "title": "采购范围确认与验收口径核对",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-04-21",
+    "progress": 10,
+    "notes": "为预算附件清单准备所需交付范围与验收口径，依赖业务侧字段确认。",
+    "created_at": "2026-04-16"
+  },
+  {
+    "task_id": "TODO-21006",
+    "title": "供应商账号与签署人信息核验",
+    "status": "pending",
+    "priority": "low",
+    "due_date": "2026-04-24",
+    "progress": 25,
+    "notes": "用于供应商延迟时启用备选签署人；不涉及回签完成本身。",
+    "created_at": "2026-04-13"
+  },
+  {
+    "task_id": "TODO-21007",
+    "title": "内部法务要点复盘（条款差异清单）",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2026-04-23",
+    "progress": 55,
+    "notes": "整理条款差异与确认口径，为最终回执提供依据。",
+    "created_at": "2026-04-17"
+  },
+  {
+    "task_id": "TODO-21008",
+    "title": "财务审批结果回填到采购系统",
+    "status": "pending",
+    "priority": "medium",
+    "due_date": "2026-04-25",
+    "progress": 0,
+    "notes": "等待预算审批完成结果后执行回填。",
+    "created_at": "2026-04-18"
+  },
+  {
+    "task_id": "TODO-21009",
+    "title": "更新供应商回签进度对外沟通模板",
+    "status": "completed",
+    "priority": "low",
+    "due_date": "2026-04-20",
+    "progress": 100,
+    "notes": "已完成对外沟通邮件模板（含延迟风险与补件清单），随时可用于催办回复。",
+    "completed_at": "2026-04-20",
+    "created_at": "2026-04-14"
+  }
+]

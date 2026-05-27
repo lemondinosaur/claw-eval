@@ -1,0 +1,57 @@
+[
+  {
+    "integration_id": "RISK-501",
+    "name": "risk_rules_engine",
+    "display_name": "风控规则引擎",
+    "status": "degraded",
+    "error_rate": 62.4,
+    "notes": "故障窗口内（约 01:10-02:05）error_rate从1.2%跃升至60%+，进入degraded。日志显示：输入payload存在缺失字段（user_profile_hash为空、order_risk_context缺少channel），导致规则分支回退到默认“放行/低拦截”策略；同时出现重复订单事件导致同一order_id多次命中规则。",
+    "service": "risk",
+    "last_verified": "2026-03-02T09:00:00+08:00",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "QUEUE-510",
+    "name": "queue_gateway",
+    "display_name": "队列网关",
+    "status": "active",
+    "error_rate": 3.8,
+    "notes": "队列网关在故障窗口error_rate小幅上升（0.7%->3.8%），同时出现大量redelivery（重复投递）信号。该问题影响了风控调用的时延，但不是唯一根因。",
+    "service": "messaging",
+    "last_verified": "2026-03-02T09:00:00+08:00",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "EVENTBUS-520",
+    "name": "event_bus",
+    "display_name": "事件总线",
+    "status": "active",
+    "error_rate": 1.9,
+    "notes": "事件总线在故障期间保持可用。与风控侧的异常一致：同一batch_id的事件被多次发布（疑似补偿重放触发），但事件总线未显示丢失。",
+    "service": "events",
+    "last_verified": "2026-03-02T09:00:00+08:00",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "IDEMP-530",
+    "name": "dedupe_store",
+    "display_name": "幂等去重存储",
+    "status": "degraded",
+    "error_rate": 18.7,
+    "notes": "degraded：写入成功率下降。部分幂等键（idempotency_key）未落库，导致重复事件无法被幂等拦截。与邮件中提到的“游标提交失败”现象高度相关。",
+    "service": "storage",
+    "last_verified": "2026-03-02T09:00:00+08:00",
+    "monthly_calls": 0
+  },
+  {
+    "integration_id": "AUDIT-540",
+    "name": "audit_logger",
+    "display_name": "审计记录器",
+    "status": "active",
+    "error_rate": 0.2,
+    "notes": "恢复正常。审计链路显示重复批次在01:18起持续发生，至02:03人工暂停补偿重放后停止增长。",
+    "service": "audit",
+    "last_verified": "2026-03-02T09:00:00+08:00",
+    "monthly_calls": 0
+  }
+]

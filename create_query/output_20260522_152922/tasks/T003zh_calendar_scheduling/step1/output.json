@@ -1,0 +1,102 @@
+{
+  "schema_version": "step1.task_descriptions.v2",
+  "generated_at": "2026-05-22 15:30:02",
+  "source_task_id": "T003zh_calendar_scheduling",
+  "source_summary": {
+    "task_id": "T003zh_calendar_scheduling",
+    "task_name": "Calendar Scheduling",
+    "task_type": "在指定日期为多个参会者找共同空闲时段并创建会议事件",
+    "category": "productivity",
+    "difficulty": "easy",
+    "tags": [
+      "general"
+    ],
+    "language": "zh",
+    "services": [
+      "calendar"
+    ],
+    "tools": [
+      "calendar_list_events",
+      "calendar_get_event",
+      "calendar_create_event",
+      "calendar_get_user_events",
+      "calendar_delete_event"
+    ],
+    "fixture_paths": [
+      "fixtures/calendar/events.json"
+    ],
+    "sandbox_files": [
+      "fixtures/calendar/events.json"
+    ],
+    "has_user_agent": false,
+    "has_grader": true,
+    "core_capability": "日历可用性分析与会议创建（避免冲突）"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T003zh_calendar_scheduling_plus_1",
+      "new_task_name": "跨时区并发会议找空档",
+      "task_goal": "为会议组织者与两位参会者在同一自然日内找1小时可用窗口，创建包含地点与参会者的会议，并避免与任何已有事件冲突。",
+      "user_request": "请帮我在2026年3月3日（周二）安排“季度复盘会”1小时，参会者是沈佳、周航、以及我自己（组织者：林川）。要求大家都空闲。会议地点：远程会议室（按时区换算后同一天安排）。",
+      "scenario": "假设系统时区为UTC，但参会者日历事件以各自时区记录。沈佳在当天上午有外部电话会议，周航在中午前后有会议，林川在下午有个人安排。要求算法在3月3日这一天（按UTC换算后）寻找三方共同空闲的1小时，并将会议时间以ISO 8601的UTC时间写入创建请求。",
+      "difference_from_source": "参会人数从2人增加到3人（含组织者），并引入“按时区换算仍需落在同一天”的约束；同时会议标题/地点/可用窗口的冲突结构与原题不同，需重新计算共同空闲。",
+      "service_and_tool_plan": "使用calendar_list_events确认当天整体事件存在情况；使用calendar_get_user_events分别获取沈佳、周航、林川在2026-03-03的事件清单以推断他们各自空闲段；对候选时段用冲突判断后再调用calendar_create_event创建“季度复盘会”。通常不需要calendar_get_event与calendar_delete_event，避免删除。",
+      "fixture_generation_plan": "生成fixtures/calendar/events.json的扩展数据（可在原文件基础上新增记录，且不要复用原来的具体实体名/邮箱/客户名/工单号/SKU/数值）。至少新增：1条全局会议（影响某一时段）、3条分别属于沈佳/周航/林川的当天事件（各自1-2条以制造冲突），外加1-2条与会议不相关但用于干扰的事件。状态分布：确保存在至少一个共同空闲的1小时窗口，但该窗口处于中午或下午边界附近（便于验证边界处理）。事件字段保持与现有schema一致：event_id唯一、start_time/end_time为ISO，attendees用于标识对应用户。",
+      "expected_behavior": "1) 调用calendar_list_events获取2026-03-03当天事件范围线索；2) 分别调用calendar_get_user_events获取沈佳、周航、林川当日事件；3) 从各自空闲段求交集，选择满足1小时且不与任何已存在事件重叠的窗口；4) 调用calendar_create_event创建会议，title为“季度复盘会”，start_time/end_time为选定窗口的ISO 8601 UTC时间，attendees包含沈佳与周航与林川（组织者可包含在attendees中或按实现约定包含在attendees数组），location填“远程会议室”；5) 不调用calendar_delete_event。",
+      "grading_plan": "grader应检查：是否调用了至少1次calendar_list_events与至少3次calendar_get_user_events；是否选择了真正的1小时无冲突窗口（可通过对比fixtures中的事件时间区间交集判定）；是否调用calendar_create_event且创建出的start_time/end_time与选定窗口一致；输出中明确给出选定时间段与参与者列表；且不得调用calendar_delete_event。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T003zh_calendar_scheduling_plus_2",
+      "new_task_name": "跨天延迟会议（必须在次日仍满足）",
+      "task_goal": "当指定日期当天找不到所有参会者都空闲的1小时窗口时，要求将会议自动顺延到最近的可行日期创建，并在输出中说明顺延原因与新日期安排。",
+      "user_request": "我想在2026年4月10日（周五）安排“运营对齐会”1小时，参会者是蔡敏、程宇。请尽量在当天完成；如果当天两人都不存在共同空档，就顺延到最近一天并创建会议。地点：会议室B。",
+      "scenario": "在2026-04-10当天，蔡敏与程宇的日历事件覆盖了绝大多数时间段，仅留出碎片空闲但不足以凑满整1小时（例如分别只有30-45分钟的间隙）。因此必须检测“无共同1小时可用窗口”的情况，并将会议顺延到2026-04-11（周六）寻找共同空闲的1小时。干扰信息包括：一条不包含两位参会者但会占用会议室的事件（虽工具只看用户事件仍需通过整体事件线索避免创建到冲突时段）。",
+      "difference_from_source": "原题假定存在共同空闲窗口并直接创建；新任务强制验证“当天无解则顺延最近可行日期”的边界逻辑，并加入“碎片空闲不足以凑整1小时”的状态分布。",
+      "service_and_tool_plan": "使用calendar_list_events获取日期当天与次日的整体事件线索（用于识别是否可能存在会议室/系统冲突干扰）；使用calendar_get_user_events分别获取蔡敏与程宇在2026-04-10的事件以判断是否存在共同1小时；若无解，再调用calendar_get_user_events获取2026-04-11并最终调用calendar_create_event创建会议。",
+      "fixture_generation_plan": "为2026-04-10和2026-04-11生成新的events.json记录：至少加入2个参会者相关事件各1-2条，确保他们在4/10的空闲被切成短片（每段<60分钟且交集无法形成>=60分钟）；在4/11至少制造一个交集>=60分钟的窗口。再加入1条不相关但占用同地点（“会议室B”）的事件作为干扰（可通过location字段表达），但不要让其与最终选定窗口重叠。确保使用新的实体名（不复用原题中的李明/王芳等）。",
+      "expected_behavior": "1) 调calendar_list_events查4/10；2) 调用calendar_get_user_events分别查蔡敏与程宇在4/10；3) 计算共同空闲段，确认无>=1小时窗口；4) 调用calendar_get_user_events查4/11并重新计算共同空闲段；5) 选定最近日期（4/11）中满足1小时且不与任何相关事件重叠的窗口；6) 调用calendar_create_event创建“运营对齐会”，location为“会议室B”，attendees包含蔡敏与程宇；7) 在最终输出中说明“4/10无共同1小时空档，因此顺延到4/11”。不调用calendar_delete_event。",
+      "grading_plan": "grader应检查：是否在4/10确实验证无共同1小时并在随后查询4/11；是否调用calendar_create_event且创建日期为4/11；是否创建的时间窗口与fixtures中的蔡敏/程宇事件区间无重叠且长度>=1小时；是否在输出中包含顺延原因与新日期时间段；不得调用calendar_delete_event。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T003zh_calendar_scheduling_plus_3",
+      "new_task_name": "候选时段偏好与最小扰动选择",
+      "task_goal": "在存在多个共同可用1小时窗口时，按用户给定的偏好规则选择最合适的窗口创建会议（例如优先午后、尽量靠近指定时间），并给出选择依据。",
+      "user_request": "帮我在2026年5月6日（周三）安排“安全培训宣贯”1小时。参会者：顾宁、韩磊、任然。要求所有人都空闲，并遵循偏好：优先选择15:00-17:00之间；若有多个，选择最接近16:00的那个。地点：远程培训链接。",
+      "scenario": "在该日内存在至少3个共同空闲的整1小时窗口，但它们离16:00远近不同。顾宁在上午有内部评审会，韩磊在午后有短会但不覆盖整1小时段，任然在16:00前后有可用窗口但存在边界冲突（例如16:00-17:00交界处需要精确处理端点重叠规则）。此外加入1-2条不相关全员事件作为干扰。",
+      "difference_from_source": "原题只需找到任一共同空闲时段；新任务要求在多个候选中进行排序选择（最接近16:00且落在15:00-17:00）。并且加入端点边界干扰，要求严格按时间区间判重叠。",
+      "service_and_tool_plan": "调用calendar_list_events获取当天整体事件；分别调用calendar_get_user_events获取顾宁、韩磊、任然的事件以构造空闲段；枚举所有共同>=1小时的窗口，筛选15:00-17:00内的候选，计算与16:00的距离后选择最优窗口；用calendar_create_event创建会议。",
+      "fixture_generation_plan": "新增fixtures/calendar/events.json记录覆盖2026-05-06：至少为顾宁/韩磊/任然各新增1-2条事件，使得存在多个共同可用1小时窗口（例如15:00-16:00、15:30-16:30、16:00-17:00其中至少两个，但其中一个由于边界重叠被排除）。再加入1条全员干扰事件占用某段非候选窗口，避免产生误判。确保端点处理可验证：用相邻但不重叠/恰好重叠的例子制造边界差异。",
+      "expected_behavior": "1) 调用calendar_list_events；2) 调用calendar_get_user_events三次获取三人的事件；3) 生成三人的空闲段并求交集，得到所有共同可用>=1小时的窗口；4) 筛选落在15:00-17:00；5) 对剩余候选计算与16:00中心的距离（或按开始时间接近规则，需与grader一致），选择最接近16:00的窗口；6) 调用calendar_create_event创建“安全培训宣贯”，start_time/end_time为所选窗口，attendees包含三人，location填“远程培训链接”；7) 输出中说明为什么选择该窗口（满足偏好与最小扰动/距离规则）。不调用calendar_delete_event。",
+      "grading_plan": "grader应检查：候选生成数量与筛选条件是否符合（15:00-17:00优先）；所选start_time/end_time是否为与16:00最接近的有效候选（需与fixtures计算一致）；calendar_create_event被调用且字段正确；输出包含选择依据与偏好匹配说明；不得调用calendar_delete_event。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T003zh_calendar_scheduling_plus_4",
+      "new_task_name": "只凭部分数据仍完成（缺失用户日历处理）",
+      "task_goal": "当一个参会者的日历数据缺失/返回为空时，要求使用可用信息采取保守策略：仍为其选择不冲突的窗口，并在创建前核实其他参会者与整体事件不冲突；若无法确认则选择更保守的空闲段或改为不创建并提示无法安排。",
+      "user_request": "请在2026年6月12日（周五）安排“技术方案评审”1小时。参会者：周微、董晨、（第三位参会者未知，但请你尝试安排为“项目负责人李昊”）。要求所有人空闲并避免冲突。地点：大会议室。",
+      "scenario": "在fixture中让“项目负责人李昊”的calendar_get_user_events返回空列表或缺少该日期记录（模拟数据缺失）。系统仍有其他两位（周微、董晨）在当天的明确事件。正确做法需要：使用calendar_list_events与周微/董晨的事件计算共同空闲窗口，并在创建时对李昊采用保守假设：只要与整体事件线索不冲突即可创建；同时在输出中注明“李昊当天无可获取的日历数据，已按保守方式选择全局空闲窗口”。",
+      "difference_from_source": "引入“用户日历缺失/返回为空”的异常分支；要求在不引入多轮澄清的前提下，采取保守策略并在输出中披露不确定性来源。原题不涉及数据缺失。",
+      "service_and_tool_plan": "先calendar_list_events获取当天整体事件；再调用calendar_get_user_events获取周微与董晨；对“项目负责人李昊”调用calendar_get_user_events但允许其返回空并据此分支；根据整体事件与已知两人的空闲段交集选择窗口；调用calendar_create_event创建会议并在文本中说明李昊数据缺失处理逻辑。",
+      "fixture_generation_plan": "生成2026-06-12的事件数据：为周微至少1-2条事件，为董晨至少1条事件，构造出一个明显的共同空闲>=1小时窗口。为李昊设置为“该日无记录”（即fixtures中不出现李昊相关event，但仍在attendees里出现与否由实现决定；关键是calendar_get_user_events返回空）。加入1条全局干扰事件占用大会议室某时间段，确保最优窗口避开其时间。总记录量建议8-12条。",
+      "expected_behavior": "1) 调用calendar_list_events查看当天事件；2) 调用calendar_get_user_events：周微、董晨、李昊；3) 若李昊返回空列表，使用保守策略：仅以周微与董晨的共同空闲并避开全局事件的时间段作为可选窗口；4) 在可选窗口中选择1小时窗口并创建calendar_create_event，attendees包含周微、董晨、李昊（若实现允许）；5) 输出必须明确提到“李昊的日历数据缺失/无记录，因此采用全局空闲优先的保守安排”。不调用calendar_delete_event。",
+      "grading_plan": "grader应检查：是否对李昊也调用了calendar_get_user_events且处理了空返回；最终创建的时间段与周微/董晨事件无重叠且与全局事件不冲突；calendar_create_event被调用且字段正确；输出包含缺失数据的说明与保守策略；不得调用calendar_delete_event。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T003zh_calendar_scheduling_plus_5",
+      "new_task_name": "会议取消前置判断（禁止删除）与重建",
+      "task_goal": "用户请求“重新安排”某个已存在会议到新时间：必须先检查原会议的存在与时间冲突，且不得删除事件；正确做法是创建一场替代会议（或在实现允许时创建新事件后保留原事件并在输出中说明无法删除）。",
+      "user_request": "我想把2026年7月1日（周三）原本安排的“客户演示会”挪到下午，并持续1小时。参会者：王强、郑琳。注意：不要删除原会议，只要帮我再安排一个新的替代时段，尽量不和他们的安排冲突。地点：会议室D。",
+      "scenario": "fixture中存在一条名为“客户演示会”的事件，但它占用了上午时段，且包含王强与郑琳。用户要求“挪到下午”，但安全约束禁止调用calendar_delete_event。正确策略应为：识别该原事件时间并在下午为两位找到可用的1小时窗口创建新事件；如果下午仍存在冲突，则寻找最近可行的下午窗口或改为最近日的空闲下午窗口（但必须是同一或更靠后的时间，不允许早于原会议）。",
+      "difference_from_source": "新任务把“删除”明确变成禁用，并要求处理“重新安排/替代会议”的语义：不删除，只创建新事件，同时需要通过calendar_get_event或从list结果中定位原会议时间。",
+      "service_and_tool_plan": "使用calendar_list_events在2026-07-01定位标题匹配“客户演示会”的事件线索；必要时调用calendar_get_event获取其event_id与时间以确定原会议时段；再调用calendar_get_user_events获取王强与郑琳在同一天（以及必要时下一天）下午的事件以找1小时窗口；最后调用calendar_create_event创建替代会议；完全不调用calendar_delete_event。",
+      "fixture_generation_plan": "在fixtures/calendar/events.json中加入或替换出2026-07-01当天事件：至少1条“客户演示会”包含王强与郑琳，设置在上午；分别给王强与郑琳在下午加入不同的冲突片段，确保只有一个或少数窗口可行但在“下午”范围内。再加入1-2条其他事件作为干扰。确保使用新的实体名（不复用原题李明/王芳等）。",
+      "expected_behavior": "1) 调calendar_list_events获取2026-07-01的事件并定位“客户演示会”的原始时间；2) 调用calendar_get_event确认原事件的event_id与时间（如list已足够也可仍调用）；3) 调用calendar_get_user_events获取王强与郑琳在下午的事件以筛选>=1小时无冲突窗口；4) 若当天下午无解则顺延到最近的下午可行窗口（并说明顺延原因）；5) 调用calendar_create_event创建新事件“客户演示会（替代）”或类似标题（不复用原题段落原文），attendees包含两人，location为“会议室D”，start_time/end_time为所选替代窗口；6) 输出中明确说明“按要求未删除原会议，已创建替代会议”。不调用calendar_delete_event。",
+      "grading_plan": "grader应检查：是否通过calendar_list_events（以及必要时calendar_get_event）识别了原会议时间；是否完全不调用calendar_delete_event；是否调用calendar_create_event且start_time在原会议之后且持续1小时并与王强/郑琳事件无重叠；输出包含“未删除原会议，已创建替代会议”的说明。"
+    }
+  ]
+}

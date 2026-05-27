@@ -1,0 +1,78 @@
+{
+  "task_id": "T099_pinbench_second_brain_recall_plus_2",
+  "task_name": "Second Brain: Research Milestones",
+  "prompt_text": "Treat the notes service as my persisted second brain. Find the stored research milestones memory note and answer:\n\n1) What research direction am I focused on?\n2) What date did the key breakthrough happen? (format as day/month/year)\n3) Who is my collaborator and what organization are they with?\n4) What is the research project called and what is its main approach?\n5) What is the internal visit code phrase my team uses?",
+  "files": {
+    "fixtures/notes/memory.json": [
+      {
+        "note_id": "mil_017",
+        "title": "Research milestones: Breakthrough timeline",
+        "content": "Research direction: Graph neural networks for medical imaging\nBreakthrough date: 07/11/2023\nCollaborator: Priya Raman, AI Research Lab at Horizon University\nProject & approach: AtlasPath — self-supervised representation learning with contrastive pretraining\nVisit code: ORCHID-7F NEBULA",
+        "created_at": "2026-03-02T13:40:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 18
+      },
+      {
+        "note_id": "draft_204",
+        "title": "Meeting draft — partial notes",
+        "content": "Research direction: Reinforcement learning for warehouse robots\nBreakthrough date: 03/09/2022\nVisit code: ORCHID-7F NEBULA STAGE",
+        "created_at": "2026-01-21T10:15:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 9
+      },
+      {
+        "note_id": "memo_088",
+        "title": "Notes memo — collaborator snippet",
+        "content": "Collaborator: Chen Wei from Nova Systems Institute\nVisit code: PAPERFOX-12 LANTERN",
+        "created_at": "2026-04-10T08:05:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 6
+      },
+      {
+        "note_id": "agenda_331",
+        "title": "Agenda — project fragments",
+        "content": "Project & approach: HarborLens — Bayesian optimization for retinal feature selection\nResearch direction: Person re-identification with transformers",
+        "created_at": "2025-12-29T18:22:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 12
+      },
+      {
+        "note_id": "visit_055",
+        "title": "Internal visit code log (short)",
+        "content": "Visit code: ORCHID-7F NEBULA (archived)\nBreakthrough date: 11/01/2024",
+        "created_at": "2026-02-24T21:50:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 4
+      },
+      {
+        "note_id": "minutes_146",
+        "title": "Meeting minutes — incomplete fields",
+        "content": "Breakthrough date: 18/06/2021\nCollaborator: Sofia Martínez, Center for Computational Bioengineering\nProject & approach: ProtoWeave — federated learning across clinical sites",
+        "created_at": "2026-03-28T06:30:00Z",
+        "participants": [
+          "user"
+        ],
+        "duration_minutes": 16
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的单条学习/导师/项目/秘密短语改为从包含多个干扰片段的研究“milestones”笔记中抽取五项（方向、具体日月年突破日期、合作者与单位、项目与方法、内部拜访码）。",
+    "fixture_design_summary": [
+      "共 7 条 notes：1 条目标记忆（title 含 milestones）同时包含五个字段；其余 6 条各自缺少部分字段并包含相似但不同的 visit code/日期/项目片段。",
+      "created_at 被打乱，确保目标不必是最新或最早。",
+      "所有笔记 participants 固定包含 user，duration_minutes 在 3~20 间分散。",
+      "目标字段值均设置为全新且彼此一致，agent 读取唯一完整 note 后即可精确输出答案。"
+    ]
+  }
+}

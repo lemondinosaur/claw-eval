@@ -1,0 +1,177 @@
+[
+  {
+    "job_id": "JOB-2201",
+    "name": "失败重试调度任务",
+    "schedule": "*/10 * * * *",
+    "status": "enabled",
+    "last_run": "2026-05-20T11:50:00Z",
+    "last_status": "failed",
+    "description": "每10分钟重试失败的回调处理并派发工单（配置回滚后可能产生cron漂移）",
+    "tags": [
+      "failure-retry",
+      "ticket-dispatch",
+      "callback"
+    ],
+    "failure_count": 19,
+    "first_failure": "2026-05-20T10:05:00Z",
+    "cron_expression": "*/7 * * * *",
+    "enabled": true,
+    "action": "每10分钟重试失败的回调处理并派发工单",
+    "next_run": null,
+    "created_at": "2025-10-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T11:45:00Z",
+        "status": "failed",
+        "duration_s": 42
+      },
+      {
+        "run_at": "2026-05-20T11:52:00Z",
+        "status": "failed",
+        "duration_s": 45
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2202",
+    "name": "回调超时处理任务",
+    "schedule": "0 */10 * * *",
+    "status": "disabled",
+    "last_run": "2026-05-20T10:00:00Z",
+    "last_status": "failed",
+    "description": "按计划检查回调超时并触发流程重试（禁用状态可能与配置变更不一致）",
+    "tags": [
+      "callback-handler",
+      "retry"
+    ],
+    "failure_count": 7,
+    "first_failure": "2026-05-20T09:40:00Z",
+    "cron_expression": "*/10 * * * *",
+    "enabled": false,
+    "disabled_reason": "手动禁用 - 预计10:15恢复（但后续仍呈现重试周期性）",
+    "action": "每10分钟检查回调超时并触发流程重试",
+    "next_run": null,
+    "created_at": "2025-10-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T10:00:00Z",
+        "status": "failed",
+        "duration_s": 58
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2203",
+    "name": "工单派发归档任务",
+    "schedule": "*/5 * * * *",
+    "status": "enabled",
+    "last_run": "2026-05-20T11:55:00Z",
+    "last_status": "success",
+    "description": "每5分钟将已派发工单进行归档与状态同步",
+    "tags": [
+      "ticket-dispatch",
+      "archive"
+    ],
+    "failure_count": 0,
+    "first_failure": null,
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "action": "每5分钟将已派发工单进行归档与状态同步",
+    "next_run": null,
+    "created_at": "2025-10-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T11:55:00Z",
+        "status": "success",
+        "duration_s": 21
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2204",
+    "name": "消息队列死信清理",
+    "schedule": "0 */2 * * *",
+    "status": "enabled",
+    "last_run": "2026-05-20T11:40:00Z",
+    "last_status": "success",
+    "description": "每2小时清理消息队列死信并回补少量失败消息",
+    "tags": [
+      "mq",
+      "cleanup"
+    ],
+    "failure_count": 1,
+    "first_failure": "2026-05-16T08:00:00Z",
+    "cron_expression": "0 */2 * * *",
+    "enabled": true,
+    "action": "每2小时清理消息队列死信并回补少量失败消息",
+    "next_run": null,
+    "created_at": "2025-10-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T11:40:00Z",
+        "status": "success",
+        "duration_s": 30
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2205",
+    "name": "告警汇总上报",
+    "schedule": "*/15 * * * *",
+    "status": "enabled",
+    "last_run": "2026-05-20T11:45:00Z",
+    "last_status": "success",
+    "description": "每15分钟聚合并上报告警到告警平台",
+    "tags": [
+      "monitoring",
+      "aggregation"
+    ],
+    "failure_count": 0,
+    "first_failure": null,
+    "cron_expression": "*/15 * * * *",
+    "enabled": true,
+    "action": "每15分钟聚合并上报告警到告警平台",
+    "next_run": null,
+    "created_at": "2025-10-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T11:45:00Z",
+        "status": "success",
+        "duration_s": 18
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2206",
+    "name": "健康巡检任务",
+    "schedule": "*/5 * * * *",
+    "status": "enabled",
+    "last_run": "2026-05-20T11:56:00Z",
+    "last_status": "success",
+    "description": "每5分钟检查集成与服务健康并上报",
+    "tags": [
+      "monitoring",
+      "health"
+    ],
+    "failure_count": 0,
+    "first_failure": null,
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "action": "每5分钟检查集成与服务健康并上报",
+    "next_run": null,
+    "created_at": "2025-10-01T00:00:00Z",
+    "created_by": "system",
+    "execution_history": [
+      {
+        "run_at": "2026-05-20T11:56:00Z",
+        "status": "success",
+        "duration_s": 12
+      }
+    ]
+  }
+]

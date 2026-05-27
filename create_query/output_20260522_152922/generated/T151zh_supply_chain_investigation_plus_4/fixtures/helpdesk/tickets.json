@@ -1,0 +1,156 @@
+[
+  {
+    "ticket_id": "TK-2101",
+    "title": "召回替换发货延迟：BR-7782",
+    "description": "北辰工业（CUS-2101）齐总：订单BR-7782要求更换同批次装置的核心件KC-8801与封装组件PC-4403。客服承诺3-5天，但目前替换件仍未到仓，请协助追查。",
+    "customer_id": "CUS-2101",
+    "reporter": "齐总",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "in_progress",
+    "created_at": "2026-04-18T11:05:00Z",
+    "tags": [
+      "召回",
+      "替换发货延迟",
+      "KC-8801",
+      "PC-4403"
+    ],
+    "category": "召回替换"
+  },
+  {
+    "ticket_id": "TK-2102",
+    "title": "召回替换发货延迟：BR-7811（核心件未出库）",
+    "description": "星河政企集采（CUS-2102）周处长：BR-7811替换核心件KC-8801显示有库存但一直无法出库，要求说明原因并给出新到货窗口。",
+    "customer_id": "CUS-2102",
+    "reporter": "周处长",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-17T08:25:00Z",
+    "tags": [
+      "召回",
+      "替换发货延迟",
+      "KC-8801"
+    ],
+    "category": "召回替换"
+  },
+  {
+    "ticket_id": "TK-2103",
+    "title": "召回替换物料不到：封装组件PC-4403",
+    "description": "澄远科技（CUS-2104）陈总监：封装组件PC-4403一直缺货/不可用，影响替换装配进度。请核对库存notes中“等待质检放行”。",
+    "customer_id": "CUS-2104",
+    "reporter": "陈总监",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-19T06:40:00Z",
+    "tags": [
+      "召回",
+      "替换物料不到",
+      "PC-4403"
+    ],
+    "category": "召回替换"
+  },
+  {
+    "ticket_id": "TK-2104",
+    "title": "召回替换发货延迟：替换配套关键配件KP-7002",
+    "description": "北辰工业（CUS-2101）齐总：除了KC-8801/PC-4403，替换配套关键配件KP-7002也未按期到达。请提供根因与补救时间表。",
+    "customer_id": "CUS-2101",
+    "reporter": "齐总",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "in_progress",
+    "created_at": "2026-04-20T10:10:00Z",
+    "tags": [
+      "召回",
+      "替换发货延迟",
+      "KP-7002"
+    ],
+    "category": "召回替换"
+  },
+  {
+    "ticket_id": "TK-2105",
+    "title": "召回替换工单-物料无法出库（notes不可用）",
+    "description": "内部流转：更换替换料批次显示“批次不可用（等待质检放行）”。请确认库存quantity是否误导，以及对应的采购/退款链路是否与reference匹配。",
+    "customer_id": "CUS-2102",
+    "reporter": "质量协作部",
+    "department": "供应链质量",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-16T16:30:00Z",
+    "tags": [
+      "库存notes",
+      "不可出库",
+      "召回替换"
+    ],
+    "category": "召回替换"
+  },
+  {
+    "ticket_id": "TK-2106",
+    "title": "召回通知未收到询问（干扰）：仅确认渠道",
+    "description": "珑桥物流（CUS-2103）孙经理：我们未收到召回通知，请提供重新发送方式与官方渠道链接。无需替换物料核对。",
+    "customer_id": "CUS-2103",
+    "reporter": "孙经理",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-15T09:00:00Z",
+    "tags": [
+      "干扰",
+      "召回通知未收到"
+    ],
+    "category": "咨询"
+  },
+  {
+    "ticket_id": "TK-2107",
+    "title": "召回通知未收到追问（干扰）：要求再次核对",
+    "description": "珑桥物流（CUS-2103）孙经理：再次确认是否已发送召回通知，要求提供邮件发送截图与工单记录。",
+    "customer_id": "CUS-2103",
+    "reporter": "孙经理",
+    "department": "客户服务",
+    "priority": "low",
+    "status": "in_progress",
+    "created_at": "2026-04-16T12:20:00Z",
+    "tags": [
+      "干扰",
+      "召回通知未收到"
+    ],
+    "category": "咨询"
+  },
+  {
+    "ticket_id": "TK-2108",
+    "title": "召回替换发货延迟：对比替换料来源（顺达active）",
+    "description": "内部质控：CRM显示顺达替换料供应商active且notes“可立刻替换”，但目前替换料仍无法按期发货。请排查是否因物料清单/规格条款导致不在缺口链路中。",
+    "customer_id": "CUS-2104",
+    "reporter": "供应链协调",
+    "department": "供应链管理",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-18T15:50:00Z",
+    "tags": [
+      "对比",
+      "顺达",
+      "规格",
+      "召回替换"
+    ],
+    "category": "召回替换"
+  },
+  {
+    "ticket_id": "TK-2109",
+    "title": "召回替换发货延迟：客户要求不关闭工单并追责",
+    "description": "星河政企集采（CUS-2102）周处长：请不要关闭本工单，必须给出替换料何时完成质检放行及预计发货时间；涉及采购取消/退款与新的pending请说明。",
+    "customer_id": "CUS-2102",
+    "reporter": "周处长",
+    "department": "客户服务",
+    "priority": "critical",
+    "status": "in_progress",
+    "created_at": "2026-04-20T09:40:00Z",
+    "tags": [
+      "召回",
+      "替换发货延迟",
+      "不关闭",
+      "放行"
+    ],
+    "category": "召回替换"
+  }
+]

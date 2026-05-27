@@ -1,0 +1,101 @@
+{
+  "source_task_id": "T163zh_quarterly_customer_review",
+  "source_summary": {
+    "task_type": "跨越CRM/财务/邮件/RSS与联系人系统的季度客户复盘与风险增长识别工作流",
+    "services": [
+      "gmail",
+      "contacts",
+      "finance",
+      "rss",
+      "crm"
+    ],
+    "tools": [
+      "finance_list_transactions",
+      "finance_get_transaction",
+      "crm_list_customers",
+      "crm_get_customer",
+      "gmail_list_messages",
+      "gmail_get_message",
+      "rss_list_feeds",
+      "rss_get_feed",
+      "rss_get_article",
+      "contacts_search",
+      "contacts_get"
+    ],
+    "fixture_paths": [
+      "fixtures/contacts/contacts.json",
+      "fixtures/crm/customers.json",
+      "fixtures/finance/transactions.json",
+      "fixtures/gmail/inbox.json",
+      "fixtures/rss/feeds.json"
+    ],
+    "core_capability": "workflow：多服务数据汇总、对齐季度时间窗、基于多源线索输出结构化客户回顾与风险/机会判断"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T163zh_quarterly_customer_review_plus_1",
+      "new_task_name": "Q2重点续约预警与机会复盘",
+      "task_goal": "为10个重点客户生成Q2续约预警与机会复盘报告：对每个客户汇总Q2收入/续费表现、CRM满意度与合同到期节点、邮件沟通健康度与争议点、结合行业动态给出可执行的风险与增长建议，并在末尾汇总“高/中/低”优先级清单。",
+      "user_request": "Q2已经过半，请基于最近90天数据做10个重点客户的续约预警与机会复盘：每个客户都要包含（1）收入与趋势，（2）CRM满意度与合同到期风险，（3）邮件沟通是否活跃/是否有投诉或升级，（4）行业动态关联，（5）客户经理联系方式，（6）给出1条明确风险处置动作和1条增长推进动作。最后按优先级输出3个分组清单（高风险/中风险/低风险）并说明分组依据。",
+      "scenario": "现在是2026年7月中旬。CRM里筛选到10个“active”客户（其中4个VIP、6个standard）。财务数据覆盖Q2的分月订阅交易，但存在两类异常：部分客户在6月出现“部分退款/失败交易”且仍有后续补单；另有1个客户Q2收入持续但合同即将跨季到期（到期在8月底）。邮件收件箱在过去90天内包含：3个客户提出升级需求、2个客户有“响应慢/质量不稳”的抱怨、1个客户存在“账单更正”邮件链。RSS提供至少3个与软件/SaaS、零售电商、公共部门数字化相关的行业文章。联系人系统中存在两位销售负责人姓名相同但部门不同，需以部门字段排除干扰，找到正确客户经理的联系方式。",
+      "difference_from_source": "从“Q1结束后的季度回顾（固定6客户）”改为“Q2过半的续约预警（10客户）”，报告重点从总结过去到做优先级与可执行处置动作；引入财务异常（失败/退款与补单）、邮件存在账单更正链路；联系人检索存在同名干扰，需要结合部门字段确保客户经理匹配。",
+      "service_and_tool_plan": "继续使用同一大类服务与工具：finance_list_transactions与finance_get_transaction用于计算并核查Q2分月收入/异常交易；crm_list_customers与crm_get_customer获取每客户的满意度、合同到期与行业/标签；gmail_list_messages与gmail_get_message检索过去90天内沟通、投诉或争议点；rss_list_feeds与rss_get_feed/rss_get_article用于挑选与各客户行业匹配的动态线索；contacts_search与contacts_get用于定位客户经理联系方式，并通过“department”字段消除同名干扰。之所以沿用，是因为核心仍是跨服务汇总并产出结构化工作流报告。",
+      "fixture_generation_plan": "生成5个新fixtures集合（可复用同一路径结构但新实体名）：1）crm/customers.json：10条客户记录，状态均为active，tier包含4 VIP与6 standard；行业分布至少覆盖软件/SaaS、零售电商、物流、制造IT、公共部门/教育等；满意度需覆盖低（<=2.8）、中（2.9-3.8）、高（>=4.2）三段；合同到期覆盖三类：8月底、9月底、11月底；sales_owner字段在两位销售经理与若干客户成功角色间混合。2）finance/transactions.json：覆盖Q2（4/1-6/30）每客户至少2笔交易，总计约35-55笔；加入至少2个“失败或退款”交易（status非completed）与对应补单（随后completed）；确保至少1个客户Q2收入稳定但合同紧迫到期。3）gmail/inbox.json：过去90天（4/1-7/15附近）共约18-28封邮件；包含：3个升级/扩展请求、2个投诉/响应慢、1条账单更正链（至少2封相同主题不同时间）；其余为项目进展与会议邀请；邮件主体中要出现可用于判断的关键词（如“延期/更正/加急/投诉/演示/报价”）。4）rss/feeds.json：3个feeds，每个feed提供2-3篇文章（总6-9篇）；文章类别覆盖软件增长、零售竞争、公共数字化稳健、物流降本等；每篇article_id与内容摘要要包含行业趋势判断词。5）contacts/contacts.json：至少6位联系人；其中设置“同名干扰”2条（相同name但不同department与title），并在客户记录中设置sales_owner仅对应正确部门联系人。确保不复用原题的姓名/邮箱/客户名/客户ID/交易ID/SKU/数值。",
+      "expected_behavior": "代理应：先用crm_list_customers获取10个客户，再对每个客户用finance_list_transactions按Q2区间汇总并必要时用finance_get_transaction核验异常交易；用crm_get_customer提取满意度与合同到期节点；用gmail_list_messages(days_back=90或等效窗口)拉取邮件并逐条gmail_get_message定位与客户相关的沟通健康度（需识别投诉、账单更正、升级/扩展请求）；用rss_get_feed获取行业动态文章并匹配每客户行业（基于行业标签而非客户名字）；用contacts_search按sales_owner搜索并用contacts_get获取联系人详情，若同名存在必须用department/title匹配正确客户经理。最终输出：每客户一个固定结构段落（收入趋势+CRM满意度/合同风险+邮件要点+行业关联+客户经理+风险处置动作/增长推进动作），并输出三组优先级清单及明确依据（例如：合同到期临近+满意度低+沟通中断或投诉）。",
+      "grading_plan": "grader应检查：1）Q2时间窗是否正确且分月/总计口径一致，且异常（失败/退款与补单）是否被识别并解释影响；2）对每客户是否覆盖CRM满意度与合同到期节点、邮件沟通类型分类（升级/投诉/账单更正/活跃进展）并与风险判断一致；3）行业动态关联是否基于RSS内容标签而非泛泛而谈；4）客户经理联系方式是否正确处理同名干扰（通过department匹配）；5）优先级分组是否合理且依据可追溯；6）输出结构是否完整、每客户至少包含两条“动作型建议”。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T163zh_quarterly_customer_review_plus_2",
+      "new_task_name": "多地区客户健康度季度体检（缺失数据版）",
+      "task_goal": "为8个重点客户做“季度健康度体检”：在允许存在部分数据缺失的情况下，仍要输出每客户的健康度结论与补证说明（指出缺失来自哪个服务），并识别由于邮件缺失/行业错配导致的判断不确定性。",
+      "user_request": "请为8个重点客户生成季度健康度体检报告（Q3）：对每个客户给出健康度结论（高/中/低）、证据链（财务、CRM、邮件、行业动态）、以及当某类证据缺失时的补证说明。最后列出“需要补采集信息”的客户清单，并为每个客户写1条建议的补采集路径（例如：让客户经理补一次会议记录或向财务核对账单）。",
+      "scenario": "现在是2026年10月初，正在做Q3（7/1-9/30）回顾。CRM中筛选到8个客户，覆盖两类地区：华北与华南；其中1个地区的邮件沉淀异常（Q3几乎没有往来邮件）。财务系统对其中2个客户仅返回“completed为0或只有一笔”，但仍有历史交易可通过transaction详情确认其为“预付转结”。RSS仍会提供行业趋势，但有一半文章与客户行业标签不完全一致，要求用标题摘要与tags进行弱匹配。邮件中存在与客户无关的内部通知干扰（会议通知/活动通知）需忽略。联系人系统里客户经理分属不同部门（销售/客户成功），且每个客户记录的sales_owner可能指向客户成功角色而非销售。",
+      "difference_from_source": "新增“缺失数据版”要求：必须在报告中明确指出哪些证据缺失、如何影响健康度置信度；并要求提出补采集路径；此外引入地区邮件沉淀异常、内部通知干扰、行业tags弱匹配与sales_owner可能指向客户成功而非销售。",
+      "service_and_tool_plan": "finance_list_transactions与finance_get_transaction用于计算Q3收入与处理仅一笔/预付转结等情况；crm_list_customers与crm_get_customer获取满意度、合同到期与负责人角色字段；gmail_list_messages与gmail_get_message用于识别邮件是否存在与客户相关的有效沟通（否则标注缺失）；rss_list_feeds与rss_get_feed/rss_get_article用于行业动态弱匹配并说明匹配强度；contacts_search与contacts_get用于拿到对应负责人联系方式，并允许负责人来自客户成功部门，因此不能仅限销售标题。",
+      "fixture_generation_plan": "生成新fixtures：1）crm/customers.json：8条客户，含vip/standard混合，行业至少覆盖：云服务、零售、电商、物流、教育信息化等；satisfaction覆盖高/中/低；contract_end覆盖10月/11月/12月三种；sales_owner在销售与客户成功经理之间交替。2）finance/transactions.json：覆盖Q3，总交易约25-40笔；其中2个客户只有1笔completed或仅1笔但description表明“预付转结/结算延后”，且至少1个客户出现明显环比下降。3）gmail/inbox.json：Q3窗口内约12-20封；至少2个客户在Q3几乎无相关邮件（仅收到内部通知或无匹配主题），需要通过labels或from域判断是否为干扰；加入1封内部群发通知邮件，labels包含“通知”。4）rss/feeds.json：2-3个feeds，文章总6-8篇；至少3篇文章tags与客户行业不完全一致但摘要里仍提到相邻领域（例如“零售数字化”与“教育内容平台”），要求弱匹配。5）contacts/contacts.json：至少7位联系人；包含销售经理与客户成功经理；设置至少1位与另一位同姓但不同title，要求基于department/title匹配。确保不复用原题客户名/邮箱/客户ID/交易ID/数值。",
+      "expected_behavior": "代理应：对每客户先拉取Q3财务交易并汇总，同时检查是否只有极少数据；再获取CRM满意度与合同节点；用gmail搜索并判断邮件证据是否存在/是否为干扰；用RSS文章按行业tags与摘要做弱匹配，若匹配度低则在输出中标注“行业证据弱”；最后用contacts_search定位负责人联系方式，若sales_owner指向客户成功经理也要正确输出其联系方式。输出要求：每客户给出健康度结论+证据链（逐项：财务/CRM/邮件/RSS）+置信度说明（如“邮件缺失导致不确定”）+补采集建议（当任一证据缺失或矛盾时）。结尾输出“需要补采集信息”的客户清单（至少包含邮件缺失的客户）。",
+      "grading_plan": "grader应检查：1）对缺失数据是否显式标注（不是用虚构信息填补）；2）健康度结论与证据链一致，且当邮件缺失/行业弱匹配时是否降低置信度并给出补采集建议；3）能否正确过滤内部通知干扰；4）负责人联系方式匹配是否正确（department/title与sales_owner一致，处理同姓同名）；5）结构是否对每客户包含四类证据与补采集动作，且缺失项能被指出到具体服务。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T163zh_quarterly_customer_review_plus_3",
+      "new_task_name": "风险工单驱动的季度专项回顾（投诉升级）",
+      "task_goal": "针对5个“近期触发风险”的客户做季度专项回顾：从邮件中提取升级/投诉要点并与CRM满意度与合同节点对齐，同时用财务核查“续费延迟或降级”迹象，输出整改建议与跟进计划。",
+      "user_request": "请为5个触发风险的客户做季度专项回顾（聚焦投诉升级与整改）：每个客户必须包含（1）投诉/升级时间线（来自邮件），（2）CRM满意度与合同到期的影响评估，（3）财务端是否出现降级/延迟/中断的证据，（4）给出整改优先级与跟进计划（未来2周内的两步动作）。最后汇总“最需要立即介入”的Top2客户。",
+      "scenario": "时间为2026年5月底，做Q2专项回顾（4/1-5/31）。筛选条件来自“邮件触发器”：gmail收件箱中存在至少3个客户邮件带有labels包含“升级”或“投诉”，其余客户只有中性沟通但财务侧出现“降级描述”。财务交易包含type为subscription与addon，其中addon在部分客户上月终止导致整体收入下降。CRM中有1个客户处于active但notes提示“即将降级谈判”；另有1个客户合同到期在6月中旬且满意度低。行业动态来自RSS但仅提供通用趋势（例如服务质量、成本压力），需要结合客户邮件具体问题（如响应慢、对账争议、功能无法落地）进行落点。",
+      "difference_from_source": "从“综合季度回顾”改为“投诉升级驱动的专项回顾”，强调邮件时间线抽取、2周内跟进计划与整改优先级；财务侧重点转为降级/addon终止/续费中断证据；行业动态作为背景弱支持而非主要推断来源。",
+      "service_and_tool_plan": "gmail_list_messages与gmail_get_message用于抓取labels为“投诉/升级”的邮件并按时间线整理；crm_list_customers与crm_get_customer用于获取满意度、合同到期与notes里的降级谈判线索；finance_list_transactions与finance_get_transaction用于识别收入下降与addon终止/续费延迟（通过交易描述与status核查）；rss_*用于提炼行业层面的服务质量或成本压力背景，辅助解释整改优先级；contacts_search与contacts_get用于输出客户经理与建议的跟进责任人（需从联系人职责中判断谁更适合整改跟进）。",
+      "fixture_generation_plan": "新fixtures：1）crm/customers.json：5条客户，tier可混合，至少2条满意度<=3.0；合同到期覆盖6月中旬、7月底等；notes包含“降级谈判/整改中/待确认工单”等关键字；sales_owner字段指向可用于整改跟进的联系人（销售或客户成功）。2）finance/transactions.json：覆盖4/1-5/31，约18-25笔；包含至少3个客户发生addon终止或description提到“降级/中断/延迟”；所有交易不复用原题交易ID/数值。3）gmail/inbox.json：4-5月约14-20封；至少3个客户邮件labels含“升级”或“投诉”，并且每个至少2封形成时间线（如首次抱怨+后续升级/跟进）；其余客户只出现1封中性邮件但能从财务侧对齐。邮件内容需包含可提取要点（例如“超过48小时”“对账差异”“无法按期上线”）。4）rss/feeds.json：2个feeds、每个2-3篇，共4-6篇；内容摘要围绕“服务质量/成本压力/续约谨慎”。5）contacts/contacts.json：至少5位联系人；确保与crm销售负责人匹配，并在职责中体现“客户成功/技术支持/续约”等；设置不复用原题联系人姓名邮箱。",
+      "expected_behavior": "代理应：以gmail_list_messages拉取窗口内邮件，再筛选labels含“投诉/升级”的客户形成候选；对每候选客户逐封gmail_get_message提取时间线并概括问题类别；用finance_list_transactions汇总窗口内交易，核对是否出现降级或中断（addon终止、description含“降级/延迟/中止”、或出现status非completed）；用crm_get_customer评估满意度与合同到期的风险权重；用rss内容给出行业背景解释（例如“成本压力导致续约谨慎但不替代具体整改”）；用contacts_search与contacts_get找到负责人，区分适合整改的角色，输出至少两步2周跟进动作（如“48小时内回访并确认整改项”“安排技术/商务联合评估并给出修正计划”）。最后输出Top2需要立即介入的客户并给出原因（邮件升级强度+合同临近+财务中断）。",
+      "grading_plan": "grader应检查：1）是否从邮件中抽取出明确时间线（至少两段事件）并与客户匹配；2）财务侧是否正确识别降级/延迟/中断证据并解释与投诉的关联；3）整改优先级与2周跟进计划是否具体、可执行且与问题类型一致；4）Top2介入判断是否依据邮件升级强度、合同节点与满意度；5）联系人匹配是否正确且能输出合理跟进责任人（基于职责字段）。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T163zh_quarterly_customer_review_plus_4",
+      "new_task_name": "按行业细分的季度联合洞察报告（行业经理视角）",
+      "task_goal": "从行业视角为6个客户输出季度联合洞察：先用RSS与客户行业映射确定3个行业主题，再分别汇总落到客户的表现（财务趋势/CRM健康度/邮件活跃度），最后输出每个行业主题下的“共性风险/共性机会”。",
+      "user_request": "请做一份“行业经理视角”的季度联合洞察：我有6个重点客户。你需要先阅读RSS行业动态，提炼出3个行业主题；再把每个客户映射到最合适的主题，说明映射依据。对每个客户写：季度收入趋势、CRM满意度与续约节点、邮件沟通活跃度（活跃/一般/沉默）与关键话题。最后对3个行业主题分别总结共性风险与共性机会，并给出每个主题一条跨客户可复用的建议。",
+      "scenario": "时间为2026年9月下旬，回顾Q3（7/1-9/30）。RSS提供6篇行业文章，覆盖“能源转型IT”“医疗数字化”“零售供应链”“教育内容平台”等多主题；但客户行业在CRM中只标注到5类较粗粒度（例如“医疗健康”“零售”“教育信息化”等）。映射需要通过RSS文章tags与summary关键词进行跨粒度对齐。邮件中存在客户沉默与异常活跃：同一客户在9月突然出现多封邮件但均来自内部群发（干扰），需要通过from域或labels排除。联系人部分要求输出“行业经理”联系方式：contacts中存在title包含“行业经理”的联系人，且并非客户sales_owner本人。",
+      "difference_from_source": "从客户维度报告改为“先行业主题再客户映射”的联合洞察；最终输出重点转为跨客户共性风险/机会与可复用建议；联系人输出对象从客户经理切换为行业经理（title驱动）。并引入“内部群发导致异常活跃”的邮件干扰识别。",
+      "service_and_tool_plan": "rss_list_feeds与rss_get_feed/rss_get_article用于提炼3个行业主题并形成标签关键词库；crm_list_customers与crm_get_customer获取6个客户的行业与满意度/合同节点；finance_list_transactions用于计算Q3收入趋势；gmail_list_messages与gmail_get_message用于判定活跃度并提取关键话题，同时过滤内部群发干扰；contacts_search与contacts_get用于查找title包含“行业经理”的联系人，并在输出中附上其联系方式。contacts不必再按客户sales_owner逐一找，但可以作为映射补充（若需要）。",
+      "fixture_generation_plan": "新fixtures：1）crm/customers.json：6条客户，行业粗粒度覆盖至少3类；满意度覆盖高/中/低；合同到期分布在10月/11月/12月；sales_owner可存在但报告重点联系人为行业经理。2）finance/transactions.json：Q3期间约20-30笔；保证至少2个客户有明显上升趋势、1个下降、1个横盘；不复用原题交易ID与数值。3）gmail/inbox.json：Q3窗口约15-25封；至少1个客户沉默（无有效客户邮件）；至少1个客户在9月有异常活跃但邮件来自内部群发（labels含通知/来自company域），需被排除；其他邮件包含项目讨论、续约沟通或技术咨询等关键词。4）rss/feeds.json：2-3个feeds、共6-8篇文章；每篇tags要足够让映射到客户行业主题成为可判定依据；文章summary包含明确趋势（如投入增加/竞争加剧/监管合规）。5）contacts/contacts.json：至少4位联系人，至少2位title包含“行业经理”但不同行业；同时包含title含“客户经理”的干扰联系人；确保能用title/department在contacts_search中定位正确行业经理。避免原题姓名邮箱/客户ID复用。",
+      "expected_behavior": "代理应：先通过rss获取足够文章并提炼3个行业主题（例如“合规与数据治理加速”“零售供应链降本”“教育内容智能化”等），说明主题形成依据（引用tags/summary关键点）；随后对6个客户用crm_get_customer得到行业字段，并基于客户行业与主题关键词匹配到最合适主题，输出映射依据；对每客户用finance计算Q3收入趋势；用gmail判定沟通活跃度（活跃/一般/沉默）并提取关键话题，同时识别并排除内部群发干扰；最后用contacts_search定位title为“行业经理”的联系人，按主题给出相应行业经理联系方式（至少每个主题1个），并对3个主题分别输出共性风险/共性机会与可复用建议。",
+      "grading_plan": "grader应检查：1）行业主题是否真实从RSS文章tags/summary中提炼且数量=3；2）客户-主题映射依据是否具体且可从CRM行业与RSS关键词对应；3）每客户是否包含收入趋势、满意度与续约节点、邮件活跃度与关键话题；4）内部群发干扰是否被正确过滤（不应把通知当作客户沟通）；5）行业经理联系人匹配是否正确（title驱动而非客户sales_owner）。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T163zh_quarterly_customer_review_plus_5",
+      "new_task_name": "跨月预警：现金流紧张与沟通断点的季度组合分析",
+      "task_goal": "对7个客户完成“现金流紧张+沟通断点”的季度组合分析：识别财务端现金流异常（如大额退款/延迟付款/订阅中断）与邮件端沟通断点（连续多周无有效往来），并给出按客户紧急程度排序的干预清单与脚本要点。",
+      "user_request": "请对Q3（7/1-9/30）内的7个客户做组合预警分析：需要找出（1）财务端现金流紧张信号，（2）邮件端沟通断点信号，两者要做“交叉解释”。输出每个客户：异常类型、发生月份、影响推断、以及一段给客户经理直接可用的外呼/邮件跟进脚本要点（不需要具体联系方式）。最后按“最紧急→较紧急”排序给出干预清单。",
+      "scenario": "当前为2026年10月上旬。财务异常包含两种：A类为9月出现“退款/冲销”交易且随后10月前无新补单（但本任务只覆盖Q3数据，需据Q3做推断）；B类为订阅类型交易在某个月status非completed或description包含“付款延迟/账期调整”。邮件端要判断沟通断点：定义为连续至少5个工作周无来自客户域的有效邮件（排除内部通知）。CRM中部分客户仍为active且合同未到期，但满意度可能上升（误导），因此必须把邮件断点与财务信号结合解释。RSS用于提供行业层面的“账期延长常见原因/合同调整趋势”作为背景，不得替代客户证据。",
+      "difference_from_source": "新增“现金流紧张+沟通断点”的交叉预警与排序干预清单；要求为每客户生成外呼/邮件跟进“脚本要点”；并强调在CRM满意度可能上升的情况下仍要以多源证据纠偏。",
+      "service_and_tool_plan": "finance_list_transactions用于拉取Q3并定位异常月份与交易状态；finance_get_transaction用于核验退款/冲销与付款延迟的具体交易细节；gmail_list_messages与gmail_get_message用于统计客户域有效邮件的时间分布并识别断点；crm_list_customers与crm_get_customer用于补充满意度/合同到期但用于解释而非唯一依据；rss_get_feed与rss_get_article用于提取账期延长或合同调整的行业背景；contacts_search与contacts_get用于可能需要的客户经理归属确认（但最终脚本要点不要求列出具体联系方式）。",
+      "fixture_generation_plan": "新fixtures：1）crm/customers.json：7条客户，tier混合，active；满意度要设置至少2个客户满意度上升或较高但仍有财务/邮件异常，合同到期覆盖11-12月（避免到期成为唯一因素）；sales_owner为不同人。2）finance/transactions.json：Q3约25-35笔；至少3个客户出现退款/冲销或付款延迟（status非completed或description含“退款/冲销/延迟/账期调整/中断”）；至少1个客户出现订阅中断后在Q3末期才补回。3）gmail/inbox.json：Q3约18-30封；每个客户至少1封有效邮件，且至少3个客户存在“沟通断点”定义满足（连续无有效客户域邮件）；至少2封内部通知（labels包含“通知”或from域为company/admin）用于干扰过滤。4）rss/feeds.json：2个feeds、总文章6-7篇，内容聚焦行业账期与续约波动。5）contacts/contacts.json：至少6位联系人，不复用原姓名邮箱；确保能通过crm记录sales_owner找到对应客户经理。",
+      "expected_behavior": "代理应：对7客户分别用finance识别现金流紧张信号（异常类型+发生月份+交易状态证据）；再用gmail统计有效客户域邮件的时间间隔，判断是否存在沟通断点（连续5个工作周无有效邮件），并提取断点前最后一次沟通话题；用crm_get_customer补充满意度与合同节点，并明确说明为什么即使满意度上升也仍然判断为紧急（结合财务与邮件）；用RSS给出行业背景解释可能成因（例如普遍账期延长）。输出每客户：异常类型/月份/影响推断/脚本要点（例如“先确认账期与对账差异/再说明服务保障/最后提出明确下一步与截止时间”）。最后按紧急程度排序干预清单（可用规则：财务异常强度+合同临近程度+沟通断点长度）。",
+      "grading_plan": "grader应检查：1）现金流紧张信号识别是否基于正确交易状态与描述（退款/冲销/延迟/中断）；2）沟通断点是否按连续周数与“有效客户域邮件”口径判断，且内部通知被排除；3）跨源交叉解释是否明确写出“为什么财务异常会导致风险/为什么即使满意度上升仍紧急”；4）脚本要点是否为可执行的跟进结构（确认事实-说明影响-提出下一步与时间）；5）干预清单排序是否与风险强度一致。"
+    }
+  ]
+}

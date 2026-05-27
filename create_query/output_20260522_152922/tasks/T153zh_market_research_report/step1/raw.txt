@@ -1,0 +1,102 @@
+{
+  "source_task_id": "T153zh_market_research_report",
+  "source_summary": {
+    "task_type": "多数据源采集（RSS/知识库/CRM/邮件/通讯录）并生成结构化市场研究交付物与邮件草稿的工作流",
+    "services": [
+      "rss",
+      "kb",
+      "crm",
+      "gmail",
+      "contacts"
+    ],
+    "tools": [
+      "rss_list_articles",
+      "rss_get_article",
+      "kb_search",
+      "kb_get_article",
+      "crm_list_customers",
+      "crm_get_customer",
+      "contacts_search",
+      "contacts_get",
+      "gmail_list_messages",
+      "gmail_get_message",
+      "gmail_save_draft",
+      "gmail_send_message"
+    ],
+    "fixture_paths": [
+      "fixtures/contacts/contacts.json",
+      "fixtures/crm/customers.json",
+      "fixtures/gmail/inbox.json",
+      "fixtures/kb/articles.json",
+      "fixtures/rss/feeds.json"
+    ],
+    "core_capability": "workflow"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T153zh_market_research_report_plus_1",
+      "new_task_name": "行业并购情报周报（Q2）",
+      "task_goal": "基于邮件需求与RSS/KB/CRM数据，撰写“Q2行业并购情报周报”，覆盖3条并购主题、识别潜在竞争对手与合作机会，并起草发给指定领导小组的邮件草稿（不发送）。",
+      "user_request": "请为管理层起草《Q2行业并购情报周报》：需要总结过去两周与“企业AI、合规云、行业信息化”相关的并购/投资动态，给出对我司产品路线与销售策略的影响分析；并从CRM侧提取受影响行业客户的分布与可能的升级/续约风险。请先保存邮件草稿发送给：CEO、CTO、CMO以及负责“云与合规”的VP（从通讯录检索）。不要直接发送邮件。",
+      "scenario": "公司在Q2准备推动“合规云+行业AI”组合方案。销售团队收到外部并购消息：某平台型AI厂商正在并购行业数据平台；同时，多家区域合规云厂商与行业系统集成商发生交易。内部希望尽快评估：并购会不会改变目标客户的采购偏好、是否会导致客户迁移到竞品或加速采用我司替代方案。邮件中额外要求关注“过去两周”的动态，但不得凭空编造具体交易名称，只能基于RSS/KB内容进行归纳；CRM里还要区分已签约客户与高风险将到期客户，并将分析落到可执行建议。",
+      "difference_from_source": "原题是按Q1做综合市场研究并分析三大行业趋势；本任务改为“并购情报周报”，强调并购/投资动态对竞争格局与产品路线的影响，并要求邮件收件人包含“云与合规VP”类角色（需从通讯录按关键词检索），且时间窗口改为“过去两周”，输出重点从趋势分析转为情报主题与行动建议。",
+      "service_and_tool_plan": "继续使用gmail读取“管理层周报要求与销售补充”，用contacts检索指定领导小组收件人；用rss抓取与并购/投资/合规云/企业AI相关的最新文章并获取关键条目；用kb搜索并获取内部关于并购影响、竞品风险、产品路线与合规能力的分析文档；用crm_list_customers抽取受影响行业客户分布，再用crm_get_customer读取关键客户备注（如到期、升级意向、风险信号）来支撑建议。",
+      "fixture_generation_plan": "生成新fixtures集合（不复用原实体名/邮箱/客户名/ID/数值/原文段落），覆盖以下5类：1）fixtures/gmail/inbox.json：至少3封邮件（msg_1为周报要求含时间窗口与主题方向；msg_2为销售补充指向某两类竞品/风险；msg_3为合规侧提醒关注合规成本与认证路径），每封含不同labels与阅读状态；2）fixtures/rss/feeds.json：至少12篇文章，其中包含并购/投资/合规云/企业AI/数据治理等类别，要求至少8篇在同一主题链路上可用于输出，且包含1-2篇“无关噪声”（如体育/房产类）用于干扰；3）fixtures/kb/articles.json：至少6篇内部文档（至少3篇与并购/竞争格局/产品路线/合规云直接相关，其余为辅助如销售打法或客户风险模型）；4）fixtures/crm/customers.json：至少10个客户，行业需覆盖至少3个受影响行业（例如制造相关产业链、医疗信息化、金融科技或教育信息化等按新场景分布），包含active与churned两种状态，并设置至少2个“将到期/高风险”客户（通过contract_end与notes表达，不用与原题数值一致）；5）fixtures/contacts/contacts.json：至少6位通讯录联系人，包含CEO/CTO/CMO以及“云与合规VP”可被contacts_search命中，且包含1位同部门干扰联系人（title不匹配）。关键字段要满足现有schema所需：contact_id/email/department/title；customer_id/industry/tier/status/contract_end/notes。",
+      "expected_behavior": "1）调用gmail_list_messages与gmail_get_message提取周报要求（主题方向、时间窗口、收件人要求与“不发送只保存草稿”约束）；2）调用contacts_search使用关键词（如“云与合规”或“合规”）定位对应VP，并用contacts_get获取其邮箱；3）调用rss_list_articles按类别/关键词筛选与“并购/投资/合规云/企业AI”相关的文章列表，然后对关键文章调用rss_get_article；4）调用kb_search用并购影响/竞争对手/合规能力/产品路线等查询，最后对匹配的kb条目调用kb_get_article以抽取可引用要点；5）调用crm_list_customers按行业与status（active+将到期风险可通过notes/contract_end判定）列出客户，再对至少3-4个关键客户调用crm_get_customer提取notes；6）输出：结构化周报（3个并购情报主题，每个主题含：发生背景/影响推断/对我司产品或销售动作建议/关联受影响客户或风险）；7）调用gmail_save_draft生成邮件草稿：to为全部管理层邮件地址，subject与正文包含周报摘要+3条行动建议+数据依据引用摘要，且不调用gmail_send_message。",
+      "grading_plan": "检查1）是否从邮件中读取并正确实现“过去两周”的约束与主题方向；2）是否至少输出3个并购情报主题且每个主题均有来自RSS或KB的依据；3）是否使用CRM分布/关键客户notes把建议落到客户分层或到期/续约风险；4）邮件草稿是否包含CEO/CTO/CMO与“云与合规VP”（通过contacts检索得到）且未发送；5）内容是否避免臆造具体交易名称（只基于fixture文本做归纳）。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T153zh_market_research_report_plus_2",
+      "new_task_name": "海外市场进入可行性（反制方案）",
+      "task_goal": "针对“进入东南亚某细分行业市场”的决策，整合RSS/KB/CRM信息，产出《东南亚进入可行性与反制方案》：给出3个落地路径、1个风险清单、以及基于CRM客户结构推算的首批重点行业与优先客户群，并起草给区域增长负责人邮件草稿。",
+      "user_request": "请撰写《东南亚细分行业进入可行性与反制方案》并保存邮件草稿：要求聚焦“数据合规、部署模式、行业AI需求”三个维度，给出进入路径（至少3条）与针对可能竞品的反制策略（至少3条）。需要结合内部知识库对国际化合规与交付能力的判断，并用CRM客户结构推断我司首批重点行业/客户类型。邮件草稿发送给：区域增长负责人（从通讯录检索关键词“区域增长”），以及相关支持负责人（从通讯录检索部门“销售运营”）。不要直接发送邮件。",
+      "scenario": "公司考虑在东南亚推出行业数据分析产品，但担心：1）当地客户更偏好本地化部署与混合云；2）同区域竞品会用低价捆绑抢占渠道；3）部分行业受到跨境数据合规要求影响导致实施周期变长。销售运营要求把研究结论写得“可执行且可反制”，并希望把CRM里的行业与客户分层映射到“首批目标细分行业”。邮件里给了明确的两个关键词用于通讯录检索，但没有提供具体姓名/邮箱。需要通过工具检索通讯录得到收件人。",
+      "difference_from_source": "原题输出Q1市场研究报告并分析三大行业趋势；本任务转为“海外进入可行性+反制方案”，强调进入路径、竞品反制与风险清单，且对收件人有“区域增长负责人+销售运营”按通讯录关键词检索的要求；同时分析维度从行业趋势改为“数据合规/部署模式/行业AI需求”三维框架。",
+      "service_and_tool_plan": "用gmail读取邮件确定进入地区与收件人检索要求；用contacts_search定位“区域增长负责人”和“销售运营”部门联系人并用contacts_get取邮箱；用rss_list_articles抓取与东南亚合规、混合云偏好、跨境数据治理、行业AI需求相关的外部动态；用kb_search检索内部国际化交付、合规框架、竞品打法与渠道策略；用crm_list_customers按新设定的目标行业与status过滤客户，再用crm_get_customer读取关键notes（如部署偏好、扩展意向、合规顾虑）支撑映射逻辑。",
+      "fixture_generation_plan": "新fixtures生成：1）gmail/inbox.json：2-3封邮件（至少1封包含进入地区与维度要求；至少1封包含销售运营的反制关注点与收件人检索关键词）；2）contacts/contacts.json：至少8位联系人，确保能用“区域增长”命中1人、用department“销售运营”命中至少2人，另加入1-2位相似title但不属于目标角色的干扰联系人；3）rss/feeds.json：至少10篇文章，类别包含跨境合规/数据治理/混合云/区域行业AI需求/本地化部署，并加入2篇与东南亚无关或与主题不匹配的文章作为噪声；4）kb/articles.json：至少7篇，其中至少4篇直接支持“合规、部署、国际交付、竞品策略/渠道反制”；5）crm/customers.json：至少12个客户，行业需覆盖至少4类（包括与目标细分行业相关的2类、以及可类比的2类），tier=vip/standard两种都要出现，status需包含active与churned（至少1个churned作为风险案例），contract_end分布需覆盖“近期到期/较长期”以便推断优先客户。所有实体名、ID、邮箱、数值都与原题不同。",
+      "expected_behavior": "1）读取gmail要求并确认研究框架（合规/部署/行业AI需求）与收件人检索关键词；2）用contacts_search+contacts_get获取区域增长负责人与销售运营支持负责人邮箱；3）用rss_list_articles按关键词（跨境/合规/混合云/行业AI/东南亚）筛选，取至少6篇关键文章并调用rss_get_article；4）用kb_search分别覆盖“国际化合规、部署能力、竞品反制、渠道策略、交付周期风险”，取至少4篇kb文章并调用kb_get_article；5）用crm_list_customers按目标行业映射筛出候选客户，并对至少3个客户调用crm_get_customer提取notes中的部署偏好与续约/流失原因；6）输出：可执行结构化报告（3条进入路径+每条对应所需能力与切入行业/客户类型；3条反制策略并说明预期效果；1个风险清单含触发信号与缓解动作）；7）调用gmail_save_draft生成邮件草稿，subject含“可行性与反制方案”，正文含摘要+3条策略要点+需要管理层决策的事项，且不调用gmail_send_message。",
+      "grading_plan": "检查1）报告是否严格围绕三维框架并包含“进入路径≥3、反制策略≥3、风险清单≥1”；2）是否使用RSS与KB分别提供外部动态与内部依据（需出现引用性要点）；3）CRM映射是否把客户行业/分层映射到首批重点行业或客户类型（至少点到2类客户）；4）邮件草稿收件人是否由contacts检索得到且包含区域增长负责人与销售运营部门联系人；5）未发送邮件且仅保存草稿。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T153zh_market_research_report_plus_3",
+      "new_task_name": "客户流失预警与挽回策略（半月）",
+      "task_goal": "在半个月内完成《客户流失预警与挽回策略》：从CRM识别高风险客户并结合RSS/KB找出外部原因线索（价格压力、合规变化、行业预算收缩、竞品功能升级等），输出优先挽回清单与针对性行动方案；同时起草给客户成功负责人邮件草稿。",
+      "user_request": "请生成《客户流失预警与挽回策略（半月）》并起草邮件草稿：需要先从CRM抓取过去6个月里出现“使用下降/到期/流失类”信号的客户（依据fixtures中的字段与notes描述），然后用RSS与KB解释可能的外部触发因素与行业趋势，最后给出按优先级排序的挽回方案（至少5条行动），包括需要何种产品/交付动作与预期收益。邮件草稿发给客户成功负责人（从通讯录检索关键词“客户成功”），并抄送支持销售（从通讯录检索department=“销售支持”）。不要直接发送。",
+      "scenario": "公司观察到客户成功工单量突然上升与续约谈判变得更困难。内部希望不要只写“要加强沟通”，而是用外部市场动态（如监管合规成本、行业预算紧缩、同质化竞争加剧）与内部知识（如挽回话术、交付补丁、替代方案与升级路径）来给出可落地的行动。邮件中明确要求“至少5条行动”并要求每条行动关联一个风险原因（来自RSS/KB或CRM notes）。同时，通讯录检索要用两个关键词，且收件人与抄送不一定同一人。",
+      "difference_from_source": "原题是面向管理层的Q1综合市场研究并分析行业趋势；本任务聚焦“客户流失预警与挽回”，以CRM风险识别为主轴，输出为优先级挽回清单与行动方案，并把RSS/KB用于解释外部触发因素而非宏观趋势；邮件收件人改为“客户成功负责人+销售支持”检索规则。",
+      "service_and_tool_plan": "优先用crm_list_customers拉取并筛选疑似高风险客户，再用crm_get_customer读取notes与关键线索；用gmail获取半月研究要求与收件人规则；用contacts_search/contacts_get定位“客户成功负责人”和“销售支持”；用kb_search检索挽回策略、续约谈判、交付改进与流失原因库，再用kb_get_article提炼可执行动作；用rss_list_articles读取与“预算收缩、合规变化、竞品功能升级、价格竞争”相关的外部报道并用rss_get_article作为外部触发依据。",
+      "fixture_generation_plan": "生成fixtures：1）gmail/inbox.json：2封（msg_req包含时间窗口“半月”、行动数量要求与发送规则；msg_hint提供一个具体外部触发方向例如“合规成本上升导致延期”）；2）contacts/contacts.json：至少7位联系人，确保“客户成功”能命中1人、“销售支持”部门能命中至少2人；3）crm/customers.json：至少15个客户，status需包含active与churned，包含vip/standard两档；notes里要有可判定的风险信号（如“使用下降”“未登录”“合同到期后未续”“迁移到竞品”等），且contract_end覆盖“未来3个月内到期”和“已流失”；4）rss/feeds.json：至少10篇，类别包含预算收缩/监管合规/竞品升级/价格战/部署周期延长等，加入2篇与业务无关噪声；5）kb/articles.json：至少7篇，其中至少4篇与“挽回/续约谈判/交付改进/流失原因”直接相关，其余为辅助（如客户沟通模板或产品升级路径）。所有ID、名称、邮箱、数值均需与原题不同。",
+      "expected_behavior": "1）gmail_list_messages与gmail_get_message提取要求（尤其是“半月”“挽回≥5条行动”与发送禁令）；2）contacts_search定位客户成功负责人和销售支持联系人，contacts_get取邮箱；3）crm_list_customers按status获取active与churned候选，再根据notes/contract_end规则判定高风险并选出至少5个客户进行crm_get_customer核验；4）rss_list_articles按“合规/预算/价格/竞品升级/部署周期”筛选，获取至少5篇关键文章；5）kb_search覆盖“续约挽回、交付补丁、谈判策略、流失原因对策”等，读取至少4篇kb并提炼“可执行动作”；6）输出：优先级挽回清单（至少5条行动），每条包含：适用客户分层/触发信号、对应外部原因（RSS/KB要点或notes归因）、建议的产品/交付/沟通动作、预期收益与验证指标；7）调用gmail_save_draft保存邮件草稿：to包含客户成功负责人，抄送用正文或单独字段按grader约定组织（若仅支持to字段，则将所有收件人合并到to列表），不调用gmail_send_message。",
+      "grading_plan": "检查1）是否基于CRM识别出高风险客户并至少核验5个客户（有crm_get_customer）；2）行动清单是否≥5条且每条行动关联至少一个风险原因（来自RSS/KB或notes）；3）是否使用RSS解释外部触发因素、使用KB提供内部对策；4）收件人是否通过contacts检索得到（客户成功负责人+销售支持）；5）未发送邮件且仅保存草稿。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T153zh_market_research_report_plus_4",
+      "new_task_name": "产品竞争对抗分析（替代威胁）",
+      "task_goal": "完成《竞争对抗分析与产品替代威胁报告》：识别来自RSS/KB的竞品能力变化与市场需求转移，结合CRM客户分层中最易被替代的客户类型，给出“威胁-机会-对策”矩阵（至少4行），并起草给产品与销售协作委员会的邮件草稿。",
+      "user_request": "请撰写《竞争对抗分析与产品替代威胁报告》并保存邮件草稿：需要从RSS抓取竞品功能升级、定价/交付变化、行业采用趋势；从知识库获取我司相对竞品的差距与补强计划；再结合CRM中VIP/standard客户的分布与notes（如正在评估竞品、对集成敏感、合规顾虑）确定最可能被替代的客户群。输出“威胁-机会-对策”矩阵至少4项，并给出优先对策路线（按本季度与下季度拆分）。邮件草稿发送给：产品委员会（从通讯录department=“产品委员会”检索）与销售委员会（从通讯录query=“销售委员会”检索）。不要直接发送。",
+      "scenario": "公司在新季度面临替代威胁：竞品在某些行业推出更强的行业化能力与更快部署承诺，同时宣传更低的合规成本。内部需要判断：哪些客户会因为“集成便利/部署周期/合规路径”而迁移。邮件明确要求矩阵形式并且按季度拆分对策优先级。同时需处理干扰：RSS中可能包含一些不相关行业新闻，agent需要过滤并聚焦“竞品能力升级与采用趋势”。",
+      "difference_from_source": "原题强调三大行业趋势与战略建议并写管理层邮件；本任务改为“竞争对抗与替代威胁”，要求输出威胁-机会-对策矩阵（至少4行）并按季度拆分路线，数据来源侧重点从宏观行业趋势转为竞品能力变化与客户替代风险。",
+      "service_and_tool_plan": "gmail读取邮件确定委员会收件人检索规则与矩阵输出要求；contacts_search/contacts_get定位产品委员会与销售委员会成员；rss_list_articles抓取竞品升级与采用趋势文章并rss_get_article获取关键段落摘要；kb_search获取竞品差距、我司补强计划与对策模板并kb_get_article提炼；crm_list_customers按tier与status列出客户，再对关键客户crm_get_customer核验notes（评估竞品/集成敏感/合规顾虑），用于识别最可能被替代的客户群。",
+      "fixture_generation_plan": "生成fixtures：1）gmail/inbox.json：2封（msg_req为任务与矩阵/季度拆分要求；msg_comp为提示某竞品“更快交付+更低合规摩擦”宣传重点作为干扰线索）；2）contacts/contacts.json：至少10位联系人，department包含“产品委员会”、另有一个可通过query命中“销售委员会”的组或个人；加入若干相似部门但不参与委员会的干扰；3）rss/feeds.json：至少12篇，明确包含“竞品功能升级/定价变化/部署周期/行业采用趋势”相关文章≥7篇，且加入至少3篇与竞争无关的噪声类别；4）kb/articles.json：至少8篇，至少4篇关于竞品差距与我司补强计划（按本季度/下季度可映射到行动），另外包含对策框架/对客户沟通的策略；5）crm/customers.json：至少14个客户，包含vip/standard且status含active与可能的churned（至少1个作为替代案例），notes需包含“正在评估竞品/集成敏感/合规顾虑/部署周期敏感”等可用于矩阵行构建的线索，并确保客户行业覆盖至少3类以形成差异化威胁；所有ID、名称、邮箱、数值与原题不同。",
+      "expected_behavior": "1）gmail_list_messages与gmail_get_message获取需求与发送规则；2）contacts_search检索“产品委员会”部门与“销售委员会”关键词并contacts_get取邮箱；3）rss_list_articles筛选与竞品升级/采用趋势相关的内容，获取至少6篇关键文章；4）kb_search分别针对“竞品对比/差距/补强计划/客户对策模板”，并kb_get_article读取至少5篇；5）crm_list_customers按tier（vip/standard）与可选industry过滤出候选，再对至少4个客户调用crm_get_customer提取notes中替代风险原因；6）输出：威胁-机会-对策矩阵至少4项（每项包含：威胁描述+受影响客户群+机会点+对策+证据来源RSS/KB/CRM notes）；并给出“本季度/下季度”优先对策路线（按优先级排序）；7）调用gmail_save_draft保存邮件草稿，subject清晰包含“替代威胁”，正文包含矩阵摘要与季度路线图要点，不调用gmail_send_message。",
+      "grading_plan": "检查1）是否输出威胁-机会-对策矩阵≥4行且每行均有证据来源（至少RSS或KB或CRM）；2）季度拆分是否明确（本季度/下季度）；3）CRM客户群识别是否与notes中的竞品评估/集成/合规顾虑等线索一致；4）收件人是否来自两个委员会检索规则；5）未发送邮件仅保存草稿。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T153zh_market_research_report_plus_5",
+      "new_task_name": "合规与数据治理年度路线图（研判版）",
+      "task_goal": "基于合规导向的邮件要求，结合RSS/KB/CRM，形成《合规与数据治理年度路线图（研判版）》：给出年度分阶段目标（4阶段）、每阶段的能力建设优先级、以及对关键客户（按VIP与高风险流失分层）的影响评估；并起草给信息安全负责人及合规运营负责人邮件草稿。",
+      "user_request": "请撰写《合规与数据治理年度路线图（研判版）》并保存邮件草稿：路线图必须包含4个季度阶段目标（Q2~Q5或等效四阶段），每阶段写明：需要补齐的合规能力点、数据治理工作项、交付/运营动作和衡量指标。要求把外部监管与行业报道（RSS）转化为内部能力建设（KB），并结合CRM中VIP与高风险客户notes评估“合规不足导致续约受阻/流失”的风险。邮件草稿发送给：信息安全负责人（通讯录关键词“信息安全”）与合规运营负责人（通讯录department=“合规运营”）。不要直接发送。",
+      "scenario": "公司即将进入监管强化周期，客户在续约时把“认证/合规能力证明”作为关键决策点。内部需要一份可落地的年度路线图而不是泛泛建议：每季度阶段必须有能力点与指标。外部报道可能出现与合规相关的噪声（如一般技术趋势），需聚焦监管/认证/数据治理。CRM里需要区分VIP客户与标准/高风险客户，且高风险客户的notes中会出现“认证延后、审计不通过、数据出境顾虑”等线索，用于输出影响评估。",
+      "difference_from_source": "原题偏综合市场趋势与行业策略；本任务改为“合规与数据治理年度路线图”，输出强调4阶段目标、能力建设优先级与衡量指标，并且将CRM用于“合规不足导致续约受阻/流失”的影响评估；邮件收件人改为“信息安全+合规运营”检索规则。",
+      "service_and_tool_plan": "gmail读取年度路线图要求与收件人检索规则；contacts_search/contacts_get定位安全与合规运营负责人；rss_list_articles按监管/认证/数据治理/合规成本/审计变化筛选并rss_get_article获取关键条目；kb_search聚焦内部合规能力、数据治理框架、认证准备与运营流程，读取kb_get_article用于落地工作项；crm_list_customers按tier与status/notes相关风险筛出VIP与高风险客户，再用crm_get_customer提取notes用于阶段影响评估与优先级排序。",
+      "fixture_generation_plan": "生成fixtures：1）gmail/inbox.json：2-3封（包含年度路线图结构要求、阶段划分偏好、指标类型偏好）；2）contacts/contacts.json：至少8位，能通过“信息安全”命中1人，department“合规运营”命中至少2人，并加入若干干扰联系人（相似词但department/title不符）；3）rss/feeds.json：至少11篇，包含监管更新/认证要求/数据治理/审计与合规成本上升等相关内容≥7篇，并加入2-3篇非合规方向的噪声；4）kb/articles.json：至少9篇，至少4篇提供合规能力点/数据治理工作项/指标建议/交付运营流程；5）crm/customers.json：至少16个客户，VIP与standard均覆盖，status包含active与churned，notes里明确给出高风险客户的合规相关风险短语（审计不通过、认证延后、数据出境顾虑、合规证明缺失等），contract_end用于判断续约节奏。所有实体名、ID、邮箱、数值、原文段落均与原题不同。",
+      "expected_behavior": "1）gmail_list_messages与gmail_get_message提取路线图结构（4阶段、能力点、指标）与“不发送只保存草稿”；2）contacts_search定位信息安全负责人与合规运营负责人邮箱；3）rss_list_articles筛选监管/认证/数据治理，获取至少7篇关键文章；4）kb_search分别覆盖“合规能力点、数据治理框架、认证准备、运营流程与指标”，读取至少5篇kb并提炼工作项与指标；5）crm_list_customers筛出VIP与高风险客户候选，再对至少5个客户crm_get_customer以确认notes中的合规风险并映射到年度阶段优先级；6）输出：4阶段路线图（每阶段包含合规能力点、数据治理工作项、交付/运营动作、衡量指标、以及对VIP与高风险客户的影响评估，至少点名2类客户）；7）调用gmail_save_draft生成邮件草稿，subject体现“年度路线图（研判版）”，正文包含阶段目标摘要与关键决策请求，不调用gmail_send_message。",
+      "grading_plan": "检查1）是否严格包含4阶段（每阶段都有能力点/工作项/动作/指标）；2）是否将RSS外部监管要点与KB内部能力建设对应起来（每阶段至少引用RSS或KB要点）；3）CRM影响评估是否覆盖VIP与至少一类高风险流失客户，且依据notes中的合规风险进行推断；4）邮件草稿收件人是否正确由“信息安全”与“合规运营”检索得到；5）未发送仅保存草稿。"
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "task_id": "T017zh_ticket_triage_plus_1",
+  "task_name": "云盘同步故障排查优先级",
+  "prompt_text": "帮我梳理当前待处理工单（全部为 open 状态）：按问题类型分组并给出优先级与归类（例如：云盘同步、账号权限、网络连通、客户端软件/兼容）。对同源问题给出关联原因（优先依据错误码/故障开始时间窗口/客户端平台/权限变更动作/网络症状等线索），把能够互相印证的工单标为同一关联组。请不要关闭任何工单，只更新每条工单的 priority、tags 和 category。最终输出：1）关联组摘要；2）更新清单（ticket_id -> priority/category/tags）。",
+  "files": {
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TD-2034",
+        "title": "云盘同步失败：错误码 E_SYNC_402，20:10-20:35 多台设备同时发生",
+        "description": "用户反馈企业云盘同步失败，同步进度在 0% 停止并反复重试。日志提示错误码：E_SYNC_402。故障开始时间集中在 2026-05-21 20:10-20:35（同一时段内至少 3 台 Windows 客户端出现）。客户端平台：Windows 11；应用版本：v5.8.1。与“迁移需求/培训”无关，均为真实同步触发失败。",
+        "reporter": "mailbox+sync403@acme.example",
+        "department": "交付部",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T20:42:10Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2035",
+        "title": "云盘同步中断：E_SYNC_402（同一错误码），同时间窗口再次爆发",
+        "description": "云盘客户端持续显示“同步失败，稍后重试”。错误码仍为 E_SYNC_402；系统时间范围与其他工单一致：2026-05-21 20:15-20:30。受影响终端包含 Windows 11 与 Windows 10（但都是同一企业账号）。未进行权限变更；网络偶发，但表现并非网络连通中断，而是同步服务端拒绝拉取增量。",
+        "reporter": "zoe.huang@acme.example",
+        "department": "运营部",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T20:55:00Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2036",
+        "title": "云盘同步失败：E_SYNC_402，macOS 客户端同样报错（20:05-20:40）",
+        "description": "macOS 14 上云盘同步卡在“正在同步”，随后报错并退出。错误码 E_SYNC_402；故障开始时间落在 2026-05-21 20:05-20:40。客户端版本 v5.8.2（与 TD-2034/2035 在同一发布周期）。没有出现权限被拒字样，也未提及迁移/培训。",
+        "reporter": "sam.chen@acme.example",
+        "department": "研发部",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T21:02:30Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2081",
+        "title": "云盘同步报“权限被拒”：账号组变更后全部失败（403）",
+        "description": "管理员在 2026-05-21 18:50 对用户组做了调整（从 Group-A 切到 Group-B）。变更后，该组所有成员云盘同步统一失败，客户端提示“权限被拒”，服务端返回 403。错误表现与同步错误码无关，主要是访问权限缺失导致无法读取/写入共享目录。涉及账号组：Group-B。",
+        "reporter": "ken.li@acme.example",
+        "department": "IT安全与权限",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T19:10:05Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2082",
+        "title": "云盘同步失败：403 权限被拒（同一用户组变更映射到目录访问）",
+        "description": "用户组变更后，云盘同步持续失败并提示“权限被拒”。错误日志显示 HTTP 403；失败目录是同一套共享根路径。与 2026-05-21 18:50 的权限策略下发时间高度吻合。多名同组用户反馈“变更后全部不行”，没有网络断连或客户端升级操作。",
+        "reporter": "tina.zhang@acme.example",
+        "department": "IT安全与权限",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T19:22:45Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2083",
+        "title": "云盘同步：权限被拒（403）与 Group-B 访问策略冲突复现",
+        "description": "云盘客户端访问共享空间时出现“权限被拒”。HTTP 403 明确指向目录访问权限。该用户属于 Group-B；权限策略在 2026-05-21 18:50 同步下发后开始复现。该工单与其他权限类工单互相印证：同一用户组变更后全部失败。",
+        "reporter": "maya.wu@acme.example",
+        "department": "IT安全与权限",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T19:40:30Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2140",
+        "title": "云盘同步失败：网络不稳定导致频繁重连（超时/断流）",
+        "description": "云盘客户端同步时网络波动明显，日志出现连接超时与断流重连。未看到 E_SYNC_402，也未显示“权限被拒”。现象更符合网络连通不稳定：Wi-Fi 切换或运营商抖动期间失败率上升。客户端平台：Android 14；应用 v4.2.0。",
+        "reporter": "liang.qi@acme.example",
+        "department": "服务台",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T22:05:20Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2141",
+        "title": "云盘同步中断：网络切换后无法建立会话（TLS 握手超时）",
+        "description": "移动端云盘同步在网络从 5G 切换到 Wi-Fi 后中断，提示“同步中断”。日志关键字为 TLS handshake timeout；同时未出现明确的同步错误码 E_SYNC_402。没有权限变更动作，也没有明确指出迁移/培训需求。客户端：iOS 17.4，云盘客户端 v4.3.1。",
+        "reporter": "noah@acme.example",
+        "department": "服务台",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T22:18:55Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2202",
+        "title": "云盘客户端兼容性问题：旧版本触发“同步中断”但可恢复",
+        "description": "用户反馈客户端显示“同步中断”，但重登后可继续同步。日志指向客户端兼容问题：v4.0.9 在某些系统补丁环境下对文件差异计算异常。未见权限被拒（403），也未见 E_SYNC_402。平台：Windows 10；系统补丁号与其他客户端不同。",
+        "reporter": "hugo.z@acme.example",
+        "department": "客户端支持",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T23:01:12Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2203",
+        "title": "云盘同步“同步中断”：客户端版本 v4.0.x 与企业网关策略兼容性",
+        "description": "云盘客户端版本 v4.0.12 出现“同步中断”提示并自动重试。排查发现与企业网关某策略组合有关，属于客户端软件兼容问题。未见 E_SYNC_402；也未见 403 权限被拒字样。平台：macOS 13；日志含 User-Agent 标识与网关拦截告警。",
+        "reporter": "ella.chen@acme.example",
+        "department": "客户端支持",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T23:22:40Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2255",
+        "title": "服务申请：文档迁移需求（看似同步异常但明确非故障）",
+        "description": "这是一次“文档迁移/改版上线”的服务申请，不是故障。工单内容包含提示：“迁移过程会触发客户端‘同步中断’展示，但不代表同步服务故障；请勿按故障处理。”需求包括迁移批次与目录重映射，预计窗口为 2026-05-22 02:00-03:00。相关用户也在备注中明确：没有权限变更、也未提供 E_SYNC_402 或 403 证据。",
+        "reporter": "pm-migration@acme.example",
+        "department": "产品管理",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T21:35:00Z",
+        "tags": []
+      },
+      {
+        "ticket_id": "TD-2301",
+        "title": "云盘同步失败：错误码 E_SYNC_401（与 E_SYNC_402 接近但时窗不同）",
+        "description": "客户端提示同步失败，错误码为 E_SYNC_401（注意不同于 E_SYNC_402）。故障开始时间为 2026-05-21 21:10-21:25，且仅发生在少数终端。未出现 403 权限被拒，也没有说明是网络断连。该工单与 E_SYNC_402 的两个/三个工单在时间上有一定距离，疑似同类但非同源，需要与 A组做区分。",
+        "reporter": "victor.zhao@acme.example",
+        "department": "交付部",
+        "priority": "",
+        "status": "open",
+        "created_at": "2026-05-21T21:30:18Z",
+        "tags": []
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "原题更偏通用IT关键词分派，本题新增以“云盘同步错误码/时间窗口/权限变更/网络症状/客户端版本”为主线，并加入明确非故障的“文档迁移需求”干扰项，要求排除到非故障分组且不关闭工单。",
+    "fixture_design_summary": [
+      "fixtures/helpdesk/tickets.json 共 12 条 open 全新 ticket_id，priority 初始留空，tags 初始为空",
+      "A组同源：TD-2034/TD-2035/TD-2036 共享错误码 E_SYNC_402 且故障开始时间窗口高度一致",
+      "B组同源：TD-2081/TD-2082/TD-2083 共享权限被拒（HTTP 403）并均指向 Group-B 于 18:50 后变更引发的目录访问失败",
+      "C组同源：TD-2202/TD-2203 均为客户端兼容性导致“同步中断”的可恢复/网关拦截组合问题（不含 E_SYNC_402 与 403）",
+      "干扰项：TD-2255 为“文档迁移需求”且文本明确告知“同步中断为迁移过程展示，不代表故障”，优先级应低并归到非故障/服务申请类",
+      "额外分支用于区分同类：TD-2301 使用错误码 E_SYNC_401，时间窗不同，避免被误并入 A组",
+      "网络类：TD-2140/TD-2141 提供超时/断流与 TLS 握手超时线索，用于分到网络连通故障分组"
+    ]
+  }
+}

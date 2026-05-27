@@ -1,0 +1,82 @@
+task_id: T001zh_email_triage_plus_2
+task_name: 订阅退订与调查意图区分
+version: '1.0'
+category: communication
+difficulty: easy
+tags:
+- general
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T001zh_email_triage_plus_2/fixtures/gmail/inbox.json
+prompt:
+  text: '请帮我对收件箱里的新邮件逐条分拣：哪些邮件需要我回复或采取动作，哪些只是通知无需回复，哪些是明显垃圾（包括骚扰/重复营销/可疑退订引导）。
+
+
+    对每封邮件请输出：1）类别（需回复/采取动作、仅供参考无需回复、垃圾邮件）；2）发件人；3）主题；4）判断理由。重点说明你如何区分：调查/退订类（例如“无需回复只需点击取消链接”
+    vs “要求回复STOP/回复任意内容即可退订”）；以及“紧急”字样是否只是干扰、是否真的有行动截止时间与明确动作要求。'
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱中的邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详细内容
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱地址
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+sandbox_files:
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

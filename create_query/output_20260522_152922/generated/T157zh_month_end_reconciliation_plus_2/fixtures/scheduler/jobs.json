@@ -1,0 +1,174 @@
+[
+  {
+    "job_id": "JOB-2201",
+    "name": "汇兑批处理（含税/不含税口径依赖）",
+    "cron_expression": "0 7 * * *",
+    "action": "fx_exchange_batch",
+    "enabled": true,
+    "last_run": "2026-04-26T07:00:00Z",
+    "next_run": "2026-04-27T07:00:00Z",
+    "last_status": "failed",
+    "created_by": "finance_team",
+    "tags": [
+      "fx",
+      "reconciliation",
+      "month_end"
+    ],
+    "created_at": "2025-10-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-26T07:00:00Z",
+        "status": "failed",
+        "duration_s": 420,
+        "error": "TimeoutError: 汇兑批处理依赖税费字段回填滞后（fx_batch_ref FXB-2026-04-25），任务被标记为需重试"
+      },
+      {
+        "run_at": "2026-04-25T07:00:00Z",
+        "status": "running",
+        "duration_s": 600,
+        "error": "Running late: 同步发票税标记切换（integration INT-2202）后回填延迟一天"
+      },
+      {
+        "run_at": "2026-04-24T07:00:00Z",
+        "status": "success",
+        "duration_s": 130
+      },
+      {
+        "run_at": "2026-04-23T07:00:00Z",
+        "status": "success",
+        "duration_s": 140
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2202",
+    "name": "税务同步（VAT口径版本回写）",
+    "cron_expression": "0 8 * * *",
+    "action": "sync_tax_versions",
+    "enabled": true,
+    "last_run": "2026-04-26T08:00:00Z",
+    "next_run": "2026-04-27T08:00:00Z",
+    "last_status": "success",
+    "created_by": "tax_team",
+    "tags": [
+      "tax",
+      "vat",
+      "sync"
+    ],
+    "created_at": "2025-11-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-26T08:00:00Z",
+        "status": "success",
+        "duration_s": 55
+      },
+      {
+        "run_at": "2026-04-25T08:00:00Z",
+        "status": "failed",
+        "duration_s": 60,
+        "error": "PartialError: 税率版本v2026.04.10回写未完成，部分交易仍使用旧税映射"
+      },
+      {
+        "run_at": "2026-04-24T08:00:00Z",
+        "status": "success",
+        "duration_s": 52
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2203",
+    "name": "发票与税费口径校验",
+    "cron_expression": "0 9 * * *",
+    "action": "invoice_tax_conformance_check",
+    "enabled": true,
+    "last_run": "2026-04-26T09:00:00Z",
+    "next_run": "2026-04-27T09:00:00Z",
+    "last_status": "failed",
+    "created_by": "finance_team",
+    "tags": [
+      "invoice",
+      "tax",
+      "conformance"
+    ],
+    "created_at": "2025-12-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-26T09:00:00Z",
+        "status": "failed",
+        "duration_s": 25,
+        "error": "Degraded mode: 发现含税/不含税标记切换后，税费扣除金额字段不一致（integration INT-2202）"
+      },
+      {
+        "run_at": "2026-04-25T09:00:00Z",
+        "status": "failed",
+        "duration_s": 28,
+        "error": "Degraded mode: 税映射字段存在回填延迟一天（integration INT-2203）"
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2204",
+    "name": "月末对账汇总（净应收口径）",
+    "cron_expression": "0 10 28-31 * *",
+    "action": "month_end_net_reconciliation",
+    "enabled": true,
+    "last_run": "2026-04-26T10:00:00Z",
+    "next_run": "2026-04-27T10:00:00Z",
+    "last_status": "success",
+    "created_by": "recon_team",
+    "tags": [
+      "reconciliation",
+      "monthly",
+      "net"
+    ],
+    "created_at": "2026-01-10T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-26T10:00:00Z",
+        "status": "success",
+        "duration_s": 190
+      },
+      {
+        "run_at": "2026-04-25T10:00:00Z",
+        "status": "success",
+        "duration_s": 175
+      }
+    ]
+  },
+  {
+    "job_id": "JOB-2205",
+    "name": "对账数据补拉（缺口交易回填）",
+    "cron_expression": "0 11 * * *",
+    "action": "recon_gap_backfill",
+    "enabled": true,
+    "last_run": "2026-04-26T11:00:00Z",
+    "next_run": "2026-04-27T11:00:00Z",
+    "last_status": "failed",
+    "created_by": "ops_team",
+    "tags": [
+      "reconciliation",
+      "backfill",
+      "invoice"
+    ],
+    "created_at": "2026-02-01T00:00:00Z",
+    "execution_history": [
+      {
+        "run_at": "2026-04-26T11:00:00Z",
+        "status": "failed",
+        "duration_s": 45,
+        "error": "PartialError: 回填依赖税费计算器v2026.04.10，integration INT-2203处于partial_error"
+      },
+      {
+        "run_at": "2026-04-25T11:00:00Z",
+        "status": "failed",
+        "duration_s": 44,
+        "error": "Degraded: 发票字段版本未完全落库（integration INT-2202），导致税费扣除行回填缺失"
+      },
+      {
+        "run_at": "2026-04-24T11:00:00Z",
+        "status": "success",
+        "duration_s": 60
+      }
+    ]
+  }
+]

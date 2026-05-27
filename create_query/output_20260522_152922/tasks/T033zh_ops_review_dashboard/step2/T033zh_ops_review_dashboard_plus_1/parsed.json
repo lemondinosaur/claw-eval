@@ -1,0 +1,549 @@
+{
+  "task_id": "T033zh_ops_review_dashboard_plus_1",
+  "task_name": "运维周报：支付链路异常关联",
+  "prompt_text": "请帮我准备一份本周运营周报（只读）。需要综合以下系统的数据：\n\n1) 系统集成状态（检查集成健康状况、错误率与调用量/调用趋势是否存在矛盾）\n2) 工单系统趋势与重点问题（筛出并聚簇“支付相关链路异常”，例如支付确认卡住/回调超时/退款或订单状态未同步/对账差异）\n3) 库存状况（作为干扰项排查：是否存在与履约延迟相关的小幅库存问题）\n4) CRM客户动态（作为次级线索：是否有VIP出现退款/订单状态未同步的投诉）\n5) 知识库（检索并核对“支付回调重试/对账写回/退款同步”等流程文档是否过时，结合当前故障模式评估策略缺口）\n6) 定时任务状态（重点定位“对账/回写支付结果/订单状态更新”等任务是否连续失败或停摆，并与工单高峰时间段重叠）\n\n要求：\n- 不修改任何数据；不发送邮件；不更新或创建任何工单内容；只做数据收集与分析。\n- 最终输出结构化周报（中文）：摘要、系统健康（必须明确指出至少1处“状态标签与指标/调用量矛盾”）、工单分析（必须包含聚簇证据，并对至少1-2个工单给出回调/对账失败或退款状态异常的细节与时间点）、库存动态、客户动态、KB过时检查、定时任务分析、跨系统关联结论与行动项（行动项仅建议/排查/评审性质，不触发写操作）。\n- 重点围绕“支付相关链路异常”做跨系统关联说明，使用关键词组：支付网关、回调超时、对账差异、退款状态未同步、支付结果回写等。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-201",
+        "name": "payment_gateway",
+        "display_name": "支付网关",
+        "status": "active",
+        "error_rate": 0.6,
+        "base_url": "https://gw-pay.example.org",
+        "call_volume_previous_week": 180000,
+        "service": "api",
+        "last_verified": "2026-04-28T23:10:00+08:00",
+        "monthly_calls": 193000
+      },
+      {
+        "integration_id": "INT-202",
+        "name": "payment_callback_receiver",
+        "display_name": "支付回调接收",
+        "status": "active",
+        "error_rate": 0.9,
+        "base_url": "https://cb.example.org/webhook",
+        "call_volume_previous_week": 142000,
+        "service": "webhook",
+        "last_verified": "2026-04-28T23:20:00+08:00",
+        "monthly_calls": 151000,
+        "notes": "监控面板显示active且错误率<1%，但本周回调实际到达量较上周骤降约47%；疑似回调链路存在丢包/重试策略不匹配，导致体验侧异常但指标表面正常"
+      },
+      {
+        "integration_id": "INT-203",
+        "name": "reconciliation_writer",
+        "display_name": "对账写回(支付结果回写)",
+        "status": "degraded",
+        "error_rate": 6.8,
+        "base_url": "https://recon-write.example.org/api",
+        "call_volume_previous_week": 980,
+        "service": "api",
+        "last_verified": "2026-04-28T22:50:00+08:00",
+        "monthly_calls": 1040,
+        "notes": "状态degraded但错误率主要集中在夜间对账高峰；当写回失败时，订单状态/退款状态可能滞后"
+      },
+      {
+        "integration_id": "INT-204",
+        "name": "ledger_read_api",
+        "display_name": "账本读取",
+        "status": "active",
+        "error_rate": 1.1,
+        "base_url": "https://ledger-r.example.org/v1",
+        "call_volume_previous_week": 12000,
+        "service": "api",
+        "last_verified": "2026-04-28T23:00:00+08:00",
+        "monthly_calls": 12600
+      },
+      {
+        "integration_id": "INT-205",
+        "name": "refund_status_sync",
+        "display_name": "退款状态同步",
+        "status": "active",
+        "error_rate": 0.4,
+        "base_url": "https://refund-sync.example.org/api",
+        "call_volume_previous_week": 21000,
+        "service": "api",
+        "last_verified": "2026-04-28T23:30:00+08:00",
+        "monthly_calls": 22400
+      },
+      {
+        "integration_id": "INT-206",
+        "name": "orders_updater",
+        "display_name": "订单状态更新",
+        "status": "degraded",
+        "error_rate": 3.2,
+        "base_url": "https://order-update.example.org/api",
+        "call_volume_previous_week": 76000,
+        "service": "api",
+        "last_verified": "2026-04-28T23:05:00+08:00",
+        "monthly_calls": 80200,
+        "notes": "写回成功率在对账失败时出现连带下降，表现为部分支付确认状态长时间不推进"
+      },
+      {
+        "integration_id": "INT-207",
+        "name": "analytics_pipeline",
+        "display_name": "运营统计管道",
+        "status": "degraded",
+        "error_rate": 4.9,
+        "service": "batch",
+        "call_volume_previous_week": 260,
+        "last_verified": "2026-04-28T21:10:00+08:00",
+        "monthly_calls": 310,
+        "notes": "数据聚合延迟会影响周报统计口径，但不应成为支付异常的根因"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-401",
+        "name": "星澜贸易",
+        "tier": "vip",
+        "status": "active",
+        "annual_revenue": 16000000,
+        "contact_person": "周总",
+        "contact_email": "zhou@xinglan-trade.com",
+        "contact_phone": "180-0102-0401",
+        "industry": "跨境电商",
+        "contract_end_date": "2026-12-15",
+        "recent_interactions": [
+          {
+            "date": "2026-04-26",
+            "type": "complaint",
+            "channel": "客服工单",
+            "notes": "客户反馈：部分订单退款已发起但状态未同步，页面停留在“退款处理中”；希望在24小时内完成对账并回写状态"
+          },
+          {
+            "date": "2026-04-18",
+            "type": "order",
+            "channel": "系统",
+            "notes": "支付订单批量下单 320 笔，涉及支付网关回调后处理"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-402",
+        "name": "北桥工业",
+        "tier": "standard",
+        "status": "active",
+        "annual_revenue": 5200000,
+        "contact_person": "孙经理",
+        "contact_email": "sun@beiqiao-industry.cn",
+        "contact_phone": "180-0102-0402",
+        "industry": "工业制造",
+        "contract_end_date": "2027-05-30",
+        "recent_interactions": [
+          {
+            "date": "2026-04-24",
+            "type": "inquiry",
+            "channel": "邮件",
+            "notes": "询问：对账差异导致的账期延迟是否有临时对策"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-403",
+        "name": "朝阳零售",
+        "tier": "standard",
+        "status": "active",
+        "annual_revenue": 2800000,
+        "contact_person": "许店长",
+        "contact_email": "xu@chaoyang-retail.com",
+        "contact_phone": "180-0102-0403",
+        "industry": "零售",
+        "contract_end_date": "2026-08-20",
+        "recent_interactions": [
+          {
+            "date": "2026-04-25",
+            "type": "complaint",
+            "channel": "电话",
+            "notes": "仅少量订单出现“支付确认卡住”现象，疑似与夜间对账任务失败相关"
+          }
+        ]
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2201",
+        "title": "支付确认卡住：回调已到但状态未推进",
+        "description": "多个商户反馈：支付完成后订单停留在“支付确认中”，回调记录在回调接收层可见但未触发后续写回；疑似对账/回写任务在高峰时段连续失败导致状态回不去。",
+        "department": "运维/支付",
+        "priority": "high",
+        "status": "open",
+        "category": "payment_confirmation_stuck",
+        "created_at": "2026-04-27T19:12:00+08:00",
+        "assigned_to": "林运维",
+        "updated_at": "2026-04-28T09:05:00+08:00",
+        "reporter": "林运维",
+        "related_customer": "CUS-401",
+        "payment_trace": {
+          "gateway_integration_id": "INT-201",
+          "callback_integration_id": "INT-202",
+          "writer_integration_id": "INT-203",
+          "symptom": "订单支付确认未推进（回调已到达但对账写回未生效）"
+        }
+      },
+      {
+        "ticket_id": "TK-2202",
+        "title": "回调超时：支付回调重试触发但最终失败",
+        "description": "支付回调方多次重试仍超时，最终返回失败；工单集中在同一时间窗内（20:30-21:10）。尽管集成监控显示回调接收active且错误率低，但体验侧仍出现回调处理失败。",
+        "department": "运维/支付",
+        "priority": "high",
+        "status": "open",
+        "category": "payment_callback_timeout",
+        "created_at": "2026-04-27T20:31:00+08:00",
+        "assigned_to": "王运维",
+        "updated_at": "2026-04-28T08:40:00+08:00",
+        "reporter": "王运维",
+        "related_customer": "CUS-401",
+        "payment_trace": {
+          "callback_integration_id": "INT-202",
+          "symptom": "回调超时；重试后仍失败"
+        }
+      },
+      {
+        "ticket_id": "TK-2203",
+        "title": "对账差异：退款状态未同步到订单系统",
+        "description": "部分退款已在账本侧完成，但订单/退款状态未同步；与“对账写回(支付结果回写)”任务在夜间失败序列高度重叠。建议检查写回幂等与失败重试策略是否与当前支付回调节奏一致。",
+        "department": "运维/支付",
+        "priority": "medium",
+        "status": "open",
+        "category": "reconciliation_mismatch_refund_not_synced",
+        "created_at": "2026-04-28T01:18:00+08:00",
+        "assigned_to": "周SRE",
+        "updated_at": "2026-04-28T09:20:00+08:00",
+        "reporter": "周SRE",
+        "related_customer": "CUS-401",
+        "payment_trace": {
+          "writer_integration_id": "INT-203",
+          "orders_writer_integration_id": "INT-206",
+          "symptom": "退款状态未同步；对账差异未完成写回"
+        }
+      },
+      {
+        "ticket_id": "TK-2204",
+        "title": "支付结果回写失败：夜间峰值集中出现",
+        "description": "对账/回写任务失败导致多笔支付结果无法落库；工单在02:00-02:40出现聚簇。与定时任务JOB对账链路的连续失败时间一致。",
+        "department": "运维/支付",
+        "priority": "high",
+        "status": "open",
+        "category": "payment_result_writeback_failed",
+        "created_at": "2026-04-28T02:05:00+08:00",
+        "assigned_to": "林运维",
+        "updated_at": "2026-04-28T06:35:00+08:00",
+        "reporter": "林运维",
+        "payment_trace": {
+          "writer_integration_id": "INT-203",
+          "symptom": "支付结果回写失败；状态滞后"
+        }
+      },
+      {
+        "ticket_id": "TK-2205",
+        "title": "库存延迟导致部分客户体验下降（疑似次级因素）",
+        "description": "个别订单因履约排队导致发货延迟2-6小时，客户抱怨“体验异常”。该问题量级较小，且未能解释支付确认/回调超时的核心现象，仅作为干扰背景记录。",
+        "department": "履约/运营",
+        "priority": "low",
+        "status": "open",
+        "category": "fulfillment_delay",
+        "created_at": "2026-04-26T11:45:00+08:00",
+        "assigned_to": "赵运营",
+        "updated_at": "2026-04-26T18:20:00+08:00",
+        "reporter": "赵运营"
+      },
+      {
+        "ticket_id": "TK-2206",
+        "title": "通知链路异常：支付结果告警未及时推送（跟进）",
+        "description": "通知服务偶发延迟，导致部分“支付确认卡住”告警在工单高峰之后才到达值班群。可能是通知侧webhook处理慢，不作为支付写回失败根因，但会放大发现延迟。",
+        "department": "运维/通知",
+        "priority": "medium",
+        "status": "open",
+        "category": "notification_delay",
+        "created_at": "2026-04-28T03:10:00+08:00",
+        "assigned_to": "蔡值班",
+        "updated_at": "2026-04-28T05:50:00+08:00",
+        "reporter": "蔡值班",
+        "payment_trace": {
+          "notification_integration_id": "INT-207"
+        }
+      },
+      {
+        "ticket_id": "TK-2207",
+        "title": "对账差异报表延迟：可能与任务停摆相关",
+        "description": "对账差异报表在本周多次延迟生成，怀疑与调度器触发间隔或任务状态相关。该问题可能影响排查效率，但需与“对账写回任务连续失败”共同验证关联。",
+        "department": "运维/支付",
+        "priority": "medium",
+        "status": "open",
+        "category": "reconciliation_report_delay",
+        "created_at": "2026-04-25T16:20:00+08:00",
+        "assigned_to": "周SRE",
+        "updated_at": "2026-04-27T12:05:00+08:00",
+        "reporter": "周SRE"
+      },
+      {
+        "ticket_id": "TK-2208",
+        "title": "支付回调重试策略需评审：疑似与当前故障模式不匹配",
+        "description": "根据历史流程文档，回调重试策略以“固定间隔+固定次数”为主；当前工单时间窗显示重试节奏与对账写回任务失败窗口不匹配，可能导致结果回写错过或被幂等抑制。",
+        "department": "运维/支付",
+        "priority": "low",
+        "status": "open",
+        "category": "process_policy_review",
+        "created_at": "2026-04-28T09:30:00+08:00",
+        "assigned_to": "流程负责人",
+        "updated_at": "2026-04-28T10:10:00+08:00",
+        "reporter": "流程负责人"
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "PRD-501",
+        "name": "数据采集网关G2",
+        "category": "网络与边缘",
+        "current_stock": 920,
+        "min_stock": 400,
+        "status": "normal",
+        "return_rate": 1.2,
+        "return_count": 7,
+        "units_sold_this_month": 2600,
+        "supplier": "长河电子",
+        "last_restock_date": "2026-04-10",
+        "notes": "库存充足，无明显异常"
+      },
+      {
+        "product_id": "PRD-502",
+        "name": "订单履约服务包S3",
+        "category": "服务包",
+        "current_stock": 140,
+        "min_stock": 120,
+        "status": "normal",
+        "return_rate": 2.8,
+        "return_count": 3,
+        "units_sold_this_month": 96,
+        "supplier": "云速运维",
+        "last_restock_date": "2026-04-18",
+        "notes": "服务包资源略紧，但未达到影响支付链路的规模；仅能作为少量履约延迟干扰项"
+      },
+      {
+        "product_id": "PRD-503",
+        "name": "商户结算对账设备D1",
+        "category": "对账设备",
+        "current_stock": 55,
+        "min_stock": 60,
+        "status": "low_stock",
+        "return_rate": 0.9,
+        "return_count": 1,
+        "units_sold_this_month": 38,
+        "supplier": "汇通硬件",
+        "last_restock_date": "2026-04-06",
+        "notes": "库存略低，可能导致部分线下商户履约延迟，但与回调超时/写回失败的主因不一致"
+      },
+      {
+        "product_id": "PRD-504",
+        "name": "支付风控策略插件V4",
+        "category": "软件组件",
+        "current_stock": 300,
+        "min_stock": 100,
+        "status": "normal",
+        "return_rate": 0.6,
+        "return_count": 2,
+        "units_sold_this_month": 1800,
+        "supplier": "安全算法工坊",
+        "last_restock_date": "2026-04-20"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-401",
+        "title": "支付回调重试策略（旧版，需评审）",
+        "category": "支付流程",
+        "tags": [
+          "支付回调",
+          "重试策略",
+          "对账写回",
+          "退款同步"
+        ],
+        "content": "## 支付回调重试策略\n\n### 重试时序\n- 回调失败后：每 5 分钟重试一次\n- 最大重试次数：6 次\n- 达到最大次数后：标记为“待人工回查”\n\n### 对账写回联动\n- 当接收到成功回调时，触发对账写回\n- 若写回失败，则不改变回调重试节奏，等待下次触发\n\n**文档版本**: v2.0\n**最后更新**: 2025-09-05\n**负责人**: 支付平台团队",
+        "last_updated": "2025-09-05",
+        "author": "支付平台团队",
+        "status": "published",
+        "views": 1420
+      },
+      {
+        "article_id": "KB-402",
+        "title": "对账写回幂等与回滚检查要点",
+        "category": "运维手册",
+        "tags": [
+          "幂等",
+          "写回",
+          "回滚"
+        ],
+        "content": "## 对账写回幂等与回滚检查要点\n\n- 写回接口需保证：相同 transaction_id 重复调用不产生状态回退\n- 失败重试：必须携带最新状态版本号（version）\n- 写回失败时：触发补偿任务而非依赖回调侧再次触发\n\n**最后更新**: 2026-01-22\n**负责人**: 运维团队",
+        "last_updated": "2026-01-22",
+        "author": "运维团队",
+        "status": "published",
+        "views": 620
+      },
+      {
+        "article_id": "KB-403",
+        "title": "退款状态同步数据字典",
+        "category": "数据规范",
+        "tags": [
+          "退款",
+          "同步",
+          "字段"
+        ],
+        "content": "## 退款状态同步数据字典\n\n- refund_id：退款唯一标识\n- sync_status：同步状态（pending/success/failed）\n- last_sync_at：最后一次同步时间戳\n\n**最后更新**: 2026-02-10\n**负责人**: 数据中台",
+        "last_updated": "2026-02-10",
+        "author": "数据中台",
+        "status": "published",
+        "views": 305
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-301",
+        "name": "payment_reconciliation_writeback",
+        "description": "对账写回：将支付结果回写订单/退款状态",
+        "cron_expression": "0 2,19 * * *",
+        "enabled": true,
+        "last_status": "failed",
+        "last_run": "2026-04-28T02:35:00+08:00",
+        "next_run": "2026-04-29T02:00:00+08:00",
+        "average_duration_seconds": 220,
+        "tags": [
+          "payment",
+          "reconciliation",
+          "writeback"
+        ],
+        "error": "Writeback to reconciliation writer INT-203 failed: upstream 504/timeout",
+        "execution_history": [
+          {
+            "run_at": "2026-04-28T02:30:00+08:00",
+            "status": "failed",
+            "error": "Writeback to INT-203 failed: upstream 504/timeout",
+            "duration_seconds": 92
+          },
+          {
+            "run_at": "2026-04-28T02:00:00+08:00",
+            "status": "failed",
+            "error": "Writeback to INT-203 failed: upstream 504/timeout",
+            "duration_seconds": 88
+          },
+          {
+            "run_at": "2026-04-27T20:00:00+08:00",
+            "status": "failed",
+            "error": "Writeback to INT-203 failed: upstream 504/timeout",
+            "duration_seconds": 95
+          },
+          {
+            "run_at": "2026-04-27T19:30:00+08:00",
+            "status": "success",
+            "duration_seconds": 205
+          }
+        ],
+        "notes": "本任务在工单高峰窗口附近连续失败3次以上，可能导致支付确认卡住与退款状态未同步"
+      },
+      {
+        "job_id": "JOB-302",
+        "name": "reconciliation_difference_report",
+        "description": "对账差异报表生成（供排查）",
+        "cron_expression": "30 3 * * *",
+        "enabled": false,
+        "last_status": "failed",
+        "last_run": "2026-04-23T03:30:00+08:00",
+        "next_run": null,
+        "average_duration_seconds": 780,
+        "tags": [
+          "report",
+          "reconciliation"
+        ],
+        "disabled_by": "scheduler_admin",
+        "disabled_date": "2026-04-23",
+        "disabled_reason": "上游数据聚合延迟导致差异报表不稳定，暂停生成以等待修复"
+      },
+      {
+        "job_id": "JOB-303",
+        "name": "inventory_to_search_index_sync",
+        "description": "库存同步到搜索索引",
+        "cron_expression": "*/15 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-04-28T10:15:00+08:00",
+        "next_run": "2026-04-28T10:30:00+08:00",
+        "average_duration_seconds": 18,
+        "tags": [
+          "inventory",
+          "search"
+        ]
+      },
+      {
+        "job_id": "JOB-304",
+        "name": "payment_callback_batch_reconcile",
+        "description": "支付回调批处理：拉取回调事件并触发后续处理",
+        "cron_expression": "*/20 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-04-28T10:10:00+08:00",
+        "next_run": "2026-04-28T10:30:00+08:00",
+        "average_duration_seconds": 60,
+        "tags": [
+          "payment",
+          "callback"
+        ],
+        "notes": "批处理本周总体成功，但无法替代写回失败对体验侧状态推进的影响"
+      },
+      {
+        "job_id": "JOB-305",
+        "name": "crm_refund_status_push",
+        "description": "同步退款状态到CRM（辅助对账展示）",
+        "cron_expression": "15 4 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-04-28T04:15:00+08:00",
+        "next_run": "2026-04-29T04:15:00+08:00",
+        "average_duration_seconds": 140,
+        "tags": [
+          "crm",
+          "refund"
+        ]
+      },
+      {
+        "job_id": "JOB-306",
+        "name": "notification_webhook_dispatch",
+        "description": "通知webhook派发（告警/摘要推送）",
+        "cron_expression": "*/10 * * * *",
+        "enabled": true,
+        "last_status": "failed",
+        "last_run": "2026-04-28T03:50:00+08:00",
+        "next_run": "2026-04-28T04:00:00+08:00",
+        "average_duration_seconds": 12,
+        "tags": [
+          "notification"
+        ],
+        "error": "Webhook dispatch retry exceeded: INT-204/INT-206 upstream pressure",
+        "execution_history": [
+          {
+            "run_at": "2026-04-28T03:50:00+08:00",
+            "status": "failed",
+            "error": "Webhook dispatch retry exceeded: INT-204/INT-206 upstream pressure",
+            "duration_seconds": 35
+          },
+          {
+            "run_at": "2026-04-28T03:40:00+08:00",
+            "status": "success",
+            "duration_seconds": 9
+          }
+        ],
+        "notes": "用于放大发现延迟的次级因素：并非主要导致支付写回失败"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将核心异常主线从“硬件产品质量危机”迁移到“支付回调/对账写回失败导致体验异常”，并强化对账任务连续失败与工单聚簇的跨系统关联。",
+    "fixture_design_summary": [
+      "integrations.json 构造至少一处“状态标签active但指标/调用量与体验矛盾”（回调接收回调到达量骤降但错误率低）。",
+      "helpdesk/tickets.json 在 4/27~4/28 的夜间窗口集中放置支付确认卡住、回调超时、对账差异/退款状态未同步等工单，形成聚簇证据并带支付轨迹字段。",
+      "scheduler/jobs.json 设置“payment_reconciliation_writeback”任务在高峰附近连续失败序列，与工单时间窗重叠；另加入对账差异报表禁用形成背景。",
+      "inventory/products.json 将库存异常降级为轻微履约/库存干扰项，避免成为支付故障主因。",
+      "crm/customers.json 仅设置1位VIP在退款/状态同步方面出现投诉线索，强度低于工单主线。",
+      "kb/articles.json 提供一篇 last_updated 超过6个月的“支付回调重试策略（旧版，需评审）”，用于评估策略与当前故障模式不匹配的风险。"
+    ]
+  }
+}

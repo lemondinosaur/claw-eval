@@ -1,0 +1,429 @@
+{
+  "task_id": "T131zh_order_profit_analysis_plus_5",
+  "task_name": "存货成本波动与历史/当前成本对账",
+  "prompt_text": "请为每个客户的最近订单做“历史成本 vs 当前成本”的成本口径对账，并结合财务收款状态给出风险提示。\n\n要求：\n1) 从CRM获取每个客户的最近订单、订单日期以及订单包含的产品列表。\n2) 对于订单中的每个产品：\n   - 选择“历史成本”：在库存中找到该 product 的成本版本中 effective_date <= 订单日期 的记录，取最近的一条 unit_cost 作为历史成本价。\n   - 选择“当前成本”：取该 product 的成本版本中 effective_date 最新的一条 unit_cost 作为当前成本价。\n3) 计算：\n   - 历史利润率 = (售价合计 - 历史成本合计) / 售价合计\n   - 当前利润率 = (售价合计 - 当前成本合计) / 售价合计\n   - 输出差异：历史利润率与当前利润率的差异（并说明是成本上调还是下调导致）。\n4) 财务核对：\n   - 使用订单所在月份查询交易记录，并核对该订单对应交易的收款 status。\n   - 若存在 status='partial' 或无法确认已全部完成收款，则标注“未完全结算风险”。\n   - 若包含退款（amount 为负），说明净回款低于售价，但不改变你用于利润率计算的“售价/成本口径”。\n5) 输出结构化报告：至少包含客户、订单日期、每个产品的历史/当前成本选择依据（effective_date 规则）、历史成本汇总、当前成本汇总、两种利润率、利润率差异原因（归因到具体产品成本变更方向）、结算状态与建议。",
+  "files": {
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-901",
+        "name": "云栖制造",
+        "contact_person": "陈总",
+        "email": "chen@yunqi-manufacture.cn",
+        "phone": "13902113301",
+        "industry": "制造",
+        "tier": "vip",
+        "annual_revenue": 6400000,
+        "last_contact_date": "2026-04-18",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-901",
+            "products": [
+              "SKU-110",
+              "SKU-210",
+              "SKU-310"
+            ],
+            "total_price": 238000,
+            "date": "2026-04-07"
+          }
+        ],
+        "notes": "产线合作客户"
+      },
+      {
+        "customer_id": "CUS-902",
+        "name": "极光零售",
+        "contact_person": "赵经理",
+        "email": "zhao@jiguang-retail.com",
+        "phone": "13902113302",
+        "industry": "零售",
+        "tier": "standard",
+        "annual_revenue": 980000,
+        "last_contact_date": "2026-03-28",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-902",
+            "products": [
+              "SKU-120",
+              "SKU-220"
+            ],
+            "total_price": 124000,
+            "date": "2026-03-25"
+          }
+        ],
+        "notes": "门店扩张"
+      },
+      {
+        "customer_id": "CUS-903",
+        "name": "澜桥科技",
+        "contact_person": "孙总监",
+        "email": "sun@lanqiao-tech.cn",
+        "phone": "13902113303",
+        "industry": "科技",
+        "tier": "vip",
+        "annual_revenue": 2700000,
+        "last_contact_date": "2026-04-22",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-903",
+            "products": [
+              "SKU-110",
+              "SKU-230",
+              "SKU-330"
+            ],
+            "total_price": 191000,
+            "date": "2026-04-15"
+          }
+        ],
+        "notes": "年度续费与升级"
+      },
+      {
+        "customer_id": "CUS-904",
+        "name": "海星物流",
+        "contact_person": "周主管",
+        "email": "zhou@haixing-logistics.com",
+        "phone": "13902113304",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 610000,
+        "last_contact_date": "2026-03-19",
+        "status": "active",
+        "recent_orders": [
+          {
+            "order_id": "ORD-904",
+            "products": [
+              "SKU-140"
+            ],
+            "total_price": 42000,
+            "date": "2026-03-12"
+          }
+        ],
+        "notes": "单项采购"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-9011",
+        "date": "2026-04-08",
+        "amount": 100000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "云栖制造",
+        "order_id": "ORD-901",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "云栖制造ORD-901部分首款",
+        "status": "partial"
+      },
+      {
+        "transaction_id": "TXN-9012",
+        "date": "2026-04-18",
+        "amount": 88000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-901",
+        "customer_name": "云栖制造",
+        "order_id": "ORD-901",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "云栖制造ORD-901第二笔回款",
+        "status": "partial"
+      },
+      {
+        "transaction_id": "TXN-9021",
+        "date": "2026-03-25",
+        "amount": 60000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-902",
+        "customer_name": "极光零售",
+        "order_id": "ORD-902",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "极光零售ORD-902首款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-9022",
+        "date": "2026-03-29",
+        "amount": 64000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-902",
+        "customer_name": "极光零售",
+        "order_id": "ORD-902",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "极光零售ORD-902尾款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-9031",
+        "date": "2026-04-16",
+        "amount": 191000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-903",
+        "customer_name": "澜桥科技",
+        "order_id": "ORD-903",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "澜桥科技ORD-903全额收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-9032",
+        "date": "2026-04-20",
+        "amount": -12000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-903",
+        "customer_name": "澜桥科技",
+        "order_id": "ORD-903",
+        "type": "退款",
+        "category": "销售退款",
+        "description": "澜桥科技ORD-903退款：实施阶段调整",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-9041",
+        "date": "2026-03-13",
+        "amount": 42000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-904",
+        "customer_name": "海星物流",
+        "order_id": "ORD-904",
+        "type": "订单收款",
+        "category": "销售收入",
+        "description": "海星物流ORD-904全额收款",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-INT-001",
+        "date": "2026-04-01",
+        "amount": 75000.00,
+        "currency": "CNY",
+        "type": "运费",
+        "category": "运营费用",
+        "description": "4月仓储与物流费用",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-INT-002",
+        "date": "2026-03-10",
+        "amount": 32000.00,
+        "currency": "CNY",
+        "type": "服务费",
+        "category": "运营费用",
+        "description": "第三方托管服务费",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-INT-003",
+        "date": "2026-04-12",
+        "amount": -2500.00,
+        "currency": "CNY",
+        "type": "杂项退款",
+        "category": "其他",
+        "description": "与订单无关的杂项退款（干扰）",
+        "status": "completed"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "SKU-110",
+        "name": "企业云许可-A",
+        "category": "软件许可",
+        "quantity": 1200,
+        "unit": "个",
+        "selling_price": 52000.00,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研",
+        "cost_history": [
+          {
+            "effective_date": "2026-02-01",
+            "unit_cost": 21000.00
+          },
+          {
+            "effective_date": "2026-04-10",
+            "unit_cost": 33000.00
+          }
+        ]
+      },
+      {
+        "product_id": "SKU-120",
+        "name": "企业云许可-B",
+        "category": "软件许可",
+        "quantity": 800,
+        "unit": "个",
+        "selling_price": 62000.00,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研",
+        "cost_history": [
+          {
+            "effective_date": "2026-01-15",
+            "unit_cost": 26000.00
+          },
+          {
+            "effective_date": "2026-03-05",
+            "unit_cost": 18000.00
+          }
+        ]
+      },
+      {
+        "product_id": "SKU-140",
+        "name": "基础运维包",
+        "category": "服务",
+        "quantity": 300,
+        "unit": "套",
+        "selling_price": 42000.00,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "内部团队",
+        "cost_history": [
+          {
+            "effective_date": "2026-02-20",
+            "unit_cost": 16000.00
+          },
+          {
+            "effective_date": "2026-03-30",
+            "unit_cost": 19000.00
+          }
+        ]
+      },
+      {
+        "product_id": "SKU-210",
+        "name": "高级分析模块-A",
+        "category": "增值模块",
+        "quantity": 500,
+        "unit": "个",
+        "selling_price": 38000.00,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研",
+        "cost_history": [
+          {
+            "effective_date": "2026-03-01",
+            "unit_cost": 14000.00
+          },
+          {
+            "effective_date": "2026-04-25",
+            "unit_cost": 80000.00
+          }
+        ]
+      },
+      {
+        "product_id": "SKU-220",
+        "name": "高级分析模块-B",
+        "category": "增值模块",
+        "quantity": 420,
+        "unit": "个",
+        "selling_price": 62000.00,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研",
+        "cost_history": [
+          {
+            "effective_date": "2026-02-10",
+            "unit_cost": 36000.00
+          },
+          {
+            "effective_date": "2026-03-20",
+            "unit_cost": 30000.00
+          }
+        ]
+      },
+      {
+        "product_id": "SKU-230",
+        "name": "数据治理套件",
+        "category": "增值模块",
+        "quantity": 260,
+        "unit": "个",
+        "selling_price": 68000.00,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研",
+        "cost_history": [
+          {
+            "effective_date": "2026-01-28",
+            "unit_cost": 41000.00
+          },
+          {
+            "effective_date": "2026-04-05",
+            "unit_cost": 45500.00
+          }
+        ]
+      },
+      {
+        "product_id": "SKU-310",
+        "name": "实施服务-交付型",
+        "category": "服务",
+        "quantity": 90,
+        "unit": "人天",
+        "selling_price": 19000.00,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "内部团队",
+        "cost_history": [
+          {
+            "effective_date": "2026-02-08",
+            "unit_cost": 7200.00
+          },
+          {
+            "effective_date": "2026-04-12",
+            "unit_cost": 8200.00
+          }
+        ]
+      },
+      {
+        "product_id": "SKU-330",
+        "name": "年度技术支持-进阶",
+        "category": "服务",
+        "quantity": 150,
+        "unit": "个",
+        "selling_price": 52000.00,
+        "location": "",
+        "reorder_level": 0,
+        "supplier": "内部团队",
+        "cost_history": [
+          {
+            "effective_date": "2026-03-01",
+            "unit_cost": 25000.00
+          },
+          {
+            "effective_date": "2026-04-18",
+            "unit_cost": 17500.00
+          }
+        ]
+      },
+      {
+        "product_id": "SKU-410",
+        "name": "预置集成包",
+        "category": "增值模块",
+        "quantity": 180,
+        "unit": "个",
+        "selling_price": 29000.00,
+        "location": "虚拟",
+        "reorder_level": 0,
+        "supplier": "自研",
+        "cost_history": [
+          {
+            "effective_date": "2026-02-25",
+            "unit_cost": 12000.00
+          },
+          {
+            "effective_date": "2026-04-02",
+            "unit_cost": 999999.00
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "相较原任务仅按单一成本/利润率分析，本题新增“按订单日期选择历史成本版本 vs 最新当前成本版本”的对账，并把财务partial/退款纳入未完全结算风险提示。",
+    "fixture_design_summary": [
+      "CRM：4个全新客户与订单，订单日期跨越3月/4月并包含2-4个产品。",
+      "Inventory：为9个全新SKU提供cost_history两条记录（effective_date早于与晚于订单），并包含SKU-210、SKU-410的“未来极端异常成本”以测试历史版本选择规则（effective_date<=订单日期）。",
+      "Finance：为4个订单提供全新交易记录；其中ORD-901含partial多笔，用于触发“未完全结算风险”；ORD-903包含退款（amount为负）但status=completed，用于说明净回款低于售价。",
+      "跨文件一致性：CRM订单产品SKU与库存product_id一致；finance交易中customer_id与order_id对应CRM订单。"
+    ]
+  }
+}

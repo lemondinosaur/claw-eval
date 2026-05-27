@@ -1,0 +1,41 @@
+[
+  {
+    "customer_id": "CUS-701",
+    "name": "北辰供应链",
+    "contact_person": "许宁",
+    "email": "xuning@beichen-scm.com",
+    "phone": "13900811001",
+    "industry": "物流供应链",
+    "tier": "vip",
+    "annual_revenue": 1680000,
+    "last_contact_date": "2026-03-22",
+    "status": "active",
+    "notes": "合同计费周期为月初扣款；近期疑似同摘要重复扣款，需核对冲正pending记录"
+  },
+  {
+    "customer_id": "CUS-702",
+    "name": "青石咨询",
+    "contact_person": "陈静",
+    "email": "chenjing@qingshi-consult.com",
+    "phone": "13900811002",
+    "industry": "咨询服务",
+    "tier": "standard",
+    "annual_revenue": 420000,
+    "last_contact_date": "2026-03-18",
+    "status": "active",
+    "notes": "合同按自然月计费；客户称上月提交冲正但仍再次扣款，需核验void/failed链路"
+  },
+  {
+    "customer_id": "CUS-703",
+    "name": "星云贸易（仿冒疑似）",
+    "contact_person": "未知",
+    "email": "billing@staryun-trade.example",
+    "phone": "13900811003",
+    "industry": "贸易",
+    "tier": "standard",
+    "annual_revenue": 0,
+    "last_contact_date": "2026-02-01",
+    "status": "inactive",
+    "notes": "疑似非我方客户/仿冒渠道；CRM状态为inactive，财务侧也不应存在匹配交易"
+  }
+]

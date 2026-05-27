@@ -1,0 +1,108 @@
+task_id: T123zh_todo_calendar_conflict_plus_4
+task_name: 周边任务引发的串联冲突
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: todo
+  command: python mock_services/todo/server.py
+  port: 9102
+  health_check: http://localhost:9102/todo/tasks
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9102/todo/reset
+  env:
+    TODO_FIXTURES: create_query/output_20260522_152922/generated/T123zh_todo_calendar_conflict_plus_4/fixtures/todo/tasks.json
+- name: calendar
+  command: python mock_services/calendar/server.py
+  port: 9101
+  health_check: http://localhost:9101/calendar/events
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9101/calendar/reset
+  env:
+    CALENDAR_FIXTURES: create_query/output_20260522_152922/generated/T123zh_todo_calendar_conflict_plus_4/fixtures/calendar/events.json
+prompt:
+  text: '请帮我做串联冲突分析：
+
+    1) 先查看日历事件（覆盖 2026-06-07 到 2026-06-10），找出导致关键待办无法按期完成的关键占用点；
+
+    2) 再基于待办 description 中出现的依赖关键词（例如“需要A完成后才能开始B”“B完成后才能开始C”或等价表述）识别依赖链；当关键任务因日历占用需要延期时，把延期连锁传导到后续依赖任务；
+
+    3) 最终输出一个可执行的重排链路（给出冲突点 + 依赖链路图式说明 A->B->C + 每个任务的最终建议完成日期与上午/下午/具体段落），且说明 2026-06-09
+    的维护窗口不可操作，因此不能把任务安排到该日；
+
+    4) 同时识别并处理日历冲突层级：独立高优任务与干扰任务只做“是否与日历占用冲突”的处理，不要错误地参与到依赖传导链里。
+
+
+    关键日期与事件：2026-06-07 14:30-17:30 外部演示预约（确认）；2026-06-08 09:00-11:30 安全培训补考；2026-06-09
+    全天维护窗口（不可操作）。
+
+
+    待办目标：构建并重排 A（6/7下午 due 的高优任务）-> B（6/8上午 due 的中优任务）-> C（6/10 due 的低优任务）的依赖链，并给出最终可执行的时间安排。'
+  language: zh
+tools:
+- name: todo_list_tasks
+  description: 查看待办事项列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 状态筛选(pending/completed/all)
+        default: pending
+    required: []
+- name: todo_get_task
+  description: 获取待办详情
+  input_schema:
+    type: object
+    properties:
+      task_id:
+        type: string
+        description: 待办ID
+    required:
+    - task_id
+- name: calendar_list_events
+  description: 获取指定日期范围内的日历事件
+  input_schema:
+    type: object
+    properties:
+      date:
+        type: string
+        description: 查询日期 (YYYY-MM-DD)
+      days:
+        type: integer
+        description: 查询天数
+        default: 1
+    required:
+    - date
+- name: calendar_get_event
+  description: 获取事件详情
+  input_schema:
+    type: object
+    properties:
+      event_id:
+        type: string
+        description: 事件ID
+    required:
+    - event_id
+tool_endpoints:
+- tool_name: todo_list_tasks
+  url: http://localhost:9102/todo/tasks
+  method: POST
+- tool_name: todo_get_task
+  url: http://localhost:9102/todo/tasks/get
+  method: POST
+- tool_name: calendar_list_events
+  url: http://localhost:9101/calendar/events
+  method: POST
+- tool_name: calendar_get_event
+  url: http://localhost:9101/calendar/events/get
+  method: POST
+environment:
+  mock_today: '2026-03-27'
+  timeout_seconds: 300
+  max_turns: 20

@@ -1,0 +1,78 @@
+task_id: T011zh_expense_report_plus_1
+task_name: 3月差旅与餐饮报销
+version: '1.0'
+category: finance
+difficulty: easy
+tags:
+- general
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T011zh_expense_report_plus_1/fixtures/finance/transactions.json
+prompt:
+  text: 帮我整理提交2026年3月的费用报销报告，并确认哪些交易是退款或重复交易。请不要把“完全重复的交易”或“退款（负数金额）”当作普通支出重复统计；对于金额仅略有差异且文案相似的疑似重复，要说明其差异点并按规则保留/剔除。
+  language: zh
+tools:
+- name: finance_list_transactions
+  description: 获取费用交易记录列表
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 开始日期 (YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 结束日期 (YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取单笔交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+- name: finance_submit_report
+  description: 提交费用报告
+  input_schema:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 报告标题
+      transactions:
+        type: array
+        items:
+          type: string
+        description: 包含的交易ID列表
+      total_amount:
+        type: number
+        description: 总金额
+    required:
+    - title
+    - transactions
+    - total_amount
+tool_endpoints:
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+- tool_name: finance_submit_report
+  url: http://localhost:9104/finance/report/submit
+  method: POST
+sandbox_files:
+- fixtures/finance/transactions.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20

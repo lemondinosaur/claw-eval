@@ -1,0 +1,54 @@
+[
+  {
+    "customer_id": "SUP-101",
+    "name": "北辰云栈科技",
+    "contact_person": "周总",
+    "email": "zhou@beichenyunstack.com",
+    "phone": "15801001111",
+    "industry": "边缘运维服务",
+    "tier": "vip",
+    "annual_revenue": 12000000,
+    "last_contact_date": "2026-02-12",
+    "status": "active",
+    "notes": "边缘运维协作方。曾因现场支持资源不足在边缘试点中出现过“拒单/延后”，后续在2周内完成整改并给出补救计划；现场响应及时，问题闭环速度快（平均<24小时）。"
+  },
+  {
+    "customer_id": "SUP-102",
+    "name": "星港网络集成",
+    "contact_person": "赵经理",
+    "email": "zhao@xinggangnet.com",
+    "phone": "15801002222",
+    "industry": "网络集成",
+    "tier": "standard",
+    "annual_revenue": 6500000,
+    "last_contact_date": "2026-01-18",
+    "status": "active",
+    "notes": "以网络配套为主，报价灵活。近期在多个项目中反映实施团队频繁更换，导致边缘部署阶段的交接文档不完整、支持连续性存疑。"
+  },
+  {
+    "customer_id": "SUP-103",
+    "name": "长河数智采购代理",
+    "contact_person": "孙总",
+    "email": "sun@changhe-digital.com",
+    "phone": "15801003333",
+    "industry": "IT分销",
+    "tier": "standard",
+    "annual_revenue": 9000000,
+    "last_contact_date": "2026-02-05",
+    "status": "active",
+    "notes": "与我方长期协作但偏B端项目。历史上有一次因备件到货节奏慢触发整改要求，整改后仍能在SLA内完成远程诊断与备件补发，但需要在合同中明确交付里程碑。"
+  },
+  {
+    "customer_id": "SUP-104",
+    "name": "极光云边供应链",
+    "contact_person": "吴经理",
+    "email": "wu@jiguangedge.com",
+    "phone": "15801004444",
+    "industry": "设备供应链",
+    "tier": "standard",
+    "annual_revenue": 3800000,
+    "last_contact_date": "2026-02-22",
+    "status": "active",
+    "notes": "中小众供应商，边缘场景经验相对少但问题闭环流程清晰：通常在48小时内完成根因分析并提交改进单。对集中度约束较敏感，倾向于建议“分批采购+多供应商分摊”。"
+  }
+]

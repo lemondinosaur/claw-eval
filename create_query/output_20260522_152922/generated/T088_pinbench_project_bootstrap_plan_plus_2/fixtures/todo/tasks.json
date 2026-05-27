@@ -1,0 +1,66 @@
+[
+  {
+    "task_id": "noise-BA-1042",
+    "title": "整理账户报表模板（与本项目无关）",
+    "description": "在待办系统中清理旧的报表模板条目，确认字段完整性。",
+    "priority": "low",
+    "due_date": "2026-06-15",
+    "status": "open"
+  },
+  {
+    "task_id": "noise-BX-2786",
+    "title": "更新合规通知链接（与本项目无关）",
+    "description": "将合规公告的外部链接替换为新的内网路径，并保留历史说明。",
+    "priority": "medium",
+    "due_date": "2026-06-01",
+    "status": "done"
+  },
+  {
+    "task_id": "noise-CN-9137",
+    "title": "梳理明年预算范围（与本项目无关）",
+    "description": "根据最新会议纪要整理预算范围草案，标注需要进一步确认的部分。",
+    "priority": "high",
+    "due_date": "2026-07-03",
+    "status": "open"
+  },
+  {
+    "task_id": "bluehorizon-TS-1001",
+    "title": "bluehorizon：创建 src 目录与 index 导出入口",
+    "description": "创建文件夹结构：src/。在 src/ 下添加 index.ts，作为对外导出的统一入口；在验收时说明 index.ts 将从内部模块导出（可先用占位导出）。任务必须明确产出“目录结构 + index 导出文件”。",
+    "priority": "high",
+    "due_date": "2026-06-20",
+    "status": "open"
+  },
+  {
+    "task_id": "bluehorizon-TS-1002",
+    "title": "bluehorizon：配置测试与覆盖率占位，并编写示例测试",
+    "description": "为 TypeScript 包添加测试设置与至少一个示例测试文件。要求：测试任务描述中明确包含待测行为点——当主函数/导出函数在未传入参数时，应抛出错误（例如期望调用会 throw）。同时在任务中放置覆盖率配置的占位（例如在测试脚本或配置段落中预留覆盖率项，但不必给出复杂实现）。",
+    "priority": "high",
+    "due_date": "2026-06-22",
+    "status": "open"
+  },
+  {
+    "task_id": "bluehorizon-TS-1003",
+    "title": "bluehorizon：编写 package.json 元数据与 scripts（依赖占位）",
+    "description": "创建 package.json，包含 name=\"bluehorizon\"、version 以及类型相关字段（如 main/types/exports 可做占位）。编写 scripts：至少包含 test（与所选测试框架保持一致）、build 或 tsc（用于基础 tsc 方案）。同时提供 dependencies/devDependencies 占位块（可为空或写入占位条目），确保脚本名称与测试配置描述一致，并注意仅建立基础 tsc 方案（不引入 bundler 的额外脚本）。",
+    "priority": "medium",
+    "due_date": "2026-06-24",
+    "status": "open"
+  },
+  {
+    "task_id": "bluehorizon-TS-1004",
+    "title": "bluehorizon：编写 README（Quick Start + API 占位）",
+    "description": "编写 README.md，包含：Quick Start（如何安装与如何使用导出的入口能力的示例，使用占位代码即可）以及 API section 占位（列出导出 API 列表/签名的占位说明）。任务描述必须明确出现“Quick Start”和“API”占位区域。",
+    "priority": "medium",
+    "due_date": "2026-06-26",
+    "status": "open"
+  },
+  {
+    "task_id": "bluehorizon-TS-1005",
+    "title": "bluehorizon：发布前检查清单（pre-publish checklist）",
+    "description": "添加一条发布前检查任务清单，覆盖至少：ts 编译/构建检查、测试通过检查、README 是否包含 Quick Start 与 API 占位检查、package.json scripts 是否可用检查、以及对未传参抛错测试用例是否存在且描述明确。用“勾选/核对项”形式给出清单内容。",
+    "priority": "low",
+    "due_date": "2026-06-29",
+    "status": "open"
+  }
+]

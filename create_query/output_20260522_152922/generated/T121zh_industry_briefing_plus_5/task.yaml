@@ -1,0 +1,163 @@
+task_id: T121zh_industry_briefing_plus_5
+task_name: 开源模型工程落地周报
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: rss
+  command: python mock_services/rss/server.py
+  port: 9109
+  health_check: http://localhost:9109/rss/articles
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9109/rss/reset
+  env:
+    RSS_FIXTURES: create_query/output_20260522_152922/generated/T121zh_industry_briefing_plus_5/fixtures/rss/feeds.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T121zh_industry_briefing_plus_5/fixtures/gmail/inbox.json
+prompt:
+  text: '工程负责人要求整理“开源模型工程落地周报”。
+
+
+    请从RSS筛选开源模型在工程落地方面的文章（评测与基准/推理加速/部署运维/安全基线；仅限工程可运营细节），并按四类分类整理简报草稿：
+
+
+    1）评测与基准：选型时如何做基准、评测指标与可复现实验设计。
+
+    2）推理加速：面向吞吐/延迟的推理优化与工程落地路径。
+
+    3）部署运维：面向上线、伸缩、监控、故障处理与持续迭代。
+
+    4）安全基线：面向安全评估、权限与审计、越权/提示注入等治理。
+
+
+    要求：
+
+    - 每类输出2条“技术要点 + 适用团队画像”（每条都要同时包含：技术要点+定性画像，如团队规模、是否具备MLOps/平台能力、是否需要量化或GPU资源、是否要求审计/合规流程等）。
+
+    - 最后给出一段“本周选型倾向”，必须基于已筛选文章的归纳总结，不得引入文章之外的外部事实。
+
+    - 对于只有社区新闻、只有能力综述但缺少部署/评测/加速/安全细节的文章，要写清楚“不适合直接用于生产选型”的理由（用筛选文章中能支撑的描述进行归因）。
+
+
+    生成邮件草稿，不要发送。'
+  language: zh
+tools:
+- name: rss_list_articles
+  description: 获取RSS文章列表
+  input_schema:
+    type: object
+    properties:
+      feed_name:
+        type: string
+        description: 按RSS源筛选
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: rss_get_article
+  description: 获取文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人
+      subject:
+        type: string
+        description: 主题
+      body:
+        type: string
+        description: 正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: rss_list_articles
+  url: http://localhost:9109/rss/articles
+  method: POST
+- tool_name: rss_get_article
+  url: http://localhost:9109/rss/articles/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

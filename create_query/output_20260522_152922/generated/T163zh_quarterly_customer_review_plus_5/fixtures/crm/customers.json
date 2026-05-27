@@ -1,0 +1,93 @@
+[
+  {
+    "customer_id": "CUS-2401",
+    "name": "星河云",
+    "tier": "vip",
+    "status": "active",
+    "industry": "SaaS与云服务",
+    "satisfaction": 4.7,
+    "contract_end": "2026-12-20",
+    "sales_owner": "周晨",
+    "notes": "满意度偏高但Q3财务出现9月退款/冲销，需排查对账差异与交付影响。",
+    "contact_person": "周晨",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2402",
+    "name": "北极航运",
+    "tier": "standard",
+    "status": "active",
+    "industry": "航运物流",
+    "satisfaction": 3.6,
+    "contract_end": "2026-10-31",
+    "sales_owner": "陈曦",
+    "notes": "7-8月付款延迟与账期调整迹象明显，且邮件沟通断点已出现。",
+    "contact_person": "陈曦",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2403",
+    "name": "云栖零售",
+    "tier": "standard",
+    "status": "active",
+    "industry": "零售电商",
+    "satisfaction": 4.1,
+    "contract_end": "2026-11-30",
+    "sales_owner": "沈然",
+    "notes": "Q3订阅中断后在9月底才补回，期间沟通明显降频。",
+    "contact_person": "沈然",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2404",
+    "name": "皓图制造",
+    "tier": "vip",
+    "status": "active",
+    "industry": "工业制造",
+    "satisfaction": 4.3,
+    "contract_end": "2026-09-30",
+    "sales_owner": "潘捷",
+    "notes": "合同节点看似接近/已到期窗口，满意度在CRM里回升，但Q3仍有异常退款与延迟付款信号。",
+    "contact_person": "潘捷",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2405",
+    "name": "耀腾金融",
+    "tier": "vip",
+    "status": "active",
+    "industry": "金融科技",
+    "satisfaction": 4.6,
+    "contract_end": "2026-12-31",
+    "sales_owner": "周晨",
+    "notes": "9月出现冲销且随后无新增补单；同时邮件沟通断点较长，需要跨源纠偏。",
+    "contact_person": "周晨",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2406",
+    "name": "青岚教育",
+    "tier": "standard",
+    "status": "active",
+    "industry": "教育培训",
+    "satisfaction": 3.9,
+    "contract_end": "2026-08-15",
+    "sales_owner": "陈曦",
+    "notes": "8月订阅状态异常（非completed）且9月有账期调整说明，但邮件断点未完全消失。",
+    "contact_person": "陈曦",
+    "annual_revenue": 0
+  },
+  {
+    "customer_id": "CUS-2407",
+    "name": "宏景医疗",
+    "tier": "standard",
+    "status": "active",
+    "industry": "医疗健康",
+    "satisfaction": 4.0,
+    "contract_end": "2026-11-15",
+    "sales_owner": "潘捷",
+    "notes": "付款延迟发生在9月中旬；邮件仍有零散联系但整体间隔跨过断点阈值。",
+    "contact_person": "潘捷",
+    "annual_revenue": 0
+  }
+]

@@ -1,0 +1,132 @@
+task_id: T131zh_order_profit_analysis_plus_5
+task_name: 存货成本波动与历史/当前成本对账
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_5/fixtures/finance/transactions.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_5/fixtures/inventory/items.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: create_query/output_20260522_152922/generated/T131zh_order_profit_analysis_plus_5/fixtures/crm/customers.json
+prompt:
+  text: "请为每个客户的最近订单做“历史成本 vs 当前成本”的成本口径对账，并结合财务收款状态给出风险提示。\n\n要求：\n1) 从CRM获取每个客户的最近订单、订单日期以及订单包含的产品列表。\n\
+    2) 对于订单中的每个产品：\n   - 选择“历史成本”：在库存中找到该 product 的成本版本中 effective_date <= 订单日期 的记录，取最近的一条\
+    \ unit_cost 作为历史成本价。\n   - 选择“当前成本”：取该 product 的成本版本中 effective_date 最新的一条 unit_cost\
+    \ 作为当前成本价。\n3) 计算：\n   - 历史利润率 = (售价合计 - 历史成本合计) / 售价合计\n   - 当前利润率 = (售价合计 -\
+    \ 当前成本合计) / 售价合计\n   - 输出差异：历史利润率与当前利润率的差异（并说明是成本上调还是下调导致）。\n4) 财务核对：\n   - 使用订单所在月份查询交易记录，并核对该订单对应交易的收款\
+    \ status。\n   - 若存在 status='partial' 或无法确认已全部完成收款，则标注“未完全结算风险”。\n   - 若包含退款（amount\
+    \ 为负），说明净回款低于售价，但不改变你用于利润率计算的“售价/成本口径”。\n5) 输出结构化报告：至少包含客户、订单日期、每个产品的历史/当前成本选择依据（effective_date\
+    \ 规则）、历史成本汇总、当前成本汇总、两种利润率、利润率差异原因（归因到具体产品成本变更方向）、结算状态与建议。"
+  language: zh
+tools:
+- name: crm_list_customers
+  description: 列出客户
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 客户状态(active/churned)
+      tier:
+        type: string
+        description: 客户等级(vip/standard)
+    required: []
+- name: crm_get_customer
+  description: 获取客户详情
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: inventory_list_items
+  description: 查看库存/产品列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: inventory_get_item
+  description: 获取产品详情
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 产品ID
+    required:
+    - product_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: inventory_list_items
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_item
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 600
+  max_turns: 30

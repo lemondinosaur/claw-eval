@@ -1,0 +1,14 @@
+[
+  {
+    "message_id": "msg_4812",
+    "from": "vendor-notify@automation.example",
+    "to": "me@company.com",
+    "subject": "自动化发布提醒：本周调度窗口将调整",
+    "date": "2026-04-18T09:12:00+08:00",
+    "is_read": false,
+    "labels": [
+      "inbox"
+    ],
+    "body": "您好，\n\n本周我们对部分自动化任务的执行窗口做了调整。预计不会影响现网，但请留意由调度系统生成的告警。\n\n——Automation Platform\nvendor-notify@automation.example"
+  }
+]

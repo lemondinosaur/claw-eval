@@ -1,0 +1,133 @@
+[
+  {
+    "event_id": "evt_701",
+    "title": "Orchid需求评审会",
+    "start_time": "2026-05-06T10:00:00+08:00",
+    "end_time": "2026-05-06T11:30:00+08:00",
+    "location": "会议室A",
+    "organizer": "周琳",
+    "attendees": [
+      "周琳",
+      "陈远",
+      "柳青"
+    ],
+    "description": "Orchid本周需求评审，形成待办清单；关联纪要 NOTE-OR-701",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_702",
+    "title": "Orchid接口联调复盘",
+    "start_time": "2026-05-08T15:00:00+08:00",
+    "end_time": "2026-05-08T16:15:00+08:00",
+    "location": "云端会议室",
+    "organizer": "陈远",
+    "attendees": [
+      "陈远",
+      "柳青",
+      "林涛"
+    ],
+    "description": "Orchid接口联调复盘与改进项；关联纪要 NOTE-OR-702",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_703",
+    "title": "安全培训（全公司）",
+    "start_time": "2026-05-07T09:30:00+08:00",
+    "end_time": "2026-05-07T10:30:00+08:00",
+    "location": "大会议室",
+    "organizer": "安全合规团队",
+    "attendees": [
+      "全员"
+    ],
+    "description": "全公司安全培训，与项目周报无直接纪要关联",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_704",
+    "title": "Cobalt迭代计划会",
+    "start_time": "2026-05-05T14:00:00+08:00",
+    "end_time": "2026-05-05T15:00:00+08:00",
+    "location": "会议室B",
+    "organizer": "顾宁",
+    "attendees": [
+      "顾宁",
+      "郑浩",
+      "沈佳"
+    ],
+    "description": "Cobalt迭代计划与里程碑拆分；关联纪要 NOTE-CO-703",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_705",
+    "title": "Cobalt关键交付评审（待确认纪要缺失）",
+    "start_time": "2026-05-09T11:00:00+08:00",
+    "end_time": "2026-05-09T12:00:00+08:00",
+    "location": "评审室2",
+    "organizer": "顾宁",
+    "attendees": [
+      "顾宁",
+      "郑浩",
+      "周琳"
+    ],
+    "description": "关键交付评审：本应对应纪要，但系统中本周notes无匹配条目（用于风险识别）。",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_706",
+    "title": "技术分享会（跨部门）",
+    "start_time": "2026-05-07T13:30:00+08:00",
+    "end_time": "2026-05-07T14:30:00+08:00",
+    "location": "线上会议",
+    "organizer": "架构委员会",
+    "attendees": [
+      "相关人员"
+    ],
+    "description": "技术分享，与周报仅做干扰项",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_707",
+    "title": "Ruby启动会",
+    "start_time": "2026-05-06T09:00:00+08:00",
+    "end_time": "2026-05-06T10:00:00+08:00",
+    "location": "会议室C",
+    "organizer": "魏婧",
+    "attendees": [
+      "魏婧",
+      "高航",
+      "王珂"
+    ],
+    "description": "Ruby启动会：数据迁移与里程碑预检范围；关联纪要 NOTE-RB-701",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_708",
+    "title": "Ruby数据迁移例会",
+    "start_time": "2026-05-08T10:30:00+08:00",
+    "end_time": "2026-05-08T11:30:00+08:00",
+    "location": "会议室C",
+    "organizer": "高航",
+    "attendees": [
+      "高航",
+      "王珂",
+      "柳青"
+    ],
+    "description": "Ruby数据迁移进展与回滚策略；关联纪要 NOTE-RB-702",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_709",
+    "title": "Ruby里程碑验收预检",
+    "start_time": "2026-05-10T16:00:00+08:00",
+    "end_time": "2026-05-10T17:00:00+08:00",
+    "location": "评审室3",
+    "organizer": "魏婧",
+    "attendees": [
+      "魏婧",
+      "王珂",
+      "郑浩"
+    ],
+    "description": "Ruby验收预检：资料补齐要求；关联纪要 NOTE-RB-703",
+    "status": "confirmed"
+  }
+]

@@ -1,0 +1,209 @@
+{
+  "task_id": "T127zh_ticket_assignment_plus_5",
+  "task_name": "基于故障现象与根因猜测的分派",
+  "prompt_text": "当前有5个未分配工单需要分配建议：请你逐个读取工单详情，从描述的故障现象推断根因类型（认证、权限、缓存、依赖服务、数据同步/ETL 等），再到通讯录中查找能处理该根因类型的负责人。要求：同一根因类型的工单分配给同一位负责人（以体现一致性）。\n\n输出分配建议表（5行），格式为：工单ID → 建议处理人 → 分配理由。理由必须写明“现象→推断根因→为何由该负责人负责”，并明确说明为何忽略误导性的 category/tags（例如泛化标签或错误/相反的分类）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-A11",
+        "name": "林晓",
+        "department": "认证与会话组",
+        "title": "认证中间件负责人",
+        "email": "linxiao@company.com",
+        "phone": "13911001101",
+        "location": "北京总部",
+        "notes": "负责OAuth/JWT校验、会话中间件、token刷新与登录态异常排查。"
+      },
+      {
+        "contact_id": "CT-A12",
+        "name": "宋健",
+        "department": "认证与会话组",
+        "title": "会话中间件工程师",
+        "email": "songjian@company.com",
+        "phone": "13911001102",
+        "location": "北京总部",
+        "notes": "负责会话持久化、cookie策略与登录态恢复。"
+      },
+      {
+        "contact_id": "CT-D21",
+        "name": "周敏",
+        "department": "数据同步与ETL组",
+        "title": "数据同步负责人",
+        "email": "zhoummin@company.com",
+        "phone": "13922002201",
+        "location": "上海分部",
+        "notes": "负责增量同步、ETL任务队列、数据积压与延迟定位。"
+      },
+      {
+        "contact_id": "CT-D22",
+        "name": "王宇",
+        "department": "数据同步与ETL组",
+        "title": "ETL运维工程师",
+        "email": "wangyu@company.com",
+        "phone": "13922002202",
+        "location": "上海分部",
+        "notes": "负责导入/同步失败重试、调度与血缘核查。"
+      },
+      {
+        "contact_id": "CT-C31",
+        "name": "许然",
+        "department": "缓存与性能组",
+        "title": "缓存性能负责人",
+        "email": "xuran@company.com",
+        "phone": "13933003301",
+        "location": "广州分部",
+        "notes": "负责CDN/缓存命中率、缓存失效、依赖缓存与页面加载性能。"
+      },
+      {
+        "contact_id": "CT-C32",
+        "name": "郑岚",
+        "department": "缓存与性能组",
+        "title": "性能与压测工程师",
+        "email": "zhengl@company.com",
+        "phone": "13933003302",
+        "location": "广州分部",
+        "notes": "负责慢请求定位、热点路由与缓存策略优化。"
+      },
+      {
+        "contact_id": "CT-S41",
+        "name": "赵磊",
+        "department": "依赖服务运维组",
+        "title": "平台依赖负责人",
+        "email": "zhaolei.ops@company.com",
+        "phone": "13944004401",
+        "location": "深圳分部",
+        "notes": "负责下游依赖服务健康、超时与调用链慢响应。"
+      },
+      {
+        "contact_id": "CT-S42",
+        "name": "高宁",
+        "department": "依赖服务运维组",
+        "title": "调用链运维工程师",
+        "email": "gaoning@company.com",
+        "phone": "13944004402",
+        "location": "深圳分部",
+        "notes": "负责网关/下游超时、服务依赖与SLA问题排障。"
+      },
+      {
+        "contact_id": "CT-SF51",
+        "name": "刘嘉",
+        "department": "安全组",
+        "title": "权限与审计负责人",
+        "email": "liujia.sec@company.com",
+        "phone": "13955005501",
+        "location": "北京总部",
+        "notes": "负责RBAC权限校验、API鉴权失败、审计与合规。"
+      },
+      {
+        "contact_id": "CT-AD61",
+        "name": "陈昕",
+        "department": "行政支持",
+        "title": "行政支持专员",
+        "email": "chenxin@company.com",
+        "phone": "13966006601",
+        "location": "北京总部",
+        "notes": "提供非技术类支持与资源协调。"
+      },
+      {
+        "contact_id": "CT-SEC71",
+        "name": "周航",
+        "department": "安全组",
+        "title": "安全运维工程师",
+        "email": "zhouhang.sec@company.com",
+        "phone": "13955005502",
+        "location": "上海分部",
+        "notes": "负责API权限拒绝、鉴权策略变更回滚与异常告警联动。"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-1311",
+        "title": "登录后跳转反复刷新：token过期未自动续期",
+        "description": "用户在CRM登录成功后，页面会在几秒内反复刷新并提示“重新登录”。抓包显示返回码为401，body中包含“token过期但未刷新”，且cookie刷新接口调用无响应。疑似认证与会话中间件在token续期流程上异常。",
+        "reporter": "市场部周晓",
+        "department": "市场部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-22T08:20:00Z",
+        "tags": [
+          "用户反馈",
+          "兼容性",
+          "登录"
+        ],
+        "category": "功能体验"
+      },
+      {
+        "ticket_id": "TK-1312",
+        "title": "会话中间件异常：登录态丢失导致反复鉴权失败",
+        "description": "同一账号在不同浏览器同时操作时，经常出现“已注销”弹窗。日志里反复出现“会话ID缺失/会话未找到”，并且会话中间件在高峰期返回空会话对象。前端未见网络错误，但后端鉴权失败频繁。",
+        "reporter": "客服部冯琳",
+        "department": "客服部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-22T09:10:00Z",
+        "tags": [
+          "权限",
+          "登录态"
+        ],
+        "category": "权限管理"
+      },
+      {
+        "ticket_id": "TK-1313",
+        "title": "订单数据延迟：同步任务积压，导入不全",
+        "description": "用户反馈页面订单列表比实际晚约2小时更新。ETL任务队列堆积，最近一次导入批次显示“同步任务积压=已超时”，并且导入结果存在缺行（同一批次部分订单未落库）。需要排查数据同步与ETL调度/失败重试。",
+        "reporter": "运营部赵彤",
+        "department": "运营部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-22T09:45:00Z",
+        "tags": [
+          "系统故障",
+          "同步不全",
+          "导入"
+        ],
+        "category": "系统故障"
+      },
+      {
+        "ticket_id": "TK-1314",
+        "title": "主数据同步不完整：增量拉取滞后与重复失败",
+        "description": "商品主数据增量更新后，部分SKU在门户侧没有生效。监控显示“增量拉取滞后”，并伴随“上游变更事件消费失败（重试次数耗尽）”。表现为数据同步不全，而非权限问题。",
+        "reporter": "供应链部钱宁",
+        "department": "供应链部",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-22T10:30:00Z",
+        "tags": [
+          "缓存",
+          "数据问题",
+          "泛化标签"
+        ],
+        "category": "缓存异常"
+      },
+      {
+        "ticket_id": "TK-1315",
+        "title": "页面加载慢但无错误码：疑似依赖调用慢/缓存命中率低",
+        "description": "用户访问“报价单详情”页面时持续转圈，平均加载时间显著升高，但浏览器控制台没有明确错误码。后端链路中对下游服务的调用耗时偏高，同时缓存命中率下降。需要判断是缓存/依赖服务哪个环节导致依赖调用慢。",
+        "reporter": "研发部蒋晨",
+        "department": "研发部",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-22T11:05:00Z",
+        "tags": [
+          "超时",
+          "性能",
+          "无错误码"
+        ],
+        "category": "依赖服务"
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的笼统“问题类别/IT非IT”分配升级为按工单描述推断“根因类型”，并要求同类根因工单分配到同一负责人。",
+    "fixture_design_summary": [
+      "contacts 覆盖认证与会话组、数据同步与ETL组、缓存与性能组、依赖服务运维组、安全组等，确保可按根因类型检索负责人。",
+      "helpdesk/tickets.json 新增5条未分配工单：其中2条包含token/会话/登录态异常关键词，2条包含同步延迟/任务积压/导入不全关键词，1条包含加载慢但无错误码且指向依赖调用慢与缓存命中率下降。",
+      "设置干扰：对“数据延迟”工单使用与根因相反/泛化的 category 或 tags；对“认证失败”工单使用较泛的 tags，要求必须依据 description 的具体错误表述推断根因。",
+      "跨 fixture 实体引用一致：联系人仅通过 department/关键字被检索，工单根因类型可稳定映射到同一负责人（如两条认证失败→同一认证负责人）。"
+    ]
+  }
+}

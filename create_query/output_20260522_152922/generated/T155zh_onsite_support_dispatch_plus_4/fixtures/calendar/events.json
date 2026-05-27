@@ -1,0 +1,29 @@
+[
+  {
+    "event_id": "evt_2101",
+    "title": "客户交付周会",
+    "start_time": "2026-04-15T09:30:00+08:00",
+    "end_time": "2026-04-15T10:15:00+08:00",
+    "location": "线上会议室",
+    "organizer": "吴敏",
+    "attendees": [
+      "工程师A",
+      "工程师B"
+    ],
+    "description": "本周客户交付进度同步",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_2102",
+    "title": "网络巡检与故障回放复盘",
+    "start_time": "2026-04-15T14:00:00+08:00",
+    "end_time": "2026-04-15T15:00:00+08:00",
+    "location": "上海总部机房",
+    "organizer": "陈晨",
+    "attendees": [
+      "工程师C"
+    ],
+    "description": "对昨日告警回放与巡检记录进行复盘",
+    "status": "confirmed"
+  }
+]

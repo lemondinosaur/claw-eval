@@ -1,0 +1,91 @@
+[
+  {
+    "contact_id": "CT-2201",
+    "name": "安宇",
+    "department": "基础架构运维",
+    "title": "现场电力/硬件故障专家",
+    "email": "an_yu@company.com",
+    "phone": "13700112211",
+    "location": "上海总部",
+    "skills": [
+      "电源/硬件故障定位",
+      "服务器远程控制切换（DR/主备）",
+      "机柜与UPS巡检",
+      "电力链路诊断"
+    ],
+    "notes": "今天 10:00-11:30 有不可打断会议；其余时段可响应并可在到达后30分钟内完成初始巡检。"
+  },
+  {
+    "contact_id": "CT-2202",
+    "name": "卜柳",
+    "department": "数据库平台",
+    "title": "数据库恢复工程师",
+    "email": "bo_liu@company.com",
+    "phone": "13700112222",
+    "location": "上海总部",
+    "skills": [
+      "数据库恢复（主备切换协助）",
+      "备份集校验",
+      "日志回放与一致性校验"
+    ],
+    "notes": "全天可用；但不具备电源/硬件故障定位能力。可作为备选负责到达后的业务数据恢复与远程协同。"
+  },
+  {
+    "contact_id": "CT-2203",
+    "name": "康辰",
+    "department": "系统工程与实施",
+    "title": "服务器与DR切换实施工程师",
+    "email": "ch_kang@company.com",
+    "phone": "13700112233",
+    "location": "外地出差中",
+    "skills": [
+      "服务器远程控制切换（DR/主备）",
+      "硬件巡检协助",
+      "关键业务切流策略"
+    ],
+    "notes": "今天被安排全天外地现场实施；高速封闭导致预计无法在 SLA 规定的 60分钟内抵达目标数据中心。"
+  },
+  {
+    "contact_id": "CT-2204",
+    "name": "顾晨",
+    "department": "客户成功部",
+    "title": "客户经理",
+    "email": "gu_chen@company.com",
+    "phone": "13700113344",
+    "location": "上海",
+    "skills": [
+      "客户沟通",
+      "SLA条款管理",
+      "合同升级提醒"
+    ],
+    "notes": "负责“极光云计算”的日常对接与SLA对齐；需要在邮件中同步到场窗口与升级抄送规则。"
+  },
+  {
+    "contact_id": "CT-2205",
+    "name": "沈澄",
+    "department": "技术管理部",
+    "title": "技术总监",
+    "email": "shen_cheng@company.com",
+    "phone": "13700114455",
+    "location": "上海总部",
+    "skills": [
+      "技术管理",
+      "应急升级评审",
+      "关键客户支持策略"
+    ],
+    "notes": "VIP critical工单需升级抄送的负责人。"
+  },
+  {
+    "contact_id": "CT-2206",
+    "name": "周鹤",
+    "department": "内部干扰联系人",
+    "title": "信息安全支持",
+    "email": "zhou_he@company.com",
+    "phone": "13700115566",
+    "location": "上海总部",
+    "skills": [
+      "安全加固审计"
+    ],
+    "notes": "仅用于干扰，不参与本次现场派遣。"
+  }
+]

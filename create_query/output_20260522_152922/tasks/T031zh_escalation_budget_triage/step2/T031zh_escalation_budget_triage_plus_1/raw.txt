@@ -1,0 +1,424 @@
+{
+  "task_id": "T031zh_escalation_budget_triage_plus_1",
+  "task_name": "季度SLA违约补偿分流",
+  "prompt_text": "收件箱中有多封来自客户服务通道的“季度SLA违约补偿”升级邮件。请处理并输出摘要：\n1）读取收件箱中的所有邮件，并逐条解析：只处理主题包含“季度SLA违约补偿”的邮件。\n2）对每封可解析邮件，提取客户编号与补偿金额，并从正文提取季度标识（Q1/Q2/Q3/Q4）。\n3）到CRM查找该客户的tier、annual_revenue与status（active/churned）。\n4）在Helpdesk中为该客户匹配对应工单：对同一客户的多个候选工单，优先选择与邮件季度标识最匹配（根据工单标题/描述/标签中季度信息）的那一条。\n5）分流与动作规则：\n   a) 若正文或邮件声明“已终止合同”，或CRM中status=churned：标记为异常，并通知法务联络人（输出动作类型legal），禁止向客户服务联络人发送任何“补偿承诺”邮件。\n   b) 否则计算补偿金额/annual_revenue 与5%阈值：\n      - 若补偿金额/年收入 <= 5%：发送给客户服务联络人通知（动作sent），并在工单tags加入“预算内”。\n      - 若补偿金额/年收入 > 5%：仅保存草稿给客户服务联络人（动作draft），标题注明“需上级审批”，并在工单tags加入“预算外”。不得发送承诺。\n   c) 若邮件缺失客户编号或补偿金额为“待确认”：无法分流（动作skip），仍需在摘要标注原因；不更新工单、不发送/保存承诺。\n6）最后给出一份处理摘要：每条邮件包含邮件ID、客户编号（若缺失说明）、补偿比率（若可计算）、结论关键词（预算内/预算外/异常/无法分流）、动作类型（sent/draft/legal/skip）、关联工单ID（若匹配）、以及关键工具调用是否匹配成功/失败。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-301",
+        "name": "陈晓宁",
+        "department": "客户服务部",
+        "title": "客户成功经理",
+        "email": "chenxiaoning@company.com",
+        "phone": "13900103001",
+        "location": "上海总部"
+      },
+      {
+        "contact_id": "CT-302",
+        "name": "周子涵",
+        "department": "法务部",
+        "title": "法务顾问",
+        "email": "zhouzihan@company.com",
+        "phone": "13900103002",
+        "location": "上海总部"
+      },
+      {
+        "contact_id": "CT-303",
+        "name": "赵雨桐",
+        "department": "客户服务部",
+        "title": "客服主管",
+        "email": "zhaoyutong@company.com",
+        "phone": "13900103003",
+        "location": "上海总部"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-101",
+        "name": "北辰软件",
+        "contact_person": "沈岚",
+        "email": "shenlan@beichen-soft.com",
+        "phone": "13801011001",
+        "industry": "软件",
+        "tier": "vip",
+        "annual_revenue": 10000000,
+        "last_contact_date": "2026-03-01",
+        "status": "active",
+        "notes": "季度SLA关注高，需严格控时"
+      },
+      {
+        "customer_id": "CUS-102",
+        "name": "骏驰物流",
+        "contact_person": "袁凯",
+        "email": "yuankai@junchi-logistics.com",
+        "phone": "13801011002",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 4000000,
+        "last_contact_date": "2026-02-26",
+        "status": "active",
+        "notes": "对赔付敏感但决策流程稳定"
+      },
+      {
+        "customer_id": "CUS-103",
+        "name": "银海银行科技",
+        "contact_person": "顾薇",
+        "email": "guwei@yin-hai-banktech.cn",
+        "phone": "13801011003",
+        "industry": "金融科技",
+        "tier": "vip",
+        "annual_revenue": 6500000,
+        "last_contact_date": "2026-02-20",
+        "status": "active",
+        "notes": "VIP，会议频繁，需及时升级处理"
+      },
+      {
+        "customer_id": "CUS-104",
+        "name": "天谱云计算",
+        "contact_person": "郑博士",
+        "email": "zhengboshi@tianpu-cloud.com",
+        "phone": "13801011004",
+        "industry": "云计算",
+        "tier": "standard",
+        "annual_revenue": 8000000,
+        "last_contact_date": "2026-02-23",
+        "status": "active",
+        "notes": "投诉多集中在Q2/Q3"
+      },
+      {
+        "customer_id": "CUS-105",
+        "name": "晨曦能源",
+        "contact_person": "何宁",
+        "email": "hening@chenxi-energy.com",
+        "phone": "13801011005",
+        "industry": "能源",
+        "tier": "standard",
+        "annual_revenue": 2000000,
+        "last_contact_date": "2026-02-17",
+        "status": "active",
+        "notes": "小额补偿也会追责流程"
+      },
+      {
+        "customer_id": "CUS-106",
+        "name": "皓月通信",
+        "contact_person": "傅瑶",
+        "email": "fiya@haoyue-comm.com",
+        "phone": "13801011006",
+        "industry": "通信",
+        "tier": "vip",
+        "annual_revenue": 3000000,
+        "last_contact_date": "2026-02-10",
+        "status": "churned",
+        "churn_date": "2025-12-18",
+        "churn_reason": "合同到期未续约",
+        "notes": "已流失：外部邮件声称已终止"
+      },
+      {
+        "customer_id": "CUS-107",
+        "name": "鼎盛医疗器械",
+        "contact_person": "蒋玲",
+        "email": "jiangling@dingsheng-med.com",
+        "phone": "13801011007",
+        "industry": "医疗器械",
+        "tier": "standard",
+        "annual_revenue": 1200000,
+        "last_contact_date": "2025-11-29",
+        "status": "churned",
+        "churn_date": "2025-11-29",
+        "churn_reason": "合作终止",
+        "notes": "历史服务争议导致流失"
+      },
+      {
+        "customer_id": "CUS-108",
+        "name": "星桥教育科技",
+        "contact_person": "王霖",
+        "email": "wanglin@xingqiao-edu.com",
+        "phone": "13801011008",
+        "industry": "教育科技",
+        "tier": "standard",
+        "annual_revenue": 5000000,
+        "last_contact_date": "2026-02-24",
+        "status": "active",
+        "notes": "用于干扰工单匹配"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-2401",
+        "date": "2025-11-12",
+        "amount": 150000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-105",
+        "customer_name": "晨曦能源",
+        "type": "客户补偿",
+        "category": "补偿支出",
+        "description": "晨曦能源2025年Q4先前SLA违约补偿记录（干扰核验）",
+        "approved_by": "陈晓宁",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-2402",
+        "date": "2025-10-05",
+        "amount": 90000.00,
+        "currency": "CNY",
+        "customer_id": "CUS-103",
+        "customer_name": "银海银行科技",
+        "type": "客户补偿",
+        "category": "补偿支出",
+        "description": "银海银行科技2025年Q3服务中断补偿（用于核验）",
+        "approved_by": "陈晓宁",
+        "status": "completed"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_2101",
+        "from": "customer-service@company.com",
+        "to": "me@company.com",
+        "subject": "【季度SLA违约补偿】北辰软件-Q1 升级要求50万",
+        "date": "2026-03-01T09:05:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation"],
+        "body": "客户服务通道转发：\n\n客户编号：CUS-101\n客户名称：北辰软件\n联系人：沈岚\n季度：Q1\n\nSLA问题摘要：Q1关键链路响应超标。\n客户要求：\n- 补偿金额：50万元\n- 请求贵司按季度违约补偿流程处理\n\n如需澄清，请与我方法务同步。\n\n客户服务：团队A"
+      },
+      {
+        "message_id": "msg_2102",
+        "from": "customer-service@company.com",
+        "to": "me@company.com",
+        "subject": "【季度SLA违约补偿】骏驰物流-Q2 升级：需更高补偿？",
+        "date": "2026-03-01T10:20:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "important"],
+        "body": "尊敬的客服团队：\n\n客户编号：CUS-102\n客户名称：骏驰物流\n联系人：袁凯\n季度：Q2\n\n在Q2期间出现多次SLA违约，且影响发货计划。\n客户要求：\n- 补偿金额：25万元\n- 如无正式答复，将转入上级审批程序\n\n此处按季度为准。\n\n袁凯"
+      },
+      {
+        "message_id": "msg_2103",
+        "from": "customer-service@company.com",
+        "to": "me@company.com",
+        "subject": "【季度SLA违约补偿】银海银行科技-Q3 升级补偿请求 42万",
+        "date": "2026-03-01T11:45:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation"],
+        "body": "转交升级处理：\n\n客户编号：CUS-103\n客户名称：银海银行科技\n联系人：顾薇\n季度：Q3\n\n问题：Q3核心交易接口SLA超时，触发风控回滚。\n客户要求：\n- 补偿金额：42万元\n\n另外：邮件中提到“上次补偿已完成”，请核验记录。\n\n谢谢。\n顾薇"
+      },
+      {
+        "message_id": "msg_2104",
+        "from": "customer-service@company.com",
+        "to": "me@company.com",
+        "subject": "【季度SLA违约补偿】天谱云计算-Q2 预算内吗？申请40万",
+        "date": "2026-03-01T14:10:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation"],
+        "body": "客户投诉升级：\n\n客户编号：CUS-104\n客户名称：天谱云计算\n联系人：郑博士\n季度：Q2\n\nSLA违约描述：Q2部分服务不可用超过约2小时。\n客户要求：\n- 补偿金额：40万元\n- 希望收到处理结果\n\n如按规则需审批，请直接说明。\n\n郑博士"
+      },
+      {
+        "message_id": "msg_2105",
+        "from": "customer-service@company.com",
+        "to": "me@company.com",
+        "subject": "【季度SLA违约补偿】晨曦能源-Q4 需上级审批 12万",
+        "date": "2026-03-01T15:30:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "important"],
+        "body": "关于Q4 SLA违约补偿的升级邮件：\n\n客户编号：CUS-105\n客户名称：晨曦能源\n联系人：何宁\n季度：Q4\n\n客户要求：\n- 补偿金额：12万元\n- 我们希望贵司先行给出方案，但如需审批请走流程。\n\n（补充：提及此前收到过先前补偿，但我们希望核验）\n\n何宁"
+      },
+      {
+        "message_id": "msg_2106",
+        "from": "customer-service@company.com",
+        "to": "me@company.com",
+        "subject": "【季度SLA违约补偿】缺少客户编号-Q1 升级请求 8万",
+        "date": "2026-03-01T12:05:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation"],
+        "body": "客户服务通道转发：\n\n（本邮件缺失客户编号）\n客户名称：不详\n联系人：未知\n季度：Q1\n\nSLA违约：Q1响应超时。\n客户要求：\n- 补偿金额：8万元\n\n无法分配到具体客户系统，请协助定位。\n\n客服部"
+      },
+      {
+        "message_id": "msg_2107",
+        "from": "customer-service@company.com",
+        "to": "me@company.com",
+        "subject": "【季度SLA违约补偿】鼎盛医疗器械-Q2 请求 补偿金额待确认",
+        "date": "2026-03-01T16:05:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation"],
+        "body": "升级通知：\n\n客户编号：CUS-107\n客户名称：鼎盛医疗器械\n联系人：蒋玲\n季度：Q2\n\n关于SLA违约的补偿申请：\n- 补偿金额：待确认\n\n请先确认金额再推进。\n\n蒋玲"
+      },
+      {
+        "message_id": "msg_2108",
+        "from": "customer-service@company.com",
+        "to": "me@company.com",
+        "subject": "【季度SLA违约补偿】皓月通信-Q3 已终止合同 请求 10万",
+        "date": "2026-03-01T17:25:00+08:00",
+        "is_read": false,
+        "labels": ["inbox", "escalation", "important"],
+        "body": "异常升级：\n\n客户编号：CUS-106\n客户名称：皓月通信\n联系人：傅瑶\n季度：Q3\n\n声明：贵司合同已终止，我们不再接受任何“补偿承诺”邮件。\n同时，关于遗留SLA争议，请直接走法务沟通。\n\n客户要求（仅供记录）：补偿金额10万元。\n\n傅瑶\n（已终止合同）"
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2101",
+        "title": "北辰软件 Q1 SLA违约响应超标升级",
+        "description": "北辰软件（CUS-101）Q1期间关键链路响应超标，客户要求按季度违约补偿处理。邮件提及Q1。",
+        "customer_id": "CUS-101",
+        "reporter": "客户服务-客服专员A",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-01T08:40:00Z",
+        "tags": ["VIP", "Q1", "SLA升级"]
+      },
+      {
+        "ticket_id": "TK-2102",
+        "title": "北辰软件 Q2 交付风险复盘（非本次）",
+        "description": "北辰软件（CUS-101）Q2阶段交付风险复盘，非Q1升级。",
+        "customer_id": "CUS-101",
+        "reporter": "客户服务-运营",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-01T09:40:00Z",
+        "tags": ["VIP", "Q2", "复盘"]
+      },
+      {
+        "ticket_id": "TK-2103",
+        "title": "骏驰物流 Q2 SLA违约影响发货计划",
+        "description": "骏驰物流（CUS-102）Q2多次SLA违约导致发货计划受影响，需升级处理。邮件提及Q2。",
+        "customer_id": "CUS-102",
+        "reporter": "客户服务-专员B",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-01T10:00:00Z",
+        "tags": ["Q2", "SLA违约", "发货影响"]
+      },
+      {
+        "ticket_id": "TK-2104",
+        "title": "骏驰物流 Q1 客诉汇总（干扰）",
+        "description": "骏驰物流（CUS-102）Q1客服体验问题汇总，非Q2 SLA违约。",
+        "customer_id": "CUS-102",
+        "reporter": "客户服务-专员C",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-01T09:55:00Z",
+        "tags": ["Q1", "客服体验"]
+      },
+      {
+        "ticket_id": "TK-2105",
+        "title": "银海银行科技 Q3 接口SLA超时升级（需核验）",
+        "description": "银海银行科技（CUS-103）Q3接口SLA超时引发回滚，客户提到“上次补偿已完成”，需核验与升级。",
+        "customer_id": "CUS-103",
+        "reporter": "客户服务-专员D",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-01T11:10:00Z",
+        "tags": ["VIP", "Q3", "接口SLA", "需核验"]
+      },
+      {
+        "ticket_id": "TK-2106",
+        "title": "银海银行科技 Q4 数据治理异常（干扰）",
+        "description": "银海银行科技（CUS-103）Q4数据治理异常，非Q3 SLA违约。",
+        "customer_id": "CUS-103",
+        "reporter": "客户服务-专员E",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-01T12:00:00Z",
+        "tags": ["VIP", "Q4", "数据治理"]
+      },
+      {
+        "ticket_id": "TK-2107",
+        "title": "天谱云计算 Q2 服务不可用升级",
+        "description": "天谱云计算（CUS-104）Q2部分服务不可用超过约2小时，需按季度违约补偿规则处理。",
+        "customer_id": "CUS-104",
+        "reporter": "客户服务-专员F",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-01T13:20:00Z",
+        "tags": ["Q2", "不可用", "SLA违约"]
+      },
+      {
+        "ticket_id": "TK-2108",
+        "title": "天谱云计算 Q3 计费异常（干扰）",
+        "description": "天谱云计算（CUS-104）Q3计费异常，非Q2违约补偿。",
+        "customer_id": "CUS-104",
+        "reporter": "客户服务-专员G",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-01T13:50:00Z",
+        "tags": ["Q3", "计费异常"]
+      },
+      {
+        "ticket_id": "TK-2109",
+        "title": "晨曦能源 Q4 SLA违约导致链路中断",
+        "description": "晨曦能源（CUS-105）Q4链路中断并触发SLA违约，客户申请12万补偿，可能需上级审批。",
+        "customer_id": "CUS-105",
+        "reporter": "客户服务-专员H",
+        "department": "客户服务",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-03-01T15:00:00Z",
+        "tags": ["Q4", "链路中断"]
+      },
+      {
+        "ticket_id": "TK-2110",
+        "title": "晨曦能源 Q3 早期整改跟进（干扰）",
+        "description": "晨曦能源（CUS-105）Q3整改跟进，不对应Q4升级。",
+        "customer_id": "CUS-105",
+        "reporter": "客户服务-专员I",
+        "department": "客户服务",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-03-01T14:55:00Z",
+        "tags": ["Q3", "整改跟进"]
+      },
+      {
+        "ticket_id": "TK-2111",
+        "title": "皓月通信 Q3 已终止合同法务协同（候选）",
+        "description": "皓月通信（CUS-106）Q3争议升级，客户声明已终止合同，需法务协同处理。",
+        "customer_id": "CUS-106",
+        "reporter": "客户服务-专员J",
+        "department": "客户服务",
+        "priority": "critical",
+        "status": "open",
+        "created_at": "2026-03-01T16:40:00Z",
+        "tags": ["Q3", "异常", "需法务"]
+      },
+      {
+        "ticket_id": "TK-2112",
+        "title": "鼎盛医疗器械 Q2 金额待确认（干扰候选）",
+        "description": "鼎盛医疗器械（CUS-107）Q2补偿申请待确认，金额未确定。",
+        "customer_id": "CUS-107",
+        "reporter": "客户服务-专员K",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-01T16:10:00Z",
+        "tags": ["Q2", "待确认", "干扰"]
+      },
+      {
+        "ticket_id": "TK-2113",
+        "title": "星桥教育科技 Q2 预算外升级（干扰客户）",
+        "description": "星桥教育科技（CUS-108）Q2相关问题的历史工单，用于干扰工单匹配。",
+        "customer_id": "CUS-108",
+        "reporter": "客户服务-专员L",
+        "department": "客户服务",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-03-01T17:00:00Z",
+        "tags": ["Q2", "干扰"]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新增季度标识（Q1/Q2/Q3/Q4）用于工单匹配，并加入缺失客户编号/金额待确认/“已终止合同”异常干扰，且等于5%归预算内、略高于5%归预算外。",
+    "fixture_design_summary": [
+      "gmail/inbox.json 共8封：5封可解析并含季度与金额；3封干扰（缺客户编号、金额待确认、已终止合同+churned）。",
+      "crm/customers.json 提供8个客户，其中churned至少2个（CUS-106、CUS-107），active用于其余可解析分流。",
+      "helpdesk/tickets.json 对每个可解析客户至少2条候选工单，并通过标签/标题中的Qx确保季度匹配能选中目标工单。",
+      "contacts.json 新增客户服务与法务联络人邮箱（用于sent/draft/legal通知），并保证跨fixture引用可用。",
+      "finance/transactions.json 提供2条“先前补偿”记录支撑对干扰叙述的可选一致性核验。"
+    ]
+  }
+}

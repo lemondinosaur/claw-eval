@@ -1,0 +1,191 @@
+[
+  {
+    "transaction_id": "TXN-3101",
+    "customer_id": "CUS-211",
+    "amount": 180000,
+    "type": "subscription",
+    "date": "2026-01-18",
+    "status": "completed",
+    "description": "1月订阅费+风控模块"
+  },
+  {
+    "transaction_id": "TXN-3102",
+    "customer_id": "CUS-211",
+    "amount": 165000,
+    "type": "subscription",
+    "date": "2026-02-17",
+    "status": "refunded",
+    "description": "2月订阅费退款（对账差异）"
+  },
+  {
+    "transaction_id": "TXN-3103",
+    "customer_id": "CUS-211",
+    "amount": 172000,
+    "type": "one_time",
+    "date": "2026-03-12",
+    "status": "failed",
+    "description": "合规接口一次性费失败（支付通道风控）"
+  },
+  {
+    "transaction_id": "TXN-3104",
+    "customer_id": "CUS-212",
+    "amount": 82000,
+    "type": "subscription",
+    "date": "2026-01-09",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-3105",
+    "customer_id": "CUS-212",
+    "amount": 83000,
+    "type": "subscription",
+    "date": "2026-02-09",
+    "status": "completed",
+    "description": "2月订阅费（合规材料齐备）"
+  },
+  {
+    "transaction_id": "TXN-3106",
+    "customer_id": "CUS-212",
+    "amount": 84000,
+    "type": "one_time",
+    "date": "2026-03-08",
+    "status": "completed",
+    "description": "3月一次性校验服务"
+  },
+  {
+    "transaction_id": "TXN-3107",
+    "customer_id": "CUS-213",
+    "amount": 62000,
+    "type": "subscription",
+    "date": "2026-01-22",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-3108",
+    "customer_id": "CUS-213",
+    "amount": 60000,
+    "type": "subscription",
+    "date": "2026-02-21",
+    "status": "failed",
+    "description": "2月订阅费失败（供应链成本上升导致付款延后）"
+  },
+  {
+    "transaction_id": "TXN-3109",
+    "customer_id": "CUS-213",
+    "amount": 60500,
+    "type": "one_time",
+    "date": "2026-03-19",
+    "status": "completed",
+    "description": "3月交付验收一次性费"
+  },
+  {
+    "transaction_id": "TXN-3110",
+    "customer_id": "CUS-214",
+    "amount": 95000,
+    "type": "subscription",
+    "date": "2026-01-14",
+    "status": "completed",
+    "description": "1月订阅费（企业版）"
+  },
+  {
+    "transaction_id": "TXN-3111",
+    "customer_id": "CUS-214",
+    "amount": 94000,
+    "type": "subscription",
+    "date": "2026-02-14",
+    "status": "refunded",
+    "description": "2月订阅费退款（预算调整/降级讨论）"
+  },
+  {
+    "transaction_id": "TXN-3112",
+    "customer_id": "CUS-214",
+    "amount": 97000,
+    "type": "one_time",
+    "date": "2026-03-16",
+    "status": "failed",
+    "description": "3月迁移项目一次性费失败（审批未通过）"
+  },
+  {
+    "transaction_id": "TXN-3113",
+    "customer_id": "CUS-215",
+    "amount": 43000,
+    "type": "subscription",
+    "date": "2026-01-30",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-3114",
+    "customer_id": "CUS-215",
+    "amount": 45000,
+    "type": "subscription",
+    "date": "2026-02-28",
+    "status": "refunded",
+    "description": "2月订阅费退款（里程碑对不上）"
+  },
+  {
+    "transaction_id": "TXN-3115",
+    "customer_id": "CUS-215",
+    "amount": 47000,
+    "type": "one_time",
+    "date": "2026-03-26",
+    "status": "failed",
+    "description": "3月对账服务一次性费失败（争议未结）"
+  },
+  {
+    "transaction_id": "TXN-3116",
+    "customer_id": "CUS-216",
+    "amount": 68000,
+    "type": "subscription",
+    "date": "2026-01-11",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-3117",
+    "customer_id": "CUS-216",
+    "amount": 69000,
+    "type": "subscription",
+    "date": "2026-02-11",
+    "status": "completed",
+    "description": "2月订阅费（AI素材投放增强）"
+  },
+  {
+    "transaction_id": "TXN-3118",
+    "customer_id": "CUS-216",
+    "amount": 71000,
+    "type": "one_time",
+    "date": "2026-03-14",
+    "status": "completed",
+    "description": "3月一次性增长分析服务"
+  },
+  {
+    "transaction_id": "TXN-3119",
+    "customer_id": "CUS-217",
+    "amount": 52000,
+    "type": "subscription",
+    "date": "2026-01-08",
+    "status": "completed",
+    "description": "1月订阅费"
+  },
+  {
+    "transaction_id": "TXN-3120",
+    "customer_id": "CUS-217",
+    "amount": 48000,
+    "type": "subscription",
+    "date": "2026-02-08",
+    "status": "refunded",
+    "description": "2月订阅费退款（项目暂停）"
+  },
+  {
+    "transaction_id": "TXN-3121",
+    "customer_id": "CUS-217",
+    "amount": 50000,
+    "type": "one_time",
+    "date": "2026-03-08",
+    "status": "refunded",
+    "description": "3月一次性培训费退款（拨付延迟）"
+  }
+]

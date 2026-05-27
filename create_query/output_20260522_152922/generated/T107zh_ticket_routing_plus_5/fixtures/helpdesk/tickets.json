@@ -1,0 +1,104 @@
+[
+  {
+    "ticket_id": "TK-601",
+    "title": "导出超时且伴随UI加载慢（疑似主因非UI）",
+    "description": "【客户】星河云联（CUS-601）反馈：在“订单导出”时出现超时，浏览器控制台同时出现模块UI占位，但核心报错来自后端：\n- 日志关键字：TimeoutError: exportJob exceeded 30000ms\n- 接口路径：/api/v2/reports/export\n- 现象：导出CSV在第30秒无响应后失败，随后页面加载也变慢（疑似二次影响）\n【对抗线索】当前工单tags被错误填写为：['UI','渲染','导出']，但问题证据显示是导出任务超时。\n【当前字段】category现在写成“UI问题”，需要重新判断主症状并更新分类与tags。",
+    "customer_id": "CUS-601",
+    "reporter": "陈总",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-18T09:10:00Z",
+    "tags": [
+      "UI",
+      "渲染",
+      "导出"
+    ],
+    "category": "UI问题"
+  },
+  {
+    "ticket_id": "TK-602",
+    "title": "权限校验失败（但页面提示为导出异常）",
+    "description": "北斗零售（CUS-602）告警：导出按钮可点击但实际请求返回403。\n关键证据：\n- HTTP状态：403 Forbidden\n- 响应体：{\"code\":\"AUTH_403\",\"message\":\"scope missing\"}\n- 相关模块：导出服务调用UserScope鉴权链路\n【对抗线索】工单当前category填“导出故障”，tags却写成['导出','权限','UI']，其中UI只是伴随提示文字。\n【补充】同时出现页面弹窗：“导出失败，请重试”。但抓包显示鉴权失败是根因。",
+    "customer_id": "CUS-602",
+    "reporter": "周女士",
+    "department": "技术支持",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-04-18T10:25:00Z",
+    "tags": [
+      "导出",
+      "权限",
+      "UI"
+    ],
+    "category": "导出故障"
+  },
+  {
+    "ticket_id": "TK-603",
+    "title": "网关接口超时（伴随批量导入失败日志）",
+    "description": "蓝鲸电信运营商（CUS-603）在批量同步后触发接口超时。\n关键证据：\n- 错误码：GATEWAY_TIMEOUT (504)\n- 日志短语：\"upstream timed out while calling api-gateway\"\n- 同期批量导入失败：Import部分任务重试，但导入失败是由于上游超时导致\n【对抗线索】当前tags写反为['接口','导出','UI异常']（把导入失败误当成导出/ UI问题）。\n【当前字段】category当前填“使用咨询”，与实际接口超时不符，需要基于GATEWAY_TIMEOUT重新路由。",
+    "customer_id": "CUS-603",
+    "reporter": "刘经理",
+    "department": "技术支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-18T11:40:00Z",
+    "tags": [
+      "接口",
+      "导出",
+      "UI异常"
+    ],
+    "category": "使用咨询"
+  },
+  {
+    "ticket_id": "TK-604",
+    "title": "数据同步延迟与权限校验并发：主症状疑为延迟恢复",
+    "description": "青橙教育平台（CUS-604）反馈：课程资料在教师端展示滞后。\n关键证据：\n- 同步延迟：约45分钟（系统页面显示lag指标持续上升）\n- 日志短语：Kafka consumer lag exceeded threshold\n- 同时请求出现部分“401 Unauthorized”，但该401来自后续补偿调用（依赖同步数据尚未就绪）\n【对抗线索】当前category写“权限校验”，tags写['数据同步','权限','导出超时']，其中导出超时只是零星任务失败。\n需要判断主症状为数据同步延迟，并给出正确category/tags与KB。",
+    "customer_id": "CUS-604",
+    "reporter": "孙老师",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-18T12:55:00Z",
+    "tags": [
+      "数据同步",
+      "权限",
+      "导出超时"
+    ],
+    "category": "权限校验"
+  },
+  {
+    "ticket_id": "TK-605",
+    "title": "报表导出与UI渲染卡顿：导出成功但生成耗时过长",
+    "description": "融港物流（CUS-605）提出异常：报表导出流程耗时，虽然最终会生成文件，但平均需要18分钟。\n关键证据：\n- 接口：/api/v2/reports/export?format=xlsx\n- 生成队列时间：job_queue_delay ~ 1100000ms\n- 前端渲染仅表现为等待态（非真正UI错误）\n【对抗线索】当前tags=['UI','渲染','性能']，category='UI问题'，但主症状是导出耗时/队列积压。\n请按主证据更新category与tags，并重算priority。",
+    "customer_id": "CUS-605",
+    "reporter": "高总监",
+    "department": "技术支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-18T14:10:00Z",
+    "tags": [
+      "UI",
+      "渲染",
+      "性能"
+    ],
+    "category": "UI问题"
+  },
+  {
+    "ticket_id": "TK-606",
+    "title": "UI接口联动报错：权限校验失败导致页面无法加载",
+    "description": "珊瑚酒店集团（CUS-606）页面无法打开“订单看板”。\n关键证据：\n- 浏览器错误：Failed to fetch /api/v2/ui/dashboard\n- 响应：401 Unauthorized\n- 错误码：AUTH_SCOPE_DENIED\n- 影响范围：仅看板模块不可用，其它页面可正常。\n【对抗线索】工单tags目前写为['接口超时','导出','UI']，category='性能问题'，与实际401鉴权失败矛盾。\n需要基于401/AUTH_SCOPE_DENIED判断主症状并选择KB方案。",
+    "customer_id": "CUS-606",
+    "reporter": "吴总",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-18T15:25:00Z",
+    "tags": [
+      "接口超时",
+      "导出",
+      "UI"
+    ],
+    "category": "性能问题"
+  }
+]

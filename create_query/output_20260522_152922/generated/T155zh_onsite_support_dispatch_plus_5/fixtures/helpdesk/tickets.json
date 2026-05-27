@@ -1,0 +1,114 @@
+[
+  {
+    "ticket_id": "TK-2101",
+    "title": "变电站监控平台告警风暴导致数据库写入阻塞（主/备站）",
+    "description": "橙海电力集团（CUS-2101）反馈：变电站监控平台触发告警风暴，导致数据库写入阻塞（写入延迟持续、锁等待上升）。需要现场执行：\n- 监控告警抑制策略（降噪/抑制规则生效）\n- 数据库写入阻塞排查（锁等待/慢查询/执行计划）\n\n地点与SLA：\n- 主站：南京主站需在45分钟内到达并开始故障定位\n- 合同转场：若主站在90分钟内无法确认原因，则需转场备站\n- 备站：南京备站（第二运维机房）继续处置\n\n初步现象：写入线程堆积，出现长事务与慢查询放大告警风暴。",
+    "customer_id": "CUS-2101",
+    "reporter": "运维值班负责人",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-20T13:10:00+08:00",
+    "tags": [
+      "VIP",
+      "紧急",
+      "主备站",
+      "数据库写入阻塞",
+      "告警风暴"
+    ],
+    "category": "现场故障",
+    "requires_onsite": true,
+    "sla_deadline": "2026-04-20T14:10:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2102",
+    "title": "星河物流：支付回调偶发超时（无需现场）",
+    "description": "星河物流有限公司（CUS-2102）反馈：支付回调偶发超时。建议先排查网关与超时重试策略。该工单requires_onsite=false。",
+    "customer_id": "CUS-2102",
+    "reporter": "钱工",
+    "department": "技术支持",
+    "priority": "critical",
+    "status": "open",
+    "created_at": "2026-04-20T11:20:00+08:00",
+    "tags": [
+      "支付",
+      "网关",
+      "超时"
+    ],
+    "category": "线上问题",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-20T20:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2103",
+    "title": "北辰医疗：内网证书链过期提醒",
+    "description": "北辰医疗器械（CUS-2103）反馈：内网证书链即将过期，需更新证书。当前为medium，建议远程指导。",
+    "customer_id": "CUS-2103",
+    "reporter": "赵主任",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-19T16:05:00+08:00",
+    "tags": [
+      "证书",
+      "到期"
+    ],
+    "category": "运维咨询",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-25T10:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2104",
+    "title": "橙海电力：报表查询偶尔慢（非核心主流程）",
+    "description": "橙海电力集团内部业务报表偶尔超时。priority=medium，requires_onsite=false（仅建议对慢查询进行抽样复核）。",
+    "customer_id": "CUS-2101",
+    "reporter": "业务负责人",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-20T09:55:00+08:00",
+    "tags": [
+      "慢查询",
+      "报表"
+    ],
+    "category": "性能问题",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-21T09:55:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2105",
+    "title": "星河物流：消息队列积压（现场可选）",
+    "description": "星河物流有限公司（CUS-2102）反馈：消息队列积压。priority=medium，requires_onsite=true但不属于VIP与本次主备站要求（用于干扰）。",
+    "customer_id": "CUS-2102",
+    "reporter": "运维张师傅",
+    "department": "技术支持",
+    "priority": "medium",
+    "status": "open",
+    "created_at": "2026-04-20T10:30:00+08:00",
+    "tags": [
+      "MQ",
+      "积压"
+    ],
+    "category": "线上问题",
+    "requires_onsite": true,
+    "sla_deadline": "2026-04-21T12:00:00+08:00"
+  },
+  {
+    "ticket_id": "TK-2106",
+    "title": "北辰医疗：数据库备份失败排查（标准等级）",
+    "description": "北辰医疗器械（CUS-2103）反馈：数据库备份任务失败。priority=low，requires_onsite=false。",
+    "customer_id": "CUS-2103",
+    "reporter": "IT值班",
+    "department": "技术支持",
+    "priority": "low",
+    "status": "open",
+    "created_at": "2026-04-18T15:10:00+08:00",
+    "tags": [
+      "备份",
+      "失败"
+    ],
+    "category": "运维排查",
+    "requires_onsite": false,
+    "sla_deadline": "2026-04-24T18:00:00+08:00"
+  }
+]

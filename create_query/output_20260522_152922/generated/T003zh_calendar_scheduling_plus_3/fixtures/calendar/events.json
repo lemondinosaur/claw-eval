@@ -1,0 +1,77 @@
+[
+  {
+    "event_id": "evt_gn_001",
+    "title": "顾宁-内部评审会",
+    "start_time": "2026-05-06T09:30:00Z",
+    "end_time": "2026-05-06T11:00:00Z",
+    "attendees": [
+      "顾宁"
+    ],
+    "location": "评审室B",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_gn_002",
+    "title": "顾宁-阶段对齐",
+    "start_time": "2026-05-06T13:30:00Z",
+    "end_time": "2026-05-06T14:45:00Z",
+    "attendees": [
+      "顾宁"
+    ],
+    "location": "会议室D",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_hl_001",
+    "title": "韩磊-午后短会（干扰项）",
+    "start_time": "2026-05-06T15:15:00Z",
+    "end_time": "2026-05-06T15:45:00Z",
+    "attendees": [
+      "韩磊"
+    ],
+    "location": "会议室E",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_hl_002",
+    "title": "韩磊-对外协调",
+    "start_time": "2026-05-06T16:20:00Z",
+    "end_time": "2026-05-06T16:50:00Z",
+    "attendees": [
+      "韩磊"
+    ],
+    "location": "线上会议室",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_rr_001",
+    "title": "任然-边界冲突占用",
+    "start_time": "2026-05-06T15:45:00Z",
+    "end_time": "2026-05-06T16:30:00Z",
+    "attendees": [
+      "任然"
+    ],
+    "location": "远程协作空间",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_rr_002",
+    "title": "任然-工作复盘",
+    "start_time": "2026-05-06T14:30:00Z",
+    "end_time": "2026-05-06T15:20:00Z",
+    "attendees": [
+      "任然"
+    ],
+    "location": "会议室F",
+    "recurring": false
+  },
+  {
+    "event_id": "evt_all_001",
+    "title": "全员事项通告（干扰项）",
+    "start_time": "2026-05-06T17:00:00Z",
+    "end_time": "2026-05-06T18:00:00Z",
+    "attendees": [],
+    "location": "",
+    "recurring": false
+  }
+]

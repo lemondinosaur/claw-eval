@@ -1,0 +1,292 @@
+{
+  "task_id": "T109zh_complaint_investigation_plus_3",
+  "task_name": "服务中断计费差错与补偿条款",
+  "prompt_text": "收件箱里有几封客户投诉邮件，需要你逐一调查并给出处理建议，最后为最紧急的案例起草回复邮件草稿并保存。\n\n请对每封投诉邮件：\n1. 阅读投诉内容，理解客户关于“服务中断后仍被照常计费/补偿未按条款执行”的具体诉求与时间描述。\n2. 在CRM中核实客户归属与付费资质：客户等级（vip/standard）、合同是否有效/是否为付费账号（若客户不存在或标记为未付费需判定为疑似误报）。\n3. 在财务系统中按中断时间窗口核验交易证据：检查是否存在应减免/补偿相关交易（减免/更正/折扣、补偿支出）。重点核验交易状态与审批链路（approved/pending/completed）是否与客户说法一致。\n4. 查找内部对应负责人的联系方式（服务运营/计费支持）。\n5. 给出调查结论与下一步处理建议：若发现“审批有记录但财务仍 pending/缺失支出”，要明确应追到哪个环节并给出可执行的追单建议；若判定为误报（非付费账号/无合同），需要给出澄清与排查建议。\n\n最紧急案例选择规则：选择客户等级为vip，且投诉涉及补偿仍在pending或存在缺失减免/补偿问题的那一封。对最紧急案例使用 gmail_save_draft 起草回复邮件草稿（包含：确认中断与计费差错、已核验到的具体交易/状态证据摘要、预计补偿/减免落实时间与内部联系人信息指引）。",
+  "files": {
+    "fixtures/contacts/contacts.json": [
+      {
+        "contact_id": "CT-701",
+        "name": "周航",
+        "department": "服务运营部",
+        "title": "服务运营经理",
+        "email": "zhouhang@company.com",
+        "phone": "13900707001",
+        "location": "上海总部",
+        "notes": "负责服务中断通报与补偿条款落地协同"
+      },
+      {
+        "contact_id": "CT-702",
+        "name": "郑秋",
+        "department": "财务部",
+        "title": "计费调整审批专员",
+        "email": "zhengqiu@company.com",
+        "phone": "13900707002",
+        "location": "上海总部",
+        "notes": "负责减免/补偿交易审批与执行跟踪"
+      },
+      {
+        "contact_id": "CT-703",
+        "name": "沈岚",
+        "department": "技术部",
+        "title": "运维故障响应负责人",
+        "email": "shenliang@company.com",
+        "phone": "13900707003",
+        "location": "北京分部",
+        "notes": "负责中断事件时间线与受影响范围确认"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-701",
+        "name": "北辰零售",
+        "contact_person": "陈冰",
+        "email": "chenbing@beichen-retail.com",
+        "phone": "13900711001",
+        "industry": "零售",
+        "tier": "vip",
+        "annual_revenue": 2200000,
+        "last_contact_date": "2026-03-26",
+        "status": "active",
+        "notes": "合同含服务中断补偿条款；客户投诉优先级高"
+      },
+      {
+        "customer_id": "CUS-702",
+        "name": "天桥物流",
+        "contact_person": "赵辰",
+        "email": "zhaocheng@tq-logistics.com",
+        "phone": "13900711002",
+        "industry": "物流",
+        "tier": "standard",
+        "annual_revenue": 560000,
+        "last_contact_date": "2026-03-25",
+        "status": "active",
+        "notes": "启用中断补偿条款，但上月曾出现补偿审批后未落地"
+      },
+      {
+        "customer_id": "CUS-703",
+        "name": "星云工作室",
+        "contact_person": "许宁",
+        "email": "xuning@xingyun-studio.com",
+        "phone": "13900711003",
+        "industry": "互联网服务",
+        "tier": "standard",
+        "annual_revenue": 0,
+        "last_contact_date": "2026-03-20",
+        "status": "unpaid",
+        "notes": "非付费账号/状态未激活；来信疑似误报，请按资格核验"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-701",
+        "date": "2026-03-21",
+        "amount": 180000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰零售",
+        "type": "月度服务费",
+        "category": "服务收入",
+        "description": "北辰零售2026年3月标准版服务费",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-702",
+        "date": "2026-03-22",
+        "amount": -9000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰零售",
+        "type": "服务中断减免",
+        "category": "服务收入-减免",
+        "description": "北辰零售凌晨升级中断影响窗口减免（-9000）",
+        "status": "completed",
+        "approved_by": "郑秋"
+      },
+      {
+        "transaction_id": "TXN-703",
+        "date": "2026-03-22",
+        "amount": -4500.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰零售",
+        "type": "服务中断更正",
+        "category": "补偿/更正",
+        "description": "北辰零售补差更正（补偿条款兑现的一部分）",
+        "status": "completed",
+        "approved_by": "郑秋"
+      },
+      {
+        "transaction_id": "TXN-704",
+        "date": "2026-03-23",
+        "amount": 5000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰零售",
+        "type": "服务中断补偿",
+        "category": "补偿支出",
+        "description": "北辰零售服务中断补偿（审批通过，待支付）",
+        "status": "pending",
+        "approved_by": "郑秋"
+      },
+      {
+        "transaction_id": "TXN-705",
+        "date": "2026-03-19",
+        "amount": 76000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "天桥物流",
+        "type": "月度服务费",
+        "category": "服务收入",
+        "description": "天桥物流2026年3月服务费",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-706",
+        "date": "2026-03-20",
+        "amount": -8000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "天桥物流",
+        "type": "服务中断减免",
+        "category": "服务收入-减免",
+        "description": "天桥物流中断期间应减免（-8000，已登记但尚未入账）",
+        "status": "pending",
+        "approved_by": "郑秋"
+      },
+      {
+        "transaction_id": "TXN-707",
+        "date": "2026-03-22",
+        "amount": 12000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "天桥物流",
+        "type": "服务中断补偿",
+        "category": "补偿支出",
+        "description": "天桥物流服务中断补偿（标记approved但财务侧尚未生成付款单）",
+        "status": "pending",
+        "approved_by": "郑秋"
+      },
+      {
+        "transaction_id": "TXN-708",
+        "date": "2026-03-24",
+        "amount": 0.0,
+        "currency": "CNY",
+        "customer_id": "CUS-702",
+        "customer_name": "天桥物流",
+        "type": "服务中断补偿缺失更正",
+        "category": "补偿/更正",
+        "description": "用于对账的补偿缺失记录（用于B类投诉核验：无实际支出对应）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-709",
+        "date": "2026-03-20",
+        "amount": 4200.0,
+        "currency": "CNY",
+        "customer_id": "CUS-703",
+        "customer_name": "星云工作室",
+        "type": "按次计费",
+        "category": "服务收入",
+        "description": "星云工作室非付费账号的历史账目（不应触发补偿条款）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-710",
+        "date": "2026-03-22",
+        "amount": 0.0,
+        "currency": "CNY",
+        "customer_id": "CUS-703",
+        "customer_name": "星云工作室",
+        "type": "服务中断补偿（不适用）",
+        "category": "补偿支出",
+        "description": "系统规则校验后不适用的补偿占位记录",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-711",
+        "date": "2026-03-21",
+        "amount": 150000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰零售",
+        "type": "升级相关维保费",
+        "category": "服务收入",
+        "description": "与升级窗口无直接中断减免关系的其他费用（干扰项，用于核验日期匹配）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-712",
+        "date": "2026-03-24",
+        "amount": -6000.0,
+        "currency": "CNY",
+        "customer_id": "CUS-701",
+        "customer_name": "北辰零售",
+        "type": "促销折扣",
+        "category": "服务收入-折扣",
+        "description": "促销折扣（与中断无关）",
+        "status": "completed",
+        "approved_by": "郑秋"
+      }
+    ],
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "msg_701",
+        "from": "chenbing@beichen-retail.com",
+        "to": "support@company.com",
+        "subject": "紧急：3/22凌晨服务中断后仍全额计费，补偿未按条款支付",
+        "date": "2026-03-26T09:15:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox",
+          "important"
+        ],
+        "body": "您好，我是北辰零售的陈冰。\n我们在3月22日凌晨 01:40-08:40（约7小时）出现系统服务中断。按合同补偿条款，贵司应对中断影响期间进行减免/补偿。\n但账单显示该月服务费仍按全额收取，且系统里看到补偿流程已审批，但财务侧迟迟没有对应支出/入账。\n麻烦你们核实：1）中断窗口是否与账务减免/补偿交易匹配；2）补偿审批到财务执行是否卡在pending；3）预计何时完成补偿/减免。\n客户ID：CUS-701。"
+      },
+      {
+        "message_id": "msg_702",
+        "from": "zhaocheng@tq-logistics.com",
+        "to": "support@company.com",
+        "subject": "关于服务中断补偿：显示已审批但财务没有落地",
+        "date": "2026-03-25T15:40:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "您好，我是天桥物流的赵辰。\n3月20日夜间 23:55-次日 05:10（约5小时15分钟）出现服务中断。客服承诺按条款处理：应减免月度费用并发起补偿支出。\n目前我方在系统里看到相关补偿标记为“已审批（approved）”，但财务对账单里没有看到对应的补偿支出或减免入账记录。\n请帮忙进一步核验减免/补偿类型与状态（pending/入账完成），并告知追单路径。\n客户ID：CUS-702。"
+      },
+      {
+        "message_id": "msg_703",
+        "from": "xuning@xingyun-studio.com",
+        "to": "support@company.com",
+        "subject": "误报？凌晨系统中断我方也被扣费了",
+        "date": "2026-03-25T08:05:00+08:00",
+        "is_read": false,
+        "labels": [
+          "inbox"
+        ],
+        "body": "你好，我是星云工作室的许宁。\n我们在3月22日凌晨同样看到“服务中断”提示，醒来后发现账户似乎仍产生了扣费。\n我们这边可能没有购买付费套餐（账户是自助/试用），但仍收到了类似计费记录。希望你们确认：是否属于误报，或者是否存在不该触发补偿/减免的计费逻辑问题。\n如果需要，请说明是否应当核验合同/付费资格。\n客户ID：CUS-703。"
+      },
+      {
+        "message_id": "msg_704",
+        "from": "newsletter@industry-weekly.com",
+        "to": "support@company.com",
+        "subject": "SaaS运维提示：升级窗口运维规范",
+        "date": "2026-03-26T07:30:00+08:00",
+        "is_read": true,
+        "labels": [
+          "inbox"
+        ],
+        "body": "本周运维提示：如何通知客户升级窗口注意事项..."
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "相较原题聚焦“账单异常/退款卡住”，新题将调查重点转为“中断期计费减免规则 + 补偿审批/执行链路”，并加入非付费账号误报干扰。",
+    "fixture_design_summary": [
+      "邮件：3封真实投诉（CUS-701 vip、CUS-702 standard、不同中断时长与诉求）+ 1封与任务无关的行业邮件（干扰）+ 1封非付费账号误报（CUS-703）。",
+      "CRM：为三类客户分别设置 tier/状态（active、active、unpaid），确保可通过付费资格判断误报。",
+      "财务：围绕3/22中断窗口构造减免/更正（completed）与补偿支出（pending）用于匹配“审批后未执行”；并为CUS-702设置减免 pending 与补偿 pending，另加缺失对账记录用于B类核验。",
+      "跨文件引用：邮件中的客户ID（CUS-701/702/703）与CRM客户及财务交易customer_id保持一致；负责联系人在contacts中预置，可被contacts_search匹配到服务运营/计费支持负责人。"
+    ]
+  }
+}

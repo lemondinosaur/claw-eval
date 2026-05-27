@@ -1,0 +1,342 @@
+[
+  {
+    "job_id": "JID-210",
+    "name": "归档配额写入任务_A",
+    "cron_expression": "0 2 * * *",
+    "action": "将冷数据批次写入归档存储（含索引快照）",
+    "enabled": true,
+    "last_run": "2026-02-25T02:00:00+08:00",
+    "next_run": "2026-02-26T02:00:00+08:00",
+    "last_status": "failed",
+    "created_by": "archive-bot",
+    "tags": [
+      "archive",
+      "write"
+    ],
+    "created_at": "2025-09-10T09:40:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-25T02:00:00+08:00",
+        "status": "failed",
+        "error": "归档存储配额超限：写入被拒（ArchiveQuota: 0可用）",
+        "duration_seconds": 41
+      },
+      {
+        "run_time": "2026-02-24T02:00:00+08:00",
+        "status": "failed",
+        "error": "归档落盘失败：QuotaExceeded during commit",
+        "duration_seconds": 38
+      },
+      {
+        "run_time": "2026-02-23T02:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 46
+      }
+    ]
+  },
+  {
+    "job_id": "JID-211",
+    "name": "归档索引重建_每日",
+    "cron_expression": "10 1 * * *",
+    "action": "重建归档索引分区（可能与写入窗口竞争）",
+    "enabled": true,
+    "last_run": "2026-02-25T01:10:00+08:00",
+    "next_run": "2026-02-26T01:10:00+08:00",
+    "last_status": "success",
+    "created_by": "search-platform",
+    "tags": [
+      "archive",
+      "index",
+      "rebuild"
+    ],
+    "created_at": "2025-12-05T11:05:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-25T01:10:00+08:00",
+        "status": "success",
+        "duration_seconds": 132
+      },
+      {
+        "run_time": "2026-02-24T01:10:00+08:00",
+        "status": "failed",
+        "error": "索引重建阶段出现归档写入锁争用（LockTimeout: 300s）",
+        "duration_seconds": 302
+      },
+      {
+        "run_time": "2026-02-23T01:10:00+08:00",
+        "status": "success",
+        "duration_seconds": 128
+      }
+    ]
+  },
+  {
+    "job_id": "JID-212",
+    "name": "短期归档清理临时任务_B",
+    "cron_expression": "0 2 * * *",
+    "action": "清理过期归档段并尝试回收空间（temporary）",
+    "enabled": true,
+    "last_run": "2026-02-25T02:00:00+08:00",
+    "next_run": "2026-02-26T02:00:00+08:00",
+    "last_status": "success",
+    "created_by": "ops-automation",
+    "tags": [
+      "temporary",
+      "archive",
+      "cleanup"
+    ],
+    "created_at": "2025-11-20T02:30:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-25T02:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 210
+      },
+      {
+        "run_time": "2026-02-24T02:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 205
+      },
+      {
+        "run_time": "2026-02-23T02:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 198
+      }
+    ]
+  },
+  {
+    "job_id": "JID-213",
+    "name": "临时迁移校验任务_C",
+    "cron_expression": "*/20 * * * *",
+    "action": "对迁移后的归档元数据进行一致性校验（temporary）",
+    "enabled": true,
+    "last_run": "2026-02-25T16:00:00+08:00",
+    "next_run": "2026-02-25T16:20:00+08:00",
+    "last_status": "failed",
+    "created_by": "migration-tools",
+    "tags": [
+      "temporary",
+      "migration",
+      "checksum"
+    ],
+    "created_at": "2025-10-10T13:00:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-25T16:00:00+08:00",
+        "status": "failed",
+        "error": "校验依赖归档存储不可写：资源占用导致超时（WriteBusy）",
+        "duration_seconds": 507
+      },
+      {
+        "run_time": "2026-02-25T15:40:00+08:00",
+        "status": "failed",
+        "error": "metadata check failed: ArchiveStore returned retryable error",
+        "duration_seconds": 491
+      },
+      {
+        "run_time": "2026-02-25T15:20:00+08:00",
+        "status": "success",
+        "duration_seconds": 162
+      }
+    ]
+  },
+  {
+    "job_id": "JID-214",
+    "name": "全量用户报表汇总",
+    "cron_expression": "0 8 * * *",
+    "action": "汇总用户行为数据并生成报表",
+    "enabled": true,
+    "last_run": "2026-02-25T08:00:00+08:00",
+    "next_run": "2026-02-26T08:00:00+08:00",
+    "last_status": "success",
+    "created_by": "bi-team",
+    "tags": [
+      "report",
+      "daily"
+    ],
+    "created_at": "2025-07-18T06:20:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-25T08:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 398
+      },
+      {
+        "run_time": "2026-02-24T08:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 410
+      },
+      {
+        "run_time": "2026-02-23T08:00:00+08:00",
+        "status": "failed",
+        "error": "上游数据延迟导致任务超时（UpstreamDelay）",
+        "duration_seconds": 120
+      }
+    ]
+  },
+  {
+    "job_id": "JID-215",
+    "name": "告警路由规则同步",
+    "cron_expression": "*/10 * * * *",
+    "action": "同步告警路由规则到告警网关",
+    "enabled": true,
+    "last_run": "2026-02-25T16:10:00+08:00",
+    "next_run": "2026-02-25T16:20:00+08:00",
+    "last_status": "success",
+    "created_by": "platform-team",
+    "tags": [
+      "alert",
+      "sync"
+    ],
+    "created_at": "2025-08-29T17:45:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-25T16:10:00+08:00",
+        "status": "success",
+        "duration_seconds": 12
+      },
+      {
+        "run_time": "2026-02-25T16:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 11
+      },
+      {
+        "run_time": "2026-02-25T15:50:00+08:00",
+        "status": "success",
+        "duration_seconds": 13
+      }
+    ]
+  },
+  {
+    "job_id": "JID-216",
+    "name": "消息队列健康采样",
+    "cron_expression": "*/15 * * * *",
+    "action": "采样消息队列堆积情况并写入监控指标",
+    "enabled": true,
+    "last_run": "2026-02-25T16:15:00+08:00",
+    "next_run": "2026-02-25T16:30:00+08:00",
+    "last_status": "success",
+    "created_by": "observability",
+    "tags": [
+      "monitoring",
+      "mq"
+    ],
+    "created_at": "2025-06-12T09:10:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-25T16:15:00+08:00",
+        "status": "success",
+        "duration_seconds": 6
+      },
+      {
+        "run_time": "2026-02-25T16:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 5
+      },
+      {
+        "run_time": "2026-02-25T15:45:00+08:00",
+        "status": "success",
+        "duration_seconds": 6
+      }
+    ]
+  },
+  {
+    "job_id": "JID-217",
+    "name": "数据分区统计回填",
+    "cron_expression": "0 3 * * *",
+    "action": "回填数据分区统计用于查询优化",
+    "enabled": false,
+    "last_run": "2026-02-10T03:00:00+08:00",
+    "next_run": null,
+    "last_status": "success",
+    "created_by": "data-platform",
+    "tags": [
+      "maintenance",
+      "stats"
+    ],
+    "created_at": "2025-05-01T02:10:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-10T03:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 74
+      },
+      {
+        "run_time": "2026-02-09T03:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 71
+      },
+      {
+        "run_time": "2026-02-08T03:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 69
+      }
+    ]
+  },
+  {
+    "job_id": "JID-218",
+    "name": "归档写入降压演练任务_D",
+    "cron_expression": "0 */2 * * *",
+    "action": "低频写入演练（用于容量评估）",
+    "enabled": true,
+    "last_run": "2026-02-25T14:00:00+08:00",
+    "next_run": "2026-02-25T16:00:00+08:00",
+    "last_status": "success",
+    "created_by": "capacity-lab",
+    "tags": [
+      "archive",
+      "drill"
+    ],
+    "created_at": "2025-12-30T18:10:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-25T14:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 58
+      },
+      {
+        "run_time": "2026-02-25T12:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 61
+      },
+      {
+        "run_time": "2026-02-25T10:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 57
+      }
+    ]
+  },
+  {
+    "job_id": "JID-219",
+    "name": "归档批处理排队器调度（非归档核心）",
+    "cron_expression": "0 6 * * *",
+    "action": "调度归档批处理队列（仅派发，不直接写入）",
+    "enabled": true,
+    "last_run": "2026-02-25T06:00:00+08:00",
+    "next_run": "2026-02-26T06:00:00+08:00",
+    "last_status": "success",
+    "created_by": "queue-scheduler",
+    "tags": [
+      "archive",
+      "queue"
+    ],
+    "created_at": "2025-08-20T08:05:00+08:00",
+    "execution_history": [
+      {
+        "run_time": "2026-02-25T06:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 22
+      },
+      {
+        "run_time": "2026-02-24T06:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 21
+      },
+      {
+        "run_time": "2026-02-23T06:00:00+08:00",
+        "status": "failed",
+        "error": "队列派发失败：归档队列后端短暂不可用（BackendUnavailable）",
+        "duration_seconds": 19
+      }
+    ]
+  }
+]

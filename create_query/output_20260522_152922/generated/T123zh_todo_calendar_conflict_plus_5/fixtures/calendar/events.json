@@ -1,0 +1,67 @@
+[
+  {
+    "event_id": "evt_610",
+    "title": "夜间值守会议（跨天）",
+    "start_time": "2026-02-21T23:30:00+08:00",
+    "end_time": "2026-02-22T01:00:00+08:00",
+    "location": "远程会议室",
+    "organizer": "值班组",
+    "attendees": [
+      "张三"
+    ],
+    "description": "夜间值班确认事项，跨天占用",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_611",
+    "title": "对齐会（短时）",
+    "start_time": "2026-02-22T09:30:00+08:00",
+    "end_time": "2026-02-22T10:00:00+08:00",
+    "location": "会议室B",
+    "organizer": "运营部",
+    "attendees": [
+      "张三"
+    ],
+    "description": "当天流程对齐，30分钟",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_612",
+    "title": "临时面谈（仅占用标记，已取消）",
+    "start_time": "2026-02-22T15:00:00+08:00",
+    "end_time": "2026-02-22T16:30:00+08:00",
+    "location": "会客室2",
+    "organizer": "HR支持",
+    "attendees": [
+      "张三",
+      "李四"
+    ],
+    "description": "原计划面谈，当前已临时取消但仍保留在数据中",
+    "status": "canceled"
+  },
+  {
+    "event_id": "evt_613",
+    "title": "内部演练（全天）",
+    "start_time": "2026-02-23T00:00:00+08:00",
+    "end_time": "2026-02-23T23:59:59+08:00",
+    "location": "演练场地",
+    "organizer": "安全委员会",
+    "attendees": [
+      "张三",
+      "王五"
+    ],
+    "description": "内部演练，全天不可中断",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_614",
+    "title": "异常占位事件（0分钟干扰）",
+    "start_time": "2026-02-22T13:10:00+08:00",
+    "end_time": "2026-02-22T13:10:00+08:00",
+    "location": "N/A",
+    "organizer": "系统",
+    "attendees": [],
+    "description": "异常数据：开始与结束相同，不应造成占用",
+    "status": "confirmed"
+  }
+]

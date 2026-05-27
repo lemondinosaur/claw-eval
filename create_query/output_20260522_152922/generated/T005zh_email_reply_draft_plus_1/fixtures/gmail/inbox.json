@@ -1,0 +1,77 @@
+[
+  {
+    "message_id": "msg_201",
+    "from": "ap@winsteel-supplier.com",
+    "to": "user@company.com",
+    "subject": "关于上月对账差异的说明请求（发票金额不一致）",
+    "body": "您好，\n\n我们在应付对账中发现：贵司系统登记上月应付发票金额与我们账面金额存在差异。\n\n已对账明细：\n- 差异金额：USD 18,450.00\n- 差异字段：invoice_total（发票合计）\n- 我方待核对发票编号：INV-A7K3P9\n\n请贵司确认差异原因，并预计何时完成对账。\n\n另外我们需要贵司在“今晚前”给出明确答复，便于我们同步内部回款计划。\n\n请回复说明要点：\n1）差异可能由什么环节导致\n2）预计对账完成时间（相对时间即可）\n\n谢谢。\n\n— WinSteel Accounts Payable",
+    "date": "2026-02-25T03:10:00Z",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_202",
+    "from": "finance.ap@company.com",
+    "to": "user@company.com",
+    "subject": "紧急：请确认待补充采购发票（今晚前确认）",
+    "body": "同事您好：\n\n我们这边对你部门提交的采购发票做了复核，发现有两张状态为“待补充”，需要你今晚前完成确认。\n\n缺失/待补充条目：\n- 单据编号：PX-9912-A\n- 单据编号：PX-9912-B\n- 状态：待补充\n\n请你回复我：\n1）是否已补齐/补齐进度\n2）预计补发时间（以“从现在起/明天上午前”等相对表达即可）\n3）如暂时无法补齐，说明原因与替代方案（例如补充说明/更正清单）\n\n谢谢！\n财务助理 李娜",
+    "date": "2026-02-26T06:40:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_203",
+    "from": "ops-notify@broadcast.company.com",
+    "to": "user@company.com",
+    "subject": "通知：本周五系统维护时间安排",
+    "body": "各位同事好：\n\n本周五（相对时间）系统将进行维护，期间可能影响部分报表访问。请提前安排。\n\n行政部",
+    "date": "2026-02-25T12:00:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_204",
+    "from": "storage-alerts@monitoring.internal",
+    "to": "user@company.com",
+    "subject": "[告警] 磁盘使用率超过阈值（CPU无关）",
+    "body": "告警详情：\n\n主机：db-node-12\n指标：磁盘使用率\n当前值：87%\n阈值：80%\n触发时间：2026-02-25 11:25:00 UTC\n\n请尽快处理。\n—— 监控系统",
+    "date": "2026-02-25T11:25:00Z",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "msg_205",
+    "from": "ceo-office@bigcorp.com",
+    "to": "user@company.com",
+    "subject": "闲聊：今晚要不要一起吃饭？",
+    "body": "嗨，\n\n今晚你有空吗？我们打算一起吃个饭，聊聊最近的项目进展。\n\n— 小王",
+    "date": "2026-02-24T09:20:00Z",
+    "labels": [
+      "INBOX"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "msg_206",
+    "from": "ap@winsteel-supplier.com",
+    "to": "user@company.com",
+    "subject": "Re: 关于上月对账差异的说明请求（发票缺失/差异后续）",
+    "body": "你好，\n\n感谢你们先前的初步核对。\n\n但目前我们仍未收到：\n- 缺失单据编号：INV-A7K3P9（已标记待补齐）\n\n另外差异仍集中在：invoice_total。\n\n请你确认：\n1）差异将如何被解释/更正\n2）预计在“明天上午前”完成最终对账并给出结果\n\n我们需要把信息同步给内部团队。\n\n谢谢。\n— WinSteel Accounts Payable",
+    "date": "2026-02-25T05:55:00Z",
+    "labels": [
+      "INBOX",
+      "IMPORTANT"
+    ],
+    "is_read": false
+  }
+]

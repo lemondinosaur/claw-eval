@@ -1,0 +1,92 @@
+{
+  "task_id": "T003zh_calendar_scheduling_plus_3",
+  "task_name": "候选时段偏好与最小扰动选择",
+  "prompt_text": "帮我在2026年5月6日（周三）安排“安全培训宣贯”1小时。参会者：顾宁、韩磊、任然。要求三人当天都空闲，且以偏好规则选择时段：优先选择15:00-17:00之间；如果有多个共同可用的1小时窗口，则选择最接近16:00的那个（按窗口起始时间与16:00的时间差最小；若仍并列，再选更靠后的起始时间）。地点：远程培训链接。最后请说明你选择该时间段的依据（是否满足共同空闲、是否落在15:00-17:00、以及与16:00的接近程度）。",
+  "files": {
+    "fixtures/calendar/events.json": [
+      {
+        "event_id": "evt_gn_001",
+        "title": "顾宁-内部评审会",
+        "start_time": "2026-05-06T09:30:00Z",
+        "end_time": "2026-05-06T11:00:00Z",
+        "attendees": [
+          "顾宁"
+        ],
+        "location": "评审室B",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_gn_002",
+        "title": "顾宁-阶段对齐",
+        "start_time": "2026-05-06T13:30:00Z",
+        "end_time": "2026-05-06T14:45:00Z",
+        "attendees": [
+          "顾宁"
+        ],
+        "location": "会议室D",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_hl_001",
+        "title": "韩磊-午后短会（干扰项）",
+        "start_time": "2026-05-06T15:15:00Z",
+        "end_time": "2026-05-06T15:45:00Z",
+        "attendees": [
+          "韩磊"
+        ],
+        "location": "会议室E",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_hl_002",
+        "title": "韩磊-对外协调",
+        "start_time": "2026-05-06T16:20:00Z",
+        "end_time": "2026-05-06T16:50:00Z",
+        "attendees": [
+          "韩磊"
+        ],
+        "location": "线上会议室",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_rr_001",
+        "title": "任然-边界冲突占用",
+        "start_time": "2026-05-06T15:45:00Z",
+        "end_time": "2026-05-06T16:30:00Z",
+        "attendees": [
+          "任然"
+        ],
+        "location": "远程协作空间",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_rr_002",
+        "title": "任然-工作复盘",
+        "start_time": "2026-05-06T14:30:00Z",
+        "end_time": "2026-05-06T15:20:00Z",
+        "attendees": [
+          "任然"
+        ],
+        "location": "会议室F",
+        "recurring": false
+      },
+      {
+        "event_id": "evt_all_001",
+        "title": "全员事项通告（干扰项）",
+        "start_time": "2026-05-06T17:00:00Z",
+        "end_time": "2026-05-06T18:00:00Z",
+        "attendees": [],
+        "location": "",
+        "recurring": false
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "相较原题仅找任一共同空闲时段，本题需在15:00-17:00多个候选1小时窗口中按“最接近16:00”规则选最优，并验证端点重叠边界处理。",
+    "fixture_design_summary": [
+      "为顾宁/韩磊/任然在2026-05-06提供多段占用，使15:00-17:00内出现多个1小时候选窗口且需要按偏好排序。",
+      "通过任然15:45-16:30与韩磊15:15-15:45/16:20-16:50的占用制造“边界相邻但不应视为可用”的重叠判定差异。",
+      "加入1条全员干扰事件（17:00-18:00）避免把候选误延伸到偏好区间之外。"
+    ]
+  }
+}

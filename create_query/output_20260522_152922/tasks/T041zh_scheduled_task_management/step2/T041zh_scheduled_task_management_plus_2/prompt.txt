@@ -1,0 +1,588 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T041zh_scheduled_task_management_plus_2",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/gmail/inbox.json",
+  "fixtures/kb/articles.json",
+  "fixtures/scheduler/jobs.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 2,
+  "new_task_id": "T041zh_scheduled_task_management_plus_2",
+  "new_task_name": "归档超限与临时任务治理",
+  "task_goal": "审计定时任务中涉及数据归档与治理策略的任务：识别因归档超限导致失败的任务，治理超过阈值的 temporary 任务（评估删除或转永久但不实际删除）；对符合规则的任务执行调整或重启；对需要人工审批的治理决策邮件通知；输出健康报告。",
+  "user_request": "请整理并治理系统定时任务：找出与数据归档失败相关的任务，检查所有带 temporary 标签且创建时间过久的任务是否需要处理；按知识库给出的临界策略进行修复/调整/建议，并在需要审批时邮件通知运维，最后给出健康报告。",
+  "scenario": "当前调度器中共10个任务。3个任务与“归档/清理”有关：其中1个任务失败原因为“归档存储配额超限”；另1个任务处于 enabled=true 但错误历史显示反复重试且已超过阈值；还有1个任务带 temporary 标签且 created_at 距今超过90天，当前仍在运行并占用归档资源（导致配额超限加剧）。此外还有一个归档索引重建任务与归档写入发生窗口冲突（导致 intermittently failed），但该任务本身 last_status 显示 success，需通过 job_history 与执行记录判断风险。",
+  "difference_from_source": "原题以磁盘不足、证书限流、同步冲突为主；本新任务把核心转向“归档配额超限 + temporary 任务超期治理 + 索引重建与归档写入窗口冲突的风险评估”，且要求对 temporary 超期给出“建议删除或转永久”的结论但不实际删除（满足安全约束），同时对治理需要审批的情况邮件通知。",
+  "service_and_tool_plan": "scheduler_list_jobs 获取全部任务并筛出 failed/temporary/disabled；scheduler_get_job 获取错误与资源占用线索；scheduler_job_history 用于评估反复失败/风险窗口；kb_search/kb_get_article 查询“归档超限排查”“temporary 超期治理”“错峰与窗口冲突规则”“失败连续通知规则”；gmail_send_message 用于通知需要人工审批的治理建议；必要时使用 scheduler_update_job 调整归档任务启用状态/cron_expression 或将超期 temporary 降频（而不是删除）。",
+  "fixture_generation_plan": "fixtures 生成：\n1) scheduler/jobs.json：10条新 job_id/job_name；至少2条 last_status=failed（归档配额超限、或归档索引写入锁冲突）；至少1条 tags 包含 temporary 且 enabled=true，created_at 远早于当前时间；1条可能是 success 但历史有失败记录（体现风险）；其余 success。\n2) kb/articles.json：新增与“归档配额超限排查”“超期 temporary 治理策略（阈值如60/90天）”“治理需审批的决策点”“归档任务错峰规则（与索引重建错开窗口）”相关条目。\n3) gmail/inbox.json：可选但建议加入1封来自“data ops”提到“归档存储涨了很多”的邮件，且包含与任务错误不完全一致的描述以形成干扰。\n确保不复用原任务的具体实体名、邮件正文段落、job_id、SKU 等；错误字段用全新措辞（不含原文相同短语）。",
+  "expected_behavior": "智能体应：列出全部任务并重点标记 failed 与 temporary 超期任务；对归档配额超限的任务用 scheduler_get_job + scheduler_job_history，提取错误并将其与知识库的配额/清理步骤对照；对超期 temporary 任务，根据知识库给出治理结论：优先采取 scheduler_update_job 降频/调整 cron、或设置 enabled=false 以停止占用并建议由人工评估删除或转永久（不调用 scheduler_delete_job）。对于与归档写入冲突风险的索引重建任务，使用历史信息判断其运行窗口与归档写入重叠，并按规则调整 cron_expression（错开写入窗口）；若知识库要求“超期 temporary 的删除/转永久需审批”，则使用 gmail_send_message 发邮件给运维，邮件内容包含：超期任务名称、风险、拟采取的自动动作（降频/停用建议）与待审批事项。最后健康报告要覆盖：归档失败根因、temporary 超期任务清单与处置建议、调度错峰调整点、通知事项与预计影响。",
+  "grading_plan": "grader 应检查：\n1) 至少1个归档配额超限 failed 任务被识别，并调用 scheduler_get_job 与 scheduler_job_history。\n2) 至少1个 temporary 超期任务触发 scheduler_update_job（例如 enabled=false 或 cron 降频），且报告中给出“删除/转永久需审批”的结论（不得出现删除工具调用）。\n3) 至少1个存在冲突风险的任务触发 scheduler_update_job 修改 cron_expression，且修改依据来自 job_history 与知识库错峰规则。\n4) 至少发送1封 gmail_send_message 通知需要审批的治理决策，邮件正文包含任务名称、风险与待审批清单。\n5) 健康报告需结构化包含：问题分类、采取措施、待人工确认项。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T041zh_scheduled_task_management",
+  "task_name": "Scheduled Task Management",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "medium",
+  "tags": [
+    "general"
+  ],
+  "language": "zh",
+  "services": [
+    "scheduler",
+    "kb",
+    "gmail"
+  ],
+  "tools": [
+    "scheduler_list_jobs",
+    "scheduler_get_job",
+    "scheduler_create_job",
+    "scheduler_update_job",
+    "scheduler_delete_job",
+    "scheduler_job_history",
+    "kb_search",
+    "kb_get_article",
+    "gmail_list_messages",
+    "gmail_get_message",
+    "gmail_send_message",
+    "gmail_save_draft"
+  ],
+  "fixture_paths": [
+    "fixtures/gmail/inbox.json",
+    "fixtures/kb/articles.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "sandbox_files": [
+    "fixtures/scheduler/jobs.json",
+    "fixtures/kb/articles.json",
+    "fixtures/gmail/inbox.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T041zh_scheduled_task_management
+task_name: Scheduled Task Management
+version: '1.0'
+category: ops
+difficulty: medium
+tags:
+- general
+services:
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: tasks/T041zh_scheduled_task_management/fixtures/scheduler/jobs.json
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T041zh_scheduled_task_management/fixtures/kb/articles.json
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: tasks/T041zh_scheduled_task_management/fixtures/gmail/inbox.json
+prompt:
+  text: '帮我整理一下系统的定时任务。检查所有计划任务的运行状态，找出失败或异常的任务，查看知识库里有没有相关的排查指南，然后：
+
+    1. 修复能修复的（重新启用被误禁用的任务、调整时间避免冲突）
+
+    2. 对于需要人工介入的问题，发邮件通知运维团队
+
+    3. 给我一份定时任务健康报告
+
+    '
+  language: zh
+tools:
+- name: scheduler_list_jobs
+  description: 列出所有定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按最近运行状态筛选 (success/failed)
+      enabled:
+        type: boolean
+        description: 按启用状态筛选
+      tag:
+        type: string
+        description: 按标签筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_create_job
+  description: 创建新的定时任务
+  input_schema:
+    type: object
+    properties:
+      name:
+        type: string
+        description: 任务名称
+      cron_expression:
+        type: string
+        description: Cron表达式
+      action:
+        type: string
+        description: 任务执行的操作
+      enabled:
+        type: boolean
+        description: 是否启用
+        default: true
+      tags:
+        type: array
+        items:
+          type: string
+        description: 标签列表
+    required:
+    - name
+    - cron_expression
+    - action
+- name: scheduler_update_job
+  description: 更新定时任务配置
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      enabled:
+        type: boolean
+        description: 是否启用
+      cron_expression:
+        type: string
+        description: 新的Cron表达式
+      name:
+        type: string
+        description: 新名称
+      action:
+        type: string
+        description: 新操作
+      tags:
+        type: array
+        items:
+          type: string
+        description: 新标签
+    required:
+    - job_id
+- name: scheduler_delete_job
+  description: 删除定时任务
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_job_history
+  description: 查看定时任务执行历史
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      limit:
+        type: integer
+        description: 返回条数
+        default: 10
+    required:
+    - job_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: gmail_send_message
+  description: 发送邮件
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+- name: gmail_save_draft
+  description: 保存邮件草稿
+  input_schema:
+    type: object
+    properties:
+      to:
+        type: string
+        description: 收件人邮箱
+      subject:
+        type: string
+        description: 邮件主题
+      body:
+        type: string
+        description: 邮件正文
+    required:
+    - to
+    - subject
+    - body
+tool_endpoints:
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: scheduler_create_job
+  url: http://localhost:9112/scheduler/jobs/create
+  method: POST
+- tool_name: scheduler_update_job
+  url: http://localhost:9112/scheduler/jobs/update
+  method: POST
+- tool_name: scheduler_delete_job
+  url: http://localhost:9112/scheduler/jobs/delete
+  method: POST
+- tool_name: scheduler_job_history
+  url: http://localhost:9112/scheduler/jobs/history
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: gmail_send_message
+  url: http://localhost:9100/gmail/send
+  method: POST
+- tool_name: gmail_save_draft
+  url: http://localhost:9100/gmail/drafts/save
+  method: POST
+sandbox_files:
+- fixtures/scheduler/jobs.json
+- fixtures/kb/articles.json
+- fixtures/gmail/inbox.json
+environment:
+  timeout_seconds: 300
+  max_turns: 20
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/gmail/inbox.json ---
+[
+  {
+    "message_id": "msg_2101",
+    "from": "ops@company.com",
+    "to": "me@company.com",
+    "subject": "请检查定时任务状态",
+    "date": "2026-02-25T14:30:00+08:00",
+    "is_read": true,
+    "labels": ["inbox"],
+    "body": "Hi，\n\n最近好像有些定时任务不太正常，weekly_report 上周一没出报告，另外好像有些任务被人禁用了。\n\n麻烦你抽空检查一下系统里的定时任务，有问题的话通知我们。\n\n运维团队\nops@company.com"
+  }
+]
+
+--- END FILE: fixtures/gmail/inbox.json ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "KB-501",
+    "title": "定时任务管理规范",
+    "category": "运维规范",
+    "tags": ["定时任务", "cron", "规范", "调度"],
+    "content": "# 定时任务管理规范\n\n## 1. 调度冲突规则\n同一目标表或同一资源的定时任务不得在同一时间窗口运行。如果两个任务写入相同目标（如 sync_target 表），必须错开至少10分钟。\n\n## 2. 禁用任务审查\n所有被禁用的任务应每月审查一次。误操作禁用的任务应尽快重新启用。\n\n## 3. 临时任务清理\n带有 temporary 标签的任务在创建超过30天后应评估是否需要删除或转为永久任务。\n\n## 4. 故障处理\n任务连续失败3次应立即通知运维团队。单次失败需检查相关日志和排查指南。\n\n## 5. 变更记录\n所有任务的启用、禁用、调度变更须记录在案。",
+    "last_updated": "2025-12-15",
+    "views": 234
+  },
+  {
+    "article_id": "KB-502",
+    "title": "磁盘空间不足排查指南",
+    "category": "故障排查",
+    "tags": ["磁盘", "空间", "排查", "日志清理"],
+    "content": "# 磁盘空间不足排查指南\n\n## 常见原因\n1. 日志文件未清理：检查 /var/log 和 /data/logs 目录\n2. 临时文件堆积：检查 /tmp 和应用缓存目录\n3. 数据库日志过大：检查 binlog 和 WAL 文件\n\n## 排查步骤\n1. 运行 `df -h` 查看各分区使用率\n2. 运行 `du -sh /data/*` 定位大目录\n3. 检查日志清理任务（log_cleanup）是否正常运行\n4. 如果 log_cleanup 被禁用，立即重新启用\n\n## 快速恢复\n- 如果是日志导致的空间不足，确保 log_cleanup 定时任务正在运行\n- 手动清理超过30天的日志：`find /var/log -mtime +30 -delete`\n\n## 注意\n磁盘空间问题和日志清理任务往往有直接关联，务必检查两者的联动关系。",
+    "last_updated": "2026-01-20",
+    "views": 189
+  },
+  {
+    "article_id": "KB-503",
+    "title": "证书续期故障处理",
+    "category": "故障排查",
+    "tags": ["证书", "SSL", "ACME", "续期"],
+    "content": "# 证书续期故障处理\n\n## ACME Rate Limit 问题\nLet's Encrypt 对证书申请有速率限制：\n- 每个注册域名每周50个证书\n- 重复证书每周5个\n- 失败验证每小时5次\n\n## 处理方式\n**此问题需要人工介入**，自动化工具无法解决速率限制。\n\n### 步骤\n1. 联系运维团队（ops@company.com）说明情况\n2. 运维团队评估是否使用备用CA或等待限制重置\n3. 临时方案：使用已有的通配符证书覆盖\n4. 在等待期间，监控现有证书到期时间\n\n## 预防措施\n- 避免频繁重试续期操作\n- 使用staging环境测试ACME流程\n- 设置证书到期前30天的预警",
+    "last_updated": "2026-02-10",
+    "views": 67
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+--- FILE: fixtures/scheduler/jobs.json ---
+[
+  {
+    "job_id": "JOB-001",
+    "name": "daily_backup",
+    "cron_expression": "0 2 * * *",
+    "action": "执行每日数据库备份到 /backup/db/",
+    "enabled": true,
+    "last_run": "2026-03-01T02:00:00+08:00",
+    "next_run": "2026-03-02T02:00:00+08:00",
+    "last_status": "success",
+    "created_by": "admin",
+    "tags": ["backup", "database"],
+    "created_at": "2025-06-15T10:00:00+08:00",
+    "execution_history": [
+      {"run_time": "2026-03-01T02:00:00+08:00", "status": "success", "duration_seconds": 342},
+      {"run_time": "2026-02-28T02:00:00+08:00", "status": "success", "duration_seconds": 338},
+      {"run_time": "2026-02-27T02:00:00+08:00", "status": "success", "duration_seconds": 345}
+    ]
+  },
+  {
+    "job_id": "JOB-002",
+    "name": "weekly_report",
+    "cron_expression": "0 9 * * 1",
+    "action": "生成每周运营数据报告并发送至管理层邮箱",
+    "enabled": true,
+    "last_run": "2026-02-24T09:00:00+08:00",
+    "next_run": "2026-03-02T09:00:00+08:00",
+    "last_status": "failed",
+    "error": "磁盘空间不足：/data 分区使用率 95%，无法写入报告文件",
+    "created_by": "ops_team",
+    "tags": ["report", "weekly"],
+    "created_at": "2025-08-01T10:00:00+08:00",
+    "execution_history": [
+      {"run_time": "2026-02-24T09:00:00+08:00", "status": "failed", "error": "磁盘空间不足：/data 分区使用率 95%", "duration_seconds": 12},
+      {"run_time": "2026-02-17T09:00:00+08:00", "status": "success", "duration_seconds": 156},
+      {"run_time": "2026-02-10T09:00:00+08:00", "status": "success", "duration_seconds": 149}
+    ]
+  },
+  {
+    "job_id": "JOB-003",
+    "name": "log_cleanup",
+    "cron_expression": "0 3 * * *",
+    "action": "清理超过30天的日志文件，释放 /data 和 /var/log 磁盘空间",
+    "enabled": false,
+    "last_run": "2026-02-15T03:00:00+08:00",
+    "next_run": null,
+    "last_status": "success",
+    "last_disable_reason": "误操作：运维人员在2月16日维护时误禁用",
+    "created_by": "admin",
+    "tags": ["maintenance", "logs"],
+    "created_at": "2025-06-15T10:00:00+08:00",
+    "execution_history": [
+      {"run_time": "2026-02-15T03:00:00+08:00", "status": "success", "duration_seconds": 89},
+      {"run_time": "2026-02-14T03:00:00+08:00", "status": "success", "duration_seconds": 92},
+      {"run_time": "2026-02-13T03:00:00+08:00", "status": "success", "duration_seconds": 87}
+    ]
+  },
+  {
+    "job_id": "JOB-004",
+    "name": "data_sync_primary",
+    "cron_expression": "*/30 * * * *",
+    "action": "同步主数据库数据到分析库 analytics_db，写入目标表 sync_target",
+    "enabled": true,
+    "last_run": "2026-03-01T10:30:00+08:00",
+    "next_run": "2026-03-01T11:00:00+08:00",
+    "last_status": "success",
+    "created_by": "data_team",
+    "tags": ["sync", "database"],
+    "created_at": "2025-09-01T10:00:00+08:00",
+    "execution_history": [
+      {"run_time": "2026-03-01T10:30:00+08:00", "status": "success", "duration_seconds": 245},
+      {"run_time": "2026-03-01T10:00:00+08:00", "status": "success", "duration_seconds": 238},
+      {"run_time": "2026-03-01T09:30:00+08:00", "status": "success", "duration_seconds": 251}
+    ]
+  },
+  {
+    "job_id": "JOB-005",
+    "name": "data_sync_secondary",
+    "cron_expression": "*/30 * * * *",
+    "action": "同步备用数据源到分析库 analytics_db，写入目标表 sync_target",
+    "enabled": true,
+    "last_run": "2026-03-01T10:30:00+08:00",
+    "next_run": "2026-03-01T11:00:00+08:00",
+    "last_status": "success",
+    "created_by": "data_team",
+    "tags": ["sync", "database"],
+    "created_at": "2025-11-20T10:00:00+08:00",
+    "execution_history": [
+      {"run_time": "2026-03-01T10:30:00+08:00", "status": "success", "duration_seconds": 198},
+      {"run_time": "2026-03-01T10:00:00+08:00", "status": "success", "duration_seconds": 203},
+      {"run_time": "2026-03-01T09:30:00+08:00", "status": "success", "duration_seconds": 195}
+    ]
+  },
+  {
+    "job_id": "JOB-006",
+    "name": "monitoring_ping",
+    "cron_expression": "*/5 * * * *",
+    "action": "检查所有生产服务健康状态并发送心跳",
+    "enabled": true,
+    "last_run": "2026-03-01T10:55:00+08:00",
+    "next_run": "2026-03-01T11:00:00+08:00",
+    "last_status": "success",
+    "created_by": "ops_team",
+    "tags": ["monitoring", "health"],
+    "created_at": "2025-06-15T10:00:00+08:00",
+    "execution_history": [
+      {"run_time": "2026-03-01T10:55:00+08:00", "status": "success", "duration_seconds": 3},
+      {"run_time": "2026-03-01T10:50:00+08:00", "status": "success", "duration_seconds": 2},
+      {"run_time": "2026-03-01T10:45:00+08:00", "status": "success", "duration_seconds": 3}
+    ]
+  },
+  {
+    "job_id": "JOB-007",
+    "name": "certificate_renewal",
+    "cron_expression": "0 0 1 * *",
+    "action": "自动续期所有即将过期的SSL/TLS证书（通过ACME协议）",
+    "enabled": true,
+    "last_run": "2026-03-01T00:00:00+08:00",
+    "next_run": "2026-04-01T00:00:00+08:00",
+    "last_status": "failed",
+    "error": "ACME rate limit exceeded: 已达到Let's Encrypt速率限制，需等待或联系运维手动处理",
+    "created_by": "security_team",
+    "tags": ["security", "certificate"],
+    "created_at": "2025-07-01T10:00:00+08:00",
+    "execution_history": [
+      {"run_time": "2026-03-01T00:00:00+08:00", "status": "failed", "error": "ACME rate limit exceeded", "duration_seconds": 45},
+      {"run_time": "2026-02-01T00:00:00+08:00", "status": "success", "duration_seconds": 120},
+      {"run_time": "2026-01-01T00:00:00+08:00", "status": "success", "duration_seconds": 115}
+    ]
+  },
+  {
+    "job_id": "JOB-008",
+    "name": "temp_migration_job",
+    "cron_expression": "0 4 * * *",
+    "action": "迁移旧系统用户数据到新平台（临时任务）",
+    "enabled": true,
+    "last_run": "2026-03-01T04:00:00+08:00",
+    "next_run": "2026-03-02T04:00:00+08:00",
+    "last_status": "success",
+    "created_by": "migration_team",
+    "tags": ["temporary", "migration"],
+    "created_at": "2026-01-15T10:00:00+08:00",
+    "execution_history": [
+      {"run_time": "2026-03-01T04:00:00+08:00", "status": "success", "duration_seconds": 567},
+      {"run_time": "2026-02-28T04:00:00+08:00", "status": "success", "duration_seconds": 543},
+      {"run_time": "2026-02-27T04:00:00+08:00", "status": "success", "duration_seconds": 558}
+    ]
+  }
+]
+
+--- END FILE: fixtures/scheduler/jobs.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

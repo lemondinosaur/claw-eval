@@ -1,0 +1,900 @@
+你是 Claw-Eval 的 fixture 生成器。现在给你：
+1. 一个原始 benchmark task 的运行时 task.yaml（已去掉 grader/scoring 字段）和原始 fixtures 作为参考。
+2. 一个由 Step1 生成的新任务描述。
+
+你的任务：只为这个新任务生成新的 fixtures 数据，以及可选的 task_name / prompt_text。
+脚本会自动复用 source task 的 services、tools、tool_endpoints、sandbox_files、environment，并程序化写出 task.yaml。
+
+非常重要：你只能输出一个 JSON 对象，不要 markdown，不要解释文字，不要输出 task.yaml，不要输出 grader.py。
+
+输出 JSON 必须严格是：
+{
+  "task_id": "T033zh_ops_review_dashboard_plus_3",
+  "task_name": "新任务名称",
+  "prompt_text": "最终写入 task.yaml 的 prompt.text，可在 Step1 user_request 基础上做必要细化",
+  "files": {
+    "fixtures/...json": [{}],
+    "fixtures/...txt": "完整文本字符串"
+  },
+  "notes": {
+    "difference_summary": "一句话说明新题与原题区别",
+    "fixture_design_summary": ["..."]
+  }
+}
+
+必须遵守：
+1. 只生成 fixtures，不要生成 task.yaml、grader.py、scoring、rubric、reference solution 等任何打分相关内容。
+2. files 里的路径必须严格等于下面这组相对路径，不能多、不能少、不能改名：
+[
+  "fixtures/config/integrations.json",
+  "fixtures/crm/customers.json",
+  "fixtures/helpdesk/tickets.json",
+  "fixtures/inventory/products.json",
+  "fixtures/kb/articles.json",
+  "fixtures/scheduler/jobs.json"
+]
+3. `.json` fixture 请直接输出 JSON 对象或数组，不要再包成字符串；`.txt` fixture 才输出字符串。
+4. fixtures 的实体、ID、邮件地址、工单号、SKU、数值、正文、会议主题等必须是全新的，不能复用 source fixture 中的具体内容。
+5. 需要保证跨 fixture 的实体引用一致。例如邮箱、联系人、客户、会议参会人、ticket_id、product_id 等在不同文件里要能对上。
+6. 生成的数据必须能支撑 Step1 描述中的新任务目标，并且仍然适配 source task 已有的 services / tools / tool_endpoints。
+7. sandbox_files 会自动沿用 source task；即使 source task 的 sandbox_files 为空，你仍然必须生成上面列出的 fixture 文件，因为服务会直接读取它们。
+8. 如果 source task 是中文，task_name、prompt_text、fixture 文本内容优先使用中文。
+9. 整体逻辑尽量简单直接，不要额外引入复杂评分陷阱、多轮澄清或 grader 假设。
+10. 如果任务涉及具体日期、相对日期或日程类信息，请注意运行时日期锚点：
+- 源任务没有 mock_today；若涉及日期，请保持 fixture 内部自洽即可。
+
+Step1 生成的新任务描述如下：
+{
+  "index": 3,
+  "new_task_id": "T033zh_ops_review_dashboard_plus_3",
+  "new_task_name": "零售运营周报：库存异常引发渠道封禁工单",
+  "task_goal": "生成本周运营周报（只读），围绕“渠道订单履约受阻”这一链路完成跨系统异常关联：库存接口异常/库存低于安全线导致出库失败的工单上升；CRM侧少量渠道客户抱怨；调度任务中的“库存到渠道同步”任务出现失败或禁用；知识库对“安全库存与补货策略”存在过时阈值说明。",
+  "user_request": "请帮我准备一份本周运营周报。需要综合：系统集成状态、工单趋势与重点问题、库存状况、CRM客户动态、知识库过时检查、定时任务状态。要求只读审查与分析，最后输出结构化报告；不要修改任何数据、不要发送邮件、不要更新工单或创建任何内容。请重点解释“库存导致的渠道履约失败”如何在工单、库存、调度与集成监控中体现，并给出行动项。",
+  "scenario": "本周渠道投诉集中出现“订单无法发货/发货延迟超时”。库存服务显示某一类网络/门店相关商品库存多次触底；库存接口集成在监控中 status 仍显示 active，但错误率间歇性升高且有notes提示“部分请求重试”。调度系统中存在一个负责“库存快照同步到渠道系统”的任务近期被禁用，导致渠道看不到最新库存，从而引发出库失败工单。工单中既有“发货失败”也有“渠道系统库存不一致”，形成聚簇。CRM里少数渠道客户（含一个vip）记录了投诉与合同履约风险。知识库中“安全库存与补货触发”文章阈值版本较老，可能与当前商品需求波动不匹配。",
+  "difference_from_source": "原题主线为质量问题关联；本新题主线为“库存触发的渠道履约失败”，核心证据来自库存异常（低于安全线/库存接口间歇错误）、调度任务禁用或失败、工单聚簇（发货失败/库存不一致）、以及知识库过时阈值策略。CRM与KB不再围绕产品质量，而围绕履约风险与补货策略。",
+  "service_and_tool_plan": "inventory_list_products 与 inventory_get_product 用于定位低库存与库存异常的具体SKU及其库存状态/触发阈值。config_list_integrations 与 config_get_integration 用于检查库存接口集成的状态与错误率/notes矛盾（active 但有间歇失败）。helpdesk_list_tickets 用于按类别筛出“发货失败/库存不一致/渠道超时”等工单，并对关键工单 helpdesk_get_ticket 提取与库存快照/同步延迟相关的描述。scheduler_list_jobs + scheduler_get_job + scheduler_job_history 用于确认“库存到渠道同步/库存快照”任务是否被禁用、是否连续失败或最近运行异常。crm_list_customers + crm_get_customer 用于识别vip客户的履约投诉并说明影响面。kb_search + kb_get_article 聚焦“安全库存/补货触发/补货SLA”文章，指出阈值版本过时风险。",
+  "fixture_generation_plan": "全新fixture实体与数值：\n1) config/integrations.json：6-9条记录，至少包含“inventory_to_channel_sync”或“channel_stock_api”类集成（在监控上 active 但 error_rate 偶发升高，notes 提示重试/超时）；另包含一个与“报表/通知”相关集成作为干扰。\n2) helpdesk/tickets.json：10-14条工单，至少 5-8 条聚簇在“渠道发货失败/库存不一致/订单超时撤单”类别；并包含不同优先级与状态（open为主，少量closed作为历史对照）。关键工单 description 需能体现“渠道看到旧库存/同步延迟”的线索。\n3) inventory/products.json：4-6个产品，至少1个产品设置 status=low_stock 且 current_stock 低于 min_stock 多次触发；return_rate等字段可存在小幅变化但不应喧宾夺主。另设置1个产品为正常，作为对照。\n4) crm/customers.json：3-5位客户，其中1位 vip 的 interaction notes 提到“发货延迟导致合同履约风险/退款或违约谈判”。避免出现原题硬件质量/退货大规模内容。\n5) kb/articles.json：3-5篇文章，至少1篇“安全库存与补货触发”类文章 last_updated 超过半年，内容含阈值策略需要强调可能过时。\n6) scheduler/jobs.json：6-8个任务，至少包含“库存快照同步到渠道”的任务：enabled=false 或 last_status failed 且 job_history显示失败/跳过；同时有一个正常的健康检查任务提供基线。",
+  "expected_behavior": "代理需要：\n1) 先用 inventory_list_products 找到触发异常的SKU及库存状态，再用 inventory_get_product补充触发阈值与持续性证据。\n2) 用 config_list_integrations 标定库存/渠道同步相关集成的异常点，必要时 config_get_integration 解释 active标签与错误/重试notes的矛盾。\n3) 用 helpdesk_list_tickets 找到发货失败/库存不一致类工单聚簇，并对至少1-2个工单调用 helpdesk_get_ticket提取“同步延迟/渠道显示旧库存”的直接描述。\n4) 用 scheduler 分析渠道库存同步任务是否禁用或连续失败，解释其如何导致工单与库存不一致。\n5) CRM只做影响评估：指出vip客户投诉与履约风险如何由库存同步滞后间接导致。\n6) KB过时检查：引用“安全库存/补货触发”文章更新时间，给出更新阈值/策略的建议。\n7) 最终形成结构化周报与行动项（例如：恢复同步任务、核查渠道快照刷新、评审安全库存阈值、更新KB文档），保持只读性质。",
+  "grading_plan": "grader.py 检查：\n- 输出中必须出现并解释“低库存/安全线/发货失败/库存不一致/库存快照同步”等关键词。\n- 必须调用 inventory_list_products（且最终文本引用异常SKU的库存状态）。\n- 必须调用 scheduler_get_job 或 scheduler_job_history 来验证库存到渠道同步任务的禁用或失败证据。\n- 必须调用 helpdesk_list_tickets，且至少在输出中提到若干工单类别聚簇（来自新fixture）。\n- 必须调用 kb_get_article 并指出补货/安全库存策略文档过时（last_updated >6个月）。\n- 检查无写操作工具调用。"
+}
+
+原始 source task 摘要如下：
+{
+  "task_id": "T033zh_ops_review_dashboard",
+  "task_name": "Ops Review Dashboard — Cross-System Anomaly Correlation",
+  "task_type": "ops",
+  "category": "ops",
+  "difficulty": "hard",
+  "tags": [
+    "general"
+  ],
+  "language": "zh",
+  "services": [
+    "kb",
+    "helpdesk",
+    "inventory",
+    "crm",
+    "config",
+    "scheduler"
+  ],
+  "tools": [
+    "config_list_integrations",
+    "config_get_integration",
+    "helpdesk_list_tickets",
+    "helpdesk_get_ticket",
+    "inventory_list_products",
+    "inventory_get_product",
+    "crm_list_customers",
+    "crm_get_customer",
+    "kb_search",
+    "kb_get_article",
+    "scheduler_list_jobs",
+    "scheduler_get_job",
+    "scheduler_job_history"
+  ],
+  "fixture_paths": [
+    "fixtures/config/integrations.json",
+    "fixtures/crm/customers.json",
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/inventory/products.json",
+    "fixtures/kb/articles.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "sandbox_files": [
+    "fixtures/config/integrations.json",
+    "fixtures/helpdesk/tickets.json",
+    "fixtures/inventory/products.json",
+    "fixtures/crm/customers.json",
+    "fixtures/kb/articles.json",
+    "fixtures/scheduler/jobs.json"
+  ],
+  "has_user_agent": false,
+  "has_grader": true,
+  "core_capability": "ops"
+}
+
+下面是 source task 的运行时 task.yaml 和 fixtures：
+--- FILE: task.yaml ---
+task_id: T033zh_ops_review_dashboard
+task_name: Ops Review Dashboard — Cross-System Anomaly Correlation
+version: '1.0'
+category: ops
+difficulty: hard
+tags:
+- general
+services:
+- name: kb
+  command: python mock_services/kb/server.py
+  port: 9106
+  health_check: http://localhost:9106/kb/search
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9106/kb/reset
+  env:
+    KB_FIXTURES: tasks/T033zh_ops_review_dashboard/fixtures/kb/articles.json
+- name: helpdesk
+  command: python mock_services/helpdesk/server.py
+  port: 9107
+  health_check: http://localhost:9107/helpdesk/tickets
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9107/helpdesk/reset
+  env:
+    HELPDESK_FIXTURES: tasks/T033zh_ops_review_dashboard/fixtures/helpdesk/tickets.json
+- name: inventory
+  command: python mock_services/inventory/server.py
+  port: 9108
+  health_check: http://localhost:9108/inventory/products
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9108/inventory/reset
+  env:
+    INVENTORY_FIXTURES: tasks/T033zh_ops_review_dashboard/fixtures/inventory/products.json
+- name: crm
+  command: python mock_services/crm/server.py
+  port: 9110
+  health_check: http://localhost:9110/crm/customers
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9110/crm/reset
+  env:
+    CRM_FIXTURES: tasks/T033zh_ops_review_dashboard/fixtures/crm/customers.json
+- name: config
+  command: python mock_services/config/server.py
+  port: 9111
+  health_check: http://localhost:9111/config/integrations
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9111/config/reset
+  env:
+    CONFIG_FIXTURES: tasks/T033zh_ops_review_dashboard/fixtures/config/integrations.json
+- name: scheduler
+  command: python mock_services/scheduler/server.py
+  port: 9112
+  health_check: http://localhost:9112/scheduler/jobs
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9112/scheduler/reset
+  env:
+    SCHEDULER_FIXTURES: tasks/T033zh_ops_review_dashboard/fixtures/scheduler/jobs.json
+prompt:
+  text: '请帮我准备一份本周运营周报。需要综合以下系统的数据：
+
+    1. 系统集成状态（检查各API和服务的健康状况）
+
+    2. 工单系统（分析本周工单趋势和重点问题）
+
+    3. 库存状况（检查产品库存和异常）
+
+    4. CRM客户动态（VIP客户情况）
+
+    5. 知识库（是否有过时文档需要更新）
+
+    6. 定时任务状态（检查调度任务健康状况）
+
+
+    注意：这是只读审查，不要修改任何数据、发送邮件、更新工单或创建任何内容。只做数据收集和分析，最后输出报告。
+
+    '
+  language: zh
+tools:
+- name: config_list_integrations
+  description: 获取所有第三方集成的列表（概览信息）
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选：active, degraded, expired
+    required: []
+- name: config_get_integration
+  description: 获取单个集成的完整配置信息
+  input_schema:
+    type: object
+    properties:
+      integration_id:
+        type: string
+        description: 集成ID
+    required:
+    - integration_id
+- name: helpdesk_list_tickets
+  description: 获取工单列表
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按状态筛选：open, closed, all
+      priority:
+        type: string
+        description: 按优先级筛选：high, medium, low
+      category:
+        type: string
+        description: 按分类筛选
+    required: []
+- name: helpdesk_get_ticket
+  description: 获取单个工单的详细信息
+  input_schema:
+    type: object
+    properties:
+      ticket_id:
+        type: string
+        description: 工单ID
+    required:
+    - ticket_id
+- name: inventory_list_products
+  description: 获取商品库存列表
+  input_schema:
+    type: object
+    properties:
+      category:
+        type: string
+        description: 按类别筛选
+    required: []
+- name: inventory_get_product
+  description: 获取单个商品的详细库存信息
+  input_schema:
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: 商品ID
+    required:
+    - product_id
+- name: crm_list_customers
+  description: 获取客户列表
+  input_schema:
+    type: object
+    properties:
+      tier:
+        type: string
+        description: 按客户等级筛选：vip, standard
+      status:
+        type: string
+        description: 按状态筛选：active, inactive
+    required: []
+- name: crm_get_customer
+  description: 获取单个客户的详细信息
+  input_schema:
+    type: object
+    properties:
+      customer_id:
+        type: string
+        description: 客户ID
+    required:
+    - customer_id
+- name: kb_search
+  description: 搜索知识库文章
+  input_schema:
+    type: object
+    properties:
+      query:
+        type: string
+        description: 搜索关键词
+      category:
+        type: string
+        description: 按分类筛选
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 5
+    required:
+    - query
+- name: kb_get_article
+  description: 获取知识库文章详情
+  input_schema:
+    type: object
+    properties:
+      article_id:
+        type: string
+        description: 文章ID
+    required:
+    - article_id
+- name: scheduler_list_jobs
+  description: 列出所有定时任务
+  input_schema:
+    type: object
+    properties:
+      status:
+        type: string
+        description: 按最近运行状态筛选 (success/failed)
+      enabled:
+        type: boolean
+        description: 按启用状态筛选
+    required: []
+- name: scheduler_get_job
+  description: 获取定时任务详情
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+    required:
+    - job_id
+- name: scheduler_job_history
+  description: 查看定时任务执行历史
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        type: string
+        description: 任务ID
+      limit:
+        type: integer
+        description: 返回条数
+        default: 10
+    required:
+    - job_id
+tool_endpoints:
+- tool_name: config_list_integrations
+  url: http://localhost:9111/config/integrations
+  method: POST
+- tool_name: config_get_integration
+  url: http://localhost:9111/config/integrations/get
+  method: POST
+- tool_name: helpdesk_list_tickets
+  url: http://localhost:9107/helpdesk/tickets
+  method: POST
+- tool_name: helpdesk_get_ticket
+  url: http://localhost:9107/helpdesk/tickets/get
+  method: POST
+- tool_name: inventory_list_products
+  url: http://localhost:9108/inventory/products
+  method: POST
+- tool_name: inventory_get_product
+  url: http://localhost:9108/inventory/products/get
+  method: POST
+- tool_name: crm_list_customers
+  url: http://localhost:9110/crm/customers
+  method: POST
+- tool_name: crm_get_customer
+  url: http://localhost:9110/crm/customers/get
+  method: POST
+- tool_name: kb_search
+  url: http://localhost:9106/kb/search
+  method: POST
+- tool_name: kb_get_article
+  url: http://localhost:9106/kb/articles/get
+  method: POST
+- tool_name: scheduler_list_jobs
+  url: http://localhost:9112/scheduler/jobs
+  method: POST
+- tool_name: scheduler_get_job
+  url: http://localhost:9112/scheduler/jobs/get
+  method: POST
+- tool_name: scheduler_job_history
+  url: http://localhost:9112/scheduler/jobs/history
+  method: POST
+sandbox_files:
+- fixtures/config/integrations.json
+- fixtures/helpdesk/tickets.json
+- fixtures/inventory/products.json
+- fixtures/crm/customers.json
+- fixtures/kb/articles.json
+- fixtures/scheduler/jobs.json
+environment:
+  timeout_seconds: 900
+  max_turns: 40
+
+--- END FILE: task.yaml ---
+--- FILE: fixtures/config/integrations.json ---
+[
+  {
+    "integration_id": "INT-101",
+    "name": "payment_gateway",
+    "display_name": "支付网关",
+    "status": "active",
+    "error_rate": 0.5,
+    "base_url": "https://pay.example.com",
+    "call_volume_previous_week": 12000,
+    "service": "api",
+    "last_verified": "2026-02-28T23:00:00+08:00",
+    "monthly_calls": 12500
+  },
+  {
+    "integration_id": "INT-102",
+    "name": "crm_sync",
+    "display_name": "CRM数据同步",
+    "status": "active",
+    "error_rate": 12.0,
+    "base_url": "https://crm-api.example.com",
+    "call_volume_previous_week": 9200,
+    "notes": "状态显示active但错误率高达12%，指标与标签存在矛盾，需要确认实际健康状况",
+    "service": "api",
+    "last_verified": "2026-02-28T23:00:00+08:00",
+    "monthly_calls": 8500
+  },
+  {
+    "integration_id": "INT-103",
+    "name": "email_service",
+    "display_name": "邮件服务",
+    "status": "active",
+    "error_rate": 0.2,
+    "call_volume_previous_week": 3500,
+    "service": "smtp",
+    "monthly_calls": 3400,
+    "last_verified": "2026-02-28T00:00:00+08:00"
+  },
+  {
+    "integration_id": "INT-104",
+    "name": "inventory_api",
+    "display_name": "库存接口",
+    "status": "active",
+    "error_rate": 1.2,
+    "base_url": "https://inv-api.example.com",
+    "call_volume_previous_week": 5800,
+    "service": "api",
+    "last_verified": "2026-02-28T23:00:00+08:00",
+    "monthly_calls": 6000
+  },
+  {
+    "integration_id": "INT-105",
+    "name": "analytics_pipeline",
+    "display_name": "数据分析管道",
+    "status": "degraded",
+    "error_rate": 5.0,
+    "call_volume_previous_week": 210,
+    "notes": "已知问题，数据团队正在排查中",
+    "service": "batch",
+    "last_verified": "2026-02-28T22:00:00+08:00",
+    "monthly_calls": 200
+  },
+  {
+    "integration_id": "INT-106",
+    "name": "notification_service",
+    "display_name": "通知服务",
+    "status": "active",
+    "error_rate": 0.8,
+    "base_url": "https://notify.example.com/webhook",
+    "call_volume_previous_week": 4200,
+    "service": "webhook",
+    "last_verified": "2026-02-28T23:00:00+08:00",
+    "monthly_calls": 4500
+  },
+  {
+    "integration_id": "INT-107",
+    "name": "search_indexer",
+    "display_name": "搜索索引服务",
+    "status": "active",
+    "error_rate": 0.0,
+    "base_url": "https://search.example.com",
+    "call_volume_previous_week": 1500,
+    "notes": "错误率0%但调用量从上周1500骤降至本周15，下降99%，疑似服务中断或上游调用异常",
+    "service": "api",
+    "last_verified": "2026-02-28T23:00:00+08:00",
+    "monthly_calls": 15
+  }
+]
+
+--- END FILE: fixtures/config/integrations.json ---
+--- FILE: fixtures/crm/customers.json ---
+[
+  {
+    "customer_id": "CUS-301",
+    "name": "永康智能",
+    "tier": "vip",
+    "status": "active",
+    "annual_revenue": 12000000,
+    "contact_person": "马总",
+    "contact_email": "ma@yongkang-smart.com",
+    "contact_phone": "138-0000-1001",
+    "industry": "智能家居",
+    "contract_end_date": "2026-12-31",
+    "recent_interactions": [
+      {
+        "date": "2026-02-27",
+        "type": "complaint",
+        "channel": "电话",
+        "handled_by": "陈经理",
+        "notes": "投诉智能摄像头Pro质量问题，批量采购500台中有89台故障（故障率17.8%），威胁终止合作。要求：1) 全额退款故障产品 2) 提供质量改进方案 3) 如一周内无回复将更换供应商。"
+      },
+      {
+        "date": "2026-01-15",
+        "type": "order",
+        "channel": "系统",
+        "notes": "批量采购智能摄像头Pro 500台，订单金额 ¥2,500,000"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-302",
+    "name": "恒信电子",
+    "tier": "standard",
+    "status": "active",
+    "annual_revenue": 3500000,
+    "contact_person": "刘经理",
+    "contact_email": "liu@hengxin.com",
+    "contact_phone": "139-0000-2002",
+    "industry": "电子制造",
+    "contract_end_date": "2026-09-30",
+    "recent_interactions": [
+      {
+        "date": "2026-02-20",
+        "type": "inquiry",
+        "channel": "邮件",
+        "notes": "询问企业路由器X1批量采购折扣"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUS-303",
+    "name": "明辉科技",
+    "tier": "vip",
+    "status": "active",
+    "annual_revenue": 8000000,
+    "contact_person": "赵总",
+    "contact_email": "zhao@minghui-tech.com",
+    "contact_phone": "137-0000-3003",
+    "industry": "物联网",
+    "contract_end_date": "2027-03-31",
+    "recent_interactions": [
+      {
+        "date": "2026-02-25",
+        "type": "meeting",
+        "channel": "视频会议",
+        "notes": "季度业务回顾，对智能门锁S1产品表示满意，计划下季度扩大采购"
+      }
+    ]
+  }
+]
+
+--- END FILE: fixtures/crm/customers.json ---
+--- FILE: fixtures/helpdesk/tickets.json ---
+[
+  {
+    "ticket_id": "TK-1701",
+    "title": "智能摄像头Pro固件崩溃",
+    "description": "智能摄像头Pro在固件版本v2.3.1下出现频繁崩溃重启，多个客户报告同一问题。初步分析显示内存溢出导致固件异常退出。",
+    "department": "工程部",
+    "priority": "high",
+    "status": "open",
+    "category": "engineering_defect",
+    "product": "智能摄像头Pro",
+    "created_at": "2026-02-25T10:00:00+08:00",
+    "assigned_to": "张工",
+    "updated_at": "2026-02-27T14:30:00+08:00",
+    "reporter": "张工"
+  },
+  {
+    "ticket_id": "TK-1702",
+    "title": "客户退货：智能摄像头Pro画面模糊",
+    "description": "客户投诉智能摄像头Pro画面模糊，无法达到宣传的4K清晰度。已收到15起类似投诉，客户要求退货退款。",
+    "department": "客户服务",
+    "priority": "medium",
+    "status": "open",
+    "category": "customer_return",
+    "product": "智能摄像头Pro",
+    "created_at": "2026-02-25T14:20:00+08:00",
+    "assigned_to": "李客服",
+    "updated_at": "2026-02-26T09:00:00+08:00",
+    "reporter": "李客服"
+  },
+  {
+    "ticket_id": "TK-1703",
+    "title": "支付网关偶发超时",
+    "description": "支付网关在高峰时段偶发超时，平均响应时间从200ms上升到800ms。影响范围较小，约0.5%的交易受到影响。",
+    "department": "工程部",
+    "priority": "low",
+    "status": "open",
+    "category": "infrastructure",
+    "created_at": "2026-02-26T09:30:00+08:00",
+    "assigned_to": "王运维",
+    "updated_at": "2026-02-26T16:00:00+08:00",
+    "reporter": "王运维"
+  },
+  {
+    "ticket_id": "TK-1704",
+    "title": "CRM数据同步延迟",
+    "description": "CRM系统数据同步出现明显延迟，部分客户信息更新滞后超过24小时。怀疑与crm_sync集成的高错误率有关。",
+    "department": "工程部",
+    "priority": "medium",
+    "status": "open",
+    "category": "data_sync",
+    "created_at": "2026-02-26T11:00:00+08:00",
+    "assigned_to": "赵工",
+    "updated_at": "2026-02-27T10:00:00+08:00",
+    "reporter": "赵工"
+  },
+  {
+    "ticket_id": "TK-1705",
+    "title": "智能摄像头Pro批量退货申请",
+    "description": "收到某大客户（永康智能）批量退货申请，涉及89台智能摄像头Pro。客户称故障率远超预期，要求全额退款并威胁终止合作关系。",
+    "department": "客户服务",
+    "priority": "high",
+    "status": "open",
+    "category": "customer_return",
+    "product": "智能摄像头Pro",
+    "created_at": "2026-02-27T09:00:00+08:00",
+    "assigned_to": "陈经理",
+    "updated_at": "2026-02-27T15:00:00+08:00",
+    "reporter": "陈经理"
+  },
+  {
+    "ticket_id": "TK-1706",
+    "title": "新员工入职IT设备申请",
+    "description": "3月新入职员工共5人，需要申请笔记本电脑、显示器、键鼠等标准IT设备套装。",
+    "department": "IT",
+    "priority": "low",
+    "status": "open",
+    "category": "request",
+    "created_at": "2026-02-27T10:00:00+08:00",
+    "assigned_to": "IT管理员",
+    "updated_at": "2026-02-27T10:00:00+08:00",
+    "reporter": "IT管理员"
+  },
+  {
+    "ticket_id": "TK-1707",
+    "title": "智能摄像头Pro连接不稳定",
+    "description": "工程部测试发现智能摄像头Pro的Wi-Fi模块存在连接不稳定问题，在弱信号环境下频繁掉线。问题可能与固件v2.3.1有关联。",
+    "department": "工程部",
+    "priority": "medium",
+    "status": "open",
+    "category": "engineering_defect",
+    "product": "智能摄像头Pro",
+    "created_at": "2026-02-27T16:00:00+08:00",
+    "assigned_to": "张工",
+    "updated_at": "2026-02-28T09:00:00+08:00",
+    "reporter": "张工"
+  },
+  {
+    "ticket_id": "TK-1708",
+    "title": "月度报表生成失败",
+    "description": "2月月度运营报表生成任务执行失败，原因是数据分析管道降级导致部分数据源不可用。已在数据团队修复管道后重新生成。",
+    "department": "数据部",
+    "priority": "medium",
+    "status": "closed",
+    "category": "data",
+    "created_at": "2026-02-28T08:00:00+08:00",
+    "assigned_to": "数据分析师",
+    "updated_at": "2026-02-28T17:00:00+08:00",
+    "resolution": "数据管道恢复后已重新生成报表",
+    "reporter": "数据分析师"
+  }
+]
+--- END FILE: fixtures/helpdesk/tickets.json ---
+--- FILE: fixtures/inventory/products.json ---
+[
+  {
+    "product_id": "PRD-201",
+    "name": "智能摄像头Pro",
+    "category": "智能硬件",
+    "current_stock": 450,
+    "min_stock": 100,
+    "status": "overstocked",
+    "return_rate": 18.5,
+    "return_count": 95,
+    "units_sold_this_month": 514,
+    "supplier": "深圳光电科技",
+    "last_restock_date": "2026-02-10",
+    "notes": "退货率异常偏高（18.5%），远超行业平均3%。近一个月退货95台，主要原因包括：固件崩溃、画面模糊、连接不稳定。建议立即启动质量调查。"
+  },
+  {
+    "product_id": "PRD-202",
+    "name": "智能音箱Mini",
+    "category": "智能硬件",
+    "current_stock": 80,
+    "min_stock": 50,
+    "status": "normal",
+    "return_rate": 2.1,
+    "return_count": 5,
+    "units_sold_this_month": 238,
+    "supplier": "声科电子",
+    "last_restock_date": "2026-02-15"
+  },
+  {
+    "product_id": "PRD-203",
+    "name": "智能门锁S1",
+    "category": "智能硬件",
+    "current_stock": 35,
+    "min_stock": 30,
+    "status": "normal",
+    "return_rate": 1.8,
+    "return_count": 3,
+    "units_sold_this_month": 167,
+    "supplier": "安防科技",
+    "last_restock_date": "2026-02-20"
+  },
+  {
+    "product_id": "PRD-204",
+    "name": "企业路由器X1",
+    "category": "网络设备",
+    "current_stock": 15,
+    "min_stock": 20,
+    "status": "low_stock",
+    "return_rate": 0.5,
+    "return_count": 1,
+    "units_sold_this_month": 45,
+    "supplier": "网通设备",
+    "last_restock_date": "2026-02-01",
+    "notes": "库存低于安全线，建议尽快补货"
+  }
+]
+
+--- END FILE: fixtures/inventory/products.json ---
+--- FILE: fixtures/kb/articles.json ---
+[
+  {
+    "article_id": "KB-301",
+    "title": "智能摄像头Pro质量控制流程",
+    "category": "质量管理",
+    "tags": [
+      "摄像头",
+      "质量",
+      "QC",
+      "智能摄像头Pro"
+    ],
+    "content": "## 智能摄像头Pro质量控制流程\n\n### 1. 来料检验\n- 对所有核心元器件进行来料抽检，AQL标准为1.5\n- CMOS传感器需100%功能测试\n- Wi-Fi模块需进行信号强度和稳定性测试\n\n### 2. 生产过程控制\n- 每批次首件需通过72小时老化测试\n- 固件烧录后进行自动化功能回归测试\n- 成品需通过4K画质校准测试\n\n### 3. 出厂检验\n- 抽样比例：每批次5%\n- 测试项目：开机、连接、画质、夜视、固件稳定性\n- 退货率阈值：超过5%需启动质量调查\n\n### 4. 异常处理\n- 退货率超过5%时，质量部需在24小时内启动根因分析\n- 涉及安全问题需立即启动产品召回流程\n\n**文档版本**: v1.2\n**最后更新**: 2025-08-15\n**负责人**: 质量管理部 周经理",
+    "last_updated": "2025-08-15",
+    "author": "质量管理部",
+    "status": "published",
+    "views": 234
+  },
+  {
+    "article_id": "KB-302",
+    "title": "周报模板和写作规范",
+    "category": "运营",
+    "tags": [
+      "周报",
+      "模板",
+      "规范"
+    ],
+    "content": "## 运营周报撰写规范\n\n### 1. 报告结构\n- **摘要**：本周关键指标和重要事项概述（不超过3句话）\n- **系统健康状况**：各系统集成的运行状态\n- **工单分析**：本周工单趋势和重点问题\n- **库存动态**：产品库存状况和异常\n- **客户动态**：VIP客户情况和重要互动\n- **行动项**：需要跟进的具体事项和负责人\n\n### 2. 写作原则\n- 数据说话：每个结论都要有数据支撑\n- 突出异常：正常运行的可以简述，异常情况需详细说明\n- 跨系统关联：如果多个系统的数据指向同一问题，需要明确指出\n- 行动导向：每个发现的问题都要有对应的行动建议\n\n### 3. 注意事项\n- 周报为只读审查，不应在编写过程中修改任何系统数据\n- 涉及敏感数据（客户信息、财务数据）需脱敏处理\n\n**最后更新**: 2026-01-10\n**负责人**: 运营管理部",
+    "last_updated": "2026-01-10",
+    "author": "运营管理部",
+    "status": "published",
+    "views": 567
+  },
+  {
+    "article_id": "KB-303",
+    "title": "系统集成监控指南",
+    "category": "运维",
+    "tags": [
+      "监控",
+      "集成",
+      "运维",
+      "API"
+    ],
+    "content": "## 系统集成监控指南\n\n### 1. 健康检查标准\n- **错误率**：低于2%为正常，2%-5%为警告，超过5%为异常\n- **响应时间**：API类<500ms，批处理类根据任务规模评估\n- **调用量**：周环比变化超过20%需要关注，超过50%需要告警\n\n### 2. 常见异常模式\n- **状态标签与指标不一致**：状态显示active但错误率异常高，可能是监控配置问题或近期劣化\n- **零错误+低流量**：错误率为0但调用量极低，可能表示服务虽在线但实际未被使用（上游故障）\n- **降级状态**：degraded状态需要查看notes了解原因和预计恢复时间\n\n### 3. 告警升级流程\n- Level 1：自动告警，值班工程师处理\n- Level 2：超过1小时未恢复，升级至团队负责人\n- Level 3：影响客户业务，升级至CTO\n\n**最后更新**: 2026-02-01\n**负责人**: 运维团队",
+    "last_updated": "2026-02-01",
+    "author": "运维团队",
+    "status": "published",
+    "views": 891
+  }
+]
+
+--- END FILE: fixtures/kb/articles.json ---
+--- FILE: fixtures/scheduler/jobs.json ---
+[
+  {
+    "job_id": "JOB-101",
+    "name": "daily_report_generation",
+    "description": "每日自动生成运营日报",
+    "cron_expression": "0 6 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T06:00:00+08:00",
+    "next_run": "2026-03-02T06:00:00+08:00",
+    "average_duration_seconds": 120,
+    "tags": ["reporting", "daily"]
+  },
+  {
+    "job_id": "JOB-102",
+    "name": "database_backup",
+    "description": "每日凌晨2点执行数据库全量备份",
+    "cron_expression": "0 2 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T02:00:00+08:00",
+    "next_run": "2026-03-02T02:00:00+08:00",
+    "average_duration_seconds": 1800,
+    "tags": ["backup", "critical"]
+  },
+  {
+    "job_id": "JOB-103",
+    "name": "inventory_sync",
+    "description": "每30分钟同步库存数据到搜索索引",
+    "cron_expression": "*/30 * * * *",
+    "enabled": true,
+    "last_status": "failed",
+    "last_run": "2026-03-01T10:30:00+08:00",
+    "next_run": "2026-03-01T11:00:00+08:00",
+    "error": "Connection timeout to inventory API after 30s",
+    "average_duration_seconds": 45,
+    "tags": ["sync", "inventory"],
+    "execution_history": [
+      {
+        "run_at": "2026-03-01T10:30:00+08:00",
+        "status": "failed",
+        "error": "Connection timeout to inventory API after 30s",
+        "duration_seconds": 30
+      },
+      {
+        "run_at": "2026-03-01T10:00:00+08:00",
+        "status": "failed",
+        "error": "Connection timeout to inventory API after 30s",
+        "duration_seconds": 30
+      },
+      {
+        "run_at": "2026-03-01T09:30:00+08:00",
+        "status": "failed",
+        "error": "Connection timeout to inventory API after 30s",
+        "duration_seconds": 30
+      },
+      {
+        "run_at": "2026-03-01T09:00:00+08:00",
+        "status": "success",
+        "duration_seconds": 42
+      },
+      {
+        "run_at": "2026-03-01T08:30:00+08:00",
+        "status": "success",
+        "duration_seconds": 38
+      }
+    ],
+    "notes": "此任务将库存数据同步到搜索索引服务(INT-107)，连续3次失败可能导致搜索索引数据过期"
+  },
+  {
+    "job_id": "JOB-104",
+    "name": "monitoring_health_check",
+    "description": "每5分钟执行一次系统健康检查",
+    "cron_expression": "*/5 * * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-03-01T10:35:00+08:00",
+    "next_run": "2026-03-01T10:40:00+08:00",
+    "average_duration_seconds": 5,
+    "tags": ["monitoring", "critical"]
+  },
+  {
+    "job_id": "JOB-105",
+    "name": "crm_data_export",
+    "description": "每日凌晨2点导出CRM数据供分析使用",
+    "cron_expression": "0 2 * * *",
+    "enabled": true,
+    "last_status": "success",
+    "last_run": "2026-02-24T02:00:00+08:00",
+    "next_run": "2026-03-02T02:00:00+08:00",
+    "average_duration_seconds": 600,
+    "tags": ["crm", "export", "data"],
+    "notes": "最近一次成功运行在5天前（2月24日），之后未再执行。可能是调度器未正确触发或任务被跳过。CRM数据可能已过期。"
+  },
+  {
+    "job_id": "JOB-106",
+    "name": "email_digest",
+    "description": "每日发送邮件摘要给管理层",
+    "cron_expression": "0 8 * * *",
+    "enabled": false,
+    "last_status": "success",
+    "last_run": "2026-02-23T08:00:00+08:00",
+    "disabled_by": "admin",
+    "disabled_date": "2026-02-23",
+    "disabled_reason": "暂停每日邮件摘要，待确认新的收件人列表后重新启用",
+    "average_duration_seconds": 30,
+    "tags": ["email", "notification"]
+  }
+]
+
+--- END FILE: fixtures/scheduler/jobs.json ---
+
+最后再次提醒：只输出一个 JSON 对象。

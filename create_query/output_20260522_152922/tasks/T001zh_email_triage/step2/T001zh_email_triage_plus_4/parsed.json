@@ -1,0 +1,141 @@
+{
+  "task_id": "T001zh_email_triage_plus_4",
+  "task_name": "资金与发票相关风险分流",
+  "prompt_text": "请帮我对收件箱邮件逐条进行三分：1）需回复/核对；2）仅供参考（信息通知但不需要回复）；3）垃圾邮件（诈骗/伪造发票/钓鱼）。\n\n判定重点：\n- 涉及发票差异、要求“回复确认需更正/提交更正/对账核对”的，通常归为“需回复/核对”，但若存在替换收款账户、索取敏感账号信息、缺失关键抬头信息、要求在短时限点击链接并回填敏感字段等诈骗特征，则归为“垃圾邮件”。\n- 涉及付款计划更新、仅需查看、下载模板（如发票编号变更通知），归为“仅供参考”。\n- 内部邮件如“周报催稿/回复完成状态”，归为“需回复/核对”；如只是提醒参加会议但无需确认，归为“仅供参考”。\n\n对每封邮件输出结构化结果，必须包含：发件人、主题、分类（需回复/仅供参考/垃圾邮件）以及简短理由。全程不发送邮件。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "inv_1001",
+        "from": "accounts@horizon-supplies.cn",
+        "to": "user@company.com",
+        "subject": "电子发票差异通知：如有偏差请回复确认更正（HZN-INV-24051）",
+        "body": "您好：\n\n我们已向贵司开具电子发票 HZN-INV-24051（含附件对照）。如贵司收货或付款信息存在差异，请在收到邮件后回复确认我们进行更正。\n\n请在回复中注明：\n- 发票金额与贵司系统记录的差额\n- 需更正的字段（品名/税率/抬头）\n\n发票更正后我们将重新发送最新版本。\n\n谢谢配合。\n\nHorizon Supplies 财务部",
+        "date": "2026-05-18T02:12:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_BILLING",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "fin_1002",
+        "from": "finance@brightcore.com",
+        "to": "user@company.com",
+        "subject": "付款计划更新：本月分批入账安排（无需回复）",
+        "body": "各位同事好：\n\n根据资金调度，本月付款计划已更新为分批入账：\n- 5月20日前：30%\n- 5月27日前：40%\n- 6月3日前：30%\n\n本邮件仅供查看，不需要回复。\n\n如需对账请通过内部工单系统提交申请。\n\n财务中心",
+        "date": "2026-05-17T10:05:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_BILLING"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "spam_1003",
+        "from": "ops-support@bankhelp-secure.com",
+        "to": "user@company.com",
+        "subject": "【代付失败】请在24小时内点击链接补充收款信息（紧急）",
+        "body": "尊敬的客户：\n\n系统提示：本次“代付”处理失败，需要您在 24 小时内完成信息补充，否则将导致本笔款项自动退回。\n\n请点击以下地址登录并填写账号信息：\nhttp://update-collection-info.example\n\n为避免延误，请务必在页面中提交：\n- 收款账户号码\n- 开户行所在地\n- 身份验证验证码\n\n银行服务将于今天结束前审核完成。\n\n（如已处理，请忽略本通知）",
+        "date": "2026-05-18T13:44:00Z",
+        "labels": [
+          "INBOX",
+          "SPAM",
+          "FRAUD_ALERT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "ref_1004",
+        "from": "it-billing@ledgercloud.net",
+        "to": "user@company.com",
+        "subject": "系统升级公告：发票编号规则调整，下载最新模板即可",
+        "body": "亲爱的用户：\n\n为配合系统升级，发票编号规则将于本周完成迁移。\n\n无需回复本邮件。请按以下步骤操作：\n1）下载并替换为最新发票模板文件\n2）重新生成发票时按新编号规则填写\n\n如需模板下载地址，请在内网门户“财务工具”栏目获取最新文件。\n\n谢谢。\nLedgerCloud 计费平台",
+        "date": "2026-05-16T19:21:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_BILLING",
+          "CATEGORY_UPDATES"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "spam_1005",
+        "from": "ar-replacement@payment-trustmail.org",
+        "to": "user@company.com",
+        "subject": "紧急：请立即回复确认替换收款账户（缺失公司抬头信息需回填）",
+        "body": "您好：\n\n为确保下一笔款项按时入账，请您在 6 小时内回复以下信息以完成收款账户替换。\n\n我们发现贵司抬头字段缺失，因此需要您回填：\n- 公司法定名称（抬头）\n- 税号（敏感信息）\n- 新收款账户尾号\n\n请注意：不回复将导致付款失败。\n\n收款账户将由“新账户服务台”自动替换。\n\n（如需核对，请回复本邮件并提供所需字段）",
+        "date": "2026-05-18T06:58:00Z",
+        "labels": [
+          "INBOX",
+          "SPAM",
+          "FRAUD_ALERT",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "int_1006",
+        "from": "team-lead@northstar.dev",
+        "to": "user@company.com",
+        "subject": "周报催稿：请回复本周完成状态（截止今天18:00）",
+        "body": "大家好：\n\n周报需要收齐。\n请在今天 18:00 前回复本邮件，填写你本周的完成状态：\n- 已完成（列出2-3项）\n- 进行中（说明卡点/预计完成时间）\n- 未开始（原因）\n\n也请一并确认是否需要下周继续跟进。\n\n谢谢。\n北极星团队负责人",
+        "date": "2026-05-18T01:35:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "ref_1007",
+        "from": "events-coordinator@company.com",
+        "to": "user@company.com",
+        "subject": "月度例会提醒：请按时参会（无需确认）",
+        "body": "各位同事：\n\n月度例会将于本周五上午召开，地点为线上会议室。\n\n无需回复确认是否参会，请直接准时进入会议链接。\n\n行政与运营团队",
+        "date": "2026-05-17T21:10:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_UPDATES"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "ref_1008",
+        "from": "ap-portal@vendorcloud.shop",
+        "to": "user@company.com",
+        "subject": "对账信息同步：请勿忽略，仅需查看（工单#AP-77329）",
+        "body": "尊敬的采购对接人：\n\n我们已将本月对账数据同步到供应商门户。\n\n此邮件仅提醒信息变更，请勿忽略——但不要求您回复。\n\n对账下载路径：供应商门户 > 财务对账 > 工单 AP-77329。\n如需修正请在门户提交更正申请。\n\nVendorCloud 财务协同",
+        "date": "2026-05-18T09:02:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_BILLING"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "inv_1009",
+        "from": "billing@horizon-supplies.cn",
+        "to": "user@company.com",
+        "subject": "需核对：发票合并开具后金额变更请求确认（HZN-INV-24052）",
+        "body": "您好：\n\n我们将部分订单合并开具新发票 HZN-INV-24052。\n由于合并后税额口径可能与贵司记录存在差异，请您核对以下要点：\n- 合并后总金额是否一致\n- 税率与税额是否匹配\n\n请在回复中选择：\n1）确认一致\n2）需要更正（说明差异项）\n\n如确认无误，我们将不再发送后续更正版本。\n\nHorizon Supplies 开票支持",
+        "date": "2026-05-17T03:26:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_BILLING",
+          "IMPORTANT"
+        ],
+        "is_read": true
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "在原始通用邮件意图分流基础上，加入资金/发票场景的诈骗与伪造识别判据（替换收款账户、代付失败索取信息、缺失抬头回填），并新增“周报催稿”类需要回复的内部邮件。",
+    "fixture_design_summary": [
+      "共9封邮件：需回复/核对3封（发票差异确认两封、周报催稿一封）、仅供参考3封（付款计划更新、发票模板升级通知、月度例会提醒）",
+      "垃圾邮件3封：代付失败要求点击补充账号信息、替换收款账户且缺失抬头要求回填敏感字段、均含SPAM/FRAUD_ALERT标签以便辅助判断",
+      "确保每封都有全新message_id/from/subject/body，且全部为账户核对与回复诉求/诈骗特征服务于新任务目标",
+      "不包含任何真实可访问链接：仅使用 example 域名与内文提示用于钓鱼特征演示"
+    ]
+  }
+}

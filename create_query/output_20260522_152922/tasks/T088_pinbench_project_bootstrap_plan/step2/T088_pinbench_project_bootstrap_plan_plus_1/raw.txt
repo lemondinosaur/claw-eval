@@ -1,0 +1,15 @@
+{
+  "task_id": "T088_pinbench_project_bootstrap_plan_plus_1",
+  "task_name": "Rust Lib Scaffold Plan",
+  "prompt_text": "Use the todo service to bootstrap a Rust library project plan for \"rustrocket\".\n\nCreate actionable tasks for:\n1) creating the crate folder structure under src with a lib.rs entry,\n2) adding unit tests in an appropriate tests module (include boundary/edge cases, e.g., empty input handling, as part of the test requirements),\n3) writing Cargo.toml metadata (package name, version, edition, and a dependencies section placeholder),\n4) writing a README with build/test instructions and a minimal usage example.\n\nAdditionally, include in the plan explicit preparation steps for future workspace expansion (e.g., a root-level workspace entry/config placeholder), but still only initialize a single crate for now.\n\nThen summarize the setup plan, ensuring the order reflects: structure -> metadata -> documentation -> tests, with clear checkpoints for what to verify after each step.",
+  "files": {
+    "fixtures/todo/tasks.json": []
+  },
+  "notes": {
+    "difference_summary": "将原先的 Python 库启动计划替换为 Rust 库（rustrocket），并新增 workspace 扩展预留与测试边界用例描述要求。",
+    "fixture_design_summary": [
+      "fixtures/todo/tasks.json 保持为空数组，确保后续创建结果可直接验证。",
+      "不引入干扰待办记录，以避免与新项目标题混淆。"
+    ]
+  }
+}

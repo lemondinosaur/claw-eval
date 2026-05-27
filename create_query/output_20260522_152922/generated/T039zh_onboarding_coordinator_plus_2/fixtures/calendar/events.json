@@ -1,0 +1,40 @@
+[
+  {
+    "event_id": "evt_611",
+    "title": "合规例会（覆盖培训建议起点）",
+    "organizer": "compliance_lead@company.com",
+    "attendees": [
+      "compliance_lead@company.com",
+      "gopan@company.com"
+    ],
+    "start_time": "2026-03-10T13:30:00+08:00",
+    "end_time": "2026-03-10T14:30:00+08:00",
+    "location": "会议室D",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_612",
+    "title": "季度安全教育",
+    "organizer": "security_ops@company.com",
+    "attendees": [
+      "security_ops@company.com",
+      "it_support@company.com"
+    ],
+    "start_time": "2026-03-10T15:00:00+08:00",
+    "end_time": "2026-03-10T16:00:00+08:00",
+    "location": "线上会议",
+    "status": "confirmed"
+  },
+  {
+    "event_id": "evt_613",
+    "title": "产品体验例行同步",
+    "organizer": "prod_ex@company.com",
+    "attendees": [
+      "prod_ex@company.com"
+    ],
+    "start_time": "2026-03-10T11:00:00+08:00",
+    "end_time": "2026-03-10T11:40:00+08:00",
+    "location": "会议室E",
+    "status": "confirmed"
+  }
+]

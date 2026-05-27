@@ -1,0 +1,660 @@
+{
+  "task_id": "T033zh_ops_review_dashboard_plus_4",
+  "task_name": "运维周报：数据导出失联与分析偏差",
+  "prompt_text": "请帮我准备一份本周运营周报（只读审查）。需要综合以下系统数据：\n1) 系统集成状态（关注“错误率不高但调用量骤降”的悖论）\n2) 工单系统（聚类分析本周“报表缺数/数据延迟/字段映射不一致/口径偏差”等数据一致性问题）\n3) 定时任务状态（定位“CRM数据导出/分析数据落地”是否长期未触发或最近运行过久，并用任务历史记录支撑）\n4) 知识库（检索“报表口径与字段映射/数据字典”类文档，核对 last_updated 是否过时）\n5) CRM客户动态与库存（作为干扰项排除验证：确认上游主数据大体可用，避免误判根因）\n\n重点：围绕“CRM/分析数据导出失联”导致的报表口径偏差做跨系统关联，并给出排查与修复建议（只建议不执行）。\n注意：不要修改任何数据、不要发送邮件、不要更新工单或创建任何内容。最后输出结构化周报与行动项，并在关键结论中显式引用证据关键词：数据导出/数据落地/报表缺数/字段映射/口径偏差。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-201",
+        "name": "crm_export_data",
+        "display_name": "CRM导出数据",
+        "status": "active",
+        "error_rate": 0.7,
+        "base_url": "https://crm-export.example.com",
+        "call_volume_previous_week": 8600,
+        "service": "api",
+        "monthly_calls": 9000,
+        "last_verified": "2026-03-18T23:00:00+08:00",
+        "notes": "状态active但调用量较上周下降明显；需结合下游落地与调度任务运行情况核对。"
+      },
+      {
+        "integration_id": "INT-202",
+        "name": "analytics_ingest",
+        "display_name": "分析管道摄取（analytics_ingest）",
+        "status": "degraded",
+        "error_rate": 1.6,
+        "base_url": "https://analytics-ingest.example.com",
+        "call_volume_previous_week": 540,
+        "service": "batch",
+        "monthly_calls": 620,
+        "last_verified": "2026-03-18T22:10:00+08:00",
+        "notes": "错误率不高但摄取批次量显著下降，可能表示数据落地链路未被正确触发。"
+      },
+      {
+        "integration_id": "INT-203",
+        "name": "crm_export_to_warehouse",
+        "display_name": "导出到仓储（落地）",
+        "status": "active",
+        "error_rate": 0.3,
+        "base_url": "https://warehouse-ingest.example.com",
+        "call_volume_previous_week": 1200,
+        "service": "api",
+        "monthly_calls": 1250,
+        "last_verified": "2026-03-18T23:30:00+08:00"
+      },
+      {
+        "integration_id": "INT-204",
+        "name": "reporting_indexer",
+        "display_name": "报表索引器",
+        "status": "active",
+        "error_rate": 0.1,
+        "base_url": "https://report-index.example.com",
+        "call_volume_previous_week": 210,
+        "service": "api",
+        "monthly_calls": 240,
+        "last_verified": "2026-03-18T23:50:00+08:00",
+        "notes": "错误率接近0，但周环比调用量下降超过70%，与看板刷新缺数现象可能相关。"
+      },
+      {
+        "integration_id": "INT-205",
+        "name": "customer_profile_sync",
+        "display_name": "客户画像同步",
+        "status": "active",
+        "error_rate": 0.9,
+        "base_url": "https://crm-profile.example.com",
+        "call_volume_previous_week": 4300,
+        "service": "api",
+        "monthly_calls": 4700,
+        "last_verified": "2026-03-18T23:10:00+08:00"
+      },
+      {
+        "integration_id": "INT-206",
+        "name": "notification_webhook",
+        "display_name": "通知Webhook",
+        "status": "active",
+        "error_rate": 0.2,
+        "base_url": "https://notify.example.com/webhook",
+        "call_volume_previous_week": 1600,
+        "service": "webhook",
+        "monthly_calls": 1700,
+        "last_verified": "2026-03-18T23:20:00+08:00"
+      },
+      {
+        "integration_id": "INT-207",
+        "name": "inventory_snapshot_export",
+        "display_name": "库存快照导出",
+        "status": "active",
+        "error_rate": 0.4,
+        "base_url": "https://inv-snapshot.example.com",
+        "call_volume_previous_week": 980,
+        "service": "batch",
+        "monthly_calls": 1020,
+        "last_verified": "2026-03-18T21:55:00+08:00",
+        "notes": "仅用于验证干扰项：库存导出链路整体稳定。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-401",
+        "name": "青云供应链",
+        "tier": "vip",
+        "status": "active",
+        "annual_revenue": 14000000,
+        "contact_person": "周总",
+        "contact_email": "zhou-qingyun@custmail.example.com",
+        "contact_phone": "137-0101-0401",
+        "industry": "供应链服务",
+        "contract_end_date": "2027-01-15",
+        "recent_interactions": [
+          {
+            "date": "2026-03-12",
+            "type": "inquiry",
+            "channel": "邮件",
+            "notes": "询问本周报表中的“有效线索”口径是否调整；希望与CRM原始字段对齐。"
+          },
+          {
+            "date": "2026-03-16",
+            "type": "meeting",
+            "channel": "视频会议",
+            "notes": "讨论CRM活跃数与运营看板不一致，怀疑导出/落地延迟而非上游数据缺失。"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-402",
+        "name": "星海制造",
+        "tier": "standard",
+        "status": "active",
+        "annual_revenue": 4200000,
+        "contact_person": "邓经理",
+        "contact_email": "deng-xinghai@custmail.example.com",
+        "contact_phone": "136-0101-0402",
+        "industry": "制造业",
+        "contract_end_date": "2026-11-30",
+        "recent_interactions": [
+          {
+            "date": "2026-03-14",
+            "type": "order",
+            "channel": "系统",
+            "notes": "新增商机记录：预计采购 320 单位（用于后续看板对账）。"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-403",
+        "name": "北辰零售",
+        "tier": "vip",
+        "status": "active",
+        "annual_revenue": 9200000,
+        "contact_person": "苏总",
+        "contact_email": "su-beichen@custmail.example.com",
+        "contact_phone": "135-0101-0403",
+        "industry": "零售",
+        "contract_end_date": "2026-12-20",
+        "recent_interactions": [
+          {
+            "date": "2026-03-10",
+            "type": "complaint",
+            "channel": "工单",
+            "notes": "反馈报表缺数：上周活跃客户未进入看板（疑似分析数据落地不全）。"
+          }
+        ]
+      },
+      {
+        "customer_id": "CUS-404",
+        "name": "晨曦科技",
+        "tier": "standard",
+        "status": "active",
+        "annual_revenue": 3100000,
+        "contact_person": "陈主管",
+        "contact_email": "chen-chenxi@custmail.example.com",
+        "contact_phone": "134-0101-0404",
+        "industry": "科技服务",
+        "contract_end_date": "2026-09-08",
+        "recent_interactions": [
+          {
+            "date": "2026-03-17",
+            "type": "inquiry",
+            "channel": "电话",
+            "notes": "问询字段映射：CRM里“活跃状态”字段更新后，看板是否同步更名。"
+          }
+        ]
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-2401",
+        "title": "周报口径缺数：有效线索数低于CRM记录",
+        "description": "本周运营周报中“有效线索”出现缺数，导出到分析看板的维度与CRM原始统计不一致。怀疑数据导出/分析数据落地链路未覆盖完整时间窗口。",
+        "department": "运营分析",
+        "priority": "high",
+        "status": "open",
+        "category": "reporting_missing",
+        "created_at": "2026-03-14T09:20:00+08:00",
+        "assigned_to": "周分析师",
+        "updated_at": "2026-03-18T10:05:00+08:00",
+        "reporter": "周分析师",
+        "related_customer_id": "CUS-401"
+      },
+      {
+        "ticket_id": "TK-2402",
+        "title": "字段映射不一致：活跃状态字段在看板显示异常",
+        "description": "CRM侧活跃状态字段更新后，分析侧出现映射错位：部分客户仍被归为“非活跃”。错误率低但指标偏差明显，需核对字段映射与口径说明是否过时。",
+        "department": "数据平台",
+        "priority": "high",
+        "status": "open",
+        "category": "field_mapping_mismatch",
+        "created_at": "2026-03-12T16:40:00+08:00",
+        "assigned_to": "林数据工程师",
+        "updated_at": "2026-03-18T15:30:00+08:00",
+        "reporter": "林数据工程师",
+        "related_customer_id": "CUS-404"
+      },
+      {
+        "ticket_id": "TK-2403",
+        "title": "数据延迟：CRM导出后看板未在30分钟内刷新",
+        "description": "监控显示集成error_rate不高，但看板刷新延迟超过2小时。可能是调度触发异常导致导出停止/落地未及时完成。",
+        "department": "运维运转",
+        "priority": "medium",
+        "status": "open",
+        "category": "data_delay",
+        "created_at": "2026-03-13T11:05:00+08:00",
+        "assigned_to": "赵运维",
+        "updated_at": "2026-03-17T14:20:00+08:00",
+        "reporter": "赵运维"
+      },
+      {
+        "ticket_id": "TK-2404",
+        "title": "报表缺数：客户活跃数与CRM记录不匹配",
+        "description": "本周客户活跃数在运营看板与CRM列表不一致。疑似“crm_export_data/analytics_ingest”链路失联或最近运行过久造成口径偏差。",
+        "department": "运营分析",
+        "priority": "high",
+        "status": "open",
+        "category": "reporting_missing",
+        "created_at": "2026-03-15T08:55:00+08:00",
+        "assigned_to": "周分析师",
+        "updated_at": "2026-03-18T09:40:00+08:00",
+        "reporter": "周分析师",
+        "related_customer_id": "CUS-403"
+      },
+      {
+        "ticket_id": "TK-2405",
+        "title": "字段口径偏差：分析侧将“新增线索”统计为存量",
+        "description": "核对维表后发现口径映射错误：新增线索被归入存量口径，导致趋势判断偏差。需要检查口径与字段映射文档是否已过时。",
+        "department": "数据平台",
+        "priority": "medium",
+        "status": "open",
+        "category": "metric_definition_mismatch",
+        "created_at": "2026-03-16T13:10:00+08:00",
+        "assigned_to": "林数据工程师",
+        "updated_at": "2026-03-18T12:20:00+08:00",
+        "reporter": "林数据工程师"
+      },
+      {
+        "ticket_id": "TK-2406",
+        "title": "周报口径：维度归属错误导致缺数扩大",
+        "description": "维度归属错误（区域/团队归类）导致缺数扩大，且发生时间点与一次分析管道失败/缺失触发时间相近。",
+        "department": "数据平台",
+        "priority": "medium",
+        "status": "open",
+        "category": "dimension_misattribution",
+        "created_at": "2026-03-11T10:00:00+08:00",
+        "assigned_to": "苏平台工程师",
+        "updated_at": "2026-03-17T09:00:00+08:00",
+        "reporter": "苏平台工程师"
+      },
+      {
+        "ticket_id": "TK-2407",
+        "title": "看板对账失败：CRM导出时间窗口不完整",
+        "description": "对账发现CRM导出时间窗口缺失部分区间。集成侧error_rate低，提示并非传输报错，而可能是调度任务未按预期触发。",
+        "department": "运维运转",
+        "priority": "high",
+        "status": "open",
+        "category": "window_incomplete",
+        "created_at": "2026-03-17T17:25:00+08:00",
+        "assigned_to": "赵运维",
+        "updated_at": "2026-03-18T18:10:00+08:00",
+        "reporter": "赵运维"
+      },
+      {
+        "ticket_id": "TK-2408",
+        "title": "库存快照数据异常（用于排除干扰）",
+        "description": "库存快照出现短暂波动，但与客户活跃数缺数无直接因果；建议聚焦导出/落地链路的时间窗口。",
+        "department": "库存运营",
+        "priority": "low",
+        "status": "closed",
+        "category": "inventory_noise",
+        "created_at": "2026-03-10T12:30:00+08:00",
+        "assigned_to": "陈库存",
+        "updated_at": "2026-03-12T10:15:00+08:00",
+        "resolution": "库存快照重试后恢复；未引起CRM相关看板偏差",
+        "reporter": "陈库存"
+      },
+      {
+        "ticket_id": "TK-2409",
+        "title": "客户请求：请提供口径变更说明与回溯数据",
+        "description": "客户要求说明“报表口径与字段映射”是否变更，以及偏差区间的回溯数据。当前知识库文档疑似过时。",
+        "department": "运营分析",
+        "priority": "medium",
+        "status": "open",
+        "category": "kb_outdated_impact",
+        "created_at": "2026-03-18T09:30:00+08:00",
+        "assigned_to": "周分析师",
+        "updated_at": "2026-03-18T09:55:00+08:00",
+        "reporter": "周分析师",
+        "related_customer_id": "CUS-401"
+      },
+      {
+        "ticket_id": "TK-2410",
+        "title": "系统告警：报表索引器调用量异常下降",
+        "description": "监控发现报表索引器（低error_rate）调用量显著下降，与看板缺数趋势一致。需排查导出链路是否触发中断。",
+        "department": "运维运转",
+        "priority": "high",
+        "status": "open",
+        "category": "indexing_call_drop",
+        "created_at": "2026-03-13T18:00:00+08:00",
+        "assigned_to": "赵运维",
+        "updated_at": "2026-03-18T16:00:00+08:00",
+        "reporter": "赵运维"
+      },
+      {
+        "ticket_id": "TK-2411",
+        "title": "知识库更新建议：字段映射说明与现行CRM不一致",
+        "description": "内部核对后发现知识库“字段映射/口径说明”更新时间较久，当前CRM字段已存在变化，可能导致分析偏差解读错误。",
+        "department": "数据平台",
+        "priority": "medium",
+        "status": "open",
+        "category": "kb_outdated_impact",
+        "created_at": "2026-03-16T09:10:00+08:00",
+        "assigned_to": "苏平台工程师",
+        "updated_at": "2026-03-18T11:50:00+08:00",
+        "reporter": "苏平台工程师"
+      }
+    ],
+    "fixtures/inventory/products.json": [
+      {
+        "product_id": "PRD-501",
+        "name": "智能温控器T2",
+        "category": "智能家电",
+        "current_stock": 620,
+        "min_stock": 200,
+        "status": "normal",
+        "return_rate": 1.9,
+        "return_count": 9,
+        "units_sold_this_month": 410,
+        "supplier": "和润能源",
+        "last_restock_date": "2026-03-05",
+        "notes": "退货率在正常范围；用于排除库存端是主因。"
+      },
+      {
+        "product_id": "PRD-502",
+        "name": "智能门锁S2",
+        "category": "智能硬件",
+        "current_stock": 180,
+        "min_stock": 150,
+        "status": "normal",
+        "return_rate": 2.3,
+        "return_count": 6,
+        "units_sold_this_month": 275,
+        "supplier": "安防联盟",
+        "last_restock_date": "2026-03-01"
+      },
+      {
+        "product_id": "PRD-503",
+        "name": "企业网关G4",
+        "category": "网络设备",
+        "current_stock": 48,
+        "min_stock": 60,
+        "status": "low_stock",
+        "return_rate": 0.7,
+        "return_count": 2,
+        "units_sold_this_month": 92,
+        "supplier": "星链网络",
+        "last_restock_date": "2026-02-25",
+        "notes": "库存略低但返修/退货率低，不足以解释客户活跃数偏差。"
+      },
+      {
+        "product_id": "PRD-504",
+        "name": "桌面打印机P1",
+        "category": "办公设备",
+        "current_stock": 390,
+        "min_stock": 120,
+        "status": "normal",
+        "return_rate": 1.1,
+        "return_count": 4,
+        "units_sold_this_month": 360,
+        "supplier": "鑫源办公",
+        "last_restock_date": "2026-03-10"
+      },
+      {
+        "product_id": "PRD-505",
+        "name": "智能摄像头C3",
+        "category": "智能硬件",
+        "current_stock": 260,
+        "min_stock": 140,
+        "status": "normal",
+        "return_rate": 2.0,
+        "return_count": 7,
+        "units_sold_this_month": 300,
+        "supplier": "光谱影像",
+        "last_restock_date": "2026-03-08",
+        "notes": "轻微波动但无集中退货；作为干扰验证不触发主因。"
+      }
+    ],
+    "kb/articles.json": [
+      {
+        "article_id": "KB-501",
+        "title": "报表口径与字段映射说明（已过时风险）",
+        "category": "数据口径",
+        "tags": [
+          "报表口径",
+          "字段映射",
+          "数据字典",
+          "CRM"
+        ],
+        "content": "## 报表口径与字段映射说明\n\n### 1. 口径定义\n- “有效线索”：CRM中字段`lead_status = 'open'`且`activity_flag = 1`\n- “新增线索”：以`created_at`落在当日0:00~23:59为准\n\n### 2. 字段映射\n- CRM `activity_flag` 映射到分析维表字段 `is_active`\n- 区域归属：使用 `owner_team` 映射分析维表的 `team_region`\n\n> 注意：文档自2025年以来未维护。若CRM字段发生重命名或字段含义变更，请更新本页并同步ETL规则。\n\n**最后更新依据**：历史版本说明",
+        "last_updated": "2025-08-05",
+        "author": "运营分析部",
+        "status": "published",
+        "views": 1320
+      },
+      {
+        "article_id": "KB-502",
+        "title": "CRM活跃状态口径核对流程（建议按月复盘）",
+        "category": "运维",
+        "tags": [
+          "口径核对",
+          "对账",
+          "ETL"
+        ],
+        "content": "## CRM活跃状态口径核对流程\n\n1) 从CRM导出原始字段：`activity_flag`、`lead_status`、`owner_team`\n2) 检查分析侧维表：`is_active`、`status_bucket`、`team_region`\n3) 对账时间窗：核对调度任务触发是否覆盖最新7天\n4) 若发现偏差，优先排查调度触发与数据落地再核对字段映射文档版本\n",
+        "last_updated": "2026-01-18",
+        "author": "数据平台SRE",
+        "status": "published",
+        "views": 640
+      },
+      {
+        "article_id": "KB-503",
+        "title": "集成监控解读：低错误率与调用量异常",
+        "category": "运维",
+        "tags": [
+          "集成监控",
+          "error_rate",
+          "调用量"
+        ],
+        "content": "## 集成监控解读\n\n### 关键模式\n- **状态active ≠ 下游数据持续更新**：若错误率低但调用量下降，可能表示上游未触发或任务跳过。\n- **零错误但缺数**：需要对齐scheduler的last_run与history，确认是否实际完成数据落地。\n\n### 建议动作\n1) 对照scheduler任务执行历史\n2) 核对数据落地时间窗\n3) 最后才是重试/回滚集成\n",
+        "last_updated": "2026-02-22",
+        "author": "运维团队",
+        "status": "published",
+        "views": 980
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-201",
+        "name": "crm_data_export",
+        "description": "每日导出CRM数据供分析使用（crm_export_data）",
+        "cron_expression": "0 2 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-07T02:00:00+08:00",
+        "next_run": "2026-03-20T02:00:00+08:00",
+        "average_duration_seconds": 520,
+        "tags": [
+          "crm",
+          "export",
+          "data"
+        ],
+        "notes": "最近一次成功运行已超过10天；期间未触发或多次跳过。请结合job history核对触发原因。",
+        "execution_history": [
+          {
+            "run_at": "2026-03-07T02:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 540,
+            "export_window": "2026-03-06"
+          },
+          {
+            "run_at": "2026-03-08T02:00:00+08:00",
+            "status": "skipped",
+            "duration_seconds": 0,
+            "error": "Upstream trigger not received; export_window missing"
+          },
+          {
+            "run_at": "2026-03-09T02:00:00+08:00",
+            "status": "skipped",
+            "duration_seconds": 0,
+            "error": "Scheduler policy: task throttled due to last watermark"
+          },
+          {
+            "run_at": "2026-03-10T02:00:00+08:00",
+            "status": "failed",
+            "duration_seconds": 210,
+            "error": "Data export timeout waiting for analytics ingest ack"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-202",
+        "name": "analytics_snapshot_landing",
+        "description": "分析数据落地快照（analytics_snapshot landing）",
+        "cron_expression": "0 3 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-09T03:05:00+08:00",
+        "next_run": "2026-03-20T03:00:00+08:00",
+        "average_duration_seconds": 460,
+        "tags": [
+          "analytics",
+          "landing",
+          "snapshot"
+        ],
+        "notes": "最近一次成功落地距离现在偏久；期间存在多次未执行，可能导致看板缺数/口径偏差累积。",
+        "execution_history": [
+          {
+            "run_at": "2026-03-09T03:05:00+08:00",
+            "status": "success",
+            "duration_seconds": 470,
+            "landing_window": "2026-03-08"
+          },
+          {
+            "run_at": "2026-03-10T03:00:00+08:00",
+            "status": "failed",
+            "duration_seconds": 130,
+            "error": "No batch received from analytics_ingest; expected watermark not found"
+          },
+          {
+            "run_at": "2026-03-11T03:00:00+08:00",
+            "status": "skipped",
+            "duration_seconds": 0,
+            "error": "Landing skipped because export watermark unchanged"
+          },
+          {
+            "run_at": "2026-03-12T03:00:00+08:00",
+            "status": "skipped",
+            "duration_seconds": 0,
+            "error": "Policy: throttle after repeated ingest empty batches"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-203",
+        "name": "reporting_index_refresh",
+        "description": "刷新报表索引（用于看板更新）",
+        "cron_expression": "*/20 * * * *",
+        "enabled": true,
+        "last_status": "failed",
+        "last_run": "2026-03-19T10:40:00+08:00",
+        "next_run": "2026-03-19T11:00:00+08:00",
+        "average_duration_seconds": 35,
+        "tags": [
+          "reporting",
+          "indexing"
+        ],
+        "notes": "上游批次不足导致刷新频率受限；与调用量骤降模式一致。",
+        "execution_history": [
+          {
+            "run_at": "2026-03-19T10:40:00+08:00",
+            "status": "failed",
+            "duration_seconds": 28,
+            "error": "Index refresh aborted: no new snapshots available"
+          },
+          {
+            "run_at": "2026-03-19T10:20:00+08:00",
+            "status": "success",
+            "duration_seconds": 31
+          },
+          {
+            "run_at": "2026-03-19T10:00:00+08:00",
+            "status": "failed",
+            "duration_seconds": 25,
+            "error": "Index refresh aborted: empty snapshot feed"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-204",
+        "name": "monitoring_health_check",
+        "description": "系统健康检查（对照项）",
+        "cron_expression": "*/5 * * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-19T11:05:00+08:00",
+        "next_run": "2026-03-19T11:10:00+08:00",
+        "average_duration_seconds": 6,
+        "tags": [
+          "monitoring",
+          "critical"
+        ],
+        "execution_history": [
+          {
+            "run_at": "2026-03-19T11:05:00+08:00",
+            "status": "success",
+            "duration_seconds": 6
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-205",
+        "name": "customer_profile_sync",
+        "description": "客户画像同步（customer_profile_sync）",
+        "cron_expression": "0 */6 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-19T06:00:00+08:00",
+        "next_run": "2026-03-19T12:00:00+08:00",
+        "average_duration_seconds": 220,
+        "tags": [
+          "crm",
+          "profile"
+        ],
+        "notes": "用于排除主数据问题：画像同步频率与成功状态正常。",
+        "execution_history": [
+          {
+            "run_at": "2026-03-19T06:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 215
+          },
+          {
+            "run_at": "2026-03-19T00:00:00+08:00",
+            "status": "success",
+            "duration_seconds": 228
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-206",
+        "name": "inventory_snapshot_export",
+        "description": "库存快照导出（inventory_snapshot_export）",
+        "cron_expression": "0 1 * * *",
+        "enabled": true,
+        "last_status": "success",
+        "last_run": "2026-03-18T01:10:00+08:00",
+        "next_run": "2026-03-20T01:00:00+08:00",
+        "average_duration_seconds": 180,
+        "tags": [
+          "inventory",
+          "export"
+        ],
+        "notes": "用于干扰验证：库存快照导出与看板偏差关联度低。",
+        "execution_history": [
+          {
+            "run_at": "2026-03-18T01:10:00+08:00",
+            "status": "success",
+            "duration_seconds": 175
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "新题聚焦“CRM/分析数据导出失联”引发的报表口径偏差，需要用调度任务长期未触发/最近成功过久与低error_rate+低调用量悖论、工单缺数与字段映射线索、以及过时KB文档完成跨系统关联；库存仅作干扰排除。",
+    "fixture_design_summary": [
+      "integrations.json：设置analytics_ingest与reporting_indexer为“低error_rate但调用量/批次显著下降”，制造“看似健康但下游不更新”的悖论。",
+      "scheduler/jobs.json：包含crm_data_export与analytics_snapshot_landing，last_run距今超过5-7天并通过history体现skipped/failed，支撑“导出失联/未触发”。",
+      "helpdesk/tickets.json：至少8条围绕reporting_missing、field_mapping_mismatch、data_delay、window_incomplete、kb_outdated_impact等数据一致性问题聚簇，且created_at落在同一周内。",
+      "kb/articles.json：提供“报表口径与字段映射说明”last_updated超过半年，直接用于“字段映射/口径偏差”过时证据。",
+      "inventory/products.json：库存与退货率大多正常或轻微波动，避免成为主因；用notes提示为干扰项。",
+      "crm/customers.json：VIP/standard客户存在与看板对账/口径疑问相关的互动证据，但不引入退货质量危机，保证主线仍在导出/落地链路。"
+    ]
+  }
+}

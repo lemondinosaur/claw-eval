@@ -1,0 +1,178 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:41:38",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T095_pinbench_apm_market_research",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:39:46",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:39:46",
+      "source_task_id": "T095_pinbench_apm_market_research",
+      "source_summary": {
+        "task_id": "T095_pinbench_apm_market_research",
+        "task_name": "Pinbench APM Market Research",
+        "task_type": "基于知识库检索与读取相关文章，生成企业可观测与APM市场的竞争格局分析（含对比表与趋势摘要）",
+        "category": "research",
+        "difficulty": "easy",
+        "tags": [
+          "general"
+        ],
+        "language": "en",
+        "services": [
+          "kb"
+        ],
+        "tools": [
+          "kb_search",
+          "kb_get_article"
+        ],
+        "fixture_paths": [
+          "fixtures/kb/articles.json"
+        ],
+        "sandbox_files": [
+          "fixtures/kb/articles.json"
+        ],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "research：从KB文章中抽取并综合出竞争对手、差异化、定价模式与市场趋势"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T095_pinbench_apm_market_research_plus_1",
+          "new_task_name": "APM競争版图（OTel与AI驱动）",
+          "task_goal": "使用知识库资料为一家中型SaaS公司生成一份APM选型用的竞争格局报告：至少覆盖5个APM/可观测领域厂商，分别给出其差异化能力、典型定价方式，并总结3条与OpenTelemetry标准化和AI辅助定位相关的市场趋势；同时提供一张对比表与一段面向管理层的要点摘要。",
+          "user_request": "请基于知识库为一家中型SaaS团队的APM选型做竞争格局分析。要求至少5家厂商，说明它们的核心差异化、常见定价模式（以描述性方式即可），并提炼与OpenTelemetry标准化、AI驱动可观测（如AI辅助根因分析）相关的市场趋势。输出：1）比较表；2）不超过200字的执行摘要；3）每家厂商1-2句简要画像。",
+          "scenario": "公司当前主要运行Kubernetes微服务，短期目标是在不增加过多工程运维的前提下，把链路追踪与告警调通；团队希望优先兼容OpenTelemetry，并关注AI辅助定位是否能减少排障时长。预算约束较强，未来12个月预计遥测数据量会显著增长，因此需要特别关注消费/摄入相关的成本治理思路。竞争对手分析需要结合“平台整合深度（日志/指标/追踪/安全）”与“成本可预测性”两条主线。",
+          "difference_from_source": "原任务是通用市场研究并给出竞品、定价与趋势。本任务把目标从“企业通用”明确到“中型SaaS的APM选型”，并要求围绕OpenTelemetry与AI驱动可观测两条主题组织趋势，且比较表需要强调成本可预测性与OTel兼容取向，而非泛泛列举。",
+          "service_and_tool_plan": "继续使用kb服务；先用kb_search按“market trends / OpenTelemetry / AI”与“各厂商 profile / pricing / differentiators”做检索，之后对检索到的文章调用kb_get_article逐篇读取核心内容，最后进行综合写作形成对比表与执行摘要。",
+          "fixture_generation_plan": "沿用fixtures/kb/articles.json中的通用市场研究文章结构即可；本任务生成时不要求新增固定实体名称以外的专有字段。需要在fixtures中准备的有效记录条数至少6条（5家厂商画像+1条趋势文章）即可；关键字段包括article_id、title、content、category、last_updated。状态分布保持为：每条文章包含可用于抽取的差异化与定价表述，且至少1条文章明确提到OpenTelemetry趋势、至少1条提到AI辅助定位趋势。",
+          "expected_behavior": "智能体应：1）调用kb_search检索至少6个相关结果（覆盖5个不同厂商画像与1条趋势）；2）对至少5篇厂商文章与1篇趋势文章分别调用kb_get_article读取content；3）综合输出包含：比较表（行至少5个厂商，列至少包含差异化、定价模式、适配场景侧重点、与OpenTelemetry/AI相关的要点）；4）每家厂商1-2句画像；5）执行摘要不超过200字且聚焦OTel与AI与成本治理。不得添加知识库之外的具体报价数字。",
+          "grading_plan": "grader.py应检查：是否至少覆盖5个不同厂商；是否包含每家厂商的差异化与定价模式描述（允许为概述但需来自KB内容语义）；是否至少给出3条趋势且与OpenTelemetry与AI相关；是否包含比较表与执行摘要；执行摘要字数约束是否满足；输出语言为中文且未出现KB禁止的更新/写入类工具调用（仍需只读）。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T095_pinbench_apm_market_research_plus_2",
+          "new_task_name": "企业采购对账版（预算与合同风险）",
+          "task_goal": "为一家拥有多云与合规要求的企业采购团队生成APM竞品对账式研究：至少5个厂商，每家给出“差异化/优势点、潜在采购或落地风险、定价模型的成本触发因素”；并提炼至少3条市场趋势。最后输出：1）对比表；2）采购风险清单（按风险类型分组）；3）结论段落（不超过150字）。",
+          "user_request": "请为一家多云企业的APM采购团队写一份竞争对比研究。要求至少5家厂商，每家要给出：差异化优势、可能的采购/落地风险、定价模型里容易导致成本上升的触发因素。再总结至少3条市场趋势（可包括OTel、AI与平台整合方向）。最后输出：对比表、采购风险清单（按类型分组），以及不超过150字的结论。",
+          "scenario": "企业已在日志与安全领域有既有系统，APM需要与既有生态协同；同时由于内部审计要求，供应商合同谈判周期长，对“企业级自动化能力是否能降低长期运维成本”高度敏感。预计数据摄入峰值会在促销活动期间暴涨，因此需要关注消耗/摄入与计费口径导致的预算失控风险。采购评估偏好可治理的成本与清晰的使用度量。",
+          "difference_from_source": "原任务偏向通用市场分析；本任务强调“采购对账”输出结构，要求每家不仅给差异化与定价，还要明确可落地风险与成本触发因素，并额外产出按风险类型分组的清单，而不是只给趋势与比较表。",
+          "service_and_tool_plan": "使用kb_search定位与“enterprise / procurement / pricing complexity / cost governance / OpenTelemetry / AI”相关的文章，再用kb_get_article提取每个厂商内容，确保风险与触发因素均来自KB语义。",
+          "fixture_generation_plan": "沿用同一fixtures文件；确保文章内容覆盖：至少5家厂商都出现了“优势与弱点/复杂度”表述，以及至少1条市场趋势文章覆盖“成本治理/摄入效率/OTel/AI”。无需新增字段，但生成grader时应允许从content中抽取并复述，不要求数值。",
+          "expected_behavior": "智能体应：1）至少检索并读取5家厂商文章与1条趋势文章；2）对每家厂商输出包含三要点：优势/差异化、采购/落地风险、定价导致成本上升的触发因素（如资源数、摄入量、用户席位等用描述性方式体现）；3）生成采购风险清单（例如：成本预算风险、实施复杂度风险、供应链/集成风险、自动化能力兑现风险等至少3组）；4）给出对比表；5）结论不超过150字且落到“预算可预测+合规落地+OTel兼容+AI定位价值”的权衡。",
+          "grading_plan": "grader.py应检查：是否至少5家厂商、是否每家均含风险与成本触发因素；风险清单是否按至少3类分组且与内容一致；趋势数量是否≥3且与题设主题匹配；结论字数≤150字（宽松容差可按英文计数规则处理）；输出为中文且避免杜撰具体价格数字。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T095_pinbench_apm_market_research_plus_3",
+          "new_task_name": "开源生态优先：LGTM与OTel路线对比",
+          "task_goal": "面向偏工程自治与开源采用的团队，生成以“OpenTelemetry友好架构、仪表盘与工作流、以及LGTM/平台整合深度”为核心的竞争研究：至少5个厂商（包含能与OTel相关的描述），每家输出差异化与适配工程团队的理由、定价模式的关键计费维度；最后给出一段200字以内的“路线选择建议”，并附比较表与3条趋势。",
+          "user_request": "请从“开源生态与OTel路线优先”的视角，做一份APM/可观测市场竞争研究。要求至少5家厂商：对每家说明其与OpenTelemetry相关的差异化/架构取向、其仪表盘/工作流或平台整合能力概述、常见定价模式的计费维度（描述即可）。输出：1）比较表；2）3条市场趋势；3）不超过200字的路线选择建议。",
+          "scenario": "团队自建开发平台，强调可观测平台需要快速融入CI/CD与工程工作流；他们倾向于通过标准协议（如OTel）降低供应商锁定，并希望通过灵活的可视化与可扩展能力提升可维护性。数据量增长平缓但追踪覆盖面逐步扩大，因此更关心“计费维度是否与工程扩展成正比”以及是否能在平台化后保持成本效率。",
+          "difference_from_source": "原任务是通用执行级竞品分析。本任务将视角改为“工程自治与开源/OTel路线”，要求对每家明确对应到OTel友好与工作流/可视化等工程侧差异化，并新增“路线选择建议”且有字数限制。",
+          "service_and_tool_plan": "使用kb_search检索包含OpenTelemetry、LGTM、dashboards、open-source、workflow automation等关键词的文章；对选中的厂商与趋势文章逐篇kb_get_article获取content后组织成工程路线研究。",
+          "fixture_generation_plan": "继续使用fixtures/kb/articles.json中的内容；需要保证至少5家厂商中有至少2家能从content抽取到与OTel/open-source/仪表盘或工作流相关的表述；趋势部分需覆盖OTel与平台整合趋势。记录条数保持不变即可，但grader应按抽取到的主题关键词判断覆盖度。",
+          "expected_behavior": "智能体应：1）至少检索并读取5家厂商文章与1条趋势文章；2）比较表列至少包含：OTel/标准兼容取向、工作流/可视化或平台整合要点、定价计费维度（例如按资源/摄入/席位等）、适合的团队特征；3）输出3条趋势并能体现OTel标准化与平台整合/AI相关；4）路线选择建议≤200字，明确给出建议偏好（如更重视标准化与扩展性的如何权衡定价维度）。",
+          "grading_plan": "grader.py应检查：是否有比较表且至少5行；是否每家至少包含OTel或标准兼容相关描述（若文章未直接说OTel也要基于内容语义说明其在平台架构或集成方面的取向，允许合理解释但需来自KB）；趋势≥3且与OTel相关；路线建议字数≤200字；输出语言为中文。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T095_pinbench_apm_market_research_plus_4",
+          "new_task_name": "成本压测：消耗型定价与治理策略对比",
+          "task_goal": "为财务与工程共同参与的APM成本压测评估产出研究：至少5个厂商，每家提供“定价模型（摄入/资源/席位等）与成本上升的机制”、以及“成本治理或优化能力的描述”；总结至少4条与“消费型定价审查、摄入效率、数据治理、平台整合”相关的趋势；输出比较表、成本机制对照段落（不少于5点）与结论。",
+          "user_request": "请写一份“APM成本压测评估”的竞争研究。要求至少5家厂商：对每家说明其定价模型的计费维度（描述即可，不要具体金额）以及导致成本上升的机制，并概述其可能的成本治理/优化能力。然后总结至少4条市场趋势（重点围绕消费型定价审查、数据摄入效率与治理、平台整合）。输出：比较表、至少5点的成本机制对照段落、以及一段简短结论。",
+          "scenario": "评估发生在一次促销流量窗口前后：日志与追踪的摄入会出现短期放大，工程需要确保可观测成本不会在峰值时不可控。公司希望建立成本治理流程：例如对摄入进行效率优化、对工作流自动化减少重复排障消耗、并通过平台整合减少多工具并行成本。团队更在意“计费维度可解释性”与“长期可预测性”。",
+          "difference_from_source": "原任务要求至少五家厂商与趋势；本任务把研究重点从差异化+泛趋势，收敛到“定价机制→成本上升机制→治理能力→对照”并要求趋势≥4条，且新增“成本机制对照段落（≥5点）”这一特定输出。",
+          "service_and_tool_plan": "kb_search优先找与pricing、ingestion、data volume/cost sprawl、consumption-based pricing、cost governance等相关内容；kb_get_article读取后按成本机制框架整理。",
+          "fixture_generation_plan": "保持原fixtures；但需要覆盖性：至少5家内容中都应能抽取到定价或成本相关描述（哪怕是strengths/weaknesses提到成本）。趋势文章必须包含“consumption-based pricing/ingest efficiency/cost governance”等语义要素；grader用关键词映射做鲁棒判定。",
+          "expected_behavior": "智能体应：1）检索并读取至少6篇文章（5厂商+1趋势或多趋势）；2）对每家厂商输出：计费维度（资源/摄入/席位等的描述性归类）、成本上升机制（例如摄入量激增/资源扩张/模块叠加）、成本治理/优化能力概述（来自KB）；3）趋势至少4条且贴近题设成本主题；4）比较表；5）成本机制对照段落不少于5点，逐点对比差异；6）结论简短但需落到“如何在峰值期降低不确定性”的选择建议。",
+          "grading_plan": "grader.py应检查：厂商数量≥5；每家是否包含“计费维度+成本上升机制+治理能力”三要素；趋势数量≥4且与消费型定价审查/摄入效率/治理相关；成本机制对照段落≥5点；输出包含比较表与结论；不得杜撰具体价格数字或未经KB支持的治理手段。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T095_pinbench_apm_market_research_plus_5",
+          "new_task_name": "对比表增强：按场景推荐的竞品矩阵",
+          "task_goal": "为一个需要制定APM评估矩阵的团队生成“按场景推荐”的竞争格局：至少5个厂商。要求：1）比较表不仅有通用差异化与定价，还要包含“适配场景标签”（如企业级/云原生/开源自治/自动化强/与现有Splunk生态协同等，用描述性标签）；2）给出3个典型评估场景，并对每个场景推荐至少2家厂商（推荐依据来自KB）；3）总结3条市场趋势并在表格中体现与推荐逻辑的对应关系。",
+          "user_request": "请为准备APM供应商评估矩阵的团队做一份竞争研究。要求至少5家厂商，并输出：1）增强版比较表（含差异化、定价计费维度、适配场景标签，并在表中标注与关键趋势的关联点）；2）给出3个典型评估场景（例如企业级自动化优先、开源自治与OTel兼容优先、已有企业生态集成优先），每个场景至少推荐2家厂商并说明推荐理由；3）总结3条市场趋势。不要出现具体金额或具体报价。",
+          "scenario": "公司评估不是一次性选择，而是分阶段：第一阶段先选能快速落地并完成核心链路追踪的方案；第二阶段在数据量增长后进行成本治理与平台整合加固；第三阶段根据团队技能结构决定是否进一步采用AI辅助定位与自动化。评估矩阵需要能让利益相关方快速对齐选择逻辑。",
+          "difference_from_source": "原任务只要求比较表与执行摘要；本任务新增“按场景的推荐逻辑”和“表格内趋势关联标注”，并要求每个场景至少推荐2家厂商，从而改变输出结构与思维方式。",
+          "service_and_tool_plan": "使用kb_search获取厂商画像与趋势文章；kb_get_article读取内容后，构造场景标签与推荐依据。表格中的“趋势关联点”应从趋势文章抽取并映射到每家厂商的内容。",
+          "fixture_generation_plan": "沿用fixtures/kb/articles.json；需要确保可抽取到：1）至少5家厂商的差异化与定价维度（如每资源/摄入/席位/企业合同等语义）；2）至少1条趋势文章含OTel、AI、平台整合、成本审查等要点。无需新增额外记录，但grader应能从content语义支持场景推荐。",
+          "expected_behavior": "智能体应：1）读取至少5家厂商文章与趋势文章；2）输出增强版比较表：列至少包括厂商、差异化、定价计费维度（描述性）、适配场景标签、与3条趋势中的至少1条关联点；3）给出3个场景且每个场景至少推荐2家厂商，推荐理由各1-2句；4）总结3条趋势并保持与推荐一致；5）中文输出，避免具体价格数值。",
+          "grading_plan": "grader.py应检查：场景数量=3且每场推荐厂商≥2（总厂商覆盖≥5）；比较表是否包含适配场景标签与趋势关联点；是否总结3条趋势且与表格/推荐理由存在一致映射；禁止出现具体金额/报价数字；输出结构是否包含比较表、场景推荐与趋势总结。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:41:38",
+    "items": [
+      {
+        "task_id": "T095_pinbench_apm_market_research_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:40:07",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T095_pinbench_apm_market_research_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T095_pinbench_apm_market_research_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:40:29",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T095_pinbench_apm_market_research_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T095_pinbench_apm_market_research_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:40:55",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T095_pinbench_apm_market_research_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T095_pinbench_apm_market_research_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:41:13",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T095_pinbench_apm_market_research_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T095_pinbench_apm_market_research_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:41:38",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/T095_pinbench_apm_market_research_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T095_pinbench_apm_market_research_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T095_pinbench_apm_market_research/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T095_pinbench_apm_market_research",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

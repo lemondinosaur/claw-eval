@@ -1,0 +1,422 @@
+{
+  "task_id": "T147zh_system_health_check_plus_1",
+  "task_name": "夜间告警链路巡检",
+  "prompt_text": "请帮我做一次“夜间告警链路”系统健康巡检：\n\n1）检查所有API集成配置的健康状态与报错信息\n2）检查定时任务在最近巡检窗口内的运行情况（重点关注告警类任务：告警短信发送、告警汇总推送）\n3）查看当前未解决的工单，并找出与告警链路相关的工单（重点对应“短信未收到”和“汇总延迟刷新”两类现象）\n4）在知识库中检索与短信网关连接/认证失败、以及告警汇总延迟/重试策略相关的解决方案\n5）输出健康报告：标注至少两条故障链（集成 → 任务 → 工单），并给出可执行的修复建议与验证步骤\n\n要求：不要编造不存在的信息；若涉及禁用任务，请给出停用原因标注为⚠并说明影响。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-A1101",
+        "name": "短信网关",
+        "status": "error",
+        "config": {
+          "host": "api.alt-sms-gw.example.com",
+          "port": 443,
+          "auth_mode": "token"
+        },
+        "error_rate": 0.93,
+        "error_message": "网关拒绝连接：TLS握手失败（error=handshake_rejected）",
+        "description": "夜间告警短信发送通道（SLA：高优先级告警）",
+        "service": "sms_gateway",
+        "last_verified": "2026-05-18",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-A1102",
+        "name": "告警事件投递",
+        "status": "error",
+        "config": {
+          "topic": "alerts.nightstream.v1",
+          "producer_timeout_ms": 800,
+          "acks": "all"
+        },
+        "error_rate": 0.27,
+        "error_message": "消息投递失败：队列不可用或写入超时（timeout after 800ms）",
+        "description": "将告警事件投递到下游（用于汇总与重试）",
+        "service": "alert_delivery",
+        "last_verified": "2026-05-19",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-A1103",
+        "name": "告警模板渲染",
+        "status": "active",
+        "config": {
+          "template_engine": "mustache",
+          "cache_ttl_seconds": 300
+        },
+        "error_rate": 0.004,
+        "description": "告警内容模板渲染服务",
+        "service": "template",
+        "last_verified": "2026-05-20",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-A1104",
+        "name": "审计日志归档",
+        "status": "active",
+        "config": {
+          "endpoint": "https://audit-archive.example.com/ingest",
+          "batch_max": 500,
+          "flush_interval_seconds": 10
+        },
+        "error_rate": 0.009,
+        "description": "告警处理链路审计日志归档",
+        "service": "audit",
+        "last_verified": "2026-05-21",
+        "monthly_calls": 0
+      },
+      {
+        "integration_id": "INT-A1105",
+        "name": "告警通知路由",
+        "status": "active",
+        "config": {
+          "rules_version": "2026-05-01",
+          "default_channel": "sms"
+        },
+        "error_rate": 0.006,
+        "description": "告警路由与通道选择（短信/站内）",
+        "service": "routing",
+        "last_verified": "2026-05-22",
+        "monthly_calls": 0
+      }
+    ],
+    "fixtures/helpdesk/tickets.json": [
+      {
+        "ticket_id": "TK-AN2001",
+        "subject": "夜间告警：值班未收到短信",
+        "customer_id": "CUS-AL8001",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T01:12:30",
+        "assigned_to": "周岚",
+        "category": "告警短信",
+        "description": "值班同事表示从05:20开始多条高优先级告警未收到短信；告警平台日志显示短信网关侧连接被拒绝，重试仍失败。",
+        "title": "夜间告警：值班未收到短信",
+        "reporter": "周岚",
+        "department": "值班运维"
+      },
+      {
+        "ticket_id": "TK-AN2002",
+        "subject": "告警汇总看板延迟刷新（夜间）",
+        "customer_id": "CUS-AL8001",
+        "priority": "high",
+        "status": "open",
+        "created_at": "2026-05-21T02:05:10",
+        "assigned_to": "蔡然",
+        "category": "告警汇总",
+        "description": "夜间汇总看板刷新滞后约20-35分钟，影响值班派单；检查告警事件投递链路出现超时，导致部分事件未及时进入汇总队列。",
+        "title": "告警汇总看板延迟刷新（夜间）",
+        "reporter": "蔡然",
+        "department": "值班运维"
+      },
+      {
+        "ticket_id": "TK-AN2003",
+        "subject": "告警短信重复/丢失混合现象",
+        "customer_id": "CUS-AL8002",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-20T23:41:00",
+        "assigned_to": "陈越",
+        "category": "通知可靠性",
+        "description": "部分告警短信表现为重复发送（间隔约2分钟），另一些告警完全未到；疑似与重试策略和投递超时导致的补偿逻辑相关。",
+        "title": "告警短信重复/丢失混合现象",
+        "reporter": "陈越",
+        "department": "平台支持"
+      },
+      {
+        "ticket_id": "TK-AN2004",
+        "subject": "消息队列积压导致告警派发慢",
+        "customer_id": "CUS-AL8003",
+        "priority": "medium",
+        "status": "open",
+        "created_at": "2026-05-21T03:10:45",
+        "assigned_to": "谭希",
+        "category": "消息队列",
+        "description": "告警事件topic出现积压，消费端处理延迟，导致汇总与告警下发都变慢；需确认是否为投递超时引发的重试风暴。",
+        "title": "消息队列积压导致告警派发慢",
+        "reporter": "谭希",
+        "department": "基础平台"
+      },
+      {
+        "ticket_id": "TK-AN2005",
+        "subject": "报表导出失败（周边系统）",
+        "customer_id": "CUS-AL9001",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-20T10:22:00",
+        "assigned_to": "孙楠",
+        "category": "报表",
+        "description": "报表导出偶发失败，未见与告警链路直接关联。当前主要在白天窗口出现。",
+        "title": "报表导出失败（周边系统）",
+        "reporter": "孙楠",
+        "department": "数据运营"
+      },
+      {
+        "ticket_id": "TK-AN2006",
+        "subject": "用户密码重置邮件延迟",
+        "customer_id": "CUS-AL9002",
+        "priority": "low",
+        "status": "open",
+        "created_at": "2026-05-19T18:05:00",
+        "assigned_to": "马昕",
+        "category": "账号",
+        "description": "密码重置邮件延迟到达，可能与认证或外部邮件通道有关，但与夜间告警链路现象未必同源。",
+        "title": "用户密码重置邮件延迟",
+        "reporter": "马昕",
+        "department": "客户服务"
+      }
+    ],
+    "fixtures/kb/articles.json": [
+      {
+        "article_id": "KB-AL3001",
+        "title": "短信网关连接被拒绝排查（TLS/端口/证书）",
+        "category": "运维文档",
+        "tags": [
+          "短信网关",
+          "连接失败",
+          "拒绝连接",
+          "TLS握手",
+          "证书"
+        ],
+        "content": "## 短信网关连接被拒绝排查（TLS/端口/证书）\n\n### 典型现象\n- 告警短信发送失败\n- 报错：TLS握手失败 / connection rejected\n\n### 排查步骤（建议按顺序）\n1. 校验短信网关主机与端口是否与配置一致（host/port/协议）。\n2. 在执行环境中对网关端口进行连通性测试：\n   - `openssl s_client -connect api.alt-sms-gw.example.com:443`\n3. 检查证书链是否过期/不受信（CA bundle 是否一致）。\n4. 若网关侧启用了白名单：核对调用方出口IP是否已加入。\n5. 清理重试风暴：确认客户端超时与重试间隔，避免在网关持续拒绝时快速重试。\n\n### 修复建议\n- 先修复证书/CA配置或更新证书。\n- 更新网络白名单/放通端口 443。\n- 验证：重新触发一条测试告警，确认短信通道成功回执。",
+        "last_updated": "2026-05-10",
+        "views": 642
+      },
+      {
+        "article_id": "KB-AL3002",
+        "title": "告警事件投递延迟：超时、重试与消息积压处理",
+        "category": "技术文档",
+        "tags": [
+          "告警投递",
+          "超时",
+          "重试",
+          "积压",
+          "队列"
+        ],
+        "content": "## 告警事件投递延迟：超时、重试与消息积压处理\n\n### 典型现象\n- 告警汇总看板刷新延迟\n- 投递日志：timeout / queue unavailable\n\n### 处理流程\n1. 先确认投递是否超时：查看 producer_timeout_ms 与实际下游响应。\n2. 检查消息队列堆积：观察 topic lag（若持续上升通常需先控流）。\n3. 调整重试策略：\n   - 将重试间隔从“固定短间隔”改为指数退避\n   - 设置最大重试次数，超过后进入死信/人工介入队列\n4. 临时控流方案：降低并发生产或在高峰期放大投递超时阈值（短期）\n5. 验证方法：\n   - 采样观察事件从投递到汇总入库的时间是否回落\n   - 复核告警汇总定时任务是否恢复正常产出\n\n### 推荐的监控项\n- topic lag\n- 投递成功率与超时率\n- 汇总任务的运行成功/失败比",
+        "last_updated": "2026-05-08",
+        "views": 911
+      },
+      {
+        "article_id": "KB-AL3003",
+        "title": "告警汇总推送任务失败：超时与幂等重试策略",
+        "category": "运维文档",
+        "tags": [
+          "告警汇总",
+          "定时任务",
+          "超时",
+          "幂等",
+          "重试"
+        ],
+        "content": "## 告警汇总推送任务失败：超时与幂等重试策略\n\n### 常见错误\n- task failed：超时 / 消息队列不可用\n\n### 修复建议\n1. 检查任务依赖的下游服务可用性（队列写/读是否正常）。\n2. 对任务引入幂等键（按告警批次或窗口ID），避免重复推送造成混乱。\n3. 调整任务重试参数：\n   - 增大执行单次超时时长（如从 800ms 提升到更合理阈值）\n   - 重试使用指数退避并限制最大重试次数\n4. 若确认为下游不可用：先暂停汇总推送任务，待队列恢复后手动补跑。\n\n### 验证\n- 观察下一个窗口内汇总看板刷新是否回到正常区间\n- 检查是否存在重复批次记录",
+        "last_updated": "2026-05-12",
+        "views": 527
+      },
+      {
+        "article_id": "KB-AL3004",
+        "title": "消息队列积压应急：清理积压与恢复消费端",
+        "category": "应急手册",
+        "tags": [
+          "消息队列",
+          "积压",
+          "应急恢复",
+          "消费端"
+        ],
+        "content": "## 消息队列积压应急：清理积压与恢复消费端\n\n### 适用场景\n- 告警投递延迟导致汇总滞后\n- topic lag 持续偏高\n\n### 应急步骤\n1. 评估积压规模：确认是否需要优先处理高优先级告警。\n2. 暂停非关键生产者（或降低并发），避免继续写入放大积压。\n3. 检查消费端健康：\n   - 消费者线程/连接是否异常\n   - 是否触发重启风暴\n4. 清理策略：\n   - 对可重放消息，按批次消费\n   - 对不可重放消息，进入人工介入列表\n5. 验证：\n   - topic lag 下降\n   - 汇总任务运行成功率上升并完成追赶\n\n### 注意\n- 不建议无限期重试；必须设置上限并提供失败通道。",
+        "last_updated": "2026-05-14",
+        "views": 388
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-AN2101",
+        "name": "告警短信发送",
+        "schedule": "0 */5 * * *",
+        "status": "enabled",
+        "last_run": "2026-05-21T01:55:00Z",
+        "last_status": "failed",
+        "error_message": "网关拒绝连接：无法建立到短信网关的TLS会话（拒绝代码=REJECT_HANDSHAKE）",
+        "description": "每5分钟从告警队列拉取待发送短信并执行发送与回执校验",
+        "tags": [
+          "alert",
+          "sms",
+          "notification"
+        ],
+        "failure_count": 17,
+        "first_failure": "2026-05-18T23:10:00Z",
+        "cron_expression": "0 */5 * * *",
+        "enabled": true,
+        "action": "每5分钟发送告警短信并记录回执状态",
+        "next_run": null,
+        "created_at": "2026-02-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T01:55:00Z",
+            "status": "failed",
+            "duration_s": 58
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-AN2102",
+        "name": "告警汇总推送",
+        "schedule": "*/3 * * * *",
+        "status": "enabled",
+        "last_run": "2026-05-21T02:04:00Z",
+        "last_status": "failed",
+        "error_message": "消息队列不可用/超时：投递批次写入超时（3000ms），触发重试耗尽",
+        "description": "每3分钟汇总指定窗口内告警并推送到汇总看板更新队列",
+        "tags": [
+          "alert",
+          "aggregation",
+          "push"
+        ],
+        "failure_count": 9,
+        "first_failure": "2026-05-19T00:40:00Z",
+        "cron_expression": "*/3 * * * *",
+        "enabled": true,
+        "action": "执行告警汇总并推送刷新事件",
+        "next_run": null,
+        "created_at": "2026-01-15T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T02:04:00Z",
+            "status": "failed",
+            "duration_s": 64
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-AN2103",
+        "name": "告警投递补偿重试",
+        "schedule": "*/10 * * * *",
+        "status": "enabled",
+        "last_run": "2026-05-21T02:10:00Z",
+        "last_status": "success",
+        "error_message": null,
+        "description": "对投递失败事件进行有限重试并进行幂等去重",
+        "tags": [
+          "alert",
+          "delivery",
+          "retry"
+        ],
+        "failure_count": 0,
+        "first_failure": null,
+        "cron_expression": "*/10 * * * *",
+        "enabled": true,
+        "action": "重试投递失败事件（幂等）",
+        "next_run": null,
+        "created_at": "2026-02-10T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T02:10:00Z",
+            "status": "success",
+            "duration_s": 52
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-AN2104",
+        "name": "会话令牌轮换",
+        "schedule": "0 4 * * *",
+        "status": "disabled",
+        "last_run": "2026-05-15T04:00:00Z",
+        "last_status": "success",
+        "error_message": null,
+        "description": "每日凌晨轮换告警相关服务令牌（维护窗口执行）",
+        "tags": [
+          "security",
+          "maintenance"
+        ],
+        "failure_count": 0,
+        "first_failure": null,
+        "cron_expression": "0 4 * * *",
+        "enabled": false,
+        "action": "维护窗口轮换令牌",
+        "next_run": null,
+        "created_at": "2026-03-01T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-15T04:00:00Z",
+            "status": "success",
+            "duration_s": 41
+          }
+        ],
+        "disabled_reason": "⚠维护窗口调整 - 下游短信网关侧证书更新中，避免令牌与证书窗口错配",
+        "disabled_by": "ops-admin",
+        "disabled_at": "2026-05-16T09:20:00Z"
+      },
+      {
+        "job_id": "JOB-AN2105",
+        "name": "夜间审计日志落盘",
+        "schedule": "0 1 * * *",
+        "status": "enabled",
+        "last_run": "2026-05-21T01:00:00Z",
+        "last_status": "success",
+        "error_message": null,
+        "description": "将夜间链路审计日志落盘并做校验哈希",
+        "tags": [
+          "audit",
+          "nightly"
+        ],
+        "failure_count": 0,
+        "first_failure": null,
+        "cron_expression": "0 1 * * *",
+        "enabled": true,
+        "action": "落盘审计日志",
+        "next_run": null,
+        "created_at": "2026-01-20T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T01:00:00Z",
+            "status": "success",
+            "duration_s": 47
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-AN2106",
+        "name": "告警去重索引构建",
+        "schedule": "*/20 * * * *",
+        "status": "enabled",
+        "last_run": "2026-05-21T02:00:00Z",
+        "last_status": "success",
+        "error_message": null,
+        "description": "构建告警批次去重索引，供短信与汇总链路使用",
+        "tags": [
+          "alert",
+          "dedup"
+        ],
+        "failure_count": 0,
+        "first_failure": null,
+        "cron_expression": "*/20 * * * *",
+        "enabled": true,
+        "action": "构建去重索引",
+        "next_run": null,
+        "created_at": "2026-02-20T00:00:00Z",
+        "created_by": "system",
+        "execution_history": [
+          {
+            "run_at": "2026-05-21T02:00:00Z",
+            "status": "success",
+            "duration_s": 55
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将健康巡检场景从原来的邮件/ETL/登录为主改为“夜间告警链路”，重点围绕短信网关异常与告警汇总延迟两条跨模块故障链。",
+    "fixture_design_summary": [
+      "integrations.json：新增两条告警链路关键异常集成（短信网关、告警事件投递），其余集成保持低 error_rate 且 active。",
+      "scheduler/jobs.json：设置“告警短信发送”持续失败且错误为拒绝连接；“告警汇总推送”失败且错误为队列超时；另包含一条 disabled 任务并带明确⚠停用原因。",
+      "helpdesk/tickets.json：提供至少四条与告警相关的未解决工单，覆盖“未收到短信/汇总延迟刷新”两类核心现象，并附加两条干扰工单不直接因果。",
+      "kb/articles.json：新增与短信网关TLS连接失败、告警投递超时与重试、汇总任务幂等重试、消息队列积压应急相关的文章，支持从故障链推导可执行修复步骤。"
+    ]
+  }
+}

@@ -1,0 +1,214 @@
+[
+  {
+    "ticket_id": "TK-SL-801",
+    "title": "队列 silent：告警链路未触发",
+    "subject": "队列 silent：告警链路未触发",
+    "customer_id": "CUS-218",
+    "priority": "critical",
+    "status": "assigned",
+    "created_at": "2026-05-18T10:30:00",
+    "first_response_at": null,
+    "assigned_to": "值班-A（队列silent）",
+    "category": "平台",
+    "description": "工单进入 assigned 后未触发首次响应通知升级，疑似补偿链路停用。",
+    "reporter": "运维自动脚本",
+    "department": "SRE",
+    "tags": [
+      "queue-silent",
+      "sla-compensation"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  },
+  {
+    "ticket_id": "TK-SL-802",
+    "title": "支付回调超时导致重试堆积",
+    "subject": "支付回调超时导致重试堆积",
+    "customer_id": "CUS-219",
+    "priority": "critical",
+    "status": "pending",
+    "created_at": "2026-05-21T14:10:00",
+    "first_response_at": null,
+    "assigned_to": "值班-B",
+    "category": "业务",
+    "description": "回调超时后重试但无首次响应，疑似静默积压。",
+    "reporter": "商户-对账系统",
+    "department": "支付",
+    "tags": [
+      "queue-silent"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  },
+  {
+    "ticket_id": "TK-SL-803",
+    "title": "权限服务慢导致接口卡顿",
+    "subject": "权限服务慢导致接口卡顿",
+    "customer_id": "CUS-220",
+    "priority": "high",
+    "status": "assigned",
+    "created_at": "2026-05-20T09:20:00",
+    "first_response_at": "2026-05-20T11:33:00",
+    "assigned_to": "权限组",
+    "category": "平台",
+    "description": "已在阈值附近首次响应，需标注临界。",
+    "reporter": "监控告警",
+    "department": "平台",
+    "tags": [
+      "queue-silent"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  },
+  {
+    "ticket_id": "TK-SL-804",
+    "title": "数据同步延迟：消费者等待过久",
+    "subject": "数据同步延迟：消费者等待过久",
+    "customer_id": "CUS-221",
+    "priority": "high",
+    "status": "pending",
+    "created_at": "2026-05-22T07:55:00",
+    "first_response_at": null,
+    "assigned_to": "数据组-C",
+    "category": "数据",
+    "description": "同步消费者持续等待，首次响应仍为空，疑似补偿未执行。",
+    "reporter": "数据监控",
+    "department": "数据",
+    "tags": [
+      "queue-silent"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  },
+  {
+    "ticket_id": "TK-SL-805",
+    "title": "登录失败率升高（边界样本）",
+    "subject": "登录失败率升高（边界样本）",
+    "customer_id": "CUS-222",
+    "priority": "medium",
+    "status": "assigned",
+    "created_at": "2026-05-22T09:35:00",
+    "first_response_at": "2026-05-22T15:33:00",
+    "assigned_to": "IAM组",
+    "category": "安全",
+    "description": "首次响应差值接近SLA阈值边界，需标注临界。",
+    "reporter": "风控告警",
+    "department": "安全",
+    "tags": [
+      "queue-silent"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  },
+  {
+    "ticket_id": "TK-SL-806",
+    "title": "搜索服务返回超时",
+    "subject": "搜索服务返回超时",
+    "customer_id": "CUS-223",
+    "priority": "medium",
+    "status": "pending",
+    "created_at": "2026-05-20T12:10:00",
+    "first_response_at": null,
+    "assigned_to": "搜索组",
+    "category": "检索",
+    "description": "等待超过SLA阈值但未收到首次响应，需计算风险。",
+    "reporter": "用户反馈",
+    "department": "检索",
+    "tags": [
+      "queue-silent"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  },
+  {
+    "ticket_id": "TK-SL-807",
+    "title": "工单系统UI显示延迟",
+    "subject": "工单系统UI显示延迟",
+    "customer_id": "CUS-224",
+    "priority": "low",
+    "status": "assigned",
+    "created_at": "2026-05-21T16:40:00",
+    "first_response_at": "2026-05-22T02:05:00",
+    "assigned_to": "前端组",
+    "category": "UI",
+    "description": "低优先级示例，用于对比未超时情况。",
+    "reporter": "QA测试",
+    "department": "前端",
+    "tags": [
+      "ui-delay"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  },
+  {
+    "ticket_id": "TK-SL-808",
+    "title": "集成同步失败（非队列 silent）",
+    "subject": "集成同步失败（非队列 silent）",
+    "customer_id": "CUS-225",
+    "priority": "high",
+    "status": "assigned",
+    "created_at": "2026-05-21T18:30:00",
+    "first_response_at": "2026-05-21T21:05:00",
+    "assigned_to": "集成组",
+    "category": "集成",
+    "description": "虽同样较久，但已完成首次响应，用于对照。",
+    "reporter": "集成任务",
+    "department": "集成",
+    "tags": [
+      "integration"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  },
+  {
+    "ticket_id": "TK-SL-809",
+    "title": "内部压测资源配额耗尽",
+    "subject": "内部压测资源配额耗尽",
+    "customer_id": "internal-qa",
+    "priority": "low",
+    "status": "assigned",
+    "created_at": "2026-05-22T05:00:00",
+    "first_response_at": null,
+    "assigned_to": "平台-工具链",
+    "category": "内部",
+    "description": "内部工单：不纳入外部SLA评估（internal=true）。",
+    "reporter": "压测平台",
+    "department": "工具链",
+    "internal": true,
+    "tags": [
+      "loadtest"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  },
+  {
+    "ticket_id": "TK-SL-810",
+    "title": "消息队列消费者超时堆积（进一步验证）",
+    "subject": "消息队列消费者超时堆积（进一步验证）",
+    "customer_id": "CUS-226",
+    "priority": "critical",
+    "status": "pending",
+    "created_at": "2026-05-22T00:00:00",
+    "first_response_at": null,
+    "assigned_to": "SRE-值班-C",
+    "category": "中间件",
+    "description": "消费者超时后多工单进入 silent 队列，首次响应长期为空。",
+    "reporter": "MQ监控",
+    "department": "SRE",
+    "tags": [
+      "queue-silent",
+      "mq-timeout"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  },
+  {
+    "ticket_id": "TK-SL-811",
+    "title": "配置中心拉取失败导致配置不同步",
+    "subject": "配置中心拉取失败导致配置不同步",
+    "customer_id": "CUS-227",
+    "priority": "medium",
+    "status": "assigned",
+    "created_at": "2026-05-20T20:55:00",
+    "first_response_at": "2026-05-21T03:38:00",
+    "assigned_to": "平台配置组",
+    "category": "运维",
+    "description": "首次响应落在阈值附近，作为临界样本对照。",
+    "reporter": "服务自检",
+    "department": "平台",
+    "tags": [
+      "config"
+    ],
+    "current_at": "2026-05-22T12:00:00"
+  }
+]

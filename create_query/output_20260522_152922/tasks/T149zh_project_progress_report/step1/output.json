@@ -1,0 +1,110 @@
+{
+  "schema_version": "step1.task_descriptions.v2",
+  "generated_at": "2026-05-22 15:40:24",
+  "source_task_id": "T149zh_project_progress_report",
+  "source_summary": {
+    "task_id": "T149zh_project_progress_report",
+    "task_name": "并行项目进度汇报生成",
+    "task_type": "基于日历会议与纪要行动项、对比待办任务状态，并补充项目负责人联系方式，生成多项目进度汇报与风险标注",
+    "category": "workflow",
+    "difficulty": "hard",
+    "tags": [
+      "general",
+      "multi_service"
+    ],
+    "language": "zh",
+    "services": [
+      "calendar",
+      "notes",
+      "todo",
+      "contacts"
+    ],
+    "tools": [
+      "calendar_list_events",
+      "calendar_get_event",
+      "notes_list",
+      "notes_get",
+      "todo_list_tasks",
+      "todo_get_task",
+      "contacts_search",
+      "contacts_get"
+    ],
+    "fixture_paths": [
+      "fixtures/calendar/events.json",
+      "fixtures/contacts/contacts.json",
+      "fixtures/notes/meetings.json",
+      "fixtures/todo/tasks.json"
+    ],
+    "sandbox_files": [],
+    "has_user_agent": false,
+    "has_grader": true,
+    "core_capability": "workflow"
+  },
+  "new_task_descriptions": [
+    {
+      "index": 1,
+      "new_task_id": "T149zh_project_progress_report_plus_1",
+      "new_task_name": "多团队周报汇总",
+      "task_goal": "为3个并行项目(Orchid/Cobalt/Ruby)生成本周进度汇报：汇总各项目相关会议主题，读取纪要行动项与其到期/状态，核对待办任务完成率与风险(逾期/blocked/缺关键产出)，并输出每个项目主要负责人邮箱与电话。",
+      "user_request": "请帮我为3个并行项目(Orchid/Cobalt/Ruby)生成本周进度汇报：\n1) 查找各项目本周相关会议并概述结论；\n2) 阅读纪要中的行动项，提取每项的责任人、到期日与当前状态；\n3) 对比待办事项(含pending/in_progress/completed)的完成情况，计算完成率；\n4) 查找每个项目主要负责人联系方式；\n5) 标注关键风险：逾期、blocked(阻塞来源说明)、以及缺少关键会议纪要对应的待办/交付项。",
+      "scenario": "当前日期为2026-05-10。日历包含跨部门干扰会议(如全公司安全培训、技术分享会)以及三项目相关会议：Orchid有两场(需求评审+接口联调复盘)，Cobalt有一场(迭代计划会)但其关键交付评审会议只在日历出现、纪要缺失，Ruby有三场(启动+数据迁移例会+里程碑验收预检)。待办任务覆盖3项目不同状态分布：Orchid多数完成但存在一项高优先待办in_progress且 due_date晚于会议提出的截止；Cobalt存在多项pending与一项blocked且阻塞来源是“外部审计需求尚未提交”；Ruby临近验收但有一项资料待补齐且需要指出“与最近一场纪要行动项未完全对应”。",
+      "difference_from_source": "从3/24固定场景改为5月上旬“本周”范围，项目名称与会议/纪要/待办的数量结构发生变化：Cobalt出现“日历关键交付评审存在但缺纪要”的组合，Ruby引入“待办与纪要行动项部分不一一对应”的干扰点；风险判定重点从单一阻塞切换为(逾期/blocked/缺纪要/行动项不匹配)的组合。",
+      "service_and_tool_plan": "继续使用calendar_list_events抓取本周所有会议，再按项目标题与描述映射到Orchid/Cobalt/Ruby对应事件；使用notes_list与notes_get获取与项目相关的纪要并解析行动项；用todo_list_tasks(all)获取所有待办后按project字段分组，对比纪要行动项责任人、到期日与待办状态以计算完成率与识别缺口；最后用contacts_search按三项目负责人姓名检索并用contacts_get取详情输出联系方式。",
+      "fixture_generation_plan": "生成4个fixture文件(沿用相同服务schema)。\n1) calendar/events.json：至少10条事件，其中干扰事件2-3条；Orchid 2条事件、Cobalt 2条事件(含一条关键交付评审但与notes缺失相关)、Ruby 3条事件。\n2) notes/meetings.json：至少5条纪要；确保Orchid有2条行动项纪要、Cobalt仅1条且刻意缺少“关键交付评审”对应纪要、Ruby有2-3条且包含数据迁移/验收预检的行动项。\n3) todo/tasks.json：每项目4-6条待办，总计约15条；状态分布设计为：Orchid约70-80%完成但1条in_progress高优先；Cobalt完成率低(20-40%)且至少1条blocked(pending)含blocked_by；Ruby完成率高(80-95%)但1条资料补齐为pending且与纪要行动项提取存在“部分对应但仍缺一项”。\n4) contacts/contacts.json：至少9名联系人；为每项目设置1名“主要负责人”(共3人)并另加2-3名跨项目参与者，确保contacts_search命中唯一姓名。",
+      "expected_behavior": "代理应：\n- 使用calendar_list_events定位5/10所在周内三项目会议，并用calendar_get_event补充必要字段(如描述中的纪要映射线索)；\n- 通过notes_list/notes_get拉取与项目标签或标题匹配的纪要，逐条提取行动项责任人、截止日期与状态(包含已完成/进行中/blocked/pending)；\n- 使用todo_list_tasks(all)并分project汇总，计算每项目完成率(=completed数/总数)，并判断blocked/逾期(将mock_today=2026-05-10与due_date比较)；\n- 检测“日历关键交付评审存在但无对应纪要”的情况并在风险中点名；\n- 调用contacts_search分别查找三项目主要负责人并输出邮箱与电话；\n- 最终输出三份并列报告：每份包含会议概述、行动项状态列表、完成率、关键风险(结构化要点)与联系方式。",
+      "grading_plan": "检查生成的三份报告中：1) 是否正确归属会议到Orchid/Cobalt/Ruby并提取了每次会议结论；2) 是否从纪要中提取了行动项的责任人/到期日/状态并与待办状态对齐；3) 完成率计算是否与fixture一致；4) 是否能识别Cobalt“关键交付评审缺纪要”的风险、以及Ruby“行动项不完全对应”的缺口；5) 是否为每项目输出了正确的主要负责人邮箱与电话(来自contacts数据)；6) 风险标注是否覆盖blocked_by与逾期判断依据。"
+    },
+    {
+      "index": 2,
+      "new_task_id": "T149zh_project_progress_report_plus_2",
+      "new_task_name": "里程碑对齐复盘",
+      "task_goal": "为3个并行项目(Summit/Willow/Zenith)生成里程碑周报：将每项目最近一次里程碑会议与其纪要行动项、待办任务完成情况对齐，找出“里程碑声称完成但待办未完成”的不一致并给出风险与需要补做的动作，同时提供项目负责人联系方式。",
+      "user_request": "请为3个并行项目(Summit/Willow/Zenith)生成里程碑对齐周报：\n- 只关注每个项目最近一场里程碑相关会议(如标题含“里程碑/验收预告/阶段评审”)；\n- 阅读该会议对应纪要里的行动项；\n- 对比待办任务状态，找出是否存在“纪要标注已完成但待办仍pending/in_progress”的情况；\n- 输出每项目：会议结论、行动项状态表、待办完成率、不一致风险与建议补做项；\n- 查找每项目项目负责人联系方式并在报告末尾列出。",
+      "scenario": "mock_today设为2026-04-27。calendar中存在多场与项目相关的会议，但需按标题关键词挑选“最近一场里程碑会议”：Summit最近里程碑会在4/26，Willow在4/25，Zenith在4/27。设置干扰：每个项目还有其他非里程碑会议(如周例会、对外同步)但不能纳入。notes中刻意让Summit有一条纪要行动项标注“完成✓”，但todo里对应任务被设置为in_progress(制造不一致)；Willow纪要行动项均pending，但todo里有2条completed(制造“待办已完成但纪要没同步”的另一类差异)；Zenith纪要存在，但其中一项行动项缺失责任人字段(需要在报告中指出记录不完整风险)。",
+      "difference_from_source": "不再是“3个固定项目+按时间段全量会议”，而是“每项目最近一次里程碑会议”筛选；核心新增考点是比对纪要与待办的“正反不一致”(纪要完成但待办未完、纪要未完但待办已完)，以及处理纪要行动项字段缺失。",
+      "service_and_tool_plan": "使用calendar_list_events获取mock_today附近一段时间内事件，再通过calendar_get_event抽取事件标题/描述中的里程碑标记以确定最近会议；notes_list与notes_get用于获取对应纪要并解析行动项；todo_list_tasks(all)获取待办并按project分组映射到行动项(根据标题关键词/责任人/截止日期匹配)判断一致性；contacts_search用于定位三项目负责人并contacts_get补全联系信息。",
+      "fixture_generation_plan": "生成新fixtures(不复用原实体名/邮件/项目名/工单ID/数值)。\n- calendar/events.json：约12-14条事件；Summit相关4条(含2条干扰非里程碑+1条最近里程碑)，Willow相关4条，Zenith相关3-4条；外部干扰2-3条(如架构月度论坛)。\n- notes/meetings.json：3条关键纪要(分别对应三项目最近里程碑会议)，外加2条干扰纪要；行动项总计每个3-4条。确保：Summit至少1条纪要行动项为“已完成✓”，但todo对应任务为in_progress；Willow至少2条todo completed，但纪要仍为pending；Zenith至少1条行动项缺少责任人/或责任人写为“待确认”。\n- todo/tasks.json：每项目5条左右，总计约16条；为三类差异分别设计状态分布：Summit完成率中等(40-70%)且存在不一致条；Willow完成率较高(60-90%)但纪要未更新；Zenith完成率高(80%+)但纪要行动项字段不完整导致风险。\n- contacts/contacts.json：至少9名联系人；为Summit/Willow/Zenith各1名负责人，另外若干参与者；姓名在contacts中应能被唯一搜索命中。",
+      "expected_behavior": "代理应：\n1) 获取足够范围的日历事件并筛出“每项目最近的里程碑会议”；\n2) 通过notes_get拿到这三场会议对应纪要；\n3) 从纪要行动项提取责任人/截止日/状态，随后使用todo_list_tasks(all)分项目比对：找出纪要已完成但待办仍in_progress/pending的不一致，以及纪要pending但待办已completed的不一致；\n4) 计算每项目待办完成率并将“不一致风险”作为单独小节列出(含建议补做动作，例如“同步纪要”“复核验收材料”“更新里程碑状态”对应到具体任务标题)；\n5) 对Zenith的行动项字段缺失给出风险提示(例如“行动项责任人缺失，需补确认”);\n6) 使用contacts_search/contacts_get输出每项目负责人联系方式(邮箱+电话)。",
+      "grading_plan": "核查：最近里程碑会议筛选是否正确且不混入非里程碑会；纪要-待办一致性判断是否覆盖两种不一致类型；完成率计算与fixture一致；Zenith行动项字段缺失是否被识别并转化为风险描述；联系方式是否对应三项目负责人且字段齐全。"
+    },
+    {
+      "index": 3,
+      "new_task_id": "T149zh_project_progress_report_plus_3",
+      "new_task_name": "发布前风险快照",
+      "task_goal": "为3个并行项目(Atlas/Brio/Coral)生成发布前风险快照：统计发布前关键评审会议与纪要行动项，核对待办的发布相关任务完成与阻塞情况，输出“发布是否具备条件”的结论，并列出负责人联系方式。",
+      "user_request": "请为3个并行项目(Atlas/Brio/Coral)生成发布前风险快照：\n1) 查找每个项目在“发布评审/上线准备/灰度评估”相关的会议；\n2) 阅读对应纪要行动项并汇总为风险要点；\n3) 对比待办中的发布相关任务(如包含“发布/灰度/回滚/监控/验收”关键词的task标题)的完成情况，给出是否具备发布条件；\n4) 对blocked或逾期任务给出阻塞来源与影响范围；\n5) 查找每项目发布负责人联系方式并在末尾输出。",
+      "scenario": "mock_today为2026-06-03。三项目的发布节奏不同：Atlas发布评审会已召开但待办里回滚脚本仍pending(blocked_by为“安全审批流程未通过”)；Brio发布评审会尚未有对应纪要(但待办已有多项in_progress)，需要指出“缺纪要导致风险不可验证”；Coral的发布评审纪要存在且所有行动项均完成✓，但todo里仍存在一条“监控告警规则”due_date在未来且状态in_progress，要求不要误报为不满足发布条件，而是标注“后续完成项”。日历里还有两类干扰会议(产品培训、周志同步)与项目名称无关，需避免纳入。",
+      "difference_from_source": "将任务焦点从“通用进度汇报”切换为“发布前风险快照”，并引入关键词过滤待办任务(发布相关)与“缺纪要导致不可验证”的判断；同时强调对future due_date的风险表述要有边界(不能一概判定不可发布)。",
+      "service_and_tool_plan": "calendar_list_events检索包含“发布评审/上线准备/灰度评估”等标题或描述关键词的事件；notes_get用于获取这些事件关联纪要；todo_list_tasks(all)后按task标题关键词筛选发布相关任务并对状态/逾期进行判断；contacts_search查找三项目“发布负责人”姓名并用contacts_get输出联系方式。",
+      "fixture_generation_plan": "生成对应fixture：\n- calendar/events.json：至少11条事件；Atlas相关2条(发布评审+干扰会)、Brio相关2条(发布评审但无纪要关联)、Coral相关2条(发布评审+干扰会)；外加2-3条公司级干扰。\n- notes/meetings.json：仅Atlas与Coral各1条关键发布评审纪要；Brio确保缺少纪要(或有一条与其他主题但不包含发布行动项)。每条纪要包含3-5个行动项，且Atlas有blocked风险项、Coral有完成项。\n- todo/tasks.json：每项目4-7条，合计约18条；确保Atlas含1条pending且blocked_by=外部安全审批；Brio含多条in_progress但不应出现blocked_by(或阻塞来源为空)；Coral含1条in_progress监控相关且due_date晚于mock_today。为干扰设置少量非发布相关任务(标题不含关键词)。\n- contacts/contacts.json：至少10名联系人；3名发布负责人姓名在记录中唯一可搜索，并提供邮箱与电话。",
+      "expected_behavior": "代理应：\n- 通过calendar_list_events找出每项目的发布相关会议，并概述其结论/评审重点；\n- 读取这些会议的纪要行动项(能读到的项目)，并把行动项状态转换为风险要点；\n- 从todo中只筛取发布相关任务进行统计：计算“发布关键项完成率”(completed/发布相关总数)，并判断是否满足“发布条件”(例如：若存在blocked或已逾期的关键回滚/审批类任务则判定不具备；缺纪要则标注“条件不可验证”；对due_date未来的in_progress只标注需跟进不误判)；\n- 对blocked任务给出blocked_by来源与可能影响(例如无法发布/无法回滚/监控不可用)；\n- 输出每项目“发布是否具备条件”的明确结论(具备/不具备/不可验证)与负责人联系方式(邮箱+电话)。",
+      "grading_plan": "检查：发布相关会议筛选与归属是否准确；纪要行动项是否正确汇总并与todo发布相关任务对齐；三种发布条件结论是否与状态设计一致(Atlas不具备、Brio不可验证、Coral具备但有后续跟进)；blocked/逾期识别是否准确且解释一致；联系人输出字段是否正确。"
+    },
+    {
+      "index": 4,
+      "new_task_id": "T149zh_project_progress_report_plus_4",
+      "new_task_name": "跨部门依赖跟踪",
+      "task_goal": "为3个并行项目(Horizon/Ivory/Jade)生成依赖跟踪进度：把纪要行动项中提到的外部依赖映射到待办任务的blocked/依赖字段，统计内部与外部依赖导致的阻塞，并给出按依赖层级的风险排序；同时给出每项目负责人联系方式。",
+      "user_request": "请为3个并行项目(Horizon/Ivory/Jade)生成跨部门依赖跟踪进度：\n1) 查找各项目的关键评审会议与对应纪要；\n2) 阅读纪要中的行动项，识别其中的外部依赖(例如“法务审查/供应商交付/运维变更窗口/安全扫描”)；\n3) 对比待办任务：将blocked或依赖字段与纪要行动项外部依赖进行匹配，统计每类依赖导致的pending/blocked数量并按风险高低排序；\n4) 输出每项目：完成率、依赖风险Top2、需要联系的负责人；\n5) 查找每项目负责人联系方式并附上邮箱与电话。",
+      "scenario": "mock_today为2026-04-12。日历中每个项目都有1-2场关键评审会议，但存在大量无关部门会议，干扰靠会议标题关键词区分(如“法务评审/变更窗口/安全扫描”等)。Horizon纪要行动项提到“法务条款冻结”，且todo里对应任务为blocked且blocked_by为“Legal条款未签”；Ivory纪要提到“供应商交付”，todo中有pending但blocked_by为空(表示未显式阻塞字段)，需要通过due_date与状态推断并在风险中说明“依赖未录入blocked_by”；Jade纪要行动项中包含“运维变更窗口已确定”，但todo里监控相关任务still pending(in_progress)且due_date临近，要求判断为“窗口后续跟进风险”而非“blocked”。",
+      "difference_from_source": "引入“外部依赖词→待办blocked/依赖字段”的映射与风险分层排序；并加入blocked_by缺失但依赖仍存在的推断情形；同时区分“已确定窗口但任务未完”的跟进风险。",
+      "service_and_tool_plan": "calendar_list_events先拉取近日期事件并按项目命名或描述关键字过滤；notes_list/notes_get抽取纪要并从content行动项中识别外部依赖短语；todo_list_tasks(all)获取待办后匹配blocked_by与标题/description依赖关键词；必要时用todo_get_task核对具体字段；contacts_search/contacts_get提供项目负责人及可选的依赖接口人(若纪要行动项给出责任人姓名则同样用contacts查)。",
+      "fixture_generation_plan": "生成新fixtures：\n- calendar/events.json：约13-16条事件；Horizon 2条、Ivory 2条、Jade 2条；其余4-6条干扰(安全通报/跨部门例会)；事件描述中包含依赖线索以便映射。\n- notes/meetings.json：每项目1条关键纪要(共3条)；每条纪要3-4个行动项，且至少2条包含外部依赖短语；再增加1-2条干扰纪要确保notes_list需要筛选。\n- todo/tasks.json：每项目5-6条，总计16-18条；状态分布：Horizon有1-2条blocked，Ivory有2条pending(其中至少1条blocked_by为空)，Jade无blocked但有1条in_progress临近due_date。\n- contacts/contacts.json：至少12名联系人；包含三项目负责人各1名；另提供法务/运维/供应链对接人的姓名以便在纪要里被提及时contacts_search可命中。",
+      "expected_behavior": "代理应：\n- 找到三项目关键评审会议并读取纪要；\n- 从纪要行动项中提取外部依赖类别，列出依赖关键词；\n- 将待办中的blocked_by与依赖类别匹配：若blocked_by存在则计入对应类别阻塞；若blocked_by缺失但纪要明确依赖且任务pending/逾期或due_date临近，则在风险里说明“依赖未显式录入blocked_by，需追踪”；\n- 为每项目输出依赖风险Top2(按数量+是否逾期+优先级组合排序)；\n- 计算完成率(三项目待办总数中completed比例)并在报告中给出；\n- 输出每项目负责人邮箱与电话。",
+      "grading_plan": "检查：外部依赖识别是否准确(从纪要行动项内容提取)；依赖风险Top2排序是否与fixture中的blocked/pending/逾期逻辑一致；Ivory的blocked_by缺失是否被正确标注为“未录入依赖阻塞字段但仍有风险”；Jade是否将窗口后续跟进风险与blocked区别；完成率与联系人字段正确。"
+    },
+    {
+      "index": 5,
+      "new_task_id": "T149zh_project_progress_report_plus_5",
+      "new_task_name": "资金与资源消耗预警",
+      "task_goal": "为3个并行项目(Neon/Omega/Pulse)生成资源消耗与进度预警：通过会议纪要提取资源约束信息(人力/预算/设备窗口)，对比待办任务的优先级与截止时间，标出“资源不足导致的高优先延期”以及“低优先堆积风险”；最后给出项目负责人联系方式与需要升级的事项。",
+      "user_request": "请为3个并行项目(Neon/Omega/Pulse)生成资源消耗与进度预警：\n1) 查找每项目的成本/资源相关会议与纪要；\n2) 阅读纪要行动项，提取其中提到的资源约束(例如预算审批、关键人力不足、设备排期冲突)；\n3) 对比todo任务：综合priority与due_date、status，识别高优先延期(预计会逾期或已逾期)与低优先堆积(未逾期但pending数量过多)两类风险；\n4) 输出每项目：完成率、风险清单(按高优先延期/低优先堆积分组)、以及建议需要升级的事项；\n5) 查找每项目资源负责人联系方式(邮箱+电话)。",
+      "scenario": "mock_today为2026-03-30。calendar包含三项目各1场“资源对齐会”，但还混入公司财务对账会等干扰。notes里对Neon写明“预算审批已进入等待”，对Omega写明“关键人员被临时抽调”，对Pulse写明“设备窗口冲突但有替代方案”。todo里设置：Neon有高优先pending且due_date早于3/30(已逾期)但blocked_by未设置(需仍指出逾期风险)；Omega有多个low/medium优先pending堆积但未逾期(需判定低优先堆积风险)；Pulse高优先任务已completed但有一条medium任务in_progress且due_date在未来(风险低，需避免过度预警)。",
+      "difference_from_source": "将风险维度从blocked/缺纪要/完成率转为“资源约束→优先级与截止时间→两类风险分组”；并加入blocked_by缺失但仍需基于逾期判定高优先延期，以及避免对未来due_date的medium任务过度预警。",
+      "service_and_tool_plan": "使用calendar_list_events筛选包含“资源/成本/审批/对齐”关键词的会议；notes_list/notes_get读取纪要并解析资源约束短语；todo_list_tasks(all)获取全部待办后按priority与due_date结合status判断两类风险；如纪要里点名资源负责人，使用contacts_search/contacts_get输出邮箱电话。",
+      "fixture_generation_plan": "新fixtures生成计划：\n- calendar/events.json：约10-12条；Neon 1条、Omega 1条、Pulse 1条资源对齐会；其余3-5条干扰会议(财务对账/培训)。\n- notes/meetings.json：3条资源对齐纪要；每条3-5个行动项，并在content中显式出现资源约束短语；外加1条干扰纪要。\n- todo/tasks.json：每项目5-7条，总计约16-20条；Neon至少2条high优先pending且至少1条已逾期；Omega至少3条medium/low优先pending未逾期用于“堆积”；Pulse主要high已completed，保留1条medium in_progress due_date未来。\n- contacts/contacts.json：至少9名联系人；为每项目标注“资源负责人”姓名能被contacts_search唯一命中并提供邮箱与电话。",
+      "expected_behavior": "代理应：\n- 获取并锁定三项目资源对齐会，读取纪要并提取资源约束；\n- 使用todo_list_tasks(all)按project分组并统计完成率；\n- 识别高优先延期：priority为high，且status!=completed且due_date<=mock_today(逾期)或有明确即将逾期线索(可通过due_date接近且pending来表述)；同时即使blocked_by为空也应依据逾期给出风险；\n- 识别低优先堆积：priority低/中且pending/in_progress数量过多(超过预设阈值，可在grader用fixture计算)，且未逾期时作为“堆积风险”而非延期；\n- Pulse需避免将future medium in_progress当作高优先延期升级；\n- 输出每项目风险清单按两组分栏，并给出需要升级的事项(例如“预算审批升级”“关键人力申请”“设备窗口备选确认”）；\n- 输出资源负责人联系方式(邮箱+电话)。",
+      "grading_plan": "检查：会议筛选是否只针对资源/成本相关会；纪要资源约束是否被正确抽取并与风险类型对应；Neon的逾期high优先风险是否识别且不依赖blocked_by；Omega的低优先堆积风险是否正确归类(且确认未逾期)；Pulse是否控制风险等级不误报；完成率与联系方式字段正确。"
+    }
+  ]
+}

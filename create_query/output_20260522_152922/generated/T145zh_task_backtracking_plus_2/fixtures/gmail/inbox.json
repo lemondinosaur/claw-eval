@@ -1,0 +1,70 @@
+[
+  {
+    "message_id": "gm_2101",
+    "from": "upgrade-team@acmebank.com",
+    "to": "me@company.com",
+    "subject": "[催办/升级/紧急] 客户升级计划：回归测试延期，请确认新上线日期",
+    "date": "2026-04-06T08:15:00Z",
+    "body": "团队好，关于我方核心系统升级计划（工单ACME-1047），原定04/10上线。由于回归测试出现延期，请你们在今日内给出更新后的预计上线/交付日期，并说明下一轮测试安排与预计恢复时间。——ACME升级协调人",
+    "labels": [
+      "inbox",
+      "催办",
+      "升级",
+      "紧急"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "gm_2102",
+    "from": "data-migration@northwindlogistics.com",
+    "to": "me@company.com",
+    "subject": "[催办/升级] 请确认数据迁移窗口：等待客户审批结果",
+    "date": "2026-04-06T09:05:00Z",
+    "body": "您好，针对工单NW-2213的数据迁移窗口，我们需要你方确认新的迁移开始时间。当前仍在等待客户审批（数据迁移窗口需客户签字确认），请给出预计何时能收到审批结果，以及由此推导的新的预计交付日期。——Northwind实施经理",
+    "labels": [
+      "inbox",
+      "催办",
+      "升级"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "gm_2103",
+    "from": "release-ops@lumenhealth.org",
+    "to": "me@company.com",
+    "subject": "[催办/升级/紧急] 回滚预案进度说明：内部评审尚未通过",
+    "date": "2026-04-05T16:45:00Z",
+    "body": "各位好，关于工单LH-3302的版本回滚预案，我们内部评审未通过到目前为止仍卡在待评审点位列表。请你们提供：当前评审状态、预计何时补齐并通过、以及新的预计交付日期（包含回滚演练/验证时间）。请尽快回复。——Lumen Health发布负责人",
+    "labels": [
+      "inbox",
+      "催办",
+      "升级",
+      "紧急"
+    ],
+    "is_read": false
+  },
+  {
+    "message_id": "gm_2104",
+    "from": "billing@acmebank.com",
+    "to": "me@company.com",
+    "subject": "对账邀请：4月服务费确认",
+    "date": "2026-04-04T10:20:00Z",
+    "body": "您好，我们邀请你们参加对账会议，确认4月服务费明细。若需要补充材料请回复邮件。谢谢。",
+    "labels": [
+      "inbox"
+    ],
+    "is_read": true
+  },
+  {
+    "message_id": "gm_2105",
+    "from": "calendar@company.com",
+    "to": "me@company.com",
+    "subject": "会议邀请已更新：升级评审同步（非催办）",
+    "date": "2026-04-04T14:00:00Z",
+    "body": "系统通知：会议邀请已更新，请查看最新日程。此邮件为日历更新提醒。",
+    "labels": [
+      "inbox"
+    ],
+    "is_read": true
+  }
+]

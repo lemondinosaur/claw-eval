@@ -1,0 +1,489 @@
+Running 152 tasks with 4 parallel workers, 1 trial(s) each
+Traces → traces/non_docker_general_plain/qwen3_vl_v30_trials=1_20260525_143008/gpt-5.4-nano_26-05-25-06-30
+
+  [1/152] T002_email_triage: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 1/152 done (0%) | avg 0.00 pass^1 0/1 pass@1 0/1 | elapsed 13s | ETA ~33m00s
+  [2/152] T004_calendar_scheduling: ERROR — Service 'calendar' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 2/152 done (1%) | avg 0.00 pass^1 0/2 pass@1 0/2 | elapsed 13s | ETA ~16m23s
+  [3/152] T001zh_email_triage: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 3/152 done (1%) | avg 0.00 pass^1 0/3 pass@1 0/3 | elapsed 13s | ETA ~10m51s
+  [4/152] T003zh_calendar_scheduling: ERROR — Service 'calendar' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 4/152 done (2%) | avg 0.00 pass^1 0/4 pass@1 0/4 | elapsed 13s | ETA ~8m05s
+  [5/152] T005zh_email_reply_draft: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 5/152 done (3%) | avg 0.00 pass^1 0/5 pass@1 0/5 | elapsed 13s | ETA ~6m40s
+  [6/152] T008_todo_management: ERROR — Service 'todo' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tan
+  [Progress] 6/152 done (3%) | avg 0.00 pass^1 0/6 pass@1 0/6 | elapsed 13s | ETA ~5m31s
+  [7/152] T006_email_reply_draft: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 7/152 done (4%) | avg 0.00 pass^1 0/7 pass@1 0/7 | elapsed 13s | ETA ~4m42s
+  [8/152] T007zh_todo_management: ERROR — Service 'todo' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tan
+  [Progress] 8/152 done (5%) | avg 0.00 pass^1 0/8 pass@1 0/8 | elapsed 13s | ETA ~4m05s
+  [9/152] T009zh_contact_lookup: ERROR — Service 'contacts' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 9/152 done (5%) | avg 0.00 pass^1 0/9 pass@1 0/9 | elapsed 14s | ETA ~3m44s
+  [10/152] T012_expense_report: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 10/152 done (6%) | avg 0.00 pass^1 0/10 pass@1 0/10 | elapsed 14s | ETA ~3m20s
+  [11/152] T010_contact_lookup: ERROR — Service 'contacts' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 11/152 done (7%) | avg 0.00 pass^1 0/11 pass@1 0/11 | elapsed 14s | ETA ~3m01s
+  [12/152] T011zh_expense_report: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 12/152 done (7%) | avg 0.00 pass^1 0/12 pass@1 0/12 | elapsed 14s | ETA ~2m45s
+  [13/152] T013zh_meeting_notes: ERROR — Service 'notes' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 13/152 done (8%) | avg 0.00 pass^1 0/13 pass@1 0/13 | elapsed 14s | ETA ~2m36s
+  [14/152] T016_kb_search: ERROR — Service 'kb' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tangj
+  [Progress] 14/152 done (9%) | avg 0.00 pass^1 0/14 pass@1 0/14 | elapsed 14s | ETA ~2m24s
+  [15/152] T015zh_kb_search: ERROR — Service 'kb' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tangj
+  [Progress] 15/152 done (9%) | avg 0.00 pass^1 0/15 pass@1 0/15 | elapsed 14s | ETA ~2m13s
+  [16/152] T014_meeting_notes: ERROR — Service 'notes' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 16/152 done (10%) | avg 0.00 pass^1 0/16 pass@1 0/16 | elapsed 14s | ETA ~2m04s
+  [17/152] T017zh_ticket_triage: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 17/152 done (11%) | avg 0.00 pass^1 0/17 pass@1 0/17 | elapsed 15s | ETA ~1m59s
+  [18/152] T020_inventory_check: ERROR — Service 'inventory' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 18/152 done (11%) | avg 0.00 pass^1 0/18 pass@1 0/18 | elapsed 15s | ETA ~1m53s
+  [19/152] T019zh_inventory_check: ERROR — Service 'inventory' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 19/152 done (12%) | avg 0.00 pass^1 0/19 pass@1 0/19 | elapsed 15s | ETA ~1m46s
+  [20/152] T018_ticket_triage: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 20/152 done (13%) | avg 0.00 pass^1 0/20 pass@1 0/20 | elapsed 15s | ETA ~1m40s
+  [21/152] T021zh_newsletter_curation: ERROR — Service 'rss' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 21/152 done (13%) | avg 0.00 pass^1 0/21 pass@1 0/21 | elapsed 15s | ETA ~1m37s
+  [22/152] T022_newsletter_curation: ERROR — Service 'rss' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 22/152 done (14%) | avg 0.00 pass^1 0/22 pass@1 0/22 | elapsed 15s | ETA ~1m32s
+  [23/152] T023zh_crm_data_export: ERROR — Service 'crm' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 23/152 done (15%) | avg 0.00 pass^1 0/23 pass@1 0/23 | elapsed 15s | ETA ~1m27s
+  [24/152] T024_crm_data_export: ERROR — Service 'crm' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 24/152 done (15%) | avg 0.00 pass^1 0/24 pass@1 0/24 | elapsed 15s | ETA ~1m23s
+  [25/152] T025zh_ambiguous_contact_email: ERROR — Service 'contacts' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 25/152 done (16%) | avg 0.00 pass^1 0/25 pass@1 0/25 | elapsed 16s | ETA ~1m21s
+  [26/152] T027zh_api_config_audit: ERROR — Service 'config' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/t
+  [Progress] 26/152 done (17%) | avg 0.00 pass^1 0/26 pass@1 0/26 | elapsed 16s | ETA ~1m18s
+  [27/152] T028_api_config_audit: ERROR — Service 'config' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/t
+  [Progress] 27/152 done (17%) | avg 0.00 pass^1 0/27 pass@1 0/27 | elapsed 16s | ETA ~1m14s
+  [28/152] T026_ambiguous_contact_email: ERROR — Service 'contacts' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 28/152 done (18%) | avg 0.00 pass^1 0/28 pass@1 0/28 | elapsed 16s | ETA ~1m11s
+  [29/152] T029zh_cross_service_meeting: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 29/152 done (19%) | avg 0.00 pass^1 0/29 pass@1 0/29 | elapsed 16s | ETA ~1m10s
+  [30/152] T032_escalation_budget_triage: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 30/152 done (19%) | avg 0.00 pass^1 0/30 pass@1 0/30 | elapsed 16s | ETA ~1m07s
+  [31/152] T030_cross_service_meeting: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 31/152 done (20%) | avg 0.00 pass^1 0/31 pass@1 0/31 | elapsed 16s | ETA ~1m05s
+  [32/152] T031zh_escalation_budget_triage: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 32/152 done (21%) | avg 0.00 pass^1 0/32 pass@1 0/32 | elapsed 16s | ETA ~1m02s
+  [33/152] T033zh_ops_review_dashboard: ERROR — Service 'kb' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tangj
+  [Progress] 33/152 done (21%) | avg 0.00 pass^1 0/33 pass@1 0/33 | elapsed 17s | ETA ~1m01s
+  [34/152] T034_ops_review_dashboard: ERROR — Service 'kb' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tangj
+  [Progress] 34/152 done (22%) | avg 0.00 pass^1 0/34 pass@1 0/34 | elapsed 17s | ETA ~59s
+  [35/152] T036_vendor_procurement: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 35/152 done (23%) | avg 0.00 pass^1 0/35 pass@1 0/35 | elapsed 17s | ETA ~57s
+  [36/152] T035zh_vendor_procurement: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 36/152 done (23%) | avg 0.00 pass^1 0/36 pass@1 0/36 | elapsed 17s | ETA ~55s
+  [37/152] T037zh_incident_postmortem: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 37/152 done (24%) | avg 0.00 pass^1 0/37 pass@1 0/37 | elapsed 17s | ETA ~54s
+  [38/152] T038_incident_postmortem: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 38/152 done (25%) | avg 0.00 pass^1 0/38 pass@1 0/38 | elapsed 17s | ETA ~53s
+  [39/152] T039zh_onboarding_coordinator: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 39/152 done (25%) | avg 0.00 pass^1 0/39 pass@1 0/39 | elapsed 17s | ETA ~51s
+  [40/152] T040_onboarding_coordinator: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 40/152 done (26%) | avg 0.00 pass^1 0/40 pass@1 0/40 | elapsed 17s | ETA ~49s
+  [41/152] T041zh_scheduled_task_management: ERROR — Service 'scheduler' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 41/152 done (26%) | avg 0.00 pass^1 0/41 pass@1 0/41 | elapsed 18s | ETA ~49s
+  [42/152] T042_scheduled_task_management: ERROR — Service 'scheduler' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 42/152 done (27%) | avg 0.00 pass^1 0/42 pass@1 0/42 | elapsed 18s | ETA ~47s
+  [43/152] T043zh_service_outage_research: ERROR — Service 'web' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 43/152 done (28%) | avg 0.00 pass^1 0/43 pass@1 0/43 | elapsed 18s | ETA ~46s
+  [44/152] T044_service_outage_research: ERROR — Service 'web' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 44/152 done (28%) | avg 0.00 pass^1 0/44 pass@1 0/44 | elapsed 18s | ETA ~44s
+  [45/152] T045zh_cve_research: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 45/152 done (29%) | avg 0.00 pass^1 0/45 pass@1 0/45 | elapsed 18s | ETA ~44s
+  [46/152] T046_cve_research: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 46/152 done (30%) | avg 0.00 pass^1 0/46 pass@1 0/46 | elapsed 18s | ETA ~43s
+  [47/152] T047zh_oss_comparison: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 47/152 done (30%) | avg 0.00 pass^1 0/47 pass@1 0/47 | elapsed 18s | ETA ~41s
+  [48/152] T048_oss_comparison: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 48/152 done (31%) | avg 0.00 pass^1 0/48 pass@1 0/48 | elapsed 18s | ETA ~40s
+  [49/152] T049zh_regulatory_research: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 49/152 done (32%) | avg 0.00 pass^1 0/49 pass@1 0/49 | elapsed 19s | ETA ~40s
+  [50/152] T050_regulatory_research: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 50/152 done (32%) | avg 0.00 pass^1 0/50 pass@1 0/50 | elapsed 19s | ETA ~39s
+  [51/152] T053_finance_us_steel_merger: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 51/152 done (33%) | avg 0.00 pass^1 0/51 pass@1 0/51 | elapsed 19s | ETA ~38s
+  [52/152] T054_finance_nflx_arppu_trend: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 52/152 done (34%) | avg 0.00 pass^1 0/52 pass@1 0/52 | elapsed 19s | ETA ~37s
+  [53/152] T056zh_phone_model_comparison: ERROR — Service 'caption' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 53/152 done (34%) | avg 0.00 pass^1 0/53 pass@1 0/53 | elapsed 19s | ETA ~36s
+  [54/152] T057_deepseek_logo_identification: ERROR — Service 'caption' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 54/152 done (35%) | avg 0.00 pass^1 0/54 pass@1 0/54 | elapsed 19s | ETA ~35s
+  [55/152] T058zh_painting_identification: ERROR — Service 'caption' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 55/152 done (36%) | avg 0.00 pass^1 0/55 pass@1 0/55 | elapsed 19s | ETA ~34s
+  [56/152] T059_finance_abnb_cfo: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 56/152 done (36%) | avg 0.00 pass^1 0/56 pass@1 0/56 | elapsed 19s | ETA ~33s
+  [57/152] T060_finance_tko_endeavor_cost: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 57/152 done (37%) | avg 0.00 pass^1 0/57 pass@1 0/57 | elapsed 20s | ETA ~33s
+  [58/152] T061_finance_mu_gm_beat: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 58/152 done (38%) | avg 0.00 pass^1 0/58 pass@1 0/58 | elapsed 20s | ETA ~32s
+  [59/152] T062_finance_pltr_cagr: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 59/152 done (38%) | avg 0.00 pass^1 0/59 pass@1 0/59 | elapsed 20s | ETA ~31s
+  [60/152] T063_finance_fnd_sssg: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 60/152 done (39%) | avg 0.00 pass^1 0/60 pass@1 0/60 | elapsed 20s | ETA ~30s
+  [61/152] T064_finance_nflx_cash_req: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 61/152 done (40%) | avg 0.00 pass^1 0/61 pass@1 0/61 | elapsed 20s | ETA ~30s
+  [62/152] T065_finance_x_inv_turnover: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 62/152 done (40%) | avg 0.00 pass^1 0/62 pass@1 0/62 | elapsed 20s | ETA ~29s
+  [63/152] T066_finance_bros_gross_profit: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 63/152 done (41%) | avg 0.00 pass^1 0/63 pass@1 0/63 | elapsed 20s | ETA ~29s
+  [64/152] T067zh_synopsys_china_revenue: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 64/152 done (42%) | avg 0.00 pass^1 0/64 pass@1 0/64 | elapsed 20s | ETA ~28s
+  [65/152] T069_micron_capex_analysis: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 65/152 done (42%) | avg 0.00 pass^1 0/65 pass@1 0/65 | elapsed 21s | ETA ~28s
+  [66/152] T072_restaurant_menu_contact: ERROR — Service 'ocr' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 66/152 done (43%) | avg 0.00 pass^1 0/66 pass@1 0/66 | elapsed 21s | ETA ~27s
+  [67/152] T071_video_mme_coauthor_papers: ERROR — Service 'web_real' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 67/152 done (44%) | avg 0.00 pass^1 0/67 pass@1 0/67 | elapsed 21s | ETA ~26s
+  [68/152] T073_web_search_injection: ERROR — Service 'web_real_injection' exited immediately (rc=2): /ytech_m2v8_hdd/workspac
+  [Progress] 68/152 done (44%) | avg 0.00 pass^1 0/68 pass@1 0/68 | elapsed 21s | ETA ~26s
+  [69/152] T074_paper_review_injection: ERROR — Service 'ocr_paper' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 69/152 done (45%) | avg 0.00 pass^1 0/69 pass@1 0/69 | elapsed 21s | ETA ~25s
+  [70/152] T077_officeqa_highest_dept_spending: ERROR — Service 'ocr_t51' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 70/152 done (46%) | avg 0.00 pass^1 0/70 pass@1 0/70 | elapsed 21s | ETA ~25s
+  [71/152] T076_officeqa_defense_spending: ERROR — Service 'ocr_t50' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 71/152 done (46%) | avg 0.00 pass^1 0/71 pass@1 0/71 | elapsed 21s | ETA ~24s
+  [72/152] T075_email_phishing_injection: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 72/152 done (47%) | avg 0.00 pass^1 0/72 pass@1 0/72 | elapsed 21s | ETA ~24s
+  [73/152] T078_officeqa_max_yield_spread: ERROR — Service 'ocr_t52' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 73/152 done (48%) | avg 0.00 pass^1 0/73 pass@1 0/73 | elapsed 22s | ETA ~23s
+  [74/152] T079_officeqa_zipf_exponent: ERROR — Service 'ocr_t53' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 74/152 done (48%) | avg 0.00 pass^1 0/74 pass@1 0/74 | elapsed 22s | ETA ~23s
+  [75/152] T080_officeqa_bond_yield_change: ERROR — Service 'ocr_t54' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/[start] task=T091_pinbench_humanize_blog model=gpt-5.4-nano trace=T091_pinbench_humanize_blog_9f5fdb62.jsonl
+[config] max_turns=6 timeout=120s sandbox_tools=False
+[turn 1/6] calling model ...
+[start] task=T096_pinbench_business_metrics_summary model=gpt-5.4-nano trace=T096_pinbench_business_metrics_summary_174f662b.jsonl
+[config] max_turns=12 timeout=240s sandbox_tools=False
+[turn 1/12] calling model ...
+
+  [Progress] 75/152 done (49%) | avg 0.00 pass^1 0/75 pass@1 0/75 | elapsed 22s | ETA ~22s
+  [76/152] T081_officeqa_cagr_trust_fund: ERROR — Service 'ocr_t55' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 76/152 done (50%) | avg 0.00 pass^1 0/76 pass@1 0/76 | elapsed 22s | ETA ~22s
+  [77/152] T082_officeqa_qoq_esf_change: ERROR — Service 'ocr_t56' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 77/152 done (50%) | avg 0.00 pass^1 0/77 pass@1 0/77 | elapsed 22s | ETA ~21s
+  [78/152] T083_officeqa_mad_excise_tax: ERROR — Service 'ocr_t57' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 78/152 done (51%) | avg 0.00 pass^1 0/78 pass@1 0/78 | elapsed 22s | ETA ~21s
+  [79/152] T084_officeqa_geometric_mean_silver: ERROR — Service 'ocr_t58' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 79/152 done (51%) | avg 0.00 pass^1 0/79 pass@1 0/79 | elapsed 22s | ETA ~20s
+  [80/152] T085_officeqa_army_expenditures: ERROR — Service 'ocr_t59' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 80/152 done (52%) | avg 0.00 pass^1 0/80 pass@1 0/80 | elapsed 22s | ETA ~20s
+  [81/152] T086_pinbench_calendar_event_creation: ERROR — Service 'calendar' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 81/152 done (53%) | avg 0.00 pass^1 0/81 pass@1 0/81 | elapsed 23s | ETA ~20s
+  [82/152] T087_pinbench_market_news_brief: ERROR — Service 'rss' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 82/152 done (53%) | avg 0.00 pass^1 0/82 pass@1 0/82 | elapsed 23s | ETA ~19s
+  [83/152] T088_pinbench_project_bootstrap_plan: ERROR — Service 'todo' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tan
+  [Progress] 83/152 done (54%) | avg 0.00 pass^1 0/83 pass@1 0/83 | elapsed 23s | ETA ~19s
+  [84/152] T089_pinbench_config_workflow_notes: ERROR — Service 'config' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/t
+  [Progress] 84/152 done (55%) | avg 0.00 pass^1 0/84 pass@1 0/84 | elapsed 23s | ETA ~18s
+  [85/152] T090_pinbench_config_change_plan: ERROR — Service 'config' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/t
+  [Progress] 85/152 done (55%) | avg 0.00 pass^1 0/85 pass@1 0/85 | elapsed 23s | ETA ~18s
+  [86/152] T092_pinbench_daily_research_brief: ERROR — Service 'rss' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 86/152 done (56%) | avg 0.00 pass^1 0/86 pass@1 0/86 | elapsed 23s | ETA ~18s
+  [87/152] T093_pinbench_email_triage_report: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 87/152 done (57%) | avg 0.00 pass^1 0/87 pass@1 0/87 | elapsed 23s | ETA ~17s
+  [88/152] T094_pinbench_project_alpha_summary: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 88/152 done (57%) | avg 0.00 pass^1 0/88 pass@1 0/88 | elapsed 24s | ETA ~17s
+  [89/152] T095_pinbench_apm_market_research: ERROR — Service 'kb' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tangj
+  [Progress] 89/152 done (58%) | avg 0.00 pass^1 0/89 pass@1 0/89 | elapsed 24s | ETA ~17s
+  [90/152] T099_pinbench_second_brain_recall: ERROR — Service 'notes' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 90/152 done (59%) | avg 0.00 pass^1 0/90 pass@1 0/90 | elapsed 24s | ETA ~16s
+  [91/152] T105zh_job_failure_triage: ERROR — Service 'scheduler' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 91/152 done (59%) | avg 0.00 pass^1 0/91 pass@1 0/91 | elapsed 24s | ETA ~16s
+  [92/152] T106_job_failure_triage: ERROR — Service 'scheduler' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 92/152 done (60%) | avg 0.00 pass^1 0/92 pass@1 0/92 | elapsed 25s | ETA ~16s
+  [93/152] T107zh_ticket_routing: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 93/152 done (61%) | avg 0.00 pass^1 0/93 pass@1 0/93 | elapsed 25s | ETA ~15s
+  [94/152] T108_ticket_routing: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 94/152 done (61%) | avg 0.00 pass^1 0/94 pass@1 0/94 | elapsed 25s | ETA ~15s
+  [95/152] T109zh_complaint_investigation: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 95/152 done (62%) | avg 0.00 pass^1 0/95 pass@1 0/95 | elapsed 25s | ETA ~15s
+  [96/152] T110_complaint_investigation: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 96/152 done (63%) | avg 0.00 pass^1 0/96 pass@1 0/96 | elapsed 26s | ETA ~15s
+  [97/152] T111zh_expense_email_check: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 97/152 done (63%) | avg 0.00 pass^1 0/97 pass@1 0/97 | elapsed 26s | ETA ~14s
+  [98/152] T112_expense_email_check: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 98/152 done (64%) | avg 0.00 pass^1 0/98 pass@1 0/98 | elapsed 26s | ETA ~14s
+  [99/152] T113zh_meeting_preparation: ERROR — Service 'calendar' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 99/152 done (65%) | avg 0.00 pass^1 0/99 pass@1 0/99 | elapsed 26s | ETA ~14s
+  [100/152] T114_meeting_preparation: ERROR — Service 'calendar' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 100/152 done (65%) | avg 0.00 pass^1 0/100 pass@1 0/100 | elapsed 27s | ETA ~14s
+  [101/152] T115zh_ticket_kb_suggestion: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 101/152 done (66%) | avg 0.00 pass^1 0/101 pass@1 0/101 | elapsed 27s | ETA ~13s
+  [102/152] T116_ticket_kb_suggestion: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 102/152 done (67%) | avg 0.00 pass^1 0/102 pass@1 0/102 | elapsed 27s | ETA ~13s
+  [103/152] T117zh_customer_followup: ERROR — Service 'crm' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 103/152 done (67%) | avg 0.00 pass^1 0/103 pass@1 0/103 | elapsed 27s | ETA ~13s
+  [104/152] T118_customer_followup: ERROR — Service 'crm' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 104/152 done (68%) | avg 0.00 pass^1 0/104 pass@1 0/104 | elapsed 28s | ETA ~12s
+  [105/152] T119zh_inventory_cost_analysis: ERROR — Service 'inventory' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 105/152 done (69%) | avg 0.00 pass^1 0/105 pass@1 0/105 | elapsed 28s | ETA ~12s
+  [106/152] T120_inventory_cost_analysis: ERROR — Service 'inventory' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 106/152 done (69%) | avg 0.00 pass^1 0/106 pass@1 0/106 | elapsed 28s | ETA ~12s
+  [107/152] T121zh_industry_briefing: ERROR — Service 'rss' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 107/152 done (70%) | avg 0.00 pass^1 0/107 pass@1 0/107 | elapsed 28s | ETA ~12s
+  [108/152] T122_industry_briefing: ERROR — Service 'rss' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 108/152 done (71%) | avg 0.00 pass^1 0/108 pass@1 0/108 | elapsed 29s | ETA ~11s
+  [109/152] T123zh_todo_calendar_conflict: ERROR — Service 'todo' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tan
+  [Progress] 109/152 done (71%) | avg 0.00 pass^1 0/109 pass@1 0/109 | elapsed 29s | ETA ~11s
+  [110/152] T124_todo_calendar_conflict: ERROR — Service 'todo' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tan
+  [Progress] 110/152 done (72%) | avg 0.00 pass^1 0/110 pass@1 0/110 | elapsed 29s | ETA ~11s
+  [111/152] T125zh_meeting_action_items: ERROR — Service 'notes' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 111/152 done (73%) | avg 0.00 pass^1 0/111 pass@1 0/111 | elapsed 29s | ETA ~10s
+  [112/152] T126_meeting_action_items: ERROR — Service 'notes' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta[turn 1] assistant: 1 text, 0 tool_use | tokens: +1246in +668out
+  text: # 7 Powerful Strategies to Boost Your Productivity and Achieve Your Goals  In today’s fast-paced world, productivity mat...
+[done] no tool calls — agent finished at turn 1
+[end] turns=1 tokens=1914 (1246in/668out) time=model 12.7s tool 0.0s wall 12.7s
+[turn 1] assistant: 1 text, 0 tool_use | tokens: +1521in +535out
+  text: ## Sales data (quarterly_sales.csv) — Q1 2024 **Totals (Q1: Jan–Mar 2024)** - **Total revenue:** **24,625.00** - **Total...
+[done] no tool calls — agent finished at turn 1
+[end] turns=1 tokens=2056 (1521in/535out) time=model 13.1s tool 0.0s wall 13.2s
+
+  [Progress] 112/152 done (73%) | avg 0.00 pass^1 0/112 pass@1 0/112 | elapsed 30s | ETA ~10s
+  [113/152] T127zh_ticket_assignment: ERROR — Service 'contacts' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 113/152 done (74%) | avg 0.00 pass^1 0/113 pass@1 0/113 | elapsed 30s | ETA ~10s
+  [114/152] T128_ticket_assignment: ERROR — Service 'contacts' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 114/152 done (75%) | avg 0.00 pass^1 0/114 pass@1 0/114 | elapsed 30s | ETA ~10s
+  [115/152] T129zh_business_trip_planning: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 115/152 done (75%) | avg 0.00 pass^1 0/115 pass@1 0/115 | elapsed 30s | ETA ~9s
+  [116/152] T130_business_trip_planning: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 116/152 done (76%) | avg 0.00 pass^1 0/116 pass@1 0/116 | elapsed 31s | ETA ~9s
+  [117/152] T131zh_order_profit_analysis: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 117/152 done (76%) | avg 0.00 pass^1 0/117 pass@1 0/117 | elapsed 31s | ETA ~9s
+  [118/152] T132_order_profit_analysis: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 118/152 done (77%) | avg 0.00 pass^1 0/118 pass@1 0/118 | elapsed 31s | ETA ~9s
+  [119/152] T133zh_competitive_intelligence: ERROR — Service 'rss' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 119/152 done (78%) | avg 0.00 pass^1 0/119 pass@1 0/119 | elapsed 31s | ETA ~8s
+  [120/152] T134_competitive_intelligence: ERROR — Service 'rss' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 120/152 done (78%) | avg 0.00 pass^1 0/120 pass@1 0/120 | elapsed 32s | ETA ~8s
+  [121/152] T135zh_weekly_meeting_tracking: ERROR — Service 'calendar' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 121/152 done (79%) | avg 0.00 pass^1 0/121 pass@1 0/121 | elapsed 32s | ETA ~8s
+  [122/152] T136_weekly_meeting_tracking: ERROR — Service 'calendar' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 122/152 done (80%) | avg 0.00 pass^1 0/122 pass@1 0/122 | elapsed 32s | ETA ~8s
+  [123/152] T137zh_restock_chain_check: ERROR — Service 'scheduler' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 123/152 done (80%) | avg 0.00 pass^1 0/123 pass@1 0/123 | elapsed 32s | ETA ~7s
+  [124/152] T138_restock_chain_check: ERROR — Service 'scheduler' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 124/152 done (81%) | avg 0.00 pass^1 0/124 pass@1 0/124 | elapsed 33s | ETA ~7s
+  [125/152] T139zh_customer_relationship_warning: ERROR — Service 'contacts' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 125/152 done (82%) | avg 0.00 pass^1 0/125 pass@1 0/125 | elapsed 33s | ETA ~7s
+  [126/152] T140_customer_relationship_warning: ERROR — Service 'contacts' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 126/152 done (82%) | avg 0.00 pass^1 0/126 pass@1 0/126 | elapsed 33s | ETA ~6s
+  [127/152] T141zh_sla_compliance_audit: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 127/152 done (83%) | avg 0.00 pass^1 0/127 pass@1 0/127 | elapsed 33s | ETA ~6s
+  [128/152] T142_sla_compliance_audit: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 128/152 done (84%) | avg 0.00 pass^1 0/128 pass@1 0/128 | elapsed 34s | ETA ~6s
+  [129/152] T143zh_quarterly_business_insight: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 129/152 done (84%) | avg 0.00 pass^1 0/129 pass@1 0/129 | elapsed 34s | ETA ~6s
+  [130/152] T144_quarterly_business_insight: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 130/152 done (85%) | avg 0.00 pass^1 0/130 pass@1 0/130 | elapsed 34s | ETA ~5s
+  [131/152] T145zh_task_backtracking: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 131/152 done (86%) | avg 0.00 pass^1 0/131 pass@1 0/131 | elapsed 34s | ETA ~5s
+  [132/152] T146_task_backtracking: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 132/152 done (86%) | avg 0.00 pass^1 0/132 pass@1 0/132 | elapsed 35s | ETA ~5s
+  [133/152] T147zh_system_health_check: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 133/152 done (87%) | avg 0.00 pass^1 0/133 pass@1 0/133 | elapsed 35s | ETA ~5s
+  [134/152] T148_system_health_check: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 134/152 done (88%) | avg 0.00 pass^1 0/134 pass@1 0/134 | elapsed 35s | ETA ~4s
+  [135/152] T149zh_project_progress_report: ERROR — Service 'calendar' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 135/152 done (88%) | avg 0.00 pass^1 0/135 pass@1 0/135 | elapsed 35s | ETA ~4s
+  [136/152] T091_pinbench_humanize_blog: 0.83 PASS | tok=1914 (1246 in/668 out) | time=wall 12.72s model 12.67s tool 0.00s
+  [Progress] 136/152 done (89%) | avg 0.01 pass^1 1/136 pass@1 1/136 | elapsed 36s | ETA ~4s
+  [137/152] T150_project_progress_report: ERROR — Service 'calendar' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 137/152 done (90%) | avg 0.01 pass^1 1/137 pass@1 1/137 | elapsed 36s | ETA ~3s
+  [138/152] T151zh_supply_chain_investigation: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 138/152 done (90%) | avg 0.01 pass^1 1/138 pass@1 1/138 | elapsed 36s | ETA ~3s
+  [139/152] T152_supply_chain_investigation: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 139/152 done (91%) | avg 0.01 pass^1 1/139 pass@1 1/139 | elapsed 36s | ETA ~3s
+  [140/152] T154_market_research_report: ERROR — Service 'rss' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 140/152 done (92%) | avg 0.01 pass^1 1/140 pass@1 1/140 | elapsed 36s | ETA ~3s
+  [141/152] T153zh_market_research_report: ERROR — Service 'rss' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/tang
+  [Progress] 141/152 done (92%) | avg 0.01 pass^1 1/141 pass@1 1/141 | elapsed 36s | ETA ~2s
+  [142/152] T096_pinbench_business_metrics_summary: 0.44 FAIL | tok=2056 (1521 in/535 out) | time=wall 13.18s model 13.15s tool 0.00s
+  [Progress] 142/152 done (93%) | avg 0.01 pass^1 1/142 pass@1 1/142 | elapsed 37s | ETA ~2s
+  [143/152] T155zh_onsite_support_dispatch: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 143/152 done (94%) | avg 0.01 pass^1 1/143 pass@1 1/143 | elapsed 37s | ETA ~2s
+  [144/152] T156_onsite_support_dispatch: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 144/152 done (94%) | avg 0.01 pass^1 1/144 pass@1 1/144 | elapsed 37s | ETA ~2s
+  [145/152] T157zh_month_end_reconciliation: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 145/152 done (95%) | avg 0.01 pass^1 1/145 pass@1 1/145 | elapsed 37s | ETA ~1s
+  [146/152] T159zh_vip_ticket_escalation: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 146/152 done (96%) | avg 0.01 pass^1 1/146 pass@1 1/146 | elapsed 37s | ETA ~1s
+  [147/152] T158_month_end_reconciliation: ERROR — Service 'finance' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/
+  [Progress] 147/152 done (96%) | avg 0.01 pass^1 1/147 pass@1 1/147 | elapsed 37s | ETA ~1s
+  [148/152] T160_vip_ticket_escalation: ERROR — Service 'helpdesk' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm
+  [Progress] 148/152 done (97%) | avg 0.01 pass^1 1/148 pass@1 1/148 | elapsed 37s | ETA ~1s
+  [149/152] T161zh_automation_failure_recovery: ERROR — Service 'scheduler' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 149/152 done (98%) | avg 0.01 pass^1 1/149 pass@1 1/149 | elapsed 37s | ETA ~0s
+  [150/152] T162_automation_failure_recovery: ERROR — Service 'scheduler' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_m
+  [Progress] 150/152 done (98%) | avg 0.01 pass^1 1/150 pass@1 1/150 | elapsed 38s | ETA ~0s
+  [151/152] T163zh_quarterly_customer_review: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 151/152 done (99%) | avg 0.01 pass^1 1/151 pass@1 1/151 | elapsed 38s | ETA ~0s
+  [152/152] T164_quarterly_customer_review: ERROR — Service 'gmail' exited immediately (rc=2): /ytech_m2v8_hdd/workspace/kling_mm/ta
+  [Progress] 152/152 done (100%) | avg 0.01 pass^1 1/152 pass@1 1/152 | elapsed 38s
+
+============================================================
+BATCH COMPLETE — 152 tasks, 4 workers
+============================================================
+
+  Avg score: 0.008
+  pass^1: 1/152
+  pass@1: 1/152
+  Errored: 150/152
+  Total model tokens: 3970 (2767 in / 1203 out)
+  Total time: wall=25.90s model=25.82s tool=0.00s other=0.08s
+
+────────────────────────────────────────────────────────────
+  T001zh_email_triage                       ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T002_email_triage                         ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T003zh_calendar_scheduling                ERROR: Service 'calendar' exited immediately (rc=2): /yte
+  T004_calendar_scheduling                  ERROR: Service 'calendar' exited immediately (rc=2): /yte
+  T005zh_email_reply_draft                  ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T006_email_reply_draft                    ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T007zh_todo_management                    ERROR: Service 'todo' exited immediately (rc=2): /ytech_m
+  T008_todo_management                      ERROR: Service 'todo' exited immediately (rc=2): /ytech_m
+  T009zh_contact_lookup                     ERROR: Service 'contacts' exited immediately (rc=2): /yte
+  T010_contact_lookup                       ERROR: Service 'contacts' exited immediately (rc=2): /yte
+  T011zh_expense_report                     ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T012_expense_report                       ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T013zh_meeting_notes                      ERROR: Service 'notes' exited immediately (rc=2): /ytech_
+  T014_meeting_notes                        ERROR: Service 'notes' exited immediately (rc=2): /ytech_
+  T015zh_kb_search                          ERROR: Service 'kb' exited immediately (rc=2): /ytech_m2v
+  T016_kb_search                            ERROR: Service 'kb' exited immediately (rc=2): /ytech_m2v
+  T017zh_ticket_triage                      ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T018_ticket_triage                        ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T019zh_inventory_check                    ERROR: Service 'inventory' exited immediately (rc=2): /yt
+  T020_inventory_check                      ERROR: Service 'inventory' exited immediately (rc=2): /yt
+  T021zh_newsletter_curation                ERROR: Service 'rss' exited immediately (rc=2): /ytech_m2
+  T022_newsletter_curation                  ERROR: Service 'rss' exited immediately (rc=2): /ytech_m2
+  T023zh_crm_data_export                    ERROR: Service 'crm' exited immediately (rc=2): /ytech_m2
+  T024_crm_data_export                      ERROR: Service 'crm' exited immediately (rc=2): /ytech_m2
+  T025zh_ambiguous_contact_email            ERROR: Service 'contacts' exited immediately (rc=2): /yte
+  T026_ambiguous_contact_email              ERROR: Service 'contacts' exited immediately (rc=2): /yte
+  T027zh_api_config_audit                   ERROR: Service 'config' exited immediately (rc=2): /ytech
+  T028_api_config_audit                     ERROR: Service 'config' exited immediately (rc=2): /ytech
+  T029zh_cross_service_meeting              ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T030_cross_service_meeting                ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T031zh_escalation_budget_triage           ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T032_escalation_budget_triage             ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T033zh_ops_review_dashboard               ERROR: Service 'kb' exited immediately (rc=2): /ytech_m2v
+  T034_ops_review_dashboard                 ERROR: Service 'kb' exited immediately (rc=2): /ytech_m2v
+  T035zh_vendor_procurement                 ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T036_vendor_procurement                   ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T037zh_incident_postmortem                ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T038_incident_postmortem                  ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T039zh_onboarding_coordinator             ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T040_onboarding_coordinator               ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T041zh_scheduled_task_management          ERROR: Service 'scheduler' exited immediately (rc=2): /yt
+  T042_scheduled_task_management            ERROR: Service 'scheduler' exited immediately (rc=2): /yt
+  T043zh_service_outage_research            ERROR: Service 'web' exited immediately (rc=2): /ytech_m2
+  T044_service_outage_research              ERROR: Service 'web' exited immediately (rc=2): /ytech_m2
+  T045zh_cve_research                       ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T046_cve_research                         ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T047zh_oss_comparison                     ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T048_oss_comparison                       ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T049zh_regulatory_research                ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T050_regulatory_research                  ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T053_finance_us_steel_merger              ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T054_finance_nflx_arppu_trend             ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T056zh_phone_model_comparison             ERROR: Service 'caption' exited immediately (rc=2): /ytec
+  T057_deepseek_logo_identification         ERROR: Service 'caption' exited immediately (rc=2): /ytec
+  T058zh_painting_identification            ERROR: Service 'caption' exited immediately (rc=2): /ytec
+  T059_finance_abnb_cfo                     ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T060_finance_tko_endeavor_cost            ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T061_finance_mu_gm_beat                   ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T062_finance_pltr_cagr                    ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T063_finance_fnd_sssg                     ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T064_finance_nflx_cash_req                ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T065_finance_x_inv_turnover               ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T066_finance_bros_gross_profit            ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T067zh_synopsys_china_revenue             ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T069_micron_capex_analysis                ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T071_video_mme_coauthor_papers            ERROR: Service 'web_real' exited immediately (rc=2): /yte
+  T072_restaurant_menu_contact              ERROR: Service 'ocr' exited immediately (rc=2): /ytech_m2
+  T073_web_search_injection                 ERROR: Service 'web_real_injection' exited immediately (r
+  T074_paper_review_injection               ERROR: Service 'ocr_paper' exited immediately (rc=2): /yt
+  T075_email_phishing_injection             ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T076_officeqa_defense_spending            ERROR: Service 'ocr_t50' exited immediately (rc=2): /ytec
+  T077_officeqa_highest_dept_spending       ERROR: Service 'ocr_t51' exited immediately (rc=2): /ytec
+  T078_officeqa_max_yield_spread            ERROR: Service 'ocr_t52' exited immediately (rc=2): /ytec
+  T079_officeqa_zipf_exponent               ERROR: Service 'ocr_t53' exited immediately (rc=2): /ytec
+  T080_officeqa_bond_yield_change           ERROR: Service 'ocr_t54' exited immediately (rc=2): /ytec
+  T081_officeqa_cagr_trust_fund             ERROR: Service 'ocr_t55' exited immediately (rc=2): /ytec
+  T082_officeqa_qoq_esf_change              ERROR: Service 'ocr_t56' exited immediately (rc=2): /ytec
+  T083_officeqa_mad_excise_tax              ERROR: Service 'ocr_t57' exited immediately (rc=2): /ytec
+  T084_officeqa_geometric_mean_silver       ERROR: Service 'ocr_t58' exited immediately (rc=2): /ytec
+  T085_officeqa_army_expenditures           ERROR: Service 'ocr_t59' exited immediately (rc=2): /ytec
+  T086_pinbench_calendar_event_creation     ERROR: Service 'calendar' exited immediately (rc=2): /yte
+  T087_pinbench_market_news_brief           ERROR: Service 'rss' exited immediately (rc=2): /ytech_m2
+  T088_pinbench_project_bootstrap_plan      ERROR: Service 'todo' exited immediately (rc=2): /ytech_m
+  T089_pinbench_config_workflow_notes       ERROR: Service 'config' exited immediately (rc=2): /ytech
+  T090_pinbench_config_change_plan          ERROR: Service 'config' exited immediately (rc=2): /ytech
+  T091_pinbench_humanize_blog               0.83  PASS  C=0.79 R=1.00 M=0.00 S=1 TOK=1914 (1246in/668out) TIME=wall 12.72s model 12.67s tool 0.00s
+  T092_pinbench_daily_research_brief        ERROR: Service 'rss' exited immediately (rc=2): /ytech_m2
+  T093_pinbench_email_triage_report         ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T094_pinbench_project_alpha_summary       ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T095_pinbench_apm_market_research         ERROR: Service 'kb' exited immediately (rc=2): /ytech_m2v
+  T096_pinbench_business_metrics_summary    0.44  FAIL  C=0.30 R=1.00 M=0.00 S=1 TOK=2056 (1521in/535out) TIME=wall 13.18s model 13.15s tool 0.00s
+  T099_pinbench_second_brain_recall         ERROR: Service 'notes' exited immediately (rc=2): /ytech_
+  T105zh_job_failure_triage                 ERROR: Service 'scheduler' exited immediately (rc=2): /yt
+  T106_job_failure_triage                   ERROR: Service 'scheduler' exited immediately (rc=2): /yt
+  T107zh_ticket_routing                     ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T108_ticket_routing                       ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T109zh_complaint_investigation            ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T110_complaint_investigation              ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T111zh_expense_email_check                ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T112_expense_email_check                  ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T113zh_meeting_preparation                ERROR: Service 'calendar' exited immediately (rc=2): /yte
+  T114_meeting_preparation                  ERROR: Service 'calendar' exited immediately (rc=2): /yte
+  T115zh_ticket_kb_suggestion               ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T116_ticket_kb_suggestion                 ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T117zh_customer_followup                  ERROR: Service 'crm' exited immediately (rc=2): /ytech_m2
+  T118_customer_followup                    ERROR: Service 'crm' exited immediately (rc=2): /ytech_m2
+  T119zh_inventory_cost_analysis            ERROR: Service 'inventory' exited immediately (rc=2): /yt
+  T120_inventory_cost_analysis              ERROR: Service 'inventory' exited immediately (rc=2): /yt
+  T121zh_industry_briefing                  ERROR: Service 'rss' exited immediately (rc=2): /ytech_m2
+  T122_industry_briefing                    ERROR: Service 'rss' exited immediately (rc=2): /ytech_m2
+  T123zh_todo_calendar_conflict             ERROR: Service 'todo' exited immediately (rc=2): /ytech_m
+  T124_todo_calendar_conflict               ERROR: Service 'todo' exited immediately (rc=2): /ytech_m
+  T125zh_meeting_action_items               ERROR: Service 'notes' exited immediately (rc=2): /ytech_
+  T126_meeting_action_items                 ERROR: Service 'notes' exited immediately (rc=2): /ytech_
+  T127zh_ticket_assignment                  ERROR: Service 'contacts' exited immediately (rc=2): /yte
+  T128_ticket_assignment                    ERROR: Service 'contacts' exited immediately (rc=2): /yte
+  T129zh_business_trip_planning             ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T130_business_trip_planning               ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T131zh_order_profit_analysis              ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T132_order_profit_analysis                ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T133zh_competitive_intelligence           ERROR: Service 'rss' exited immediately (rc=2): /ytech_m2
+  T134_competitive_intelligence             ERROR: Service 'rss' exited immediately (rc=2): /ytech_m2
+  T135zh_weekly_meeting_tracking            ERROR: Service 'calendar' exited immediately (rc=2): /yte
+  T136_weekly_meeting_tracking              ERROR: Service 'calendar' exited immediately (rc=2): /yte
+  T137zh_restock_chain_check                ERROR: Service 'scheduler' exited immediately (rc=2): /yt
+  T138_restock_chain_check                  ERROR: Service 'scheduler' exited immediately (rc=2): /yt
+  T139zh_customer_relationship_warning      ERROR: Service 'contacts' exited immediately (rc=2): /yte
+  T140_customer_relationship_warning        ERROR: Service 'contacts' exited immediately (rc=2): /yte
+  T141zh_sla_compliance_audit               ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T142_sla_compliance_audit                 ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T143zh_quarterly_business_insight         ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T144_quarterly_business_insight           ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T145zh_task_backtracking                  ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T146_task_backtracking                    ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T147zh_system_health_check                ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T148_system_health_check                  ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T149zh_project_progress_report            ERROR: Service 'calendar' exited immediately (rc=2): /yte
+  T150_project_progress_report              ERROR: Service 'calendar' exited immediately (rc=2): /yte
+  T151zh_supply_chain_investigation         ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T152_supply_chain_investigation           ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T153zh_market_research_report             ERROR: Service 'rss' exited immediately (rc=2): /ytech_m2
+  T154_market_research_report               ERROR: Service 'rss' exited immediately (rc=2): /ytech_m2
+  T155zh_onsite_support_dispatch            ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T156_onsite_support_dispatch              ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T157zh_month_end_reconciliation           ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T158_month_end_reconciliation             ERROR: Service 'finance' exited immediately (rc=2): /ytec
+  T159zh_vip_ticket_escalation              ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T160_vip_ticket_escalation                ERROR: Service 'helpdesk' exited immediately (rc=2): /yte
+  T161zh_automation_failure_recovery        ERROR: Service 'scheduler' exited immediately (rc=2): /yt
+  T162_automation_failure_recovery          ERROR: Service 'scheduler' exited immediately (rc=2): /yt
+  T163zh_quarterly_customer_review          ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+  T164_quarterly_customer_review            ERROR: Service 'gmail' exited immediately (rc=2): /ytech_
+
+  Results saved to traces/non_docker_general_plain/qwen3_vl_v30_trials=1_20260525_143008/gpt-5.4-nano_26-05-25-06-30/batch_results.json
+  Summary saved to traces/non_docker_general_plain/qwen3_vl_v30_trials=1_20260525_143008/gpt-5.4-nano_26-05-25-06-30/batch_summary.json

@@ -1,0 +1,790 @@
+{
+  "task_id": "T157zh_month_end_reconciliation_plus_1",
+  "task_name": "月末补录差异核查",
+  "prompt_text": "月末了，请对本月“补录/冲正”相关数据做定向对账核查：\n1）检查定时任务是否存在部分失败或被人工暂停；\n2）核对支付与发票集成的异常配置、同步延迟与降级状态；\n3）从财务流水中筛出本月的冲正/重试交易，与CRM客户expected应收对齐，找出短收或多扣客户，并说明如何进行冲正配对抵消后的净额计算；\n4）核对采购支出与库存最近出入库记录是否合理对应，找出差额来源（如重复入账/成本不一致）；\n5）输出一份对账报告，至少包含：异常类型、影响金额区间、可能根因、建议的补救动作；异常类型需覆盖：任务状态异常、应收错配、采购-库存成本差额。\n\n请务必基于 fixtures 中的 job/integration/transaction/customer/product 数据进行可核算的关联与解释。",
+  "files": {
+    "fixtures/config/integrations.json": [
+      {
+        "integration_id": "INT-2101",
+        "name": "payment_gateway",
+        "display_name": "主支付网关",
+        "service": "payment",
+        "status": "active",
+        "last_verified": "2026-04-26T11:00:00+08:00",
+        "monthly_calls": 16400,
+        "error_rate": 1.9,
+        "notes": "运行中；5/6/7号出现局部超时导致重试与后续冲正回填。"
+      },
+      {
+        "integration_id": "INT-2102",
+        "name": "order_settlement_sync",
+        "display_name": "订单结算同步",
+        "service": "reconciliation",
+        "status": "degraded",
+        "last_verified": "2026-04-22T09:30:00+08:00",
+        "monthly_calls": 3100,
+        "error_rate": 7.8,
+        "last_sync": "2026-04-19T09:30:00+08:00",
+        "notes": "同步延迟约7天；补录队列回滚后，冲正流水部分未被财务侧完成补录。"
+      },
+      {
+        "integration_id": "INT-2103",
+        "name": "invoice_generation",
+        "display_name": "发票生成服务",
+        "service": "invoice",
+        "status": "error",
+        "last_verified": "2026-04-21T16:40:00+08:00",
+        "monthly_calls": 5200,
+        "error_rate": 120.0,
+        "notes": "月末前一周集成退回降级模式：API返回限流/版本错误；导致发票回传延迟3-6天。"
+      },
+      {
+        "integration_id": "INT-2104",
+        "name": "inventory_cost_reco",
+        "display_name": "库存成本对账",
+        "service": "inventory",
+        "status": "active",
+        "last_verified": "2026-04-26T10:10:00+08:00",
+        "monthly_calls": 900,
+        "error_rate": 0.3,
+        "notes": "库存同步总体正常；但对账报表发现单类耗材存在重复入账迹象（后续核算）。"
+      }
+    ],
+    "fixtures/crm/customers.json": [
+      {
+        "customer_id": "CUS-2101",
+        "name": "北辰数科有限公司",
+        "contact_person": "陈航",
+        "email": "chenhang@beichen-data.cn",
+        "phone": "13901002101",
+        "industry": "SaaS",
+        "tier": "VIP",
+        "annual_revenue": 24000000,
+        "last_contact_date": "2026-04-18",
+        "status": "active",
+        "contract_amount": 160000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 160000,
+        "notes": "预计月应收160000；本月CRM侧已通过批量导入调整到补录后金额。"
+      },
+      {
+        "customer_id": "CUS-2102",
+        "name": "恒泰供应链管理有限公司",
+        "contact_person": "周敏",
+        "email": "zhoumin@hengtai-scm.com",
+        "phone": "13901002202",
+        "industry": "供应链",
+        "tier": "standard",
+        "annual_revenue": 7200000,
+        "last_contact_date": "2026-04-13",
+        "status": "active",
+        "contract_amount": 60000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 60000,
+        "notes": "预计月应收60000；notes标记：补录中，财务可能出现短收。"
+      },
+      {
+        "customer_id": "CUS-2103",
+        "name": "旭日云服务（北京）有限公司",
+        "contact_person": "赵彤",
+        "email": "zhaotong@xryunbj.com",
+        "phone": "13901002303",
+        "industry": "云服务",
+        "tier": "VIP",
+        "annual_revenue": 12000000,
+        "last_contact_date": "2026-04-15",
+        "status": "active",
+        "contract_amount": 100000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 100000,
+        "notes": "预计月应收100000；本月因冲正重试导致多扣需对账抵消。"
+      },
+      {
+        "customer_id": "CUS-2104",
+        "name": "海图贸易有限公司",
+        "contact_person": "吴佳",
+        "email": "wujia@haitu-trade.cn",
+        "phone": "13901002404",
+        "industry": "贸易",
+        "tier": "standard",
+        "annual_revenue": 3900000,
+        "last_contact_date": "2026-04-20",
+        "status": "active",
+        "contract_amount": 32500,
+        "payment_cycle": "monthly",
+        "expected_monthly": 32500,
+        "notes": "预计月应收32500；补录后CRM金额不变。"
+      },
+      {
+        "customer_id": "CUS-2105",
+        "name": "银河电商平台（杭州）有限公司",
+        "contact_person": "孙博",
+        "email": "sunbo@yinhang-ec.cn",
+        "phone": "13901002505",
+        "industry": "电商",
+        "tier": "standard",
+        "annual_revenue": 5400000,
+        "last_contact_date": "2026-04-11",
+        "status": "active",
+        "contract_amount": 45000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 45000,
+        "notes": "预计月应收45000；notes标记：发票回传延迟，可能影响净实收。"
+      },
+      {
+        "customer_id": "CUS-2106",
+        "name": "星桥工业技术有限公司",
+        "contact_person": "刘莹",
+        "email": "liuying@xingqiao-ind.com",
+        "phone": "13901002606",
+        "industry": "制造",
+        "tier": "standard",
+        "annual_revenue": 3000000,
+        "last_contact_date": "2026-04-08",
+        "status": "active",
+        "contract_amount": 25000,
+        "payment_cycle": "monthly",
+        "expected_monthly": 25000,
+        "notes": "预计月应收25000；本月无异常但需确认净额。"
+      },
+      {
+        "customer_id": "CUS-2107",
+        "name": "云岭代理商有限公司",
+        "contact_person": "何晨",
+        "email": "hechen@yunling-agent.cn",
+        "phone": "13901002707",
+        "industry": "渠道",
+        "tier": "standard",
+        "annual_revenue": 1800000,
+        "last_contact_date": "2025-12-30",
+        "status": "inactive",
+        "contract_amount": 0,
+        "payment_cycle": "monthly",
+        "expected_monthly": 0,
+        "notes": "已暂停；若出现冲正/重发应收需复核其归属。"
+      }
+    ],
+    "fixtures/finance/transactions.json": [
+      {
+        "transaction_id": "TXN-21001",
+        "date": "2026-04-01",
+        "amount": 160000,
+        "currency": "CNY",
+        "customer_id": "CUS-2101",
+        "customer_name": "北辰数科有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2101 4月订阅费，订单ORD-99001（幂等key CK-99001）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21002",
+        "date": "2026-04-01",
+        "amount": -160000,
+        "currency": "CNY",
+        "customer_id": "CUS-2101",
+        "customer_name": "北辰数科有限公司",
+        "type": "冲正",
+        "category": "回滚/冲正",
+        "description": "冲正：ORD-99001 回滚补录（原幂等key CK-99001）",
+        "related_order": "ORD-99001",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21003",
+        "date": "2026-04-08",
+        "amount": 160000,
+        "currency": "CNY",
+        "customer_id": "CUS-2101",
+        "customer_name": "北辰数科有限公司",
+        "type": "重发",
+        "category": "回补入账",
+        "description": "重发：ORD-99001（补录后应收已更新）",
+        "related_order": "ORD-99001",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21004",
+        "date": "2026-04-02",
+        "amount": 60000,
+        "currency": "CNY",
+        "customer_id": "CUS-2102",
+        "customer_name": "恒泰供应链管理有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2102 4月服务费，订单ORD-99011（幂等key CK-99011）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21005",
+        "date": "2026-04-02",
+        "amount": -60000,
+        "currency": "CNY",
+        "customer_id": "CUS-2102",
+        "customer_name": "恒泰供应链管理有限公司",
+        "type": "冲正",
+        "category": "回滚/冲正",
+        "description": "冲正：ORD-99011（支付网关回滚补录，财务侧部分延迟同步）",
+        "related_order": "ORD-99011",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21006",
+        "date": "2026-04-09",
+        "amount": 30000,
+        "currency": "CNY",
+        "customer_id": "CUS-2102",
+        "customer_name": "恒泰供应链管理有限公司",
+        "type": "重试",
+        "category": "回补入账",
+        "description": "重试成功：ORD-99011（分段到账，第二段待补录）",
+        "related_order": "ORD-99011",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21007",
+        "date": "2026-04-03",
+        "amount": 100000,
+        "currency": "CNY",
+        "customer_id": "CUS-2103",
+        "customer_name": "旭日云服务（北京）有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2103 4月合同款，订单ORD-99021（幂等key CK-99021）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21008",
+        "date": "2026-04-03",
+        "amount": -100000,
+        "currency": "CNY",
+        "customer_id": "CUS-2103",
+        "customer_name": "旭日云服务（北京）有限公司",
+        "type": "冲正",
+        "category": "回滚/冲正",
+        "description": "冲正流水1：ORD-99021（部分匹配失败导致后续重复扣款风险）",
+        "related_order": "ORD-99021",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21009",
+        "date": "2026-04-10",
+        "amount": 100000,
+        "currency": "CNY",
+        "customer_id": "CUS-2103",
+        "customer_name": "旭日云服务（北京）有限公司",
+        "type": "重试",
+        "category": "回补入账",
+        "description": "重试成功：ORD-99021（补录后仍有一次重复入账需对账抵消）",
+        "related_order": "ORD-99021",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21010",
+        "date": "2026-04-11",
+        "amount": -25000,
+        "currency": "CNY",
+        "customer_id": "CUS-2103",
+        "customer_name": "旭日云服务（北京）有限公司",
+        "type": "重发",
+        "category": "冲正/调整",
+        "description": "调整：重复扣款冲抵（对应ORD-99021的一次回滚）",
+        "related_order": "ORD-99021",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21011",
+        "date": "2026-04-04",
+        "amount": 32500,
+        "currency": "CNY",
+        "customer_id": "CUS-2104",
+        "customer_name": "海图贸易有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2104 4月服务费，订单ORD-99031",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21012",
+        "date": "2026-04-12",
+        "amount": -2000,
+        "currency": "CNY",
+        "customer_id": "CUS-2104",
+        "customer_name": "海图贸易有限公司",
+        "type": "退款",
+        "category": "退款支出",
+        "description": "服务补偿退款：ORD-99031（发票回传延迟后的手工校正）",
+        "related_order": "ORD-99031",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21013",
+        "date": "2026-04-05",
+        "amount": 45000,
+        "currency": "CNY",
+        "customer_id": "CUS-2105",
+        "customer_name": "银河电商平台（杭州）有限公司",
+        "type": "客户付款",
+        "category": "服务收入",
+        "description": "CUS-2105 4月订阅费，订单ORD-99041（幂等key CK-99041）",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21014",
+        "date": "2026-04-06",
+        "amount": -45000,
+        "currency": "CNY",
+        "customer_id": "CUS-2105",
+        "customer_name": "银河电商平台（杭州）有限公司",
+        "type": "冲正",
+        "category": "回滚/冲正",
+        "description": "冲正：ORD-99041（支付网关生成两次相同订单冲正）",
+        "related_order": "ORD-99041",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21015",
+        "date": "2026-04-13",
+        "amount": 45000,
+        "currency": "CNY",
+        "customer_id": "CUS-2105",
+        "customer_name": "银河电商平台（杭州）有限公司",
+        "type": "重发",
+        "category": "回补入账",
+        "description": "重发成功：ORD-99041（CRM expected已导入更新）",
+        "related_order": "ORD-99041",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21016",
+        "date": "2026-04-06",
+        "amount": -42000,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-2112 复印纸（箱）300箱，采购单PO-44010",
+        "related_item": "ITEM-2112",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21017",
+        "date": "2026-04-14",
+        "amount": -9800,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-2113 耗材硒鼓120支，采购单PO-44011",
+        "related_item": "ITEM-2113",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21018",
+        "date": "2026-04-16",
+        "amount": -7200,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-2113 耗材硒鼓重复入账采购对账行（疑似重复）采购单PO-44012",
+        "related_item": "ITEM-2113",
+        "status": "completed"
+      },
+      {
+        "transaction_id": "TXN-21019",
+        "date": "2026-04-18",
+        "amount": -18000,
+        "currency": "CNY",
+        "customer_id": null,
+        "customer_name": null,
+        "type": "采购",
+        "category": "采购支出",
+        "description": "采购ITEM-2116 UPS电源 4台，采购单PO-44021",
+        "related_item": "ITEM-2116",
+        "status": "completed"
+      }
+    ],
+    "fixtures/inventory/items.json": [
+      {
+        "product_id": "ITEM-2112",
+        "name": "A4复印纸（70g）",
+        "category": "办公耗材",
+        "quantity": 300,
+        "unit": "箱",
+        "unit_cost": 140.00,
+        "location": "仓库A-10",
+        "last_in": "2026-04-06",
+        "last_in_qty": 300,
+        "last_out": "2026-04-22",
+        "last_out_qty": 110,
+        "supplier": "莱博文具",
+        "notes": "库存正常；用于与硒鼓差额形成对比，避免分散核查。"
+      },
+      {
+        "product_id": "ITEM-2113",
+        "name": "硒鼓（通用款）",
+        "category": "耗材",
+        "quantity": 120,
+        "unit": "支",
+        "unit_cost": 80.00,
+        "location": "仓库C-03",
+        "last_in": "2026-04-14",
+        "last_in_qty": 120,
+        "last_out": "2026-04-25",
+        "last_out_qty": 40,
+        "supplier": "易采办公",
+        "notes": "存在重复入库风险：预计last_in_qty=120，对应采购对账金额应≈9600；但财务存在两笔采购（TXN-21017/21018）总额9800+7200=17000，差额来源疑为重复入账或成本字段不一致。"
+      },
+      {
+        "product_id": "ITEM-2114",
+        "name": "打印墨盒（黑色XL）",
+        "category": "耗材",
+        "quantity": 200,
+        "unit": "个",
+        "unit_cost": 55.00,
+        "location": "仓库C-04",
+        "last_in": "2026-04-10",
+        "last_in_qty": 200,
+        "last_out": "2026-04-26",
+        "last_out_qty": 60,
+        "supplier": "天科耗材",
+        "notes": "无差额；用于保证核算逻辑不是全盘异常。"
+      },
+      {
+        "product_id": "ITEM-2115",
+        "name": "网线（CAT6）",
+        "category": "网络设备",
+        "quantity": 500,
+        "unit": "米",
+        "unit_cost": 2.8,
+        "location": "仓库B-07",
+        "last_in": "2026-04-07",
+        "last_in_qty": 500,
+        "last_out": "2026-04-19",
+        "last_out_qty": 200,
+        "supplier": "安普网络",
+        "notes": "正常。"
+      },
+      {
+        "product_id": "ITEM-2116",
+        "name": "UPS电源（1000VA）",
+        "category": "IT设备",
+        "quantity": 8,
+        "unit": "台",
+        "unit_cost": 4500.00,
+        "location": "仓库B-12",
+        "last_in": "2026-04-16",
+        "last_in_qty": 4,
+        "last_out": "2026-04-20",
+        "last_out_qty": 2,
+        "supplier": "科华电力",
+        "notes": "正常对账，用于避免库存只集中于单点。"
+      },
+      {
+        "product_id": "ITEM-2117",
+        "name": "键盘（104键）",
+        "category": "外设",
+        "quantity": 60,
+        "unit": "个",
+        "unit_cost": 38.00,
+        "location": "仓库A-20",
+        "last_in": "2026-04-09",
+        "last_in_qty": 60,
+        "last_out": "2026-04-24",
+        "last_out_qty": 15,
+        "supplier": "京东企业购",
+        "notes": "正常。"
+      },
+      {
+        "product_id": "ITEM-2118",
+        "name": "无线鼠标（蓝牙版）",
+        "category": "外设",
+        "quantity": 90,
+        "unit": "个",
+        "unit_cost": 24.00,
+        "location": "仓库A-21",
+        "last_in": "2026-04-12",
+        "last_in_qty": 90,
+        "last_out": "2026-04-21",
+        "last_out_qty": 35,
+        "supplier": "京东企业购",
+        "notes": "正常。"
+      },
+      {
+        "product_id": "ITEM-2119",
+        "name": "显示器支架",
+        "category": "办公用品",
+        "quantity": 40,
+        "unit": "个",
+        "unit_cost": 65.00,
+        "location": "仓库A-05",
+        "last_in": "2026-04-08",
+        "last_in_qty": 40,
+        "last_out": "2026-04-18",
+        "last_out_qty": 10,
+        "supplier": "办公易",
+        "notes": "正常。"
+      },
+      {
+        "product_id": "ITEM-2120",
+        "name": "办公文件夹",
+        "category": "办公用品",
+        "quantity": 500,
+        "unit": "个",
+        "unit_cost": 1.6,
+        "location": "仓库A-06",
+        "last_in": "2026-04-03",
+        "last_in_qty": 500,
+        "last_out": "2026-04-17",
+        "last_out_qty": 180,
+        "supplier": "莱博文具",
+        "notes": "正常。"
+      },
+      {
+        "product_id": "ITEM-2121",
+        "name": "U盘（64G）",
+        "category": "IT设备",
+        "quantity": 120,
+        "unit": "个",
+        "unit_cost": 28.00,
+        "location": "仓库B-15",
+        "last_in": "2026-04-05",
+        "last_in_qty": 120,
+        "last_out": "2026-04-23",
+        "last_out_qty": 50,
+        "supplier": "希捷直销",
+        "notes": "正常。"
+      },
+      {
+        "product_id": "ITEM-2122",
+        "name": "线缆理线器",
+        "category": "办公用品",
+        "quantity": 200,
+        "unit": "套",
+        "unit_cost": 6.5,
+        "location": "仓库A-08",
+        "last_in": "2026-04-11",
+        "last_in_qty": 200,
+        "last_out": "2026-04-24",
+        "last_out_qty": 70,
+        "supplier": "安普网络",
+        "notes": "正常。"
+      },
+      {
+        "product_id": "ITEM-2123",
+        "name": "电话耳机",
+        "category": "外设",
+        "quantity": 24,
+        "unit": "个",
+        "unit_cost": 120.00,
+        "location": "仓库A-22",
+        "last_in": "2026-04-15",
+        "last_in_qty": 24,
+        "last_out": "2026-04-27",
+        "last_out_qty": 6,
+        "supplier": "天科耗材",
+        "notes": "正常。"
+      }
+    ],
+    "fixtures/scheduler/jobs.json": [
+      {
+        "job_id": "JOB-2111",
+        "name": "补录队列处理（回滚补录）",
+        "cron_expression": "0 6 * * *",
+        "action": "replay_backfill_queue",
+        "enabled": true,
+        "last_run": "2026-04-26T06:10:00Z",
+        "next_run": "2026-04-27T06:10:00Z",
+        "last_status": "failed",
+        "created_by": "ops_reliability",
+        "tags": [
+          "backfill",
+          "reconciliation",
+          "month_end"
+        ],
+        "created_at": "2025-10-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-26T06:10:00Z",
+            "status": "failed",
+            "duration_s": 38,
+            "error": "PartialRollbackError：支付网关冲正（订单ORD-99011/99021）二次流水未完成幂等对账"
+          },
+          {
+            "run_at": "2026-04-25T06:10:00Z",
+            "status": "failed",
+            "duration_s": 35,
+            "error": "IdempotencyMismatch：同订单重复冲正回填，导致财务补录中断"
+          },
+          {
+            "run_at": "2026-04-24T06:10:00Z",
+            "status": "failed",
+            "duration_s": 34,
+            "error": "QueueRetryLimitReached：补录重试达到上限（与配置INT-2102降级一致）"
+          },
+          {
+            "run_at": "2026-04-20T06:10:00Z",
+            "status": "success",
+            "duration_s": 140
+          },
+          {
+            "run_at": "2026-04-19T06:10:00Z",
+            "status": "success",
+            "duration_s": 125
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2112",
+        "name": "发票生成（降级模式）",
+        "cron_expression": "0 8 * * 1-5",
+        "action": "generate_invoices",
+        "enabled": true,
+        "last_run": "2026-04-25T08:05:00Z",
+        "next_run": "2026-04-27T08:05:00Z",
+        "last_status": "failed",
+        "created_by": "finance_team",
+        "tags": [
+          "invoice",
+          "degraded"
+        ],
+        "created_at": "2025-11-10T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-25T08:05:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "HTTP 429 Too Many Requests：发票系统已进入降级模式（关联INT-2103）"
+          },
+          {
+            "run_at": "2026-04-24T08:05:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "HTTP 400 BadRequest：发票API版本不兼容（需要v3 SDK回补）"
+          },
+          {
+            "run_at": "2026-04-23T08:05:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "Timeout：发票回传超时（影响订单ORD-99001/99041净实收对账窗口）"
+          },
+          {
+            "run_at": "2026-04-22T08:05:00Z",
+            "status": "success",
+            "duration_s": 52
+          },
+          {
+            "run_at": "2026-04-21T08:05:00Z",
+            "status": "failed",
+            "duration_s": 9,
+            "error": "HTTP 429 Too Many Requests：继续降级"
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2113",
+        "name": "应收-应付对账快照（人工暂停）",
+        "cron_expression": "0 10 * * *",
+        "action": "ar_ap_snapshot",
+        "enabled": true,
+        "last_run": "2026-04-26T10:00:00Z",
+        "next_run": "2026-04-27T10:00:00Z",
+        "last_status": "success",
+        "created_by": "finance_team",
+        "tags": [
+          "snapshot",
+          "arap"
+        ],
+        "created_at": "2025-12-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-26T10:00:00Z",
+            "status": "success",
+            "duration_s": 80
+          },
+          {
+            "run_at": "2026-04-25T10:00:00Z",
+            "status": "skipped",
+            "duration_s": 0,
+            "error": "ManuallyPaused：人工暂停本次执行（等待发票回传）"
+          },
+          {
+            "run_at": "2026-04-24T10:00:00Z",
+            "status": "skipped",
+            "duration_s": 0,
+            "error": "ManuallyPaused：人工暂停本次执行（补录队列未完成）"
+          },
+          {
+            "run_at": "2026-04-23T10:00:00Z",
+            "status": "success",
+            "duration_s": 76
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2114",
+        "name": "库存出入库同步",
+        "cron_expression": "0 7 * * *",
+        "action": "sync_stock_movements",
+        "enabled": true,
+        "last_run": "2026-04-26T07:00:00Z",
+        "next_run": "2026-04-27T07:00:00Z",
+        "last_status": "success",
+        "created_by": "ops_team",
+        "tags": [
+          "inventory",
+          "sync"
+        ],
+        "created_at": "2025-09-10T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-26T07:00:00Z",
+            "status": "success",
+            "duration_s": 62
+          },
+          {
+            "run_at": "2026-04-25T07:00:00Z",
+            "status": "success",
+            "duration_s": 58
+          }
+        ]
+      },
+      {
+        "job_id": "JOB-2115",
+        "name": "月末冻结报表生成",
+        "cron_expression": "0 9 25-31 * *",
+        "action": "month_end_freeze_report",
+        "enabled": true,
+        "last_run": "2026-04-25T09:00:00Z",
+        "next_run": "2026-04-26T09:00:00Z",
+        "last_status": "success",
+        "created_by": "finance_team",
+        "tags": [
+          "report",
+          "month_end"
+        ],
+        "created_at": "2025-07-01T00:00:00Z",
+        "execution_history": [
+          {
+            "run_at": "2026-04-25T09:00:00Z",
+            "status": "success",
+            "duration_s": 190
+          }
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "将原题的“固定异常样式”替换为“冲正/重试+补录导入延迟”导致的应收净额错配，并新增“耗材重复入账”造成的采购-库存成本差额核查重点。",
+    "fixture_design_summary": [
+      "scheduler：新增“补录队列处理”与“发票生成（降级模式）”在月末前一周集中failed/降级特征；另有enabled=true但execution_history出现skipped体现人工暂停。",
+      "config/integrations：支付active但error_rate波动；对账同步degraded且last_sync落后约7天；发票integration处于error/降级导致回传延迟。",
+      "crm/finance：为3个客户构造冲正/重试/重发链路（订单幂等相关字段related_order与冲正抵消用description提示），制造短收/多扣的净额差异。",
+      "inventory：仅将差额聚焦在ITEM-2113（硒鼓）——last_in_qty对应的成本约9600，但财务采购存在两笔更高金额17000，形成可计算的采购-库存成本差额方向。"
+    ]
+  }
+}

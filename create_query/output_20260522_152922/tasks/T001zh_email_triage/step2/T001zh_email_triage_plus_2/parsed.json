@@ -1,0 +1,140 @@
+{
+  "task_id": "T001zh_email_triage_plus_2",
+  "task_name": "订阅退订与调查意图区分",
+  "prompt_text": "请帮我对收件箱里的新邮件逐条分拣：哪些邮件需要我回复或采取动作，哪些只是通知无需回复，哪些是明显垃圾（包括骚扰/重复营销/可疑退订引导）。\n\n对每封邮件请输出：1）类别（需回复/采取动作、仅供参考无需回复、垃圾邮件）；2）发件人；3）主题；4）判断理由。重点说明你如何区分：调查/退订类（例如“无需回复只需点击取消链接” vs “要求回复STOP/回复任意内容即可退订”）；以及“紧急”字样是否只是干扰、是否真的有行动截止时间与明确动作要求。",
+  "files": {
+    "fixtures/gmail/inbox.json": [
+      {
+        "message_id": "subj_inv_1001",
+        "from": "research@surveyvale.com",
+        "to": "user@company.com",
+        "subject": "邀请参与年度用户研究（无需回复）",
+        "body": "您好！\n\n我们正在进行一项年度用户研究，预计 4-5 分钟完成。\n\n如果您不想参与，请不要回复本邮件；只需点击下方“取消参与”链接即可停止接收。\n\n参与/取消链接： https://surveyvale.example.com/study/annual-2026\n\n此致\nSurveyVale 研究团队",
+        "date": "2026-05-18T09:12:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_UPDATES",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "mkt_promo_1002",
+        "from": "promo@lumen-commerce.co",
+        "to": "user@company.com",
+        "subject": "【限时】新品上架提醒（退订方式可能不可靠）",
+        "body": "嗨！\n\n我们为您推荐一批新品，可能符合您的兴趣。\n\n退订方式：只要回复本邮件并发送任意内容，我们会在 24 小时内为您退订。\n\n另外本邮件带有“紧急”标签，提醒您别错过机会。\n\n— Lumen Commerce",
+        "date": "2026-05-18T13:44:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_PROMOTIONS",
+          "SUSPICIOUS"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "saas_exp_1003",
+        "from": "billing@opsforge.com",
+        "to": "user@company.com",
+        "subject": "服务即将到期：请在 48 小时内完成续费以避免降级",
+        "body": "您好，\n\nOpsForge 订阅将于 48 小时后到期。为避免功能在到期后被限制，请在截止时间前完成续费。\n\n请登录管理控制台处理：\nhttps://console.opsforge.example.com/billing/renew\n\n如果续费未完成，我们的自动化任务可能将进入受限模式。\n\n续费后无需回复本邮件。\n\nOpsForge 计费团队",
+        "date": "2026-05-17T21:05:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "meeting_note_1004",
+        "from": "team-ops@company.com",
+        "to": "user@company.com",
+        "subject": "会议纪要（仅供参考）：2026-05 部署同步",
+        "body": "大家好，\n\n以下为部署同步会议纪要（仅供参考）：\n1）下一轮上线范围\n2）回滚策略复盘\n3）监控指标调整\n\n如需行动请在内部工单系统中跟进。无需回复本邮件。\n\nOps 团队",
+        "date": "2026-05-17T08:30:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_UPDATES"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "sec_notice_1005",
+        "from": "security-operations@cloudguard.io",
+        "to": "user@company.com",
+        "subject": "安全公告：请保持系统更新（无需任何操作）",
+        "body": "通知：\n\n我们检测到当前环境已满足最新安全基线。\n\n因此本次仅为例行公告：无需回复、无需点击任何链接或提交信息。请继续保持系统与客户端自动更新。\n\nCloudGuard 安全运营",
+        "date": "2026-05-16T18:10:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_NEWS"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "otp_fail_note_1006",
+        "from": "no-reply@auth-gateway.dev",
+        "to": "user@company.com",
+        "subject": "验证码登录失败：请在系统内自行处理",
+        "body": "尊敬的用户：\n\n我们尝试为您的账号完成验证码登录，但失败了。\n\n重要：请不要回复本邮件。若您确实需要登录，请打开您的身份验证入口，在应用内重新发起登录流程并核对设备信息。\n\n登录入口： https://gateway.dev.example.com/login\n\n— Auth Gateway",
+        "date": "2026-05-18T06:20:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT",
+          "CATEGORY_SECURITY"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "sos_repeat_mkt_1007",
+        "from": "winback@pulse-mailing.com",
+        "to": "user@company.com",
+        "subject": "【紧急】最后通知：退订请回复任意内容（骚扰）",
+        "body": "您好！\n\n这是您对我们品牌的“最后一次”通知（再次强调：紧急）。\n\n如果您希望退订，请直接回复本邮件并随便输入一句话。我们将立刻停止发送。\n\n注意：如不回复，我们仍可能继续发送更多营销内容。\n\nPulse Mailing",
+        "date": "2026-05-18T02:55:00Z",
+        "labels": [
+          "INBOX",
+          "SPAM",
+          "SUSPICIOUS"
+        ],
+        "is_read": false
+      },
+      {
+        "message_id": "study_click_optout_1008",
+        "from": "insights@surveyvale.com",
+        "to": "user@company.com",
+        "subject": "用户洞察：如果不想参与请点击取消（无需回复）",
+        "body": "您好，\n\n我们准备向部分用户发送洞察问卷。\n\n不想参与的话：无需回复，只需点击“取消问卷”链接即可停止后续邀请。\n取消链接：https://surveyvale.example.com/optout/insight-2026\n\n若您选择参与，请在问卷页按提示完成。\n\n感谢\nInsights 团队",
+        "date": "2026-05-17T16:40:00Z",
+        "labels": [
+          "INBOX",
+          "CATEGORY_UPDATES"
+        ],
+        "is_read": true
+      },
+      {
+        "message_id": "billing_confirm_1009",
+        "from": "account@opsforge.com",
+        "to": "user@company.com",
+        "subject": "续费需确认：请检查账单信息并完成操作",
+        "body": "您好！\n\n我们已收到您团队的续费请求，但需要您确认账单信息。\n\n请在 48 小时内完成以下任一操作：\n1）核对账单页的付款方式是否正确\n2）若有变更，请选择“更新付款方式”并保存\n\n操作入口：\nhttps://console.opsforge.example.com/billing/confirm\n\n为避免服务被限制，请尽快处理。\n\nOpsForge 客户成功",
+        "date": "2026-05-17T12:02:00Z",
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "is_read": true
+      }
+    ]
+  },
+  "notes": {
+    "difference_summary": "相较原题新增“调查/退订/不要回复/只需点击”意图识别，并加入“以回复内容作为退订方式但不可靠”的可疑营销骚扰作为垃圾判定关键点，且移除原题的抽奖与密码更新内容。",
+    "fixture_design_summary": [
+      "生成 fixtures/gmail/inbox.json 共 9 封，未读5封已读4封，确保三类输出覆盖。",
+      "调查邀请类区分“无需回复只需点击取消链接”与“要求回复STOP/回复任意内容退订的不可信引导”。",
+      "续费到期类（48小时截止）与账单确认类明确标注需要回复或采取动作，并在理由中强调截止时间与具体入口。",
+      "仅供参考类包含会议纪要、安全例行公告、验证码失败且“不要回复本邮件”但提供内部处理入口。",
+      "垃圾类包含带 SPAM/SUSPICIOUS 标签的可疑退订/营销骚扰邮件，并在主题中出现“紧急”干扰字样以考察甄别。"
+    ]
+  }
+}

@@ -1,0 +1,191 @@
+[
+  {
+    "transaction_id": "TXN-2411-07",
+    "customer_id": "CUS-2411",
+    "amount": 92000,
+    "type": "subscription",
+    "date": "2026-07-12",
+    "status": "completed",
+    "description": "Q3基础订阅+合规模块一期"
+  },
+  {
+    "transaction_id": "TXN-2411-08",
+    "customer_id": "CUS-2411",
+    "amount": 98000,
+    "type": "subscription",
+    "date": "2026-08-10",
+    "status": "completed",
+    "description": "Q3订阅续费+审计支持包"
+  },
+  {
+    "transaction_id": "TXN-2411-09",
+    "customer_id": "CUS-2411",
+    "amount": 106000,
+    "type": "subscription",
+    "date": "2026-09-08",
+    "status": "completed",
+    "description": "Q3续约推进+数据治理增强"
+  },
+  {
+    "transaction_id": "TXN-2412-07",
+    "customer_id": "CUS-2412",
+    "amount": 43000,
+    "type": "subscription",
+    "date": "2026-07-05",
+    "status": "completed",
+    "description": "门店集成订阅（基础）"
+  },
+  {
+    "transaction_id": "TXN-2412-08",
+    "customer_id": "CUS-2412",
+    "amount": 41000,
+    "type": "subscription",
+    "date": "2026-08-06",
+    "status": "completed",
+    "description": "集成优化订阅（小幅调整）"
+  },
+  {
+    "transaction_id": "TXN-2412-09",
+    "customer_id": "CUS-2412",
+    "amount": 42000,
+    "type": "subscription",
+    "date": "2026-09-09",
+    "status": "completed",
+    "description": "补充可视化模块订阅"
+  },
+  {
+    "transaction_id": "TXN-2413-07",
+    "customer_id": "CUS-2413",
+    "amount": 76000,
+    "type": "subscription",
+    "date": "2026-07-18",
+    "status": "completed",
+    "description": "运输协同订阅（新增承运商）"
+  },
+  {
+    "transaction_id": "TXN-2413-08",
+    "customer_id": "CUS-2413",
+    "amount": 83000,
+    "type": "subscription",
+    "date": "2026-08-14",
+    "status": "completed",
+    "description": "库存联动订阅+接口扩容"
+  },
+  {
+    "transaction_id": "TXN-2413-09",
+    "customer_id": "CUS-2413",
+    "amount": 90000,
+    "type": "subscription",
+    "date": "2026-09-17",
+    "status": "completed",
+    "description": "Q3追加资源+全链路可视化"
+  },
+  {
+    "transaction_id": "TXN-2414-07",
+    "customer_id": "CUS-2414",
+    "amount": 36000,
+    "type": "subscription",
+    "date": "2026-07-11",
+    "status": "completed",
+    "description": "学习分析订阅（基础）"
+  },
+  {
+    "transaction_id": "TXN-2414-08",
+    "customer_id": "CUS-2414",
+    "amount": 32000,
+    "type": "subscription",
+    "date": "2026-08-16",
+    "status": "completed",
+    "description": "降配续费（预算收紧）"
+  },
+  {
+    "transaction_id": "TXN-2414-09",
+    "customer_id": "CUS-2414",
+    "amount": 29000,
+    "type": "subscription",
+    "date": "2026-09-13",
+    "status": "completed",
+    "description": "续费延后后补款（部分功能暂停）"
+  },
+  {
+    "transaction_id": "TXN-2415-07",
+    "customer_id": "CUS-2415",
+    "amount": 54000,
+    "type": "subscription",
+    "date": "2026-07-09",
+    "status": "completed",
+    "description": "推荐与内容分发订阅"
+  },
+  {
+    "transaction_id": "TXN-2415-08",
+    "customer_id": "CUS-2415",
+    "amount": 57000,
+    "type": "subscription",
+    "date": "2026-08-12",
+    "status": "completed",
+    "description": "增值模块评估订阅"
+  },
+  {
+    "transaction_id": "TXN-2415-09",
+    "customer_id": "CUS-2415",
+    "amount": 57000,
+    "type": "subscription",
+    "date": "2026-09-21",
+    "status": "completed",
+    "description": "横盘续费（暂未追加）"
+  },
+  {
+    "transaction_id": "TXN-2416-07",
+    "customer_id": "CUS-2416",
+    "amount": 41000,
+    "type": "subscription",
+    "date": "2026-07-22",
+    "status": "completed",
+    "description": "运维数据治理订阅"
+  },
+  {
+    "transaction_id": "TXN-2416-08",
+    "customer_id": "CUS-2416",
+    "amount": 42000,
+    "type": "subscription",
+    "date": "2026-08-26",
+    "status": "completed",
+    "description": "合规策略更新包"
+  },
+  {
+    "transaction_id": "TXN-2416-09",
+    "customer_id": "CUS-2416",
+    "amount": 41500,
+    "type": "subscription",
+    "date": "2026-09-24",
+    "status": "completed",
+    "description": "运维订阅稳定续费"
+  },
+  {
+    "transaction_id": "TXN-2412-08b",
+    "customer_id": "CUS-2412",
+    "amount": 22000,
+    "type": "subscription",
+    "date": "2026-08-22",
+    "status": "completed",
+    "description": "门店波次预测补充包"
+  },
+  {
+    "transaction_id": "TXN-2413-07b",
+    "customer_id": "CUS-2413",
+    "amount": 18000,
+    "type": "subscription",
+    "date": "2026-07-28",
+    "status": "completed",
+    "description": "承运商协同试点续费"
+  },
+  {
+    "transaction_id": "TXN-2414-07b",
+    "customer_id": "CUS-2414",
+    "amount": 9000,
+    "type": "subscription",
+    "date": "2026-07-29",
+    "status": "completed",
+    "description": "内容智能化PoC续费"
+  }
+]

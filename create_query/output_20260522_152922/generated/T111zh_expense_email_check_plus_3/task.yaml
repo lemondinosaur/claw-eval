@@ -1,0 +1,107 @@
+task_id: T111zh_expense_email_check_plus_3
+task_name: Expense Mail Reconcile C（金额单位混杂）
+version: '1.0'
+category: workflow
+difficulty: medium
+tags:
+- general
+- multi_service
+services:
+- name: gmail
+  command: python mock_services/gmail/server.py
+  port: 9100
+  health_check: http://localhost:9100/gmail/messages
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9100/gmail/reset
+  env:
+    GMAIL_FIXTURES: create_query/output_20260522_152922/generated/T111zh_expense_email_check_plus_3/fixtures/gmail/inbox.json
+- name: finance
+  command: python mock_services/finance/server.py
+  port: 9104
+  health_check: http://localhost:9104/finance/transactions
+  health_check_method: POST
+  ready_timeout: 10
+  reset_endpoint: http://localhost:9104/finance/reset
+  env:
+    FINANCE_FIXTURES: create_query/output_20260522_152922/generated/T111zh_expense_email_check_plus_3/fixtures/finance/transactions.json
+prompt:
+  text: '收件箱中包含多封邮件，其中有报销申请邮件与非报销沟通以及一封会议邀请。请你：
+
+
+    1）筛选出明确的报销申请邮件；
+
+    2）从每封报销邮件中提取“当次发票号（注意同一邮件里可能出现多个发票号，需取最后出现的那个）”与“报销金额”；
+
+    3）对邮件中的金额文本进行规范化解析（去除“元/人民币/元整”等单位，处理千分位逗号，忽略“约”，并保留两位小数），得到可与财务系统交易 amount（CNY、两位小数）精确对比的数值；
+
+    4）在财务系统中按发票号/交易描述找到对应交易，并核对 amount 是否一致、交易状态是否完成；
+
+    5）输出核对报告，分类为：匹配正常、金额不符、状态异常，并在报告中明确写出“邮件金额 vs 财务金额（规范化后）”以及对应交易号与发票号。
+
+
+    输出要求：覆盖所有报销申请邮件；排除非报销沟通与会议邀请邮件。'
+  language: zh
+tools:
+- name: gmail_list_messages
+  description: 获取收件箱邮件列表
+  input_schema:
+    type: object
+    properties:
+      days_back:
+        type: integer
+        description: 获取最近几天的邮件
+        default: 7
+      max_results:
+        type: integer
+        description: 最大返回数量
+        default: 20
+    required: []
+- name: gmail_get_message
+  description: 根据邮件ID获取邮件详情
+  input_schema:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: 邮件ID
+    required:
+    - message_id
+- name: finance_list_transactions
+  description: 查看交易记录
+  input_schema:
+    type: object
+    properties:
+      start_date:
+        type: string
+        description: 起始日期(YYYY-MM-DD)
+      end_date:
+        type: string
+        description: 截止日期(YYYY-MM-DD)
+    required: []
+- name: finance_get_transaction
+  description: 获取交易详情
+  input_schema:
+    type: object
+    properties:
+      transaction_id:
+        type: string
+        description: 交易ID
+    required:
+    - transaction_id
+tool_endpoints:
+- tool_name: gmail_list_messages
+  url: http://localhost:9100/gmail/messages
+  method: POST
+- tool_name: gmail_get_message
+  url: http://localhost:9100/gmail/messages/get
+  method: POST
+- tool_name: finance_list_transactions
+  url: http://localhost:9104/finance/transactions
+  method: POST
+- tool_name: finance_get_transaction
+  url: http://localhost:9104/finance/transactions/get
+  method: POST
+environment:
+  timeout_seconds: 300
+  max_turns: 20

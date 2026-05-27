@@ -1,0 +1,180 @@
+{
+  "schema_version": "create_query.task_bundle.v1",
+  "generated_at": "2026-05-22 15:34:24",
+  "timezone": "UTC+08:00",
+  "source_task_id": "T005zh_email_reply_draft",
+  "step1": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:32:52",
+    "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step1/prompt.txt",
+    "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step1/raw.txt",
+    "output": {
+      "schema_version": "step1.task_descriptions.v2",
+      "generated_at": "2026-05-22 15:32:52",
+      "source_task_id": "T005zh_email_reply_draft",
+      "source_summary": {
+        "task_id": "T005zh_email_reply_draft",
+        "task_name": "Email Reply Draft",
+        "task_type": "查看收件箱重要邮件并根据内容起草回复，保存为草稿而不发送",
+        "category": "communication",
+        "difficulty": "easy",
+        "tags": [
+          "general"
+        ],
+        "language": "zh",
+        "services": [
+          "gmail"
+        ],
+        "tools": [
+          "gmail_list_messages",
+          "gmail_get_message",
+          "gmail_save_draft",
+          "gmail_send_message"
+        ],
+        "fixture_paths": [
+          "fixtures/gmail/inbox.json"
+        ],
+        "sandbox_files": [
+          "fixtures/gmail/inbox.json"
+        ],
+        "has_user_agent": false,
+        "has_grader": true,
+        "core_capability": "邮件阅读与上下文回复草稿撰写，并遵守仅保存草稿不发送的安全约束"
+      },
+      "new_task_descriptions": [
+        {
+          "index": 1,
+          "new_task_id": "T005zh_email_reply_draft_plus_1",
+          "new_task_name": "应付账款对账回复草稿",
+          "task_goal": "从收件箱中识别需要回复的对账相关邮件，获取其明细后分别起草两封回复：一封向供应商确认差异原因与预计对账完成时间，另一封向公司内部财务同事澄清缺失单据并承诺补发，最终都保存为草稿且不发送。",
+          "user_request": "请帮我查看收件箱里与“对账/回款差异/发票缺失”有关的邮件，选出两封最需要我回复的，分别起草专业回复并保存为草稿即可。不要直接发送。",
+          "scenario": "收件箱里存在：A）供应商发来的催问邮件，提到上月发票金额与我方系统记录不一致，要求尽快给出差异解释；B）内部财务助理发来的提醒，指出我部门提交的采购发票有两张状态为“待补充”，并要求今晚前确认；C）一封通知类群发邮件与一封告警类邮件混杂其中。需要忽略非对账主题的噪声邮件，并优先处理标记为IMPORTANT且正文包含“缺失/差异/今晚前/确认”的邮件。两封待回复邮件不属于同一往复链，但都与账务补齐和时间承诺有关。回复应体现：先确认收到，再基于邮件中给出的差异字段/缺失条目进行澄清，最后给出具体的下一步与时间点（用相对时间表达，不要杜撰原邮件不存在的信息）。",
+          "difference_from_source": "原任务围绕项目延期与竞品报告转发；本任务改为应付账款对账与发票缺失/差异澄清，需要撰写“供应商差异解释 + 内部财务补单确认”的两类回复，并避免被告警或通知类邮件干扰。",
+          "service_and_tool_plan": "使用gmail_list_messages获取近期邮件列表，再对候选邮件逐封调用gmail_get_message读取正文与关键信息；针对两封不同主题邮件分别调用gmail_save_draft生成草稿（to、subject、body中体现对方原主题与要点），最后确认不调用gmail_send_message。",
+          "fixture_generation_plan": "生成fixtures/gmail/inbox.json共6条邮件：其中2条为IMPORTANT且主题包含“对账/差异/发票缺失”，另1条为内部提醒但未加IMPORTANT（用于测试筛选逻辑），再混入1条通知群发与1条系统告警（CPU/磁盘等）与1条无关闲聊。每条记录使用不重复的message_id、不同from/to/subject/body内容与日期。对账相关两封的body需包含可用字段（如“差异=xxx、缺失单据编号=以字母数字表示、要求今晚前/明天上午前确认”等），同时包含至少一条明确请求点，方便评分关键词与要点检查。",
+          "expected_behavior": "代理应：1）调用gmail_list_messages获取近期邮件；2）至少对4封候选邮件调用gmail_get_message以完成筛选与理解（其中必须包含两封对账主题邮件）；3）仅对两封最需要回复的邮件分别调用gmail_save_draft保存草稿，草稿内容需引用对方邮件中的关键请求点（如差异解释方向、缺失单据处理方式、预计完成时间）；4）草稿subject需与原主题保持一致性或体现“Re:”；5）整个过程中不得调用gmail_send_message。输出应最终体现两次gmail_save_draft的to/subject/body已填写完整。",
+          "grading_plan": "grader.py应检查：调用gmail_get_message次数达到阈值（覆盖至少两封对账主题邮件）；gmail_save_draft至少2次且每次to与subject对应正确对方与主题；草稿body中包含与差异/缺失处理相关的关键词或语义要点（例如“已收到/确认差异/将于…前完成/补发单据/请财务留意”等），并确保不调用gmail_send_message。"
+        },
+        {
+          "index": 2,
+          "new_task_id": "T005zh_email_reply_draft_plus_2",
+          "new_task_name": "面向候选人的面试调整回复草稿",
+          "task_goal": "根据收件箱中候选人发来的面试时间冲突邮件，起草并保存一封礼貌的改期回复；同时处理一封来自招聘协调人的信息补充请求，起草另一封内部回复草稿以确认候选人可用时间窗口。两封均不发送。",
+          "user_request": "请查看收件箱里与“面试/改期/时间冲突/候选人可用时间”相关的邮件，选择两封关键邮件起草回复并保存为草稿即可，不要发送给任何人。",
+          "scenario": "收件箱包含：1）候选人邮件，说明其所在城市交通原因导致无法在原定时间参加面试，请求改期，并给出三个可选时间段；2）招聘协调人的邮件，要求你在今天内确认面试安排并回传候选人可用时段，同时提到需要同步安排面试官；3）一封HR通知群发与一封无关营销邮件以及一封安全告警邮件。需要优先处理包含“无法参加/请调整/可选时间段”与“今天内确认/回传可用时段”的邮件；噪声邮件不能被当作主要回复对象。回复应体现：确认收到并表达歉意；复述并确认候选人提供的三个时间段；对内部邮件则以信息传递为主，给出你选择的两个候选时间（从提供的三个中选两项），并说明等待协调面试官排程的下一步。",
+          "difference_from_source": "原任务是对外客户项目延期与内部老板转发竞品报告；本任务变为候选人改期与招聘内部协调的双向信息确认，重点是“时间窗口复述与安排承诺”，并要求两封草稿分别面向外部候选人和内部同事。",
+          "service_and_tool_plan": "使用gmail_list_messages拉取近期邮件；对候选人邮件与招聘协调人邮件各调用gmail_get_message获取可选时间段与要求细节；然后分别调用gmail_save_draft生成两封草稿。严格禁止调用gmail_send_message。",
+          "fixture_generation_plan": "生成fixtures/gmail/inbox.json共7条：2条为目标（候选人改期 + 招聘协调人确认），至少2条为干扰（群发通知、营销推广），1条为告警（如“认证失败次数过多”），另外2条为与招聘无关或主题模糊但能干扰关键词匹配的邮件。确保目标邮件都带IMPORTANT标签或正文强提示（“今天内/可用时间段/请调整”），且所有实体名、邮箱、候选人姓名、邮件链路主题与原任务不同。时间段在正文中用具体格式如“6月3日 10:00-11:30”等，以便草稿中可复述与选择。",
+          "expected_behavior": "代理应筛选出两封关键邮件并调用gmail_get_message理解内容；随后：1）对候选人起草改期回复草稿，正文包含歉意、确认收到、复述三个可选时间段，并给出你建议的两个面试时间（明确时间点）；2）对招聘协调人起草内部回复草稿，包含你确认的可用时间段与需要其同步面试官的下一步；3）每封邮件都通过gmail_save_draft保存草稿（to/subject/body完整），并且不调用gmail_send_message。",
+          "grading_plan": "grader.py应检查：gmail_save_draft至少2次且分别对应候选人外部地址与内部协调地址；草稿body包含候选人提供的时间段关键词（至少2个时间段被复述）以及内部草稿包含“已确认/可用时段/等待面试官排程”等要点；同时断言gmail_send_message未被调用。"
+        },
+        {
+          "index": 3,
+          "new_task_id": "T005zh_email_reply_draft_plus_3",
+          "new_task_name": "合同条款澄清与补充材料清单回复草稿",
+          "task_goal": "从收件箱中找出客户提出的合同条款澄清与补充材料请求，起草两封相关回复草稿：一封解释条款含义与拟采用的修订措辞方向（不虚构具体法律文本，使用概述方式）；另一封提供可交付材料清单并请求客户确认收货负责人。全部保存草稿，不发送。",
+          "user_request": "请帮我查看收件箱里与“合同条款/补充协议/材料清单/确认负责人”相关的邮件，选择需要回复的两封起草并保存为草稿即可，不要发送。",
+          "scenario": "收件箱里有：A）客户法务发来邮件，要求澄清某条款的计费口径，并要求对方提供“拟修订条款要点”与时间承诺；B）同一客户运营角色发来邮件，要求你方补充提供履约证明、签署后的附件与交付验收材料，并要求你确认收货/对接负责人；C）另一封是“会议邀请”与一封“系统维护通知”，以及一封与合同无关的员工个人请假邮件。需要忽略会议邀请与系统通知，聚焦合同相关且包含“澄清/补充/清单/负责人确认”的邮件。两封目标邮件来自不同角色，因此回复应分别采用不同语气：法务邮件更正式、结构化；运营邮件更注重清单与流程。",
+          "difference_from_source": "原任务偏项目与竞品转发，本任务转为合同条款澄清与补充材料清单提供，且需要两封草稿面向不同角色（法务/运营），输出内容结构与语气要求不同。",
+          "service_and_tool_plan": "使用gmail_list_messages筛选候选；对合同相关邮件逐封调用gmail_get_message提取条款提问点与材料要求；再调用gmail_save_draft生成两封草稿。全程不使用gmail_send_message。",
+          "fixture_generation_plan": "生成fixtures/gmail/inbox.json共8条：至少2条合同相关（法务澄清 + 运营补充清单），1条合同相关但缺少关键信息用于干扰（测试筛选不要盲回复），其余为会议邀请、维护通知、个人请假、活动报名等噪声。确保合同相关邮件body包含：计费口径问题点（用通用描述如“按里程/按阶段/按验收”三选一呈现）、材料清单条目（如“签署页扫描件/验收单/对账明细/授权委托书”以文本形式给出），以及明确的截止时间（例如“本周五前/明天上午前”）。不要复用原任务任何邮箱或实体名。",
+          "expected_behavior": "代理应识别两封合同相关邮件并调用gmail_get_message充分理解后起草：1）法务回复草稿：明确回应计费口径澄清点、提供拟修订要点概述、给出预计回传时间；2）运营回复草稿：列出可交付材料清单（逐条列出）、说明交付方式与联系人负责人确认请求；最后通过gmail_save_draft保存。禁止调用gmail_send_message。",
+          "grading_plan": "grader.py应检查：gmail_get_message覆盖合同相关邮件；gmail_save_draft至少2次且各自to/subject对应正确收件方与主题；草稿body包含清单条目至少3项（运营草稿）以及计费口径澄清的关键词或要点（法务草稿）；并验证gmail_send_message未发生。"
+        },
+        {
+          "index": 4,
+          "new_task_id": "T005zh_email_reply_draft_plus_4",
+          "new_task_name": "工单升级进度通报回复草稿",
+          "task_goal": "针对上级要求的工单升级进度通报邮件，起草一封给上级的状态更新草稿；同时处理客户发来的“是否已解决”询问邮件，起草第二封面向客户的解决方案摘要回复。两封均保存草稿，不发送。",
+          "user_request": "请你检查收件箱中关于“工单升级/进度更新/是否已解决/处理结果”的邮件，找出两封最关键的并起草回复，保存为草稿即可，不要发送。",
+          "scenario": "收件箱混合了：1）上级领导发来的邮件，要求你对某升级工单给出进度通报，且说明需要包含“当前阶段/已完成动作/风险与预计完成时间/下一步行动”；2）客户支持渠道发来邮件，询问问题是否已解决，并要求给出简短的原因复盘与临时规避方案；3）一条自动化监控告警与一条团队内部闲聊邮件。需要优先选择包含结构化要求（上级邮件）与包含“是否已解决/临时方案/原因复盘”的客户邮件。回复中不能编造未在邮件中给出的具体技术细节，但可以根据邮件里给出的阶段信息做摘要，并承诺下一步的时间（使用原邮件中给出的日期或相对时间范围）。",
+          "difference_from_source": "原任务是延期开会与转发报告；本任务聚焦“升级工单进度通报”与“客户问题解决状态确认”，强调四字段状态更新结构与客户可读的解决摘要，不同于项目延期的讨论方式。",
+          "service_and_tool_plan": "用gmail_list_messages获取近期邮件；对上级与客户两封邮件调用gmail_get_message获取状态阶段和要求；为两封邮件分别调用gmail_save_draft保存草稿并确保reply_to_message_id在需要时填入（用于保持引用一致性）。不调用gmail_send_message。",
+          "fixture_generation_plan": "生成fixtures/gmail/inbox.json共7条：上级邮件1条（IMPORTANT），客户询问邮件1条（IMPORTANT或含强关键词），再加2条告警/自动邮件作为干扰、2条团队内部无关邮件、1条群发通知。为两封目标邮件提供：上级要求的字段列表；客户邮件包含“是否已解决/临时规避方案/原因复盘”的明确请求，并包含一个当前阶段标签（如“已定位/处理中/待验证”）与预计完成时间（相对日期即可）。message_id需唯一且彼此不复用原任务的id与内容。",
+          "expected_behavior": "代理应：1）列出邮件并筛选；2）至少读取目标两封邮件的详细内容（gmail_get_message）；3）分别保存两封草稿：上级草稿按“当前阶段/已完成/风险与预计/下一步”组织；客户草稿用更简短的段落说明已完成的解决进展、当前状态、临时规避方案与预计何时更新；4）保存草稿而非发送，且不调用gmail_send_message。",
+          "grading_plan": "grader.py应检查：gmail_save_draft至少2次且对应上级与客户to正确；上级草稿包含四类状态要点关键词或同义结构（至少覆盖3类）；客户草稿包含“是否已解决/临时方案/原因复盘/预计更新”至少其中3项；并断言gmail_send_message未被调用。"
+        },
+        {
+          "index": 5,
+          "new_task_id": "T005zh_email_reply_draft_plus_5",
+          "new_task_name": "活动供应商报价异议与再谈判草稿",
+          "task_goal": "从收件箱中识别收到的供应商报价与客户对报价的异议邮件，分别起草两封草稿：一封回应客户为何选择该报价、哪些部分愿意调整并提出再谈判会议时间建议；另一封向供应商确认我们将提供哪些要求以修改报价，并请其在截止前提交更新版报价单。全部保存草稿，不发送。",
+          "user_request": "请查看收件箱中与“活动供应商报价/异议/再谈判/更新报价单/会议时间”相关的邮件，选出两封关键邮件起草回复并保存为草稿即可，不要发送。",
+          "scenario": "收件箱里包含：A）客户经理邮件，表示对某活动服务的报价偏高，要求你解释报价构成并提出可行的调整点，同时希望安排一场15-30分钟的电话沟通并给出两个时间偏好；B）供应商商务邮件，表示愿意调整方案但需要你方提供“必须满足的规格与排除项”，并要求你确认后其将在指定截止前提交更新报价；C）无关的财务月度报告、一次性宣传邮件与系统告警。需要忽略无关财务报告与系统告警，优先选择同时包含“报价异议/构成/调整点/会议时间偏好”以及“更新报价单/必须满足规格/排除项/截止前”的邮件。草稿需要体现谈判逻辑：先确认问题，再给出对调整项的方向性承诺（不杜撰具体价格），最后提出会议时间与后续交付截止。",
+          "difference_from_source": "原任务是客户项目延期与老板转发竞品；本任务是围绕“供应商报价异议与谈判”展开，涉及客户说明与供应商需求回传两条不同业务链，并要求会议时间建议与更新报价截止的承诺。",
+          "service_and_tool_plan": "使用gmail_list_messages筛出近期邮件；对客户邮件与供应商邮件调用gmail_get_message获取报价构成要点、会议时间偏好与供应商截止要求；分别调用gmail_save_draft保存草稿。全程不调用gmail_send_message。",
+          "fixture_generation_plan": "生成fixtures/gmail/inbox.json共9条：目标邮件2条（客户异议、供应商更新报价请求），其余至少4条干扰（财务报告、宣传群发、告警、内部闲聊），再加2条与“报价”相关但不涉及谈判或缺少截止信息的半相关邮件用于测试。确保两目标邮件正文包含：客户提供的两个电话时间偏好（例如“周三14:00-15:00”与“周四10:30-12:00”），供应商给出的截止时间（如“明天17:00前”），以及至少一个报价构成维度（如“场地、人员、物料、交通”）与调整点方向（如减少人天/调整包含范围）。实体与主题均与原任务不同。",
+          "expected_behavior": "代理应读取目标两封邮件后起草两封草稿：1）对客户：解释报价构成的类别与为什么合理（引用邮件中给出的类别），说明哪些部分可以优化/调整，并从客户提供的偏好中选定一个电话沟通时间建议；2）对供应商：明确我们需要其按哪些“必须满足规格/排除项”调整，并确认提交更新报价单的截止时间（用供应商邮件中的截止信息复述）。最后分别保存为草稿且不发送。",
+          "grading_plan": "grader.py应检查：gmail_save_draft至少2次且分别指向客户与供应商的地址；客户草稿包含至少2个报价构成类别与会议时间建议（覆盖客户提供的两个偏好中的一个）；供应商草稿包含“必须满足规格/排除项”至少各1项并复述截止时间；并验证gmail_send_message从未被调用。"
+        }
+      ]
+    },
+    "error": ""
+  },
+  "step2": {
+    "status": "completed",
+    "generated_at": "2026-05-22 15:34:24",
+    "items": [
+      {
+        "task_id": "T005zh_email_reply_draft_plus_1",
+        "index": 1,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:33:09",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_1/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_1/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_1/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T005zh_email_reply_draft_plus_1",
+        "error": ""
+      },
+      {
+        "task_id": "T005zh_email_reply_draft_plus_2",
+        "index": 2,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:33:27",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_2/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_2/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_2/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T005zh_email_reply_draft_plus_2",
+        "error": ""
+      },
+      {
+        "task_id": "T005zh_email_reply_draft_plus_3",
+        "index": 3,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:33:48",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_3/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_3/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_3/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T005zh_email_reply_draft_plus_3",
+        "error": ""
+      },
+      {
+        "task_id": "T005zh_email_reply_draft_plus_4",
+        "index": 4,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:34:05",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_4/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_4/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_4/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T005zh_email_reply_draft_plus_4",
+        "error": ""
+      },
+      {
+        "task_id": "T005zh_email_reply_draft_plus_5",
+        "index": 5,
+        "status": "completed",
+        "generated_at": "2026-05-22 15:34:24",
+        "prompt": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_5/prompt.txt",
+        "raw": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_5/raw.txt",
+        "parsed": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/T005zh_email_reply_draft_plus_5/parsed.json",
+        "task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/generated/T005zh_email_reply_draft_plus_5",
+        "error": ""
+      }
+    ],
+    "error": "",
+    "manifest": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922/tasks/T005zh_email_reply_draft/step2/manifest.json"
+  },
+  "source_task_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/tasks/T005zh_email_reply_draft",
+  "run_dir": "/ytech_m2v8_hdd/workspace/kling_mm/tangjiafu/claw-eval/create_query/output_20260522_152922",
+  "run_name": "output_20260522_152922"
+}

@@ -1,0 +1,80 @@
+[
+  {
+    "customer_id": "CUS-801",
+    "name": "北辰工业",
+    "contact_person": "陈总监",
+    "email": "chenjd@beichen-ind.com",
+    "phone": "13900138001",
+    "industry": "制造业",
+    "tier": "vip",
+    "annual_revenue": 7600000,
+    "last_contact_date": "2026-02-20",
+    "status": "active",
+    "notes": "偏好更少频次沟通；对数据处理透明度较敏感，曾提到“不要频繁营销”。"
+  },
+  {
+    "customer_id": "CUS-802",
+    "name": "星澜云计算",
+    "contact_person": "李女士",
+    "email": "liwx@starline-cloud.cn",
+    "phone": "13900138002",
+    "industry": "云服务",
+    "tier": "vip",
+    "annual_revenue": 4100000,
+    "last_contact_date": "2026-02-28",
+    "status": "active",
+    "notes": "合规要求高；希望我们明确说明如何处理其联系信息，并强调可随时退订/更改偏好。"
+  },
+  {
+    "customer_id": "CUS-803",
+    "name": "海岬医疗",
+    "contact_person": "周院长",
+    "email": "zhouyuan@seagull-hospital.cn",
+    "phone": "13900138003",
+    "industry": "医疗",
+    "tier": "standard",
+    "annual_revenue": 1500000,
+    "last_contact_date": "2026-03-01",
+    "status": "active",
+    "notes": "对隐私不特别敏感但需要合规告知；沟通以项目更新为主。"
+  },
+  {
+    "customer_id": "CUS-804",
+    "name": "繁桥零售",
+    "contact_person": "孙经理",
+    "email": "sunmin@fanqiao-retail.com",
+    "phone": "13900138004",
+    "industry": "零售",
+    "tier": "standard",
+    "annual_revenue": 620000,
+    "last_contact_date": "2026-03-18",
+    "status": "active",
+    "notes": "近期刚联系，无需本次跟进。"
+  },
+  {
+    "customer_id": "CUS-805",
+    "name": "青禾能源",
+    "contact_person": "吴工",
+    "email": "wug@qinghe-energy.com",
+    "phone": "13900138005",
+    "industry": "新能源",
+    "tier": "vip",
+    "annual_revenue": 2400000,
+    "last_contact_date": "2026-03-05",
+    "status": "active",
+    "notes": "未到25天门槛，本次不纳入目标。"
+  },
+  {
+    "customer_id": "CUS-806",
+    "name": "银港咨询",
+    "contact_person": "赵顾问",
+    "email": "zhaogy@yin-gangadvisory.com",
+    "phone": "13900138006",
+    "industry": "咨询",
+    "tier": "standard",
+    "annual_revenue": 900000,
+    "last_contact_date": "2026-02-12",
+    "status": "churned",
+    "notes": "已流失；不应生成跟进草稿。"
+  }
+]

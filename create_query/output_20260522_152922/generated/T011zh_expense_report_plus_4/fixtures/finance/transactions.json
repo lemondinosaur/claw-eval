@@ -1,0 +1,152 @@
+[
+  {
+    "transaction_id": "txn_101",
+    "date": "2026-04-03",
+    "amount": 286.5,
+    "currency": "CNY",
+    "merchant": "首汽约车",
+    "category": "",
+    "description": "出差交通：机场至酒店（报销单位：单位A）",
+    "receipt_url": "receipts/txn_101.jpg"
+  },
+  {
+    "transaction_id": "txn_102",
+    "date": "2026-04-03",
+    "amount": 286.5,
+    "currency": "CNY",
+    "merchant": "首汽约车",
+    "category": "",
+    "description": "出差交通代付：机场至酒店（报销单位：单位B代付）",
+    "receipt_url": "receipts/txn_102.jpg"
+  },
+  {
+    "transaction_id": "txn_103",
+    "date": "2026-04-06",
+    "amount": 1599.0,
+    "currency": "CNY",
+    "merchant": "汉庭酒店",
+    "category": "",
+    "description": "出差住宿 3晚（含差旅补贴抵扣）",
+    "receipt_url": "receipts/txn_103.jpg"
+  },
+  {
+    "transaction_id": "txn_104",
+    "date": "2026-04-10",
+    "amount": 820.0,
+    "currency": "CNY",
+    "merchant": "南方航空",
+    "category": "",
+    "description": "往返机票：上海-成都（差旅交通）",
+    "receipt_url": "receipts/txn_104.jpg"
+  },
+  {
+    "transaction_id": "txn_105",
+    "date": "2026-04-11",
+    "amount": 92.0,
+    "currency": "CNY",
+    "merchant": "满记甜品",
+    "category": "",
+    "description": "客户用餐（实为差旅补贴结算）",
+    "receipt_url": "receipts/txn_105.jpg"
+  },
+  {
+    "transaction_id": "txn_106",
+    "date": "2026-04-13",
+    "amount": 148.6,
+    "currency": "CNY",
+    "merchant": "海底捞火锅",
+    "category": "",
+    "description": "餐饮：部门晚餐（4/13）",
+    "receipt_url": "receipts/txn_106.jpg"
+  },
+  {
+    "transaction_id": "txn_107",
+    "date": "2026-04-18",
+    "amount": 66.8,
+    "currency": "CNY",
+    "merchant": "麦当劳",
+    "category": "",
+    "description": "餐饮：加班简餐",
+    "receipt_url": "receipts/txn_107.jpg"
+  },
+  {
+    "transaction_id": "txn_108",
+    "date": "2026-04-08",
+    "amount": 399.0,
+    "currency": "CNY",
+    "merchant": "腾讯云",
+    "category": "",
+    "description": "云服务月费（IT支持/补贴）",
+    "receipt_url": "receipts/txn_108.jpg"
+  },
+  {
+    "transaction_id": "txn_109",
+    "date": "2026-04-14",
+    "amount": 229.0,
+    "currency": "CNY",
+    "merchant": "微软官方商城",
+    "category": "",
+    "description": "软件订阅代付（办公/IT代付餐费不适用）",
+    "receipt_url": "receipts/txn_109.jpg"
+  },
+  {
+    "transaction_id": "txn_110",
+    "date": "2026-04-16",
+    "amount": 128.0,
+    "currency": "CNY",
+    "merchant": "京东到家",
+    "category": "",
+    "description": "办公耗材采购（含交通补贴结算）",
+    "receipt_url": "receipts/txn_110.jpg"
+  },
+  {
+    "transaction_id": "txn_111",
+    "date": "2026-04-22",
+    "amount": 760.0,
+    "currency": "CNY",
+    "merchant": "阿里云",
+    "category": "",
+    "description": "IT服务费（代付）",
+    "receipt_url": "receipts/txn_111.jpg"
+  },
+  {
+    "transaction_id": "txn_112",
+    "date": "2026-04-19",
+    "amount": 286.5,
+    "currency": "CNY",
+    "merchant": "首汽约车",
+    "category": "",
+    "description": "出差交通：机场至酒店（报销单位：单位C，金额已调整不重复）",
+    "receipt_url": "receipts/txn_112.jpg"
+  },
+  {
+    "transaction_id": "txn_113",
+    "date": "2026-04-25",
+    "amount": -286.5,
+    "currency": "CNY",
+    "merchant": "首汽约车",
+    "category": "",
+    "description": "代付退款：出差交通取消（代付退款）",
+    "receipt_url": "receipts/txn_113.jpg"
+  },
+  {
+    "transaction_id": "txn_114",
+    "date": "2026-04-27",
+    "amount": 215.2,
+    "currency": "CNY",
+    "merchant": "网易有道",
+    "category": "",
+    "description": "办公软件订阅（补贴/代付结算）",
+    "receipt_url": "receipts/txn_114.jpg"
+  },
+  {
+    "transaction_id": "txn_115",
+    "date": "2026-04-28",
+    "amount": 310.0,
+    "currency": "CNY",
+    "merchant": "绿联数据线",
+    "category": "",
+    "description": "办公设备配件采购（IT/办公类）",
+    "receipt_url": "receipts/txn_115.jpg"
+  }
+]
