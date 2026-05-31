@@ -364,7 +364,7 @@ def cmd_run(args: argparse.Namespace) -> None:
         trial_scores: list[float] = []
         trace_paths: list[Path] = []
 
-        with ServiceManager(task.services, mock_today=task.environment.mock_today) as svc:
+        with ServiceManager(task.services, mock_today=task.environment.mock_today, serp_api_keys=cfg.defaults.serp_api_keys) as svc:
             for i in range(trials):
                 if trials > 1:
                     print(f"\n--- Trial {i + 1}/{trials} ---")
@@ -494,7 +494,7 @@ def cmd_run(args: argparse.Namespace) -> None:
     trial_scores_local: list[float] = []
     trace_paths_local: list[Path] = []
 
-    with ServiceManager(task.services, mock_today=task.environment.mock_today) as svc:
+    with ServiceManager(task.services, mock_today=task.environment.mock_today, serp_api_keys=cfg.defaults.serp_api_keys) as svc:
         for i in range(trials):
             if trials > 1:
                 print(f"\n--- Trial {i + 1}/{trials} ---")
@@ -611,7 +611,7 @@ def cmd_run_inner(args: argparse.Namespace) -> None:
     else:
         trace_dir = _make_trace_dir(cfg.defaults.trace_dir, model_id)
 
-    with ServiceManager(task.services, mock_today=task.environment.mock_today):
+    with ServiceManager(task.services, mock_today=task.environment.mock_today, serp_api_keys=cfg.defaults.serp_api_keys):
         trace_path = run_task(
             task, provider,
             trace_dir=trace_dir,
@@ -849,7 +849,7 @@ def _run_single_task(
         result["trials"] = []
         result["error"] = None
         try:
-            with ServiceManager(task.services, cwd=tasks_dir.parent, mock_today=task.environment.mock_today) as svc:
+            with ServiceManager(task.services, cwd=tasks_dir.parent, mock_today=task.environment.mock_today, serp_api_keys=cfg.defaults.serp_api_keys) as svc:
                 for i in range(trials):
                     if i > 0:
                         svc.reset_all()

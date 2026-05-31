@@ -1,0 +1,18 @@
+- dataset:
+    id: claw-eval/Claw-Eval
+    task_id: general
+  value: 57.1
+  date: '2026-04-23'
+  notes: Pass³% | N=3 | 161 tasks
+  source:
+    url: https://claw-eval.github.io
+    name: Claw-Eval Leaderboard
+- dataset:
+    id: claw-eval/Claw-Eval
+    task_id: multi_turn
+  value: 65.8
+  date: '2026-04-23'
+  notes: Pass³% | N=3 | 38 tasks
+  source:
+    url: https://claw-eval.github.io
+    name: Claw-Eval Leaderboard

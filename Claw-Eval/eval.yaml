@@ -1,0 +1,17 @@
+name: Claw-Eval
+description: >
+  Claw-Eval is a transparent benchmark for AI agents acting in the real world.
+  300 human-verified tasks across 24 categories, graded on completion, safety,
+  and robustness with Pass³ methodology (N=3 independent trials).
+evaluation_framework: claw-eval
+
+tasks:
+  - id: general
+    config: default
+    split: general
+  - id: multimodal
+    config: default
+    split: multimodal
+  - id: multi_turn
+    config: default
+    split: multi_turn

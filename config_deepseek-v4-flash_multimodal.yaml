@@ -1,0 +1,18 @@
+# deepseek-v4-flash — Multimodal tasks (M-prefix)
+model:
+  api_key: sk-WyJ7zKnYi5wY3PFWT7g5ah1sDXVoaOfcCBvWY9LO9KQ4JtSr
+  base_url: https://app.ppapi.ai/v1
+  model_id: deepseek-v4-flash
+  context_window: 1000000
+  input_modalities: ["text", "image"]
+
+judge:
+  api_key: sk-WyJ7zKnYi5wY3PFWT7g5ah1sDXVoaOfcCBvWY9LO9KQ4JtSr
+  base_url: https://app.ppapi.ai/v1
+  model_id: gemini-3-flash-preview
+  enabled: true
+
+defaults:
+  trace_dir: traces
+  tasks_dir: tasks
+  serp_api_keys: ["68f6356848e28c9cdfd524cbcf31e64b26b9d16c"]
