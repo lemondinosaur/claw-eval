@@ -60,6 +60,7 @@ class TraceMessage(BaseModel):
     type: Literal["message"] = "message"
     trace_id: str
     message: Message
+    turn_index: int | None = None
     usage: TokenUsage = Field(default_factory=TokenUsage)
     timestamp: str = Field(default_factory=_now)
 
@@ -96,6 +97,14 @@ class MediaLoad(BaseModel):
     sha256: str
     status: Literal["loaded", "skipped", "error"] = "loaded"
     note: str = ""
+    timestamp: str = Field(default_factory=_now)
+
+
+class ModelInputSnapshot(BaseModel):
+    type: Literal["model_input_snapshot"] = "model_input_snapshot"
+    trace_id: str
+    turn_index: int
+    messages: list[Message] = Field(default_factory=list)
     timestamp: str = Field(default_factory=_now)
 
 
@@ -155,6 +164,7 @@ TraceEvent = Annotated[
         ToolDispatch,
         AuditSnapshot,
         MediaLoad,
+        ModelInputSnapshot,
         CompactEvent,
         TraceEnd,
         GradingResult,

@@ -36,8 +36,10 @@ from claw_eval.models.content import (  # noqa: E402
     ToolUseBlock,
     VideoBlock,
 )
+from claw_eval.models.message import Message  # noqa: E402
 from claw_eval.models.task import TaskDefinition  # noqa: E402
 from claw_eval.models.trace import (  # noqa: E402
+    ModelInputSnapshot,
     SystemPromptSnapshot,
     ToolsSnapshot,
     TraceMessage,
@@ -83,6 +85,17 @@ def _parse_args() -> argparse.Namespace:
         "--strict",
         action="store_true",
         help="Abort on the first conversion error instead of skipping bad traces.",
+    )
+    parser.add_argument(
+        "--sample-mode",
+        choices=("auto", "full", "turn"),
+        default="auto",
+        help=(
+            "Dataset row granularity. "
+            "'full' keeps one row per trace, "
+            "'turn' emits one row per recorded model-input snapshot, "
+            "'auto' uses turn rows when snapshots are available."
+        ),
     )
     return parser.parse_args()
 
@@ -159,15 +172,16 @@ def _flush_regular_message(
     output_messages.append({"role": role, "content": content})
 
 
-def _convert_assistant_message(msg: TraceMessage) -> list[dict[str, Any]]:
+def _convert_assistant_message(message: Message) -> list[dict[str, Any]]:
     converted: list[dict[str, Any]] = []
     pending: list[TextBlock | ImageBlock | AudioBlock | VideoBlock] = []
 
-    for block in msg.message.content:
+    for block in message.content:
         if isinstance(block, ToolUseBlock):
             _flush_regular_message(converted, "assistant", pending)
             pending = []
             tool_content: dict[str, Any] = {
+                "id": block.id,
                 "name": block.name,
                 "arguments": block.input,
             }
@@ -184,15 +198,24 @@ def _convert_assistant_message(msg: TraceMessage) -> list[dict[str, Any]]:
 
 
 def _convert_user_message(msg: TraceMessage) -> list[dict[str, Any]]:
+    return _convert_user_message_content(msg.message)
+
+
+def _convert_user_message_content(message: Message) -> list[dict[str, Any]]:
     converted: list[dict[str, Any]] = []
     pending: list[TextBlock | ImageBlock | AudioBlock | VideoBlock] = []
 
-    for block in msg.message.content:
+    for block in message.content:
         if isinstance(block, ToolResultBlock):
             _flush_regular_message(converted, "user", pending)
             pending = []
             text = "\n".join(text_block.text for text_block in block.content)
-            converted.append({"role": "tool", "content": _to_serialized_content(_try_parse_json(text))})
+            tool_result_content = {
+                "tool_use_id": block.tool_use_id,
+                "is_error": block.is_error,
+                "result": _try_parse_json(text),
+            }
+            converted.append({"role": "tool", "content": _to_serialized_content(tool_result_content)})
             continue
 
         if isinstance(block, (TextBlock, ImageBlock, AudioBlock, VideoBlock)):
@@ -202,24 +225,52 @@ def _convert_user_message(msg: TraceMessage) -> list[dict[str, Any]]:
     return converted
 
 
+def _message_to_msswift(message: Message) -> list[dict[str, Any]]:
+    if message.role == "assistant":
+        return _convert_assistant_message(message)
+    if message.role == "user":
+        return _convert_user_message_content(message)
+    if message.role == "system":
+        system_blocks = [
+            block
+            for block in message.content
+            if isinstance(block, (TextBlock, ImageBlock, AudioBlock, VideoBlock))
+        ]
+        converted: list[dict[str, Any]] = []
+        _flush_regular_message(converted, "system", system_blocks)
+        return converted
+    return []
+
+
 def _trace_messages_to_msswift(messages: list[TraceMessage]) -> list[dict[str, Any]]:
     converted: list[dict[str, Any]] = []
 
     for msg in messages:
-        role = msg.message.role
-        if role == "assistant":
-            converted.extend(_convert_assistant_message(msg))
-        elif role == "user":
-            converted.extend(_convert_user_message(msg))
-        elif role == "system":
-            system_blocks = [
-                block
-                for block in msg.message.content
-                if isinstance(block, (TextBlock, ImageBlock, AudioBlock, VideoBlock))
-            ]
-            _flush_regular_message(converted, "system", system_blocks)
+        converted.extend(_message_to_msswift(msg.message))
 
     return converted
+
+
+def _messages_to_msswift(messages: list[Message]) -> list[dict[str, Any]]:
+    converted: list[dict[str, Any]] = []
+    for message in messages:
+        converted.extend(_message_to_msswift(message))
+    return converted
+
+
+def _message_has_media(message: Message) -> bool:
+    return any(
+        isinstance(block, (ImageBlock, AudioBlock, VideoBlock))
+        for block in message.content
+    )
+
+
+def _snapshots_have_media(input_snapshots: list[ModelInputSnapshot]) -> bool:
+    return any(
+        _message_has_media(message)
+        for snapshot in input_snapshots
+        for message in snapshot.messages
+    )
 
 
 def _collect_used_tool_names(messages: list[TraceMessage]) -> set[str]:
@@ -264,11 +315,14 @@ def _recover_tools_from_task(
     return _dedupe_tools(tools)
 
 
-def _load_trace_row(trace_path: Path, tasks_dir: Path) -> dict[str, Any]:
+def _extract_trace_parts(
+    trace_path: Path,
+) -> tuple[TraceStart, str | None, list[Any] | None, list[TraceMessage], list[ModelInputSnapshot]]:
     trace_start: TraceStart | None = None
     system_prompt: str | None = None
     tools_snapshot: list[Any] | None = None
     trace_messages: list[TraceMessage] = []
+    input_snapshots: list[ModelInputSnapshot] = []
 
     for event in read_events(trace_path):
         if isinstance(event, TraceStart):
@@ -281,22 +335,47 @@ def _load_trace_row(trace_path: Path, tasks_dir: Path) -> dict[str, Any]:
                 tools_snapshot = list(event.tools)
         elif isinstance(event, TraceMessage):
             trace_messages.append(event)
+        elif isinstance(event, ModelInputSnapshot):
+            input_snapshots.append(event)
 
     if trace_start is None:
         raise TraceConversionError(f"{trace_path} is missing trace_start")
+    return trace_start, system_prompt, tools_snapshot, trace_messages, input_snapshots
+
+
+def _resolve_tools_snapshot(
+    trace_path: Path,
+    trace_start: TraceStart,
+    tools_snapshot: list[Any] | None,
+    trace_messages: list[TraceMessage],
+    tasks_dir: Path,
+) -> list[Any]:
+    if tools_snapshot is not None:
+        return tools_snapshot
 
     used_tool_names = _collect_used_tool_names(trace_messages)
-    if tools_snapshot is None:
-        tools_snapshot = _recover_tools_from_task(
-            trace_start.task_id,
-            tasks_dir,
-            used_tool_names,
-        )
-        LOG.warning(
-            "Trace %s has no tools_snapshot; recovered tools from task.yaml for task %s",
-            trace_path.name,
-            trace_start.task_id,
-        )
+    resolved = _recover_tools_from_task(
+        trace_start.task_id,
+        tasks_dir,
+        used_tool_names,
+    )
+    LOG.warning(
+        "Trace %s has no tools_snapshot; recovered tools from task.yaml for task %s",
+        trace_path.name,
+        trace_start.task_id,
+    )
+    return resolved
+
+
+def _load_trace_row(trace_path: Path, tasks_dir: Path) -> dict[str, Any]:
+    trace_start, system_prompt, tools_snapshot, trace_messages, _ = _extract_trace_parts(trace_path)
+    tools_snapshot = _resolve_tools_snapshot(
+        trace_path,
+        trace_start,
+        tools_snapshot,
+        trace_messages,
+        tasks_dir,
+    )
 
     messages = _trace_messages_to_msswift(trace_messages)
     if system_prompt is not None:
@@ -314,9 +393,52 @@ def _load_trace_row(trace_path: Path, tasks_dir: Path) -> dict[str, Any]:
     return _sanitize_row_for_msswift(row)
 
 
+def _load_trace_turn_rows(trace_path: Path, tasks_dir: Path) -> list[dict[str, Any]]:
+    trace_start, _, tools_snapshot, trace_messages, input_snapshots = _extract_trace_parts(trace_path)
+    if not input_snapshots:
+        return [_load_trace_row(trace_path, tasks_dir)]
+
+    tools_snapshot = _resolve_tools_snapshot(
+        trace_path,
+        trace_start,
+        tools_snapshot,
+        trace_messages,
+        tasks_dir,
+    )
+    assistant_by_turn = {
+        msg.turn_index: msg
+        for msg in trace_messages
+        if msg.message.role == "assistant" and msg.turn_index is not None
+    }
+
+    rows: list[dict[str, Any]] = []
+    for snapshot in sorted(input_snapshots, key=lambda item: item.turn_index):
+        assistant_msg = assistant_by_turn.get(snapshot.turn_index)
+        if assistant_msg is None:
+            raise TraceConversionError(
+                f"{trace_path.name} snapshot turn {snapshot.turn_index} is missing assistant output"
+            )
+        messages = _messages_to_msswift(snapshot.messages)
+        messages.extend(_message_to_msswift(assistant_msg.message))
+        if not messages:
+            raise TraceConversionError(
+                f"{trace_path.name} snapshot turn {snapshot.turn_index} produced no training messages"
+            )
+
+        row: dict[str, Any] = {"messages": messages}
+        if tools_snapshot:
+            row["tools"] = [
+                _tool_spec_to_msswift(tool)
+                for tool in _dedupe_tools(tools_snapshot)
+            ]
+        rows.append(_sanitize_row_for_msswift(row))
+
+    return rows
+
+
 def _find_trace_files(trace_dir: Path, output_path: Path) -> list[Path]:
     files = []
-    for path in sorted(trace_dir.glob("*.jsonl")):
+    for path in sorted(trace_dir.rglob("*.jsonl")):
         if not path.is_file():
             continue
         if path.resolve() == output_path.resolve():
@@ -373,6 +495,7 @@ def convert_trace_directory(
     tasks_dir: Path,
     *,
     strict: bool,
+    sample_mode: str,
 ) -> None:
     trace_files = _find_trace_files(trace_dir, output_path)
     if not trace_files:
@@ -385,7 +508,17 @@ def convert_trace_directory(
     with output_path.open("w", encoding="utf-8") as f:
         for trace_path in trace_files:
             try:
-                row = _load_trace_row(trace_path, tasks_dir)
+                if sample_mode == "full":
+                    rows = [_load_trace_row(trace_path, tasks_dir)]
+                elif sample_mode == "turn":
+                    rows = _load_trace_turn_rows(trace_path, tasks_dir)
+                else:
+                    _, _, _, _, input_snapshots = _extract_trace_parts(trace_path)
+                    rows = (
+                        _load_trace_turn_rows(trace_path, tasks_dir)
+                        if input_snapshots and _snapshots_have_media(input_snapshots)
+                        else [_load_trace_row(trace_path, tasks_dir)]
+                    )
             except Exception as exc:
                 skipped += 1
                 LOG.error("Failed to convert %s: %s", trace_path.name, exc)
@@ -393,8 +526,9 @@ def convert_trace_directory(
                     raise
                 continue
 
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
-            written += 1
+            for row in rows:
+                f.write(json.dumps(row, ensure_ascii=False) + "\n")
+                written += 1
 
     LOG.info(
         "Finished conversion: input_files=%d written_rows=%d skipped=%d output=%s",
@@ -424,7 +558,13 @@ def main() -> int:
 
     try:
         if trace_dir is not None:
-            convert_trace_directory(trace_dir, output_path, tasks_dir, strict=args.strict)
+            convert_trace_directory(
+                trace_dir,
+                output_path,
+                tasks_dir,
+                strict=args.strict,
+                sample_mode=args.sample_mode,
+            )
         else:
             sanitize_exported_jsonl(input_jsonl, output_path, strict=args.strict)
     except Exception as exc:

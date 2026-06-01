@@ -8,10 +8,12 @@ ARG HTTPS_PROXY
 
 WORKDIR /workspace
 
-# System packages for media processing
+# System packages for media processing and file downloads
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ffmpeg \
         poppler-utils \
+        wget \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install sandbox server dependencies

@@ -11,6 +11,7 @@ from ..models.trace import (
     CompactEvent,
     GradingResult,
     MediaLoad,
+    ModelInputSnapshot,
     SystemPromptSnapshot,
     TraceEvent,
     ToolsSnapshot,
@@ -28,6 +29,7 @@ _EVENT_MAP = {
     "tool_dispatch": ToolDispatch,
     "audit_snapshot": AuditSnapshot,
     "media_load": MediaLoad,
+    "model_input_snapshot": ModelInputSnapshot,
     "compact": CompactEvent,
     "trace_end": TraceEnd,
     "grading_result": GradingResult,
@@ -83,6 +85,8 @@ def load_trace(
                 audit_data[event.service_name] = event.audit_data
             case MediaLoad():
                 media_events.append(event)
+            case ModelInputSnapshot():
+                pass
             case CompactEvent():
                 pass
             case TraceEnd():

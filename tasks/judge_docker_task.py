@@ -149,16 +149,6 @@ def _guess_prompt_needs_sandbox_tools(
     if attachments:
         return False, reasons
 
-    if task_tools:
-        known_info_tools = {
-            "ocr_extract_text",
-            "caption_describe_image",
-            "web_search",
-            "web_fetch",
-        }
-        if any(name in known_info_tools for name in task_tools):
-            return False, reasons
-
     lower_prompt = prompt_text.lower()
     lower_grader = grader_text.lower()
 

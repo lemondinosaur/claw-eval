@@ -16,7 +16,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from ..models.content import ImageBlock, TextBlock, ToolResultBlock, ToolUseBlock
+from ..models.content import ContentBlock, ImageBlock, TextBlock, ToolResultBlock, ToolUseBlock
 from ..models.trace import ToolDispatch
 from .dispatcher import ToolDispatcher
 from .sandbox_tools import SANDBOX_TOOL_NAMES
@@ -95,7 +95,7 @@ class SandboxToolDispatcher:
 
     def dispatch(
         self, tool_use: ToolUseBlock, trace_id: str
-    ) -> tuple[ToolResultBlock, ToolDispatch, list[ImageBlock] | None]:
+    ) -> tuple[ToolResultBlock, ToolDispatch, list[ContentBlock] | None]:
         if tool_use.name in SANDBOX_TOOL_NAMES:
             return self._dispatch_sandbox(tool_use, trace_id)
         result, event = self._http.dispatch(tool_use, trace_id)
@@ -110,7 +110,7 @@ class SandboxToolDispatcher:
 
     def _dispatch_sandbox(
         self, tool_use: ToolUseBlock, trace_id: str
-    ) -> tuple[ToolResultBlock, ToolDispatch, list[ImageBlock] | None]:
+    ) -> tuple[ToolResultBlock, ToolDispatch, list[ContentBlock] | None]:
         if self._sandbox_url:
             return self._dispatch_remote(tool_use, trace_id)
         return self._dispatch_local(tool_use, trace_id)
@@ -161,7 +161,7 @@ class SandboxToolDispatcher:
 
     def _dispatch_remote(
         self, tool_use: ToolUseBlock, trace_id: str
-    ) -> tuple[ToolResultBlock, ToolDispatch, list[ImageBlock] | None]:
+    ) -> tuple[ToolResultBlock, ToolDispatch, list[ContentBlock] | None]:
         path = self._PATH_MAP.get(tool_use.name)
         if not path:
             return self._error_result(
@@ -188,7 +188,7 @@ class SandboxToolDispatcher:
             )
 
         # Extract images from media tool responses
-        extra_images: list[ImageBlock] | None = None
+        extra_images: list[ContentBlock] | None = None
         is_media_response = (
             tool_use.name in _ALWAYS_MEDIA_TOOLS
             or (tool_use.name in _CONDITIONAL_MEDIA_TOOLS and "frames" in body)
@@ -199,6 +199,11 @@ class SandboxToolDispatcher:
             valid_frames = [f for f in frames if "image_b64" in f]
             total_available = len(valid_frames)
             budget = self._max_per_turn
+            source_ref = (
+                tool_use.input.get("path")
+                or tool_use.input.get("file_path")
+                or tool_use.input.get("url")
+            )
 
             # Uniform sampling when more frames than budget
             if total_available <= budget:
@@ -208,12 +213,23 @@ class SandboxToolDispatcher:
                 selected = [valid_frames[idx] for idx in indices]
 
             for frame in selected:
+                details: list[str] = [f"tool={tool_use.name}"]
+                if source_ref:
+                    details.append(f"source={source_ref}")
+                if "index" in frame:
+                    details.append(f"index={frame['index']}")
+                if "timestamp_s" in frame:
+                    details.append(f"timestamp_s={frame['timestamp_s']}")
+                extra_images.append(TextBlock(
+                    text=f"[tool_media {'; '.join(details)}]"
+                ))
                 compressed = _compress_image_b64(
                     frame["image_b64"], self._max_dimension, self._image_quality,
                 )
                 extra_images.append(ImageBlock(
                     data=compressed,
                     mime_type="image/jpeg",
+                    source_path=str(source_ref) if source_ref else None,
                 ))
 
             # Strip base64 data from text summary to save tokens
@@ -261,7 +277,7 @@ class SandboxToolDispatcher:
 
     def _dispatch_local(
         self, tool_use: ToolUseBlock, trace_id: str
-    ) -> tuple[ToolResultBlock, ToolDispatch, list[ImageBlock] | None]:
+    ) -> tuple[ToolResultBlock, ToolDispatch, list[ContentBlock] | None]:
         handler_name = self._LOCAL_HANDLERS.get(tool_use.name)
         if handler_name is None:
             return self._error_result(

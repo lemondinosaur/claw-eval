@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from pathlib import Path
@@ -60,6 +61,7 @@ class JudgeConfig(BaseModel):
 class DefaultsConfig(BaseModel):
     trace_dir: str = "traces"
     tasks_dir: str = "tasks"
+    serp_api_keys: list[str] = Field(default_factory=list)
 
 
 class SandboxConfig(BaseModel):
@@ -160,22 +162,48 @@ class Config(BaseModel):
     user_agent_model: UserAgentModelConfig = UserAgentModelConfig()
 
 
+def _load_models_json() -> dict | None:
+    """Load models.json from CWD or project root."""
+    candidates = [
+        Path.cwd() / "models.json",
+        Path(__file__).resolve().parent.parent.parent / "models.json",
+    ]
+    for p in candidates:
+        if p.exists():
+            with open(p) as f:
+                return json.load(f)
+    return None
+
+
 def load_config(path: str | Path | None = None) -> Config:
     """Load config from YAML file with ${ENV} expansion.
 
     Searches config.yaml in CWD then project root if path is not given.
     Returns defaults if no file is found.
+    Falls back to models.json for serp_api_keys if config.yaml has none.
     """
     if path is not None:
         candidates = [Path(path)]
     else:
         candidates = _SEARCH_PATHS
 
+    cfg = None
     for p in candidates:
         if p.exists():
             with open(p) as f:
                 raw = yaml.safe_load(f) or {}
             expanded = _walk_expand(raw)
-            return Config.model_validate(expanded)
+            cfg = Config.model_validate(expanded)
+            break
 
-    return Config()
+    if cfg is None:
+        cfg = Config()
+
+    if not cfg.defaults.serp_api_keys:
+        models = _load_models_json()
+        if models:
+            serp_keys = models.get("serp_api_keys", [])
+            if isinstance(serp_keys, list) and serp_keys:
+                cfg.defaults.serp_api_keys = serp_keys
+
+    return cfg

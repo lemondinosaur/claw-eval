@@ -20,9 +20,12 @@ tasks/*/fixtures/*.webm
 
 # logs/
 # create_query/log/
-mutlimodal_create_query
+multimodal_create_query
 docs/
 
+tasks_non_docker_non_web
+tasks_non_docker_splits
+traces
 # Configs (contain API keys and internal endpoints)
 configs/
 

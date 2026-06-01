@@ -20,6 +20,7 @@ from ..models.trace import (
     CompactEvent,
     DimensionScores,
     MediaLoad,
+    ModelInputSnapshot,
     SystemPromptSnapshot,
     TokenUsage,
     TraceEnd,
@@ -350,6 +351,7 @@ def run_task(
         writer.write_event(TraceMessage(
             trace_id=trace_id,
             message=messages[-1],
+            turn_index=0,
         ))
 
         # Agent loop — wrapped in try/finally so trace_end is always written,
@@ -412,6 +414,11 @@ def run_task(
 
                 # Call model
                 _log(f"[turn {turn_count + 1}/{task.environment.max_turns}] calling model ...")
+                writer.write_event(ModelInputSnapshot(
+                    trace_id=trace_id,
+                    turn_index=turn_count + 1,
+                    messages=list(messages),
+                ))
                 model_t0 = time.monotonic()
                 response, usage = provider.chat(messages, tools=task_tools)
                 model_time_s += time.monotonic() - model_t0
@@ -423,6 +430,7 @@ def run_task(
                 writer.write_event(TraceMessage(
                     trace_id=trace_id,
                     message=response,
+                    turn_index=turn_count,
                     usage=usage,
                 ))
 
@@ -449,7 +457,7 @@ def run_task(
                         user_agent_rounds += 1
                         ua_msg = Message(role="user", content=[TextBlock(text=f"[user_agent]\n{ua_text}")])
                         messages.append(ua_msg)
-                        writer.write_event(TraceMessage(trace_id=trace_id, message=ua_msg))
+                        writer.write_event(TraceMessage(trace_id=trace_id, message=ua_msg, turn_index=turn_count))
                         _log(f"[user-agent] round {user_agent_rounds}/{ua_max_rounds}: {ua_text[:100]}")
                         continue
                     _log(f"[done] no tool calls — agent finished at turn {turn_count}")
@@ -522,17 +530,19 @@ def run_task(
                 writer.write_event(TraceMessage(
                     trace_id=trace_id,
                     message=tool_msg,
+                    turn_index=turn_count,
                 ))
 
                 # Message 2: visual content (role:user with images, only if there are images)
                 if media_blocks:
-                    from ..models.content import ImageBlock as _IB
-                    caption = TextBlock(text=f"[Visual content from tool results: {len(media_blocks)} image(s)]")
+                    image_count = sum(1 for block in media_blocks if block.type == "image")
+                    caption = TextBlock(text=f"[Visual content from tool results: {image_count} image(s)]")
                     media_msg = Message(role="user", content=[caption] + media_blocks)
                     messages.append(media_msg)
                     writer.write_event(TraceMessage(
                         trace_id=trace_id,
                         message=media_msg,
+                        turn_index=turn_count,
                     ))
                     _log(f"  [media] injected {len(media_blocks)} image(s) into conversation")
         except Exception as exc:
