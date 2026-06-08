@@ -12,10 +12,7 @@ from __future__ import annotations
 
 import base64
 import re
-import subprocess
-import tempfile
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 from claw_eval.graders.base import AbstractGrader
@@ -65,47 +62,30 @@ def _iou(pred_start: float, pred_end: float,
     return inter / union if union > 0 else 0.0
 
 
-def _extract_frames_b64(video_path: Path, fps: float = 4.0) -> list[str]:
-    """Sample frames at `fps` rate from a video (always including first and last frame).
+def _read_grading_frames_from_snapshot(env_snapshot: dict | None) -> list[str]:
+    """Read pre-extracted grading frames from env_snapshot (collected from sandbox).
 
-    Returns base64-encoded JPEG strings.
+    The task.yaml ``env_snapshot_files`` glob collects PNG frames from
+    ``/workspace/grading_frames/*.png``.  This function reads those
+    pre-extracted frames instead of re-running ffmpeg on the host.
     """
-    result = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-         "-of", "csv=p=0", str(video_path)],
-        capture_output=True, text=True,
-    )
-    try:
-        duration = float(result.stdout.strip())
-    except ValueError:
-        duration = 0.0
+    if not env_snapshot:
+        return []
 
-    interval = 1.0 / fps
-    timestamps: list[float] = []
-    t = 0.0
-    while t < duration:
-        timestamps.append(t)
-        t += interval
-    if not timestamps or timestamps[-1] < duration:
-        timestamps.append(duration)
-    seen: set[float] = set()
-    timestamps = [t for t in timestamps if not (t in seen or seen.add(t))]  # type: ignore[func-returns-value]
+    frame_entries: list[tuple[int, str]] = []
+    for key, entry in env_snapshot.items():
+        if not key.startswith("file:/workspace/grading_frames/clip_frame_"):
+            continue
+        m = re.search(r"clip_frame_(\d+)", key)
+        if not m:
+            continue
+        idx = int(m.group(1))
+        b64 = entry.get("content", "") if entry.get("encoding") == "base64" else ""
+        if b64:
+            frame_entries.append((idx, b64))
 
-    frames_b64 = []
-    for ts in timestamps:
-        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
-            tmp_path = tmp.name
-        subprocess.run(
-            ["ffmpeg", "-y", "-ss", str(ts), "-i", str(video_path),
-             "-vframes", "1", "-q:v", "3", tmp_path],
-            capture_output=True,
-        )
-        p = Path(tmp_path)
-        if p.exists() and p.stat().st_size > 0:
-            frames_b64.append(base64.b64encode(p.read_bytes()).decode())
-            p.unlink(missing_ok=True)
-
-    return frames_b64
+    frame_entries.sort(key=lambda x: x[0])
+    return [b64 for _, b64 in frame_entries]
 
 
 class VideoSurveillanceClipGrader(AbstractGrader, MultimodalGraderMixin, VisualGraderMixin):
@@ -150,14 +130,7 @@ class VideoSurveillanceClipGrader(AbstractGrader, MultimodalGraderMixin, VisualG
         )
 
         if clip_b64 and judge and hasattr(judge, "evaluate_visual"):
-            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
-                tmp_path = Path(tmp.name)
-                tmp_path.write_bytes(base64.b64decode(clip_b64))
-
-            try:
-                frames_b64 = _extract_frames_b64(tmp_path, fps=4.0)
-            finally:
-                tmp_path.unlink(missing_ok=True)
+            frames_b64 = _read_grading_frames_from_snapshot(env_snapshot)
 
             if frames_b64:
                 result = judge.evaluate_visual(

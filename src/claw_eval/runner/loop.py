@@ -27,6 +27,7 @@ from ..models.trace import (
     TraceStart,
     ToolsSnapshot,
 )
+from ..trace.multimodal_turn_recorder import MultimodalTurnRecorder
 from ..trace.writer import TraceWriter
 from .agent_tools import build_agent_tools
 from .compact import (
@@ -309,7 +310,15 @@ def run_task(
     if agent_tool_list:
         _log(f"[agent tools] {', '.join(t.name for t in agent_tool_list)}")
 
-    with TraceWriter(trace_path) as writer:
+    with TraceWriter(trace_path) as writer, MultimodalTurnRecorder(
+        trace_path=trace_path,
+        trace_id=trace_id,
+        task_id=task.task_id,
+        task_name=task.task_name,
+        model_id=provider.model_id,
+        tools=task_tools,
+        media_cfg=_mcfg,
+    ) as mm_turn_recorder:
         # Write trace start
         writer.write_event(TraceStart(
             trace_id=trace_id,
@@ -413,11 +422,18 @@ def run_task(
                 # Call model
                 _log(f"[turn {turn_count + 1}/{task.environment.max_turns}] calling model ...")
                 model_t0 = time.monotonic()
+                input_snapshot = [msg.model_copy(deep=True) for msg in messages]
                 response, usage = provider.chat(messages, tools=task_tools)
                 model_time_s += time.monotonic() - model_t0
                 total_usage.input_tokens += usage.input_tokens
                 total_usage.output_tokens += usage.output_tokens
                 turn_count += 1
+                mm_turn_recorder.record_turn(
+                    turn_index=turn_count,
+                    input_messages=input_snapshot,
+                    response=response.model_copy(deep=True),
+                    usage=usage,
+                )
 
                 # Log assistant message
                 writer.write_event(TraceMessage(

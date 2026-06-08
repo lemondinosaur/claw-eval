@@ -209,7 +209,7 @@ def _message_to_openai(msg: Message) -> dict[str, Any] | list[dict[str, Any]]:
                 "type": "function",
                 "function": {
                     "name": tu.name,
-                    "arguments": json.dumps(tu.input),
+                    "arguments": json.dumps(tu.input, ensure_ascii=False),
                 },
             }
             if getattr(tu, "extra_content", None):
@@ -221,8 +221,6 @@ def _message_to_openai(msg: Message) -> dict[str, Any] | list[dict[str, Any]]:
         }
         if content:
             d["content"] = content
-        if msg.reasoning_content:
-            d["reasoning"] = msg.reasoning_content
         return d
 
     # Simple text message
@@ -230,8 +228,6 @@ def _message_to_openai(msg: Message) -> dict[str, Any] | list[dict[str, Any]]:
         "role": msg.role,
         "content": _blocks_to_openai_content(msg),
     }
-    if msg.reasoning_content:
-        d["reasoning"] = msg.reasoning_content
     return d
 
 

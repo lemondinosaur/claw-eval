@@ -1,0 +1,33 @@
+model:
+  api_key: ${OPENROUTER_API_KEY}
+  base_url: https://openrouter.ai/api/v1
+  model_id: pa/gemini-3-flash-preview
+  input_modalities: ["text", "image"]
+  context_window: 1000000
+
+judge:
+  enabled: false
+  api_key: ${OPENROUTER_API_KEY}
+  base_url: https://openrouter.ai/api/v1
+  model_id: google/gemini-3-flash-preview
+
+defaults:
+  trace_dir: traces/multimodal_trace_only
+  tasks_dir: tasks
+
+sandbox:
+  enabled: true
+  image: claw-eval-agent:latest
+
+media:
+  enabled: true
+  strict_mode: false
+  max_files: 6
+  max_bytes_per_file: 8388608
+  image_max_dimension: 2048
+  inject_tool_media: true
+  max_images_per_turn: 8
+  max_conversation_images: 24
+  image_keep_recent_turns: 3
+  tool_image_max_dimension: 512
+  tool_image_quality: 35

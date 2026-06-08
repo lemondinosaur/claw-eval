@@ -10,7 +10,7 @@ uv.lock
 
 # Traces (generated output, don't commit)
 # model_traces/
-# traces/
+traces/
 # traces_*/
 .vscode/
 CLAUDE.md
@@ -36,3 +36,6 @@ regrade/
 yqb_temp/
 others/
 models.json
+
+
+train_dataset

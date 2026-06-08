@@ -85,6 +85,7 @@ if not model_info:
 judge_general = models["judge_general"]
 judge_multiturn = models["judge_multiturn"]
 user_agent = models["user_agent"]
+serp_api_keys = models.get("serp_api_keys", [])
 
 model_id = model_info["model_id"]
 context_window = model_info.get("context_window", 262144)
@@ -122,6 +123,7 @@ judge:
 defaults:
   trace_dir: traces
   tasks_dir: tasks
+  serp_api_keys: {json.dumps(serp_api_keys)}
 """
     write_yaml(general_path, general)
 
@@ -148,6 +150,7 @@ user_agent_model:
 defaults:
   trace_dir: traces
   tasks_dir: tasks
+  serp_api_keys: {json.dumps(serp_api_keys)}
 """
     write_yaml(multiturn_path, multiturn)
 
@@ -171,6 +174,7 @@ judge:
 defaults:
   trace_dir: traces
   tasks_dir: tasks
+  serp_api_keys: {json.dumps(serp_api_keys)}
 """
     write_yaml(multimodal_path, multimodal)
 PYEOF
